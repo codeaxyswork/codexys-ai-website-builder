@@ -186,25 +186,25 @@ export function CodeaxysAIAssistant({ onUsePrompt }: CodeaxysAIAssistantProps) {
   };
 
   return (
-    <div className="fixed bottom-5 right-5 z-[9999] font-sans">
+    <div className="fixed bottom-6 right-6 z-[999999] font-sans">
       {/* FLOATING LAUNCHER BUTTON */}
       {!isOpen && (
         <button
           onClick={() => setIsOpen(true)}
-          className="group relative flex items-center gap-3 px-5 py-3.5 rounded-full bg-slate-900 text-white shadow-2xl shadow-purple-900/40 hover:bg-purple-900 border border-purple-500/40 transition-all duration-300 hover:scale-105 active:scale-95 cursor-pointer"
+          className="group relative flex items-center gap-3 px-5.5 py-4 rounded-full bg-slate-950 text-white shadow-2xl shadow-purple-900/60 hover:bg-purple-950 border-2 border-purple-500/70 transition-all duration-300 hover:scale-105 active:scale-95 cursor-pointer ring-4 ring-purple-500/20"
         >
-          {/* Subtle animated border beam glow ring */}
-          <span className="absolute -inset-1 rounded-full bg-gradient-to-r from-purple-600 via-indigo-500 to-purple-600 opacity-60 blur-xs group-hover:opacity-100 transition-opacity animate-pulse" />
+          {/* Pulsing Outer Purple Glow Aura */}
+          <span className="absolute -inset-1 rounded-full bg-gradient-to-r from-purple-600 via-fuchsia-500 to-indigo-600 opacity-85 blur-sm group-hover:opacity-100 transition-opacity animate-pulse" />
 
-          <div className="relative z-10 flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded-full bg-purple-600 text-white flex items-center justify-center shadow-inner">
-              <Sparkles className="w-4 h-4 text-purple-200 animate-spin-slow" />
+          <div className="relative z-10 flex items-center gap-3">
+            <div className="w-9 h-9 rounded-full bg-gradient-to-tr from-purple-600 to-indigo-600 text-white flex items-center justify-center shadow-lg shadow-purple-900/50">
+              <Sparkles className="w-4.5 h-4.5 text-white animate-spin-slow" />
             </div>
             <div className="flex flex-col text-left">
-              <span className="text-xs font-black tracking-wide text-white flex items-center gap-1">
-                Codeaxys AI <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping inline-block" />
+              <span className="text-xs font-black tracking-wide text-white flex items-center gap-1.5">
+                Codeaxys AI <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-ping inline-block shadow-sm shadow-emerald-400" />
               </span>
-              <span className="text-[10px] text-purple-200 font-medium">Ask or Build Prompts</span>
+              <span className="text-[10px] text-purple-200 font-bold tracking-tight">Ask or Build Website Prompts</span>
             </div>
           </div>
         </button>

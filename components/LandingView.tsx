@@ -279,12 +279,12 @@ export function LandingView({
           </div>
 
           {/* AI Generator Interactive Elevated Card */}
-          <div className="relative w-full max-w-4xl group text-left rounded-[28px] p-[2px] bg-slate-200/90 overflow-hidden shadow-2xl shadow-purple-950/15">
-            {/* Subtle Travelling Purple/Violet Border Light Beam around Entire Box */}
+          <div className="relative w-full max-w-4xl group text-left rounded-[28px] p-[2.5px] bg-purple-200/60 overflow-hidden shadow-2xl shadow-purple-950/20">
+            {/* Vivid Travelling Purple/Violet Light Beam Edge around Entire Outer Box */}
             <div
-              className="absolute inset-[-150%] animate-border-beam pointer-events-none"
+              className="absolute inset-[-200%] animate-border-beam pointer-events-none"
               style={{
-                background: "conic-gradient(from 0deg at 50% 50%, transparent 0%, transparent 65%, #9333ea 82%, #d8b4fe 90%, #9333ea 95%, transparent 100%)",
+                background: "conic-gradient(from 0deg at 50% 50%, transparent 0%, transparent 45%, #a855f7 65%, #f3e8ff 80%, #7e22ce 92%, transparent 100%)",
               }}
             />
 
