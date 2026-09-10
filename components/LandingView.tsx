@@ -280,25 +280,18 @@ export function LandingView({
 
           {/* AI Generator Interactive Elevated Card */}
           <div className="relative w-full max-w-4xl group text-left">
-            {/* Layer 1: Ambient Soft Glow Aura */}
-            <div
-              className="absolute -inset-3 sm:-inset-4 rounded-[36px] blur-xl opacity-75 animate-hue-rotate pointer-events-none"
-              style={{
-                background: "linear-gradient(135deg, #9333ea 0%, #c026d3 35%, #4f46e5 70%, #9333ea 100%)",
-              }}
-            />
+            {/* Subtle Travelling Purple/Violet Border Light Beam (Raycast / Vercel style) */}
+            <div className="absolute -inset-[1.5px] rounded-[29.5px] overflow-hidden pointer-events-none">
+              <div
+                className="absolute inset-[-150%] animate-border-beam opacity-90"
+                style={{
+                  background: "conic-gradient(from 0deg at 50% 50%, transparent 0%, transparent 75%, rgba(147, 51, 234, 0.85) 88%, rgba(168, 85, 247, 0.9) 92%, transparent 100%)",
+                }}
+              />
+            </div>
 
-            {/* Layer 2: 3px Vivid Multi-Color Animated Gradient Border Ring */}
-            <div
-              className="relative w-full rounded-[30px] shadow-2xl animate-hue-rotate transition-all duration-300"
-              style={{
-                padding: "3px",
-                background: "linear-gradient(135deg, #9333ea 0%, #c026d3 35%, #4f46e5 70%, #9333ea 100%)",
-                boxShadow: "0 15px 35px -5px rgba(147, 51, 234, 0.35)",
-              }}
-            >
-              {/* Elevated Product Card Container (Clean White Inside) */}
-              <div className="w-full bg-white rounded-[28px] p-5 sm:p-7 shadow-xl shadow-purple-950/10">
+            {/* Elevated Product Card Container (Clean White Inside) */}
+            <div className="relative w-full bg-white border border-slate-200/90 rounded-[28px] p-5 sm:p-7 shadow-2xl shadow-purple-950/10">
               <div className="flex flex-col gap-4">
                 {/* Voice Language & Mic Top Controls Bar */}
                 <div className="flex flex-wrap items-center justify-between gap-3 pb-3 border-b border-slate-100 bg-slate-50/70 p-2.5 sm:p-3 rounded-2xl border border-slate-200/60">
@@ -358,32 +351,16 @@ export function LandingView({
                   </div>
                 </div>
 
-                {/* Textarea Prompt Focus Input Area with Direct Animated Gradient Border & Glow */}
-                <div className="relative group/field w-full">
-                  {/* Textarea Soft Ambient Backdrop Glow */}
-                  <div
-                    className="absolute -inset-1.5 sm:-inset-2 rounded-3xl blur-lg opacity-75 group-hover/field:opacity-100 animate-hue-rotate pointer-events-none transition-opacity duration-300"
-                    style={{
-                      background: "linear-gradient(135deg, #9333ea 0%, #c026d3 35%, #4f46e5 70%, #9333ea 100%)",
-                    }}
+                {/* Textarea Prompt Focus Input Area */}
+                <div className="relative">
+                  <textarea
+                    value={prompt}
+                    onChange={(e) => setPrompt(e.target.value)}
+                    placeholder="Describe the website you want to create in detail... (e.g. 'Build a luxury dental clinic website with appointment booking, services grid, and patient reviews')"
+                    rows={4}
+                    disabled={isGenerating}
+                    className="w-full bg-white border border-slate-200 focus:border-purple-600 focus:ring-4 focus:ring-purple-500/10 rounded-2xl p-4.5 sm:p-5 text-slate-900 placeholder-slate-400 outline-none resize-none transition-all text-sm sm:text-base font-sans leading-relaxed shadow-inner/5"
                   />
-
-                  {/* Textarea Animated 2.5px Gradient Border Ring */}
-                  <div
-                    className="relative w-full rounded-2xl p-[2.5px] animate-hue-rotate shadow-lg shadow-purple-950/15"
-                    style={{
-                      background: "linear-gradient(135deg, #9333ea 0%, #c026d3 35%, #4f46e5 70%, #9333ea 100%)",
-                    }}
-                  >
-                    <textarea
-                      value={prompt}
-                      onChange={(e) => setPrompt(e.target.value)}
-                      placeholder="Describe the website you want to create in detail... (e.g. 'Build a luxury dental clinic website with appointment booking, services grid, and patient reviews')"
-                      rows={4}
-                      disabled={isGenerating}
-                      className="w-full bg-white rounded-[14px] p-4.5 sm:p-5 text-slate-900 placeholder-slate-400 outline-none resize-none transition-all text-sm sm:text-base font-sans leading-relaxed border-0"
-                    />
-                  </div>
                 </div>
 
                 {/* Uploaded Images Thumbnail Chips */}
@@ -456,7 +433,6 @@ export function LandingView({
               </div>
             </div>
           </div>
-        </div>
 
           {/* Error Alert */}
           {error && (

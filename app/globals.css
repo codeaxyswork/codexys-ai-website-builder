@@ -164,18 +164,19 @@ body {
   animation: border-glow-rotate 10s ease-in-out infinite;
 }
 
-@keyframes hueRotate {
+@keyframes borderBeam {
   0% {
-    filter: hue-rotate(0deg);
+    transform: rotate(0deg);
   }
   100% {
-    filter: hue-rotate(360deg);
+    transform: rotate(360deg);
   }
 }
 
-.animate-hue-rotate {
-  animation: hueRotate 6s linear infinite !important;
+.animate-border-beam {
+  animation: borderBeam 7s linear infinite !important;
 }
+
 
 
 
