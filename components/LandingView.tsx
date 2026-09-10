@@ -278,48 +278,33 @@ export function LandingView({
             </p>
           </div>
 
-          {/* Scoped CSS Keyframe Animation for Input Box Animated Glow */}
+          {/* Scoped CSS Keyframe Animation for Minimal SaaS Animated Border Highlight */}
           <style>{`
-            @keyframes input-border-glow-rotate {
+            @keyframes saas-border-travel {
               0% { background-position: 0% 50%; }
               50% { background-position: 100% 50%; }
               100% { background-position: 0% 50%; }
             }
-            .input-gradient-border {
+            .input-saas-border {
               background: linear-gradient(
-                135deg,
-                #9333ea 0%,
-                #a855f7 25%,
-                #c026d3 50%,
-                #6366f1 75%,
-                #9333ea 100%
+                120deg,
+                rgba(226, 232, 240, 0.85) 0%,
+                rgba(168, 85, 247, 0.28) 35%,
+                rgba(192, 38, 211, 0.32) 50%,
+                rgba(99, 102, 241, 0.28) 65%,
+                rgba(226, 232, 240, 0.85) 100%
               ) !important;
-              background-size: 300% 300% !important;
-              animation: input-border-glow-rotate 7s ease infinite !important;
-            }
-            .input-ambient-glow {
-              background: linear-gradient(
-                135deg,
-                rgba(147, 51, 234, 0.45) 0%,
-                rgba(168, 85, 247, 0.35) 25%,
-                rgba(192, 38, 211, 0.5) 50%,
-                rgba(99, 102, 241, 0.4) 75%,
-                rgba(147, 51, 234, 0.45) 100%
-              ) !important;
-              background-size: 300% 300% !important;
-              animation: input-border-glow-rotate 7s ease infinite !important;
+              background-size: 250% 250% !important;
+              animation: saas-border-travel 12s ease-in-out infinite !important;
             }
           `}</style>
 
           {/* AI Generator Interactive Elevated Card */}
           <div className="relative w-full max-w-4xl group text-left">
-            {/* Layer 1: Soft Ambient Blurred Backdrop Glow */}
-            <div className="absolute -inset-3 sm:-inset-4 input-ambient-glow rounded-[36px] blur-xl opacity-80 group-hover:opacity-100 transition-all duration-700 pointer-events-none" />
-
-            {/* Layer 2: Premium Animated Gradient Border Ring Container (3px Vivid Border) */}
-            <div className="relative w-full p-[3px] rounded-[31px] input-gradient-border shadow-2xl shadow-purple-950/20">
+            {/* Minimal 1px Refined SaaS Animated Gradient Border Ring */}
+            <div className="relative w-full p-[1px] rounded-[29px] input-saas-border shadow-xl shadow-slate-900/4 transition-all duration-300">
               {/* Elevated Product Card Container (Clean White Inside) */}
-              <div className="w-full bg-white rounded-[28px] p-5 sm:p-7 shadow-2xl shadow-purple-950/10">
+              <div className="w-full bg-white rounded-[28px] p-5 sm:p-7 shadow-xl shadow-slate-200/50">
               <div className="flex flex-col gap-4">
                 {/* Voice Language & Mic Top Controls Bar */}
                 <div className="flex flex-wrap items-center justify-between gap-3 pb-3 border-b border-slate-100 bg-slate-50/70 p-2.5 sm:p-3 rounded-2xl border border-slate-200/60">
