@@ -164,16 +164,18 @@ body {
   animation: border-glow-rotate 10s ease-in-out infinite;
 }
 
-@keyframes saasGlowRotate {
+@keyframes hueRotate {
   0% {
-    background-position: 0% 50%;
-  }
-  50% {
-    background-position: 100% 50%;
+    filter: hue-rotate(0deg);
   }
   100% {
-    background-position: 0% 50%;
+    filter: hue-rotate(360deg);
   }
 }
+
+.animate-hue-rotate {
+  animation: hueRotate 6s linear infinite !important;
+}
+
 
 

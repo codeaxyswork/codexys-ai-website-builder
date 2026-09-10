@@ -282,23 +282,19 @@ export function LandingView({
           <div className="relative w-full max-w-4xl group text-left">
             {/* Layer 1: Ambient Soft Glow Aura */}
             <div
-              className="absolute -inset-3 sm:-inset-4 rounded-[36px] blur-xl opacity-70 group-hover:opacity-90 transition-opacity duration-500 pointer-events-none"
+              className="absolute -inset-3 sm:-inset-4 rounded-[36px] blur-xl opacity-75 animate-hue-rotate pointer-events-none"
               style={{
-                background: "linear-gradient(135deg, rgba(147, 51, 234, 0.4) 0%, rgba(192, 38, 211, 0.45) 35%, rgba(79, 70, 229, 0.4) 70%, rgba(147, 51, 234, 0.4) 100%)",
-                backgroundSize: "300% 300%",
-                animation: "saasGlowRotate 6s ease infinite",
+                background: "linear-gradient(135deg, #9333ea 0%, #c026d3 35%, #4f46e5 70%, #9333ea 100%)",
               }}
             />
 
-            {/* Layer 2: 2.5px Vivid Multi-Color Animated Gradient Border Ring */}
+            {/* Layer 2: 3px Vivid Multi-Color Animated Gradient Border Ring */}
             <div
-              className="relative w-full rounded-[30px] shadow-2xl transition-all duration-300"
+              className="relative w-full rounded-[30px] shadow-2xl animate-hue-rotate transition-all duration-300"
               style={{
-                padding: "2.5px",
-                background: "linear-gradient(135deg, #9333ea 0%, #c026d3 30%, #4f46e5 65%, #9333ea 100%)",
-                backgroundSize: "300% 300%",
-                animation: "saasGlowRotate 6s ease infinite",
-                boxShadow: "0 15px 35px -5px rgba(147, 51, 234, 0.25)",
+                padding: "3px",
+                background: "linear-gradient(135deg, #9333ea 0%, #c026d3 35%, #4f46e5 70%, #9333ea 100%)",
+                boxShadow: "0 15px 35px -5px rgba(147, 51, 234, 0.35)",
               }}
             >
               {/* Elevated Product Card Container (Clean White Inside) */}
