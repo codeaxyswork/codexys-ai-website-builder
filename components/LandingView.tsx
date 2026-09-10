@@ -279,19 +279,17 @@ export function LandingView({
           </div>
 
           {/* AI Generator Interactive Elevated Card */}
-          <div className="relative w-full max-w-4xl group text-left">
-            {/* Subtle Travelling Purple/Violet Border Light Beam (Raycast / Vercel style) */}
-            <div className="absolute -inset-[1.5px] rounded-[29.5px] overflow-hidden pointer-events-none">
-              <div
-                className="absolute inset-[-150%] animate-border-beam opacity-90"
-                style={{
-                  background: "conic-gradient(from 0deg at 50% 50%, transparent 0%, transparent 75%, rgba(147, 51, 234, 0.85) 88%, rgba(168, 85, 247, 0.9) 92%, transparent 100%)",
-                }}
-              />
-            </div>
+          <div className="relative w-full max-w-4xl group text-left rounded-[28px] p-[2px] bg-slate-200/90 overflow-hidden shadow-2xl shadow-purple-950/10">
+            {/* Subtle Travelling Purple/Violet Border Light Beam */}
+            <div
+              className="absolute inset-[-150%] animate-border-beam pointer-events-none"
+              style={{
+                background: "conic-gradient(from 0deg at 50% 50%, transparent 0%, transparent 65%, #9333ea 82%, #d8b4fe 90%, #9333ea 95%, transparent 100%)",
+              }}
+            />
 
             {/* Elevated Product Card Container (Clean White Inside) */}
-            <div className="relative w-full bg-white border border-slate-200/90 rounded-[28px] p-5 sm:p-7 shadow-2xl shadow-purple-950/10">
+            <div className="relative w-full bg-white rounded-[26px] p-5 sm:p-7">
               <div className="flex flex-col gap-4">
                 {/* Voice Language & Mic Top Controls Bar */}
                 <div className="flex flex-wrap items-center justify-between gap-3 pb-3 border-b border-slate-100 bg-slate-50/70 p-2.5 sm:p-3 rounded-2xl border border-slate-200/60">
