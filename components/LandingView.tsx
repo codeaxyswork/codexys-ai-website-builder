@@ -358,16 +358,32 @@ export function LandingView({
                   </div>
                 </div>
 
-                {/* Textarea Prompt Focus Input Area */}
-                <div className="relative">
-                  <textarea
-                    value={prompt}
-                    onChange={(e) => setPrompt(e.target.value)}
-                    placeholder="Describe the website you want to create in detail... (e.g. 'Build a luxury dental clinic website with appointment booking, services grid, and patient reviews')"
-                    rows={4}
-                    disabled={isGenerating}
-                    className="w-full bg-white border border-slate-200 focus:border-purple-600 focus:ring-4 focus:ring-purple-500/10 rounded-2xl p-4.5 sm:p-5 text-slate-900 placeholder-slate-400 outline-none resize-none transition-all text-sm sm:text-base font-sans leading-relaxed shadow-inner/5"
+                {/* Textarea Prompt Focus Input Area with Direct Animated Gradient Border & Glow */}
+                <div className="relative group/field w-full">
+                  {/* Textarea Soft Ambient Backdrop Glow */}
+                  <div
+                    className="absolute -inset-1.5 sm:-inset-2 rounded-3xl blur-lg opacity-75 group-hover/field:opacity-100 animate-hue-rotate pointer-events-none transition-opacity duration-300"
+                    style={{
+                      background: "linear-gradient(135deg, #9333ea 0%, #c026d3 35%, #4f46e5 70%, #9333ea 100%)",
+                    }}
                   />
+
+                  {/* Textarea Animated 2.5px Gradient Border Ring */}
+                  <div
+                    className="relative w-full rounded-2xl p-[2.5px] animate-hue-rotate shadow-lg shadow-purple-950/15"
+                    style={{
+                      background: "linear-gradient(135deg, #9333ea 0%, #c026d3 35%, #4f46e5 70%, #9333ea 100%)",
+                    }}
+                  >
+                    <textarea
+                      value={prompt}
+                      onChange={(e) => setPrompt(e.target.value)}
+                      placeholder="Describe the website you want to create in detail... (e.g. 'Build a luxury dental clinic website with appointment booking, services grid, and patient reviews')"
+                      rows={4}
+                      disabled={isGenerating}
+                      className="w-full bg-white rounded-[14px] p-4.5 sm:p-5 text-slate-900 placeholder-slate-400 outline-none resize-none transition-all text-sm sm:text-base font-sans leading-relaxed border-0"
+                    />
+                  </div>
                 </div>
 
                 {/* Uploaded Images Thumbnail Chips */}
