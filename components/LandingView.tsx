@@ -280,14 +280,13 @@ export function LandingView({
 
           {/* AI Generator Interactive Elevated Card */}
           <div className="relative w-full max-w-4xl group text-left">
-            {/* Soft Ambient Blurred Backdrop Glow */}
-            <div className="absolute -inset-2 sm:-inset-3 animate-soft-glow rounded-[34px] blur-2xl opacity-60 group-hover:opacity-85 transition-opacity duration-700 pointer-events-none" />
+            {/* Layer 1: Soft Ambient Blurred Backdrop Glow */}
+            <div className="absolute -inset-3 sm:-inset-4 animate-soft-glow rounded-[36px] blur-xl opacity-75 group-hover:opacity-95 transition-all duration-700 pointer-events-none" />
 
-            {/* Premium Animated Multi-Color Gradient Border Frame */}
-            <div className="absolute -inset-[1.5px] animate-border-glow rounded-[29.5px] opacity-75 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" />
-
-            {/* Elevated Product Card Container (Clean White Inside) */}
-            <div className="relative w-full bg-white rounded-[28px] p-5 sm:p-7 shadow-2xl shadow-purple-950/10 hover:shadow-purple-950/15 transition-all duration-300">
+            {/* Layer 2: Premium Animated Gradient Border Ring Container */}
+            <div className="relative w-full p-[2px] sm:p-[2.5px] rounded-[30px] animate-border-glow shadow-xl shadow-purple-900/15">
+              {/* Elevated Product Card Container (Clean White Inside) */}
+              <div className="w-full bg-white rounded-[28px] p-5 sm:p-7 shadow-2xl shadow-purple-950/10">
               <div className="flex flex-col gap-4">
                 {/* Voice Language & Mic Top Controls Bar */}
                 <div className="flex flex-wrap items-center justify-between gap-3 pb-3 border-b border-slate-100 bg-slate-50/70 p-2.5 sm:p-3 rounded-2xl border border-slate-200/60">
@@ -429,6 +428,7 @@ export function LandingView({
               </div>
             </div>
           </div>
+        </div>
 
           {/* Error Alert */}
           {error && (
