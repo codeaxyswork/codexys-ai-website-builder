@@ -279,17 +279,9 @@ export function LandingView({
           </div>
 
           {/* AI Generator Interactive Elevated Card */}
-          <div className="relative w-full max-w-4xl group text-left rounded-[28px] p-[2px] bg-slate-200/90 overflow-hidden shadow-2xl shadow-purple-950/10">
-            {/* Subtle Travelling Purple/Violet Border Light Beam */}
-            <div
-              className="absolute inset-[-150%] animate-border-beam pointer-events-none"
-              style={{
-                background: "conic-gradient(from 0deg at 50% 50%, transparent 0%, transparent 65%, #9333ea 82%, #d8b4fe 90%, #9333ea 95%, transparent 100%)",
-              }}
-            />
-
+          <div className="relative w-full max-w-4xl group text-left">
             {/* Elevated Product Card Container (Clean White Inside) */}
-            <div className="relative w-full bg-white rounded-[26px] p-5 sm:p-7">
+            <div className="relative w-full bg-white border border-slate-200/90 rounded-[28px] p-5 sm:p-7 shadow-2xl shadow-purple-950/10">
               <div className="flex flex-col gap-4">
                 {/* Voice Language & Mic Top Controls Bar */}
                 <div className="flex flex-wrap items-center justify-between gap-3 pb-3 border-b border-slate-100 bg-slate-50/70 p-2.5 sm:p-3 rounded-2xl border border-slate-200/60">
@@ -349,15 +341,23 @@ export function LandingView({
                   </div>
                 </div>
 
-                {/* Textarea Prompt Focus Input Area */}
-                <div className="relative">
+                {/* Textarea Prompt Focus Input Area with Subtle Travelling Light Beam */}
+                <div className="relative rounded-2xl p-[1.5px] bg-slate-200/80 overflow-hidden group/input">
+                  {/* Subtle Travelling Purple/Violet Border Light Beam */}
+                  <div
+                    className="absolute inset-[-150%] animate-border-beam pointer-events-none"
+                    style={{
+                      background: "conic-gradient(from 0deg at 50% 50%, transparent 0%, transparent 65%, #9333ea 82%, #d8b4fe 90%, #9333ea 95%, transparent 100%)",
+                    }}
+                  />
+
                   <textarea
                     value={prompt}
                     onChange={(e) => setPrompt(e.target.value)}
                     placeholder="Describe the website you want to create in detail... (e.g. 'Build a luxury dental clinic website with appointment booking, services grid, and patient reviews')"
                     rows={4}
                     disabled={isGenerating}
-                    className="w-full bg-white border border-slate-200 focus:border-purple-600 focus:ring-4 focus:ring-purple-500/10 rounded-2xl p-4.5 sm:p-5 text-slate-900 placeholder-slate-400 outline-none resize-none transition-all text-sm sm:text-base font-sans leading-relaxed shadow-inner/5"
+                    className="relative w-full bg-white border-0 rounded-[14.5px] p-4.5 sm:p-5 text-slate-900 placeholder-slate-400 outline-none resize-none transition-all text-sm sm:text-base font-sans leading-relaxed shadow-inner/5"
                   />
                 </div>
 
