@@ -278,33 +278,31 @@ export function LandingView({
             </p>
           </div>
 
-          {/* Scoped CSS Keyframe Animation for Minimal SaaS Animated Border Highlight */}
-          <style>{`
-            @keyframes saas-border-travel {
-              0% { background-position: 0% 50%; }
-              50% { background-position: 100% 50%; }
-              100% { background-position: 0% 50%; }
-            }
-            .input-saas-border {
-              background: linear-gradient(
-                120deg,
-                rgba(226, 232, 240, 0.85) 0%,
-                rgba(168, 85, 247, 0.28) 35%,
-                rgba(192, 38, 211, 0.32) 50%,
-                rgba(99, 102, 241, 0.28) 65%,
-                rgba(226, 232, 240, 0.85) 100%
-              ) !important;
-              background-size: 250% 250% !important;
-              animation: saas-border-travel 12s ease-in-out infinite !important;
-            }
-          `}</style>
-
           {/* AI Generator Interactive Elevated Card */}
           <div className="relative w-full max-w-4xl group text-left">
-            {/* Minimal 1px Refined SaaS Animated Gradient Border Ring */}
-            <div className="relative w-full p-[1px] rounded-[29px] input-saas-border shadow-xl shadow-slate-900/4 transition-all duration-300">
+            {/* Layer 1: Ambient Soft Glow Aura */}
+            <div
+              className="absolute -inset-3 sm:-inset-4 rounded-[36px] blur-xl opacity-70 group-hover:opacity-90 transition-opacity duration-500 pointer-events-none"
+              style={{
+                background: "linear-gradient(135deg, rgba(147, 51, 234, 0.4) 0%, rgba(192, 38, 211, 0.45) 35%, rgba(79, 70, 229, 0.4) 70%, rgba(147, 51, 234, 0.4) 100%)",
+                backgroundSize: "300% 300%",
+                animation: "saasGlowRotate 6s ease infinite",
+              }}
+            />
+
+            {/* Layer 2: 2.5px Vivid Multi-Color Animated Gradient Border Ring */}
+            <div
+              className="relative w-full rounded-[30px] shadow-2xl transition-all duration-300"
+              style={{
+                padding: "2.5px",
+                background: "linear-gradient(135deg, #9333ea 0%, #c026d3 30%, #4f46e5 65%, #9333ea 100%)",
+                backgroundSize: "300% 300%",
+                animation: "saasGlowRotate 6s ease infinite",
+                boxShadow: "0 15px 35px -5px rgba(147, 51, 234, 0.25)",
+              }}
+            >
               {/* Elevated Product Card Container (Clean White Inside) */}
-              <div className="w-full bg-white rounded-[28px] p-5 sm:p-7 shadow-xl shadow-slate-200/50">
+              <div className="w-full bg-white rounded-[28px] p-5 sm:p-7 shadow-xl shadow-purple-950/10">
               <div className="flex flex-col gap-4">
                 {/* Voice Language & Mic Top Controls Bar */}
                 <div className="flex flex-wrap items-center justify-between gap-3 pb-3 border-b border-slate-100 bg-slate-50/70 p-2.5 sm:p-3 rounded-2xl border border-slate-200/60">
