@@ -278,13 +278,46 @@ export function LandingView({
             </p>
           </div>
 
+          {/* Scoped CSS Keyframe Animation for Input Box Animated Glow */}
+          <style>{`
+            @keyframes input-border-glow-rotate {
+              0% { background-position: 0% 50%; }
+              50% { background-position: 100% 50%; }
+              100% { background-position: 0% 50%; }
+            }
+            .input-gradient-border {
+              background: linear-gradient(
+                135deg,
+                #9333ea 0%,
+                #a855f7 25%,
+                #c026d3 50%,
+                #6366f1 75%,
+                #9333ea 100%
+              ) !important;
+              background-size: 300% 300% !important;
+              animation: input-border-glow-rotate 7s ease infinite !important;
+            }
+            .input-ambient-glow {
+              background: linear-gradient(
+                135deg,
+                rgba(147, 51, 234, 0.45) 0%,
+                rgba(168, 85, 247, 0.35) 25%,
+                rgba(192, 38, 211, 0.5) 50%,
+                rgba(99, 102, 241, 0.4) 75%,
+                rgba(147, 51, 234, 0.45) 100%
+              ) !important;
+              background-size: 300% 300% !important;
+              animation: input-border-glow-rotate 7s ease infinite !important;
+            }
+          `}</style>
+
           {/* AI Generator Interactive Elevated Card */}
           <div className="relative w-full max-w-4xl group text-left">
             {/* Layer 1: Soft Ambient Blurred Backdrop Glow */}
-            <div className="absolute -inset-3 sm:-inset-4 animate-soft-glow rounded-[36px] blur-xl opacity-75 group-hover:opacity-95 transition-all duration-700 pointer-events-none" />
+            <div className="absolute -inset-3 sm:-inset-4 input-ambient-glow rounded-[36px] blur-xl opacity-80 group-hover:opacity-100 transition-all duration-700 pointer-events-none" />
 
-            {/* Layer 2: Premium Animated Gradient Border Ring Container */}
-            <div className="relative w-full p-[2px] sm:p-[2.5px] rounded-[30px] animate-border-glow shadow-xl shadow-purple-900/15">
+            {/* Layer 2: Premium Animated Gradient Border Ring Container (3px Vivid Border) */}
+            <div className="relative w-full p-[3px] rounded-[31px] input-gradient-border shadow-2xl shadow-purple-950/20">
               {/* Elevated Product Card Container (Clean White Inside) */}
               <div className="w-full bg-white rounded-[28px] p-5 sm:p-7 shadow-2xl shadow-purple-950/10">
               <div className="flex flex-col gap-4">
