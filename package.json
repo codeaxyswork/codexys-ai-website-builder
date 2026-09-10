@@ -8,9 +8,7 @@
     "start": "next start",
     "lint": "eslint"
   },
-  "engines": {
-    "node": "20.x"
-  },
+
   "dependencies": {
     "@google/genai": "^2.21.0",
     "@supabase/ssr": "^0.12.7",
