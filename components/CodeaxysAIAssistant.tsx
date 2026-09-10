@@ -186,7 +186,7 @@ export function CodeaxysAIAssistant({ onUsePrompt }: CodeaxysAIAssistantProps) {
   };
 
   return (
-    <div className="fixed bottom-5 right-5 z-50 font-sans">
+    <div className="fixed bottom-5 right-5 z-[9999] font-sans">
       {/* FLOATING LAUNCHER BUTTON */}
       {!isOpen && (
         <button
