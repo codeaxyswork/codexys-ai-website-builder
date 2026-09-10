@@ -1,5 +1,7 @@
 "use client";
 
+export const dynamic = "force-dynamic";
+
 import React, { useState, useEffect } from "react";
 import { Header } from "@/components/Header";
 import { LandingView } from "@/components/LandingView";
