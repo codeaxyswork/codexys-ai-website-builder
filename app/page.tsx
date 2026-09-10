@@ -157,7 +157,7 @@ export default function Home() {
         setGenerationStage("generating");
       }, 1800);
 
-      const response = await fetch("/api/generate", {
+      const response = await fetch("/api/ai/generate", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
