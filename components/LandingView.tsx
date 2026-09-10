@@ -280,11 +280,14 @@ export function LandingView({
 
           {/* AI Generator Interactive Elevated Card */}
           <div className="relative w-full max-w-4xl group text-left">
-            {/* Soft Ambient Backdrop Glow */}
-            <div className="absolute -inset-1.5 bg-gradient-to-r from-purple-600/15 via-indigo-600/10 to-purple-500/15 rounded-[32px] blur-xl opacity-80 group-hover:opacity-100 transition-all duration-500 pointer-events-none" />
+            {/* Soft Ambient Blurred Backdrop Glow */}
+            <div className="absolute -inset-2 sm:-inset-3 animate-soft-glow rounded-[34px] blur-2xl opacity-60 group-hover:opacity-85 transition-opacity duration-700 pointer-events-none" />
 
-            {/* Elevated Product Card Container */}
-            <div className="relative w-full bg-white border border-slate-200/90 rounded-[28px] p-5 sm:p-7 shadow-2xl shadow-purple-950/10 hover:shadow-purple-950/15 transition-all duration-300 border-t-2 border-t-purple-600/30">
+            {/* Premium Animated Multi-Color Gradient Border Frame */}
+            <div className="absolute -inset-[1.5px] animate-border-glow rounded-[29.5px] opacity-75 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" />
+
+            {/* Elevated Product Card Container (Clean White Inside) */}
+            <div className="relative w-full bg-white rounded-[28px] p-5 sm:p-7 shadow-2xl shadow-purple-950/10 hover:shadow-purple-950/15 transition-all duration-300">
               <div className="flex flex-col gap-4">
                 {/* Voice Language & Mic Top Controls Bar */}
                 <div className="flex flex-wrap items-center justify-between gap-3 pb-3 border-b border-slate-100 bg-slate-50/70 p-2.5 sm:p-3 rounded-2xl border border-slate-200/60">
