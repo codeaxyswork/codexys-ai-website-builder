@@ -8,6 +8,7 @@ import { LandingView } from "@/components/LandingView";
 import { GenerationModal } from "@/components/GenerationModal";
 import { LivePreview } from "@/components/LivePreview";
 import { RightSidebar } from "@/components/RightSidebar";
+import { CodeaxysAIAssistant } from "@/components/CodeaxysAIAssistant";
 import { SaveState } from "@/components/SaveStatus";
 import { GeneratedFile, WebsitePlan, GenerationResponse, UploadedImage } from "@/lib/types";
 
@@ -381,6 +382,9 @@ export default function Home() {
           </>
         )}
       </main>
+
+      {/* Floating Codeaxys AI Personal Guide Assistant */}
+      <CodeaxysAIAssistant onUsePrompt={(p) => setPrompt(p)} />
     </div>
   );
 }
