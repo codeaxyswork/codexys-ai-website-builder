@@ -9,9 +9,11 @@ export async function GET(request: Request) {
   if (code) {
     const supabase = await createClient();
     const { error } = await supabase.auth.exchangeCodeForSession(code);
+
     if (!error) {
       const forwardedHost = request.headers.get("x-forwarded-host");
       const isLocalEnv = process.env.NODE_ENV === "development";
+
       if (isLocalEnv) {
         return NextResponse.redirect(`${origin}${next}`);
       } else if (forwardedHost) {
@@ -19,8 +21,15 @@ export async function GET(request: Request) {
       } else {
         return NextResponse.redirect(`${origin}${next}`);
       }
+    } else {
+      console.error("Exchange code for session error:", error);
+      return NextResponse.redirect(
+        `${origin}/login?error=${encodeURIComponent(error.message)}`
+      );
     }
   }
 
-  return NextResponse.redirect(`${origin}/login?error=Could%20not%20authenticate%20user`);
+  return NextResponse.redirect(
+    `${origin}/login?error=Could%20not%20authenticate%20user`
+  );
 }
