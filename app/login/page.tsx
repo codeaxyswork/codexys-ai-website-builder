@@ -19,7 +19,17 @@ export default function LoginPage() {
       const params = new URLSearchParams(window.location.search);
       const err = params.get("error");
       if (err) {
-        setError(err);
+        if (
+          err.includes("login_required") ||
+          err.includes("interaction_required") ||
+          err.includes("consent_required")
+        ) {
+          window.history.replaceState({}, document.title, window.location.pathname);
+          handleGoogleLogin(true);
+          return;
+        } else {
+          setError(decodeURIComponent(err));
+        }
       }
     }
 
@@ -77,7 +87,8 @@ export default function LoginPage() {
     }
   };
 
-  const handleGoogleLogin = async () => {
+  const handleGoogleLogin = async (isFallback: boolean | React.MouseEvent = false) => {
+    const forceFallback = typeof isFallback === "boolean" ? isFallback : false;
     setError(null);
     setGoogleLoading(true);
 
@@ -94,15 +105,20 @@ export default function LoginPage() {
         return;
       }
 
+      const queryParams: Record<string, string> = {
+        login_hint: "codeaxyswork@gmail.com",
+      };
+      if (!forceFallback) {
+        queryParams.prompt = "none";
+      }
+
       const supabase = createClient();
       const { data, error: authError } = await supabase.auth.signInWithOAuth({
         provider: "google",
         options: {
           redirectTo: getAuthRedirectUrl(),
           skipBrowserRedirect: true,
-          queryParams: {
-            login_hint: "codeaxyswork@gmail.com",
-          },
+          queryParams,
         },
       });
 
