@@ -112,9 +112,14 @@ export default function SignupPage() {
     setError(null);
     setGoogleLoading(true);
 
+    const timeoutId = setTimeout(() => {
+      setGoogleLoading(false);
+    }, 4000);
+
     try {
       const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
       if (!supabaseUrl || supabaseUrl.includes("your-project")) {
+        clearTimeout(timeoutId);
         setError("Supabase project is not configured yet. Please update NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY in .env.local with your Supabase credentials.");
         setGoogleLoading(false);
         return;
@@ -133,15 +138,21 @@ export default function SignupPage() {
       });
 
       if (authError) {
+        clearTimeout(timeoutId);
         setError(authError.message);
         setGoogleLoading(false);
         return;
       }
 
       if (data?.url) {
-        window.location.assign(data.url);
+        window.location.href = data.url;
+      } else {
+        clearTimeout(timeoutId);
+        setError("Could not retrieve Google sign-in URL.");
+        setGoogleLoading(false);
       }
     } catch (err: any) {
+      clearTimeout(timeoutId);
       setError(err?.message || "Could not initialize Google login.");
       setGoogleLoading(false);
     }
