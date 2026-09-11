@@ -24,7 +24,7 @@ export default async function DashboardPage() {
     .from("profiles")
     .select("*")
     .eq("id", user.id)
-    .single();
+    .maybeSingle();
 
   // Fetch user's saved websites with Phase 4 publishing fields
   const { data: dbWebsites } = await supabase

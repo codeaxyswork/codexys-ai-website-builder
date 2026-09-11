@@ -33,7 +33,7 @@ export async function getUserUsage(userId: string): Promise<UserUsageData | null
       .from("subscriptions")
       .select("plan_id, status, plans(*)")
       .eq("user_id", userId)
-      .single();
+      .maybeSingle();
 
     let plan = (sub?.plans as any) || {
       id: "free",
@@ -50,7 +50,7 @@ export async function getUserUsage(userId: string): Promise<UserUsageData | null
       .from("user_credits")
       .select("*")
       .eq("user_id", userId)
-      .single();
+      .maybeSingle();
 
     if (!creditRec) {
       // Auto-initialize credits for user if record is missing
