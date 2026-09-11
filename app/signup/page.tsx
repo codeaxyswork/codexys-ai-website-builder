@@ -3,7 +3,7 @@
 import React, { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { createClient } from "@/utils/supabase/client";
+import { createClient, getAuthRedirectUrl } from "@/utils/supabase/client";
 import { Wand2, Sparkles, ArrowRight, Loader2, AlertCircle, Lock, Mail, User, CheckCircle2 } from "lucide-react";
 
 export default function SignupPage() {
@@ -16,6 +16,37 @@ export default function SignupPage() {
   const [loading, setLoading] = useState(false);
   const [googleLoading, setGoogleLoading] = useState(false);
   const router = useRouter();
+
+  React.useEffect(() => {
+    if (typeof window !== "undefined") {
+      const params = new URLSearchParams(window.location.search);
+      const err = params.get("error");
+      if (err) {
+        setError(err);
+      }
+    }
+
+    try {
+      const supabase = createClient();
+      supabase.auth.getSession().then(({ data: { session } }) => {
+        if (session) {
+          router.push("/dashboard");
+        }
+      });
+
+      const {
+        data: { subscription },
+      } = supabase.auth.onAuthStateChange((_event, session) => {
+        if (session) {
+          router.push("/dashboard");
+        }
+      });
+
+      return () => subscription?.unsubscribe();
+    } catch (e) {
+      // Ignore
+    }
+  }, [router]);
 
   const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -52,7 +83,7 @@ export default function SignupPage() {
           data: {
             full_name: fullName.trim(),
           },
-          emailRedirectTo: `${window.location.origin}/auth/callback`,
+          emailRedirectTo: getAuthRedirectUrl(),
         },
       });
 
@@ -90,16 +121,25 @@ export default function SignupPage() {
       }
 
       const supabase = createClient();
-      const { error: authError } = await supabase.auth.signInWithOAuth({
+      const { data, error: authError } = await supabase.auth.signInWithOAuth({
         provider: "google",
         options: {
-          redirectTo: `${window.location.origin}/auth/callback`,
+          redirectTo: getAuthRedirectUrl(),
+          skipBrowserRedirect: true,
+          queryParams: {
+            login_hint: "codeaxyswork@gmail.com",
+          },
         },
       });
 
       if (authError) {
         setError(authError.message);
         setGoogleLoading(false);
+        return;
+      }
+
+      if (data?.url) {
+        window.location.assign(data.url);
       }
     } catch (err: any) {
       setError(err?.message || "Could not initialize Google login.");

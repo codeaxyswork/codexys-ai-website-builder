@@ -3,7 +3,7 @@
 import React, { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { createClient } from "@/utils/supabase/client";
+import { createClient, getAuthRedirectUrl } from "@/utils/supabase/client";
 import { Wand2, Sparkles, ArrowRight, Loader2, AlertCircle, Lock, Mail } from "lucide-react";
 
 export default function LoginPage() {
@@ -13,6 +13,37 @@ export default function LoginPage() {
   const [loading, setLoading] = useState(false);
   const [googleLoading, setGoogleLoading] = useState(false);
   const router = useRouter();
+
+  React.useEffect(() => {
+    if (typeof window !== "undefined") {
+      const params = new URLSearchParams(window.location.search);
+      const err = params.get("error");
+      if (err) {
+        setError(err);
+      }
+    }
+
+    try {
+      const supabase = createClient();
+      supabase.auth.getSession().then(({ data: { session } }) => {
+        if (session) {
+          router.push("/dashboard");
+        }
+      });
+
+      const {
+        data: { subscription },
+      } = supabase.auth.onAuthStateChange((_event, session) => {
+        if (session) {
+          router.push("/dashboard");
+        }
+      });
+
+      return () => subscription?.unsubscribe();
+    } catch (e) {
+      // Ignore
+    }
+  }, [router]);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -62,7 +93,10 @@ export default function LoginPage() {
       const { error: authError } = await supabase.auth.signInWithOAuth({
         provider: "google",
         options: {
-          redirectTo: `${window.location.origin}/auth/callback`,
+          redirectTo: getAuthRedirectUrl(),
+          queryParams: {
+            login_hint: "codeaxyswork@gmail.com",
+          },
         },
       });
 
