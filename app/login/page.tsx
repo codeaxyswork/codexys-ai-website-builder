@@ -90,10 +90,11 @@ export default function LoginPage() {
       }
 
       const supabase = createClient();
-      const { error: authError } = await supabase.auth.signInWithOAuth({
+      const { data, error: authError } = await supabase.auth.signInWithOAuth({
         provider: "google",
         options: {
           redirectTo: getAuthRedirectUrl(),
+          skipBrowserRedirect: true,
           queryParams: {
             login_hint: "codeaxyswork@gmail.com",
           },
@@ -102,6 +103,14 @@ export default function LoginPage() {
 
       if (authError) {
         setError(authError.message);
+        setGoogleLoading(false);
+        return;
+      }
+
+      if (data?.url) {
+        window.location.assign(data.url);
+      } else {
+        setError("Could not retrieve Google sign-in URL.");
         setGoogleLoading(false);
       }
     } catch (err: any) {
