@@ -22,17 +22,7 @@ export default function SignupPage() {
       const params = new URLSearchParams(window.location.search);
       const err = params.get("error");
       if (err) {
-        if (
-          err.includes("login_required") ||
-          err.includes("interaction_required") ||
-          err.includes("consent_required")
-        ) {
-          window.history.replaceState({}, document.title, window.location.pathname);
-          handleGoogleLogin(true);
-          return;
-        } else {
-          setError(decodeURIComponent(err));
-        }
+        setError(decodeURIComponent(err));
       }
     }
 
@@ -118,57 +108,31 @@ export default function SignupPage() {
     }
   };
 
-  const handleGoogleLogin = async (isFallback: boolean | React.MouseEvent = false) => {
-    const forceFallback = typeof isFallback === "boolean" ? isFallback : false;
+  const handleGoogleLogin = async () => {
     setError(null);
     setGoogleLoading(true);
-
-    const timeoutId = setTimeout(() => {
-      setGoogleLoading(false);
-    }, 4000);
 
     try {
       const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
       if (!supabaseUrl || supabaseUrl.includes("your-project")) {
-        clearTimeout(timeoutId);
         setError("Supabase project is not configured yet. Please update NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY in .env.local with your Supabase credentials.");
         setGoogleLoading(false);
         return;
       }
 
-      const queryParams: Record<string, string> = {
-        login_hint: "codeaxyswork@gmail.com",
-      };
-      if (!forceFallback) {
-        queryParams.prompt = "none";
-      }
-
       const supabase = createClient();
-      const { data, error: authError } = await supabase.auth.signInWithOAuth({
+      const { error: authError } = await supabase.auth.signInWithOAuth({
         provider: "google",
         options: {
           redirectTo: getAuthRedirectUrl(),
-          skipBrowserRedirect: true,
-          queryParams,
         },
       });
 
       if (authError) {
-        clearTimeout(timeoutId);
         setError(authError.message);
-        setGoogleLoading(false);
-        return;
-      }
-
-      if (data?.url) {
-        window.location.href = data.url;
-      } else {
-        clearTimeout(timeoutId);
-        setError("Could not retrieve Google sign-in URL.");
         setGoogleLoading(false);
       }
     } catch (err: any) {
-      clearTimeout(timeoutId);
       setError(err?.message || "Could not initialize Google login.");
       setGoogleLoading(false);
     }
