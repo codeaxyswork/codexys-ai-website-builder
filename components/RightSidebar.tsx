@@ -9,7 +9,6 @@ import {
   Loader2,
   Copy,
   Check,
-  Download,
   FileCode,
   FileText,
   FileJson,

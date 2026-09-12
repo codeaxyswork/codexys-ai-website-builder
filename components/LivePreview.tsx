@@ -87,7 +87,7 @@ export function LivePreview({ files, isGenerating }: LivePreviewProps) {
         <div className="hidden md:flex items-center gap-2 px-3 py-1 rounded-lg bg-slate-50 border border-slate-200 text-xs text-slate-500 max-w-xs w-full">
           <Globe className="w-3.5 h-3.5 text-slate-400 shrink-0" />
           <span className="truncate font-mono text-[11px] text-slate-700">
-            https://ai-website-preview.local
+            {typeof window !== "undefined" ? `${window.location.origin}/preview` : "https://codexys-ai-website-builder.vercel.app/preview"}
           </span>
         </div>
 

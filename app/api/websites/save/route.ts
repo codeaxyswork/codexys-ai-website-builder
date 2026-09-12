@@ -39,10 +39,13 @@ export async function POST(req: NextRequest) {
     if (title.length > 60) {
       title = title.substring(0, 57) + "...";
     }
-    const cleanSlug = title
+    const baseSlug = title
       .toLowerCase()
       .replace(/[^a-z0-9]+/g, "-")
       .replace(/^-+|-+$/g, "");
+    
+    const uniqueSuffix = Math.random().toString(36).substring(2, 7);
+    const cleanSlug = `${baseSlug || "site"}-${uniqueSuffix}`;
 
     let targetWebsiteId = websiteId;
 
@@ -52,7 +55,6 @@ export async function POST(req: NextRequest) {
         .from("websites")
         .update({
           title,
-          slug: cleanSlug,
           prompt: prompt || "",
           design_plan: plan || {},
           updated_at: new Date().toISOString(),
@@ -89,7 +91,7 @@ export async function POST(req: NextRequest) {
         });
       }
     } else {
-      // Create new website
+      // Create new website with unique slug
       const { data: newWebsite, error: createError } = await supabase
         .from("websites")
         .insert({
@@ -103,8 +105,8 @@ export async function POST(req: NextRequest) {
         .single();
 
       if (createError || !newWebsite) {
-        console.error("Error creating website:", createError);
-        return NextResponse.json({ error: createError?.message || "Failed to create website" }, { status: 500 });
+        console.error("Error creating website in /api/websites/save:", createError);
+        return NextResponse.json({ error: createError?.message || "Failed to create website in database." }, { status: 500 });
       }
 
       targetWebsiteId = newWebsite.id;

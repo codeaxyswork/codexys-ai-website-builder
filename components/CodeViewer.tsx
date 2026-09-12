@@ -6,7 +6,6 @@ import {
   FileText,
   Copy,
   Check,
-  Download,
   Code2,
   ChevronRight,
   FileJson,

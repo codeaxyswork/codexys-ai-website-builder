@@ -26,10 +26,27 @@ export default async function DashboardPage() {
     .eq("id", user.id)
     .maybeSingle();
 
-  // Fetch user's saved websites with Phase 4 publishing fields
+  // Fetch user's saved websites with publishing, domain, and SEO fields
   const { data: dbWebsites } = await supabase
     .from("websites")
-    .select("id, title, slug, prompt, design_plan, is_published, published_slug, published_at, created_at, updated_at")
+    .select(`
+      id,
+      title,
+      slug,
+      prompt,
+      design_plan,
+      is_published,
+      published_slug,
+      custom_domain,
+      custom_domain_verified,
+      custom_domain_status,
+      published_at,
+      created_at,
+      updated_at,
+      website_seo (
+        seo_score
+      )
+    `)
     .eq("user_id", user.id)
     .order("updated_at", { ascending: false });
 
@@ -47,7 +64,7 @@ export default async function DashboardPage() {
     user.email?.split("@")[0] ||
     "User";
 
-  const websites: WebsiteItem[] = (dbWebsites || []).map((w) => ({
+  const websites: WebsiteItem[] = (dbWebsites || []).map((w: any) => ({
     id: w.id,
     title: w.title,
     slug: w.slug,
@@ -55,9 +72,13 @@ export default async function DashboardPage() {
     design_plan: w.design_plan,
     is_published: w.is_published,
     published_slug: w.published_slug,
+    custom_domain: w.custom_domain,
+    custom_domain_verified: w.custom_domain_verified,
+    custom_domain_status: w.custom_domain_status,
     published_at: w.published_at,
     created_at: w.created_at,
     updated_at: w.updated_at,
+    website_seo: Array.isArray(w.website_seo) ? w.website_seo[0] : w.website_seo,
   }));
 
   return (

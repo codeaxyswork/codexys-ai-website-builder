@@ -7,7 +7,6 @@ import { SaveStatus, SaveState } from "@/components/SaveStatus";
 import {
   PlusCircle,
   RefreshCw,
-  Download,
   Edit3,
   PanelRightOpen,
   PanelRightClose,
@@ -167,6 +166,20 @@ export function Header({
               <RefreshCw className={`w-3.5 h-3.5 text-purple-600 ${isGenerating ? "animate-spin" : ""}`} />
               <span className="hidden sm:inline">Regenerate</span>
             </button>
+
+            {/* Primary Next-Step Action: Go to Dashboard */}
+            <Link
+              href={websiteId ? `/dashboard/websites/${websiteId}` : "/dashboard"}
+              title="Manage & Make Your Website Live"
+              className="flex items-center gap-2 px-3.5 py-1.5 rounded-xl font-bold text-xs text-white bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 active:scale-95 transition-all shadow-md shadow-purple-600/20 group cursor-pointer"
+            >
+              <LayoutDashboard className="w-4 h-4 text-purple-200 group-hover:scale-110 transition-transform shrink-0" />
+              <div className="flex flex-col items-start leading-tight">
+                <span className="text-xs font-bold tracking-wide">Go to Dashboard</span>
+                <span className="text-[9px] font-medium text-purple-200 hidden lg:inline">Manage & Make Your Website Live</span>
+              </div>
+              <ArrowRight className="w-3.5 h-3.5 text-purple-200 group-hover:translate-x-0.5 transition-transform hidden sm:inline shrink-0" />
+            </Link>
 
 
             {/* Sidebar Toggle */}

@@ -123,10 +123,13 @@ async function saveGeneratedWebsiteToDb(
   try {
     let title = plan?.brandIdentity || plan?.websiteType || "My AI Website";
     if (title.length > 60) title = title.substring(0, 57) + "...";
-    const cleanSlug = title
+    const baseSlug = title
       .toLowerCase()
       .replace(/[^a-z0-9]+/g, "-")
       .replace(/^-+|-+$/g, "");
+    
+    const uniqueSuffix = Math.random().toString(36).substring(2, 7);
+    const cleanSlug = `${baseSlug || "site"}-${uniqueSuffix}`;
 
     const htmlContent = files.find((f) => f.path.endsWith("index.html"))?.content || "";
     const cssContent = files.find((f) => f.path.endsWith("styles.css"))?.content || "";
@@ -135,11 +138,10 @@ async function saveGeneratedWebsiteToDb(
     let targetId = existingWebsiteId;
 
     if (targetId) {
-      await supabase
+      const { error: updateError } = await supabase
         .from("websites")
         .update({
           title,
-          slug: cleanSlug,
           prompt: promptText,
           design_plan: plan || {},
           updated_at: new Date().toISOString(),
@@ -147,7 +149,11 @@ async function saveGeneratedWebsiteToDb(
         .eq("id", targetId)
         .eq("user_id", userId);
 
-      await supabase
+      if (updateError) {
+        console.error("Error updating website in saveGeneratedWebsiteToDb:", updateError);
+      }
+
+      const { error: pageUpdateError } = await supabase
         .from("website_pages")
         .update({
           html_content: htmlContent,
@@ -157,8 +163,20 @@ async function saveGeneratedWebsiteToDb(
         })
         .eq("website_id", targetId)
         .eq("user_id", userId);
+
+      if (pageUpdateError) {
+        // Fallback: insert page row if missing
+        await supabase.from("website_pages").insert({
+          website_id: targetId,
+          user_id: userId,
+          path: "index.html",
+          html_content: htmlContent,
+          css_content: cssContent,
+          js_content: jsContent,
+        });
+      }
     } else {
-      const { data: newWeb } = await supabase
+      const { data: newWeb, error: createError } = await supabase
         .from("websites")
         .insert({
           user_id: userId,
@@ -170,9 +188,13 @@ async function saveGeneratedWebsiteToDb(
         .select("id")
         .single();
 
+      if (createError) {
+        console.error("Error inserting new website in saveGeneratedWebsiteToDb:", createError);
+      }
+
       if (newWeb) {
         targetId = newWeb.id;
-        await supabase.from("website_pages").insert({
+        const { error: pageInsertError } = await supabase.from("website_pages").insert({
           website_id: targetId,
           user_id: userId,
           path: "index.html",
@@ -180,6 +202,9 @@ async function saveGeneratedWebsiteToDb(
           css_content: cssContent,
           js_content: jsContent,
         });
+        if (pageInsertError) {
+          console.error("Error inserting website_pages in saveGeneratedWebsiteToDb:", pageInsertError);
+        }
       }
     }
 

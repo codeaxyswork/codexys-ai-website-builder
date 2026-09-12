@@ -1,6 +1,7 @@
 -- =====================================================================
 -- COMPLETE SUPABASE DATABASE MIGRATION SCRIPT
 -- Target Project: https://yumsturujjjgdxsrqgbm.supabase.co
+-- File: supabase/production_migration.sql
 -- =====================================================================
 
 -- ---------------------------------------------------------------------
