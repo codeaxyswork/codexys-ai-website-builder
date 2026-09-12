@@ -1,5 +1,7 @@
 import { createBrowserClient } from "@supabase/ssr";
 
+const DEFAULT_SUPABASE_URL = "https://yumsturujjjgdxsrqgbm.supabase.co";
+
 export function getAuthRedirectUrl(): string {
   let origin = "";
   if (typeof window !== "undefined" && window.location?.origin) {
@@ -19,8 +21,12 @@ export function getAuthRedirectUrl(): string {
 }
 
 export function createClient() {
-  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || "";
-  const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || "";
+  let supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || "";
+  let supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || "";
+
+  if (!supabaseUrl || !supabaseUrl.startsWith("http")) {
+    supabaseUrl = DEFAULT_SUPABASE_URL;
+  }
 
   return createBrowserClient(supabaseUrl, supabaseAnonKey);
 }

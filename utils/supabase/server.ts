@@ -1,12 +1,21 @@
 import { createServerClient } from "@supabase/ssr";
 import { cookies } from "next/headers";
 
+const DEFAULT_SUPABASE_URL = "https://yumsturujjjgdxsrqgbm.supabase.co";
+
 export async function createClient() {
   const cookieStore = await cookies();
 
+  let supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || "";
+  let supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || "";
+
+  if (!supabaseUrl || !supabaseUrl.startsWith("http")) {
+    supabaseUrl = DEFAULT_SUPABASE_URL;
+  }
+
   return createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL || "",
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || "",
+    supabaseUrl,
+    supabaseAnonKey,
     {
       cookies: {
         getAll() {

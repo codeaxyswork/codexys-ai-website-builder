@@ -1,17 +1,18 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 
+const DEFAULT_SUPABASE_URL = "https://yumsturujjjgdxsrqgbm.supabase.co";
+
 export async function updateSession(request: NextRequest) {
   let supabaseResponse = NextResponse.next({
     request,
   });
 
-  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || "";
-  const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || "";
+  let supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || "";
+  let supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || "";
 
-  // If Supabase environment variables are missing or unconfigured, bypass middleware smoothly
-  if (!supabaseUrl || !supabaseAnonKey || supabaseUrl.includes("your-project")) {
-    return supabaseResponse;
+  if (!supabaseUrl || !supabaseUrl.startsWith("http")) {
+    supabaseUrl = DEFAULT_SUPABASE_URL;
   }
 
   try {
