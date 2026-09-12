@@ -30,7 +30,7 @@ export function HomeClient() {
   const [error, setError] = useState<string | null>(null);
   const [isSidebarOpen, setIsSidebarOpen] = useState<boolean>(true);
 
-  // Load saved website if ?id=... query parameter exists in URL
+  // Load saved website if ?id=... query parameter exists in URL, or sync pending guest generation
   useEffect(() => {
     if (typeof window === "undefined") return;
     const urlParams = new URLSearchParams(window.location.search);
@@ -38,6 +38,19 @@ export function HomeClient() {
 
     if (idParam && idParam !== currentWebsiteId) {
       loadSavedWebsite(idParam);
+    } else {
+      // Check for pending guest website to auto-save after authentication
+      const pendingDataStr = sessionStorage.getItem("pending_generated_website");
+      if (pendingDataStr) {
+        try {
+          const pendingData = JSON.parse(pendingDataStr);
+          if (pendingData && pendingData.files && pendingData.files.length > 0) {
+            autoSaveWebsite(pendingData.files, pendingData.plan, pendingData.prompt, null);
+          }
+        } catch (e) {
+          sessionStorage.removeItem("pending_generated_website");
+        }
+      }
     }
   }, []);
 
@@ -96,16 +109,28 @@ export function HomeClient() {
 
       const data = await response.json();
 
-      if (response.ok && data.success && data.websiteId) {
-        setCurrentWebsiteId(data.websiteId);
-        setSaveState("saved");
-
-        if (typeof window !== "undefined") {
-          const newUrl = `${window.location.pathname}?id=${data.websiteId}`;
-          window.history.replaceState({ path: newUrl }, "", newUrl);
+      if (response.ok && data.success) {
+        if (data.isGuest) {
+          // Store pending generated website in session storage for login auto-save
+          if (typeof window !== "undefined") {
+            sessionStorage.setItem(
+              "pending_generated_website",
+              JSON.stringify({ files: targetFiles, plan: targetPlan, prompt: targetPrompt })
+            );
+          }
+          setSaveState("idle");
+        } else if (data.websiteId) {
+          setCurrentWebsiteId(data.websiteId);
+          setSaveState("saved");
+          if (typeof window !== "undefined") {
+            sessionStorage.removeItem("pending_generated_website");
+            const newUrl = `${window.location.pathname}?id=${data.websiteId}`;
+            window.history.replaceState({ path: newUrl }, "", newUrl);
+          }
+          setTimeout(() => setSaveState("idle"), 2500);
+        } else {
+          setSaveState("idle");
         }
-
-        setTimeout(() => setSaveState("idle"), 2500);
       } else {
         setSaveState("error");
       }
@@ -270,32 +295,6 @@ export function HomeClient() {
     }
   };
 
-  const handleDownloadSingleFile = (fileName: string, content: string) => {
-    if (!content) return;
-    const mimeType = fileName.endsWith(".html")
-      ? "text/html"
-      : fileName.endsWith(".css")
-      ? "text/css"
-      : fileName.endsWith(".json")
-      ? "application/json"
-      : "application/javascript";
-
-    const blob = new Blob([content], { type: mimeType });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = fileName;
-    a.click();
-    URL.revokeObjectURL(url);
-  };
-
-  const handleDownloadAllFiles = () => {
-    if (files.length === 0) return;
-    files.forEach((f) => {
-      handleDownloadSingleFile(f.path, f.content);
-    });
-  };
-
   function formatCleanErrorMessage(err: any): string {
     let msg = typeof err === "string" ? err : err?.message || "An unexpected error occurred.";
     try {
@@ -325,7 +324,6 @@ export function HomeClient() {
           setIsSidebarOpen(true);
         }}
         onRegenerate={handleGenerate}
-        onDownloadAll={handleDownloadAllFiles}
         isGenerating={isGenerating || isEditing}
         hasFiles={hasGeneratedWebsite}
         isSidebarOpen={isSidebarOpen}
@@ -371,8 +369,6 @@ export function HomeClient() {
               onEdit={handleEdit}
               isEditing={isEditing}
               isGenerating={isGenerating}
-              onDownloadSingleFile={handleDownloadSingleFile}
-              onDownloadAllFiles={handleDownloadAllFiles}
               uploadedImages={uploadedImages}
               onAddImages={handleAddImages}
               onRemoveImage={handleRemoveImage}

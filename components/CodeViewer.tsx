@@ -43,25 +43,6 @@ export function CodeViewer({ files, plan }: CodeViewerProps) {
     setTimeout(() => setCopied(false), 2000);
   };
 
-  const handleDownloadFile = () => {
-    if (!activeContent) return;
-    const mimeType = selectedFile.endsWith(".html")
-      ? "text/html"
-      : selectedFile.endsWith(".css")
-      ? "text/css"
-      : selectedFile.endsWith(".json")
-      ? "application/json"
-      : "application/javascript";
-
-    const blob = new Blob([activeContent], { type: mimeType });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = selectedFile;
-    a.click();
-    URL.revokeObjectURL(url);
-  };
-
   const getFileIcon = (fileName: string) => {
     if (fileName.endsWith(".html")) return <FileCode className="w-3.5 h-3.5 text-orange-400" />;
     if (fileName.endsWith(".css")) return <FileText className="w-3.5 h-3.5 text-cyan-400" />;
@@ -101,14 +82,6 @@ export function CodeViewer({ files, plan }: CodeViewerProps) {
             className="p-1.5 rounded-lg border border-slate-800 bg-slate-900 text-slate-400 hover:text-slate-200 hover:bg-slate-800 transition-all disabled:opacity-40"
           >
             {copied ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5" />}
-          </button>
-          <button
-            onClick={handleDownloadFile}
-            disabled={!activeContent}
-            title="Download file"
-            className="p-1.5 rounded-lg border border-slate-800 bg-slate-900 text-slate-400 hover:text-slate-200 hover:bg-slate-800 transition-all disabled:opacity-40"
-          >
-            <Download className="w-3.5 h-3.5" />
           </button>
         </div>
       </div>

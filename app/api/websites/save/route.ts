@@ -10,9 +10,9 @@ export async function POST(req: NextRequest) {
       data: { user },
     } = await supabase.auth.getUser();
 
-    // If user is unauthenticated, skip server saving without throwing an error
+    // If user is unauthenticated, return clean guest status without error
     if (!user) {
-      return NextResponse.json({ success: false, isGuest: true });
+      return NextResponse.json({ success: true, isGuest: true, websiteId: null });
     }
 
     const body = await req.json();

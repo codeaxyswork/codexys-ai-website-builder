@@ -21,7 +21,6 @@ interface HeaderProps {
   onNewProject: () => void;
   onEditPrompt: () => void;
   onRegenerate: () => void;
-  onDownloadAll: () => void;
   isGenerating: boolean;
   hasFiles: boolean;
   isSidebarOpen: boolean;
@@ -37,7 +36,6 @@ export function Header({
   onNewProject,
   onEditPrompt,
   onRegenerate,
-  onDownloadAll,
   isGenerating,
   hasFiles,
   isSidebarOpen,
@@ -170,15 +168,6 @@ export function Header({
               <span className="hidden sm:inline">Regenerate</span>
             </button>
 
-            <button
-              onClick={onDownloadAll}
-              disabled={isGenerating}
-              title="Download source files"
-              className="flex items-center gap-1.5 px-4 py-1.5 rounded-xl font-medium text-xs text-white bg-purple-600 hover:bg-purple-700 active:scale-95 transition-all shadow-sm disabled:opacity-50 cursor-pointer"
-            >
-              <Download className="w-3.5 h-3.5" />
-              <span>Download</span>
-            </button>
 
             {/* Sidebar Toggle */}
             <button

@@ -281,16 +281,26 @@ export function DashboardWebsiteList({ initialWebsites }: DashboardWebsiteListPr
 
                 <div className="flex items-center justify-between gap-1.5 flex-wrap">
                   <Link
+                    href={`/dashboard/websites/${site.id}`}
+                    className="py-1.5 px-2.5 rounded-xl border border-purple-200 bg-purple-50 hover:bg-purple-100 text-purple-700 text-xs font-semibold flex items-center justify-center gap-1 transition-all"
+                    title="Open Website Management Hub"
+                  >
+                    <Eye className="w-3.5 h-3.5" />
+                    <span>Open</span>
+                  </Link>
+
+                  <Link
                     href={`/?id=${site.id}`}
-                    className="flex-1 py-1.5 px-2.5 rounded-xl bg-purple-600 hover:bg-purple-700 text-white text-xs font-semibold flex items-center justify-center gap-1 transition-all shadow-xs active:scale-95 min-w-[70px]"
+                    className="py-1.5 px-2.5 rounded-xl bg-purple-600 hover:bg-purple-700 text-white text-xs font-semibold flex items-center justify-center gap-1 transition-all shadow-xs active:scale-95"
+                    title="Refine website with AI"
                   >
                     <Edit3 className="w-3.5 h-3.5" />
-                    <span>Edit</span>
+                    <span>Refine</span>
                   </Link>
 
                   <Link
                     href={`/dashboard/websites/${site.id}/seo`}
-                    className="py-1.5 px-2.5 rounded-xl border border-purple-200 bg-purple-50 hover:bg-purple-100 text-purple-700 text-xs font-semibold flex items-center justify-center gap-1 transition-all"
+                    className="py-1.5 px-2.5 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 text-xs font-semibold flex items-center justify-center gap-1 transition-all"
                   >
                     <span>SEO</span>
                   </Link>
