@@ -92,40 +92,48 @@ export async function generateAssistantReply(
 
   promptPayload += `\nCustomer: ${userMessage}\nCodeaxys AI:`;
 
-  try {
-    const response = await ai.models.generateContent({
-      model: model || "gemini-3.6-flash",
-      contents: [promptPayload],
-      config: {
-        temperature: 0.7,
-        maxOutputTokens: 1024,
-      },
-    });
+  const candidateModels = Array.from(new Set([model, "gemini-3.6-flash", "gemini-3.5-flash", "gemini-2.5-flash"]));
+  let lastError: any = null;
 
-    const replyText = response.text || "I'm here to help you build your website on Codeaxys! What type of website would you like to create?";
+  for (const currentModel of candidateModels) {
+    try {
+      const response = await ai.models.generateContent({
+        model: currentModel,
+        contents: [promptPayload],
+        config: {
+          temperature: 0.7,
+          maxOutputTokens: 1024,
+        },
+      });
 
-    // Extract suggested prompt if markers are present
-    let suggestedPrompt: string | null = null;
-    const promptMatch = replyText.match(/===PROMPT_START===([\s\S]*?)===PROMPT_END===/);
-    if (promptMatch && promptMatch[1]) {
-      suggestedPrompt = promptMatch[1].trim();
+      const replyText = response.text || "I'm here to help you build your website on Codeaxys! What type of website would you like to create?";
+
+      // Extract suggested prompt if markers are present
+      let suggestedPrompt: string | null = null;
+      const promptMatch = replyText.match(/===PROMPT_START===([\s\S]*?)===PROMPT_END===/);
+      if (promptMatch && promptMatch[1]) {
+        suggestedPrompt = promptMatch[1].trim();
+      }
+
+      // Clean markers out of displayed chat text for seamless UI
+      const cleanedText = replyText
+        .replace(/===PROMPT_START===[\s\S]*?===PROMPT_END===/g, "")
+        .trim();
+
+      return {
+        text: cleanedText || replyText,
+        suggestedPrompt,
+      };
+    } catch (err: any) {
+      console.warn(`Assistant model ${currentModel} failed:`, err?.message || err);
+      lastError = err;
     }
-
-    // Clean markers out of displayed chat text for seamless UI
-    const cleanedText = replyText
-      .replace(/===PROMPT_START===[\s\S]*?===PROMPT_END===/g, "")
-      .trim();
-
-    return {
-      text: cleanedText || replyText,
-      suggestedPrompt,
-    };
-  } catch (err: any) {
-    console.error("Assistant Gemini Generation Error:", err);
-    return {
-      text: "I'm having a brief connection moment with the AI server. Tell me what type of website you'd like to build, and I'll help you create the prompt!",
-      suggestedPrompt: null,
-    };
   }
+
+  console.error("All Assistant Gemini Generation Models Failed:", lastError);
+  return {
+    text: "I'm having a brief connection moment with the AI server. Tell me what type of website you'd like to build, and I'll help you create the prompt!",
+    suggestedPrompt: null,
+  };
 }
 
