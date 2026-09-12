@@ -19,7 +19,7 @@ export async function POST(req: NextRequest) {
     }
 
     const body = await req.json();
-    const { prompt, images, websiteId } = body;
+    const { prompt, images, websiteId, conversationLanguage, websiteLanguage } = body;
 
     if (!prompt || typeof prompt !== "string" || prompt.trim() === "") {
       return NextResponse.json(
@@ -78,7 +78,10 @@ export async function POST(req: NextRequest) {
     }
 
     // 3. Execute existing Gemini website generation (lib/gemini.ts UNTOUCHED)
-    const result = await generateWebsite(prompt.trim(), images);
+    const result = await generateWebsite(prompt.trim(), images, {
+      conversationLanguage,
+      websiteLanguage,
+    });
 
     // 4. If user is authenticated and Gemini generation succeeded: save & deduct credits
     let savedWebsiteId = websiteId;

@@ -1,5 +1,6 @@
 import { GoogleGenAI } from "@google/genai";
 import { getGeminiConfig } from "./gemini";
+import { buildMultilingualSystemDirective } from "./multilingual";
 
 export interface AssistantChatMessage {
   role: "user" | "model" | "assistant";
@@ -60,26 +61,27 @@ Only describe actual Codeaxys features:
 NEVER invent fake features, non-existent integrations, unannounced pricing guarantees, or fake policies. If unsure, be honest and guide the user to try generating their site.
 
 --------------------------------------------------
-5. FULL NATIVE MULTILINGUAL SUPPORT
+5. FULL NATIVE MULTILINGUAL & TWO-LAYER LANGUAGE RULES
 --------------------------------------------------
-• AUTOMATICALLY detect the user's language and respond naturally in that exact language.
-• If user speaks Malayalam, respond naturally in Malayalam (e.g. "ഹലോ! ഞാൻ Codeaxys AI ആണ്...").
-• If user speaks Tamil, respond naturally in Tamil.
-• If user speaks Hindi, respond naturally in Hindi.
-• If user speaks Arabic, respond naturally in Arabic.
-• If user speaks English, respond in English.
-• Support code-switching/mixed-language input naturally without breaking character.
+• ALWAYS respond to the customer in their preferred Conversation Language.
+• If customer selected Malayalam or speaks Malayalam/Manglish, respond in warm, natural Malayalam.
+• If customer selected Tamil/Hindi/Arabic/etc, respond in that language.
+• Support code-switching / Manglish / Hinglish / mixed scripts naturally.
+• IMPORTANT: If the customer asks for website content in a different language (e.g., "Respond in Malayalam but create website prompt in English"), generate the prompt inside ===PROMPT_START=== in English while responding to the customer in Malayalam!
 `;
 
 export async function generateAssistantReply(
   history: AssistantChatMessage[],
-  userMessage: string
+  userMessage: string,
+  conversationLanguage?: string
 ): Promise<AssistantResponse> {
   const { apiKey, model } = getGeminiConfig();
   const ai = new GoogleGenAI({ apiKey });
 
+  const langDirective = buildMultilingualSystemDirective(conversationLanguage);
+
   // Format past history for Gemini
-  let promptPayload = `${ASSISTANT_SYSTEM_PROMPT}\n\n===CONVERSATION HISTORY===\n`;
+  let promptPayload = `${ASSISTANT_SYSTEM_PROMPT}\n\n${langDirective}\n\n===CONVERSATION HISTORY===\n`;
 
   const recentHistory = history.slice(-8); // Keep last 8 turns for tight context
   recentHistory.forEach((msg) => {
@@ -125,3 +127,4 @@ export async function generateAssistantReply(
     };
   }
 }
+

@@ -190,7 +190,7 @@ export function HomeClient() {
     setUploadedImages((prev) => prev.filter((img) => img.id !== id));
   };
 
-  const executeGeneration = async (promptToRun: string, overrideUser?: any) => {
+  const executeGeneration = async (promptToRun: string, conversationLangParam?: string, overrideUser?: any) => {
     const activeUser = overrideUser || user;
 
     // DIRECT REDIRECT TO LOGIN IF LOGGED OUT
@@ -208,6 +208,8 @@ export function HomeClient() {
     setError(null);
     setGenerationStage("planning");
 
+    const activeLang = conversationLangParam || (typeof window !== "undefined" ? localStorage.getItem("codeaxys_conversation_lang") : null) || "auto";
+
     try {
       const timer = setTimeout(() => {
         setGenerationStage("generating");
@@ -220,6 +222,7 @@ export function HomeClient() {
           prompt: promptToRun,
           images: uploadedImages,
           websiteId: currentWebsiteId || undefined,
+          conversationLanguage: activeLang,
         }),
       });
 
@@ -263,8 +266,8 @@ export function HomeClient() {
     }
   };
 
-  const handleGenerate = () => {
-    executeGeneration(prompt);
+  const handleGenerate = (conversationLang?: string) => {
+    executeGeneration(prompt, conversationLang);
   };
 
   const handleSelectSamplePrompt = (samplePrompt: string) => {
@@ -272,7 +275,7 @@ export function HomeClient() {
     executeGeneration(samplePrompt);
   };
 
-  const handleEdit = async (instruction: string) => {
+  const handleEdit = async (instruction: string, conversationLangParam?: string) => {
     if (!user) {
       router.push("/login?reason=generation_required");
       return;
@@ -283,6 +286,8 @@ export function HomeClient() {
     setIsEditing(true);
     setError(null);
 
+    const activeLang = conversationLangParam || (typeof window !== "undefined" ? localStorage.getItem("codeaxys_conversation_lang") : null) || "auto";
+
     try {
       const response = await fetch("/api/edit", {
         method: "POST",
@@ -292,6 +297,7 @@ export function HomeClient() {
           instruction,
           images: uploadedImages,
           websiteId: currentWebsiteId || undefined,
+          conversationLanguage: activeLang,
         }),
       });
 

@@ -21,6 +21,8 @@ import {
   ShieldCheck,
 } from "lucide-react";
 
+import { SUPPORTED_LANGUAGES, getLanguageConfig } from "@/lib/multilingual";
+
 export interface CodeaxysAIAssistantProps {
   onUsePrompt?: (generatedPrompt: string) => void;
 }
@@ -48,6 +50,25 @@ export function CodeaxysAIAssistant({ onUsePrompt }: CodeaxysAIAssistantProps) {
   const [inputValue, setInputValue] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [copiedPromptId, setCopiedPromptId] = useState<string | null>(null);
+  const [selectedLang, setSelectedLang] = useState<string>("auto");
+
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem("codeaxys_conversation_lang");
+      if (saved) {
+        setSelectedLang(saved);
+      }
+    } catch (e) {}
+  }, []);
+
+  const handleLangChange = (code: string) => {
+    setSelectedLang(code);
+    try {
+      localStorage.setItem("codeaxys_conversation_lang", code);
+      // Dispatch custom event to sync with other components
+      window.dispatchEvent(new CustomEvent("codeaxys_lang_changed", { detail: code }));
+    } catch (e) {}
+  };
 
   const initialWelcomeMessage: MessageItem = {
     id: "msg_welcome",
@@ -102,6 +123,7 @@ export function CodeaxysAIAssistant({ onUsePrompt }: CodeaxysAIAssistantProps) {
         body: JSON.stringify({
           history: historyPayload,
           userMessage: messageContent,
+          conversationLanguage: selectedLang,
         }),
       });
 
@@ -233,11 +255,27 @@ export function CodeaxysAIAssistant({ onUsePrompt }: CodeaxysAIAssistantProps) {
               </div>
             </div>
 
-            <div className="flex items-center gap-1">
+            <div className="flex items-center gap-1.5">
+              <div className="flex items-center gap-1 bg-purple-900/60 border border-purple-700/50 rounded-xl px-2 py-1 text-white">
+                <Globe className="w-3.5 h-3.5 text-purple-300 shrink-0" />
+                <select
+                  value={selectedLang}
+                  onChange={(e) => handleLangChange(e.target.value)}
+                  className="bg-transparent text-[11px] font-semibold text-purple-100 outline-none cursor-pointer max-w-[105px] truncate"
+                  title="Select AI Conversation Language"
+                >
+                  {SUPPORTED_LANGUAGES.map((lang) => (
+                    <option key={lang.code} value={lang.code} className="bg-slate-900 text-white">
+                      {lang.label}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
               <button
                 onClick={handleResetChat}
                 title="Reset Conversation"
-                className="p-2 rounded-xl text-slate-400 hover:text-white hover:bg-slate-800 transition-colors cursor-pointer"
+                className="p-1.5 rounded-xl text-slate-400 hover:text-white hover:bg-slate-800 transition-colors cursor-pointer"
               >
                 <RotateCcw className="w-4 h-4" />
               </button>

@@ -25,14 +25,15 @@ import {
   X,
   Languages,
 } from "lucide-react";
-import { GeneratedFile, WebsitePlan, UploadedImage, LANGUAGE_OPTIONS } from "@/lib/types";
+import { GeneratedFile, WebsitePlan, UploadedImage } from "@/lib/types";
+import { SUPPORTED_LANGUAGES, getLanguageConfig } from "@/lib/multilingual";
 
 interface RightSidebarProps {
   isOpen: boolean;
   onToggle: () => void;
   files: GeneratedFile[];
   plan: WebsitePlan | null;
-  onEdit: (instruction: string) => void;
+  onEdit: (instruction: string, conversationLang?: string) => void;
   isEditing: boolean;
   isGenerating: boolean;
   uploadedImages: UploadedImage[];
@@ -63,6 +64,31 @@ export function RightSidebar({
   const initialInstructionRef = useRef(editInstruction);
   const accumulatedTextRef = useRef("");
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem("codeaxys_conversation_lang");
+      if (saved) {
+        setSelectedLang(saved);
+      }
+    } catch (e) {}
+
+    const handleLangEvent = (e: any) => {
+      if (e.detail) {
+        setSelectedLang(e.detail);
+      }
+    };
+    window.addEventListener("codeaxys_lang_changed", handleLangEvent);
+    return () => window.removeEventListener("codeaxys_lang_changed", handleLangEvent);
+  }, []);
+
+  const handleLangSelect = (code: string) => {
+    setSelectedLang(code);
+    try {
+      localStorage.setItem("codeaxys_conversation_lang", code);
+      window.dispatchEvent(new CustomEvent("codeaxys_lang_changed", { detail: code }));
+    } catch (e) {}
+  };
 
   const editSuggestions = [
     "Make the hero section darker and cinematic",
@@ -194,7 +220,7 @@ export function RightSidebar({
   const handleEditSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!editInstruction.trim() || isEditing || isGenerating) return;
-    onEdit(editInstruction);
+    onEdit(editInstruction, selectedLang);
     setEditInstruction("");
   };
 
@@ -315,14 +341,14 @@ export function RightSidebar({
               <div className="flex items-center justify-between gap-1 pb-1.5 px-0.5 border-b border-slate-100">
                 <div className="flex items-center gap-1.5 min-w-0">
                   <Languages className="w-3.5 h-3.5 text-purple-600 shrink-0" />
-                  <span className="text-[11px] font-semibold text-slate-700 shrink-0">Voice Lang:</span>
+                  <span className="text-[11px] font-semibold text-slate-700 shrink-0">AI Lang:</span>
                   <select
                     value={selectedLang}
-                    onChange={(e) => setSelectedLang(e.target.value)}
+                    onChange={(e) => handleLangSelect(e.target.value)}
                     disabled={isListening || isEditing}
                     className="bg-slate-50 hover:bg-slate-100 border border-slate-200 text-[11px] font-medium text-slate-800 rounded-lg px-2 py-1 outline-none focus:border-purple-500 transition-all cursor-pointer truncate max-w-[130px]"
                   >
-                    {LANGUAGE_OPTIONS.map((lang) => (
+                    {SUPPORTED_LANGUAGES.map((lang) => (
                       <option key={lang.code} value={lang.code}>
                         {lang.label}
                       </option>

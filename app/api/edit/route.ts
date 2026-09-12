@@ -19,7 +19,7 @@ export async function POST(req: NextRequest) {
     }
 
     const body = await req.json();
-    const { files, instruction, images, websiteId } = body;
+    const { files, instruction, images, websiteId, conversationLanguage, websiteLanguage } = body;
 
     if (!files || !Array.isArray(files) || files.length === 0) {
       return NextResponse.json(
@@ -66,7 +66,10 @@ export async function POST(req: NextRequest) {
     }
 
     // 2. Call existing Gemini AI edit (lib/gemini.ts UNTOUCHED)
-    const result = await editWebsite(files as GeneratedFile[], instruction.trim(), images);
+    const result = await editWebsite(files as GeneratedFile[], instruction.trim(), images, {
+      conversationLanguage,
+      websiteLanguage,
+    });
 
     // 3. If user is authenticated and Gemini edit succeeded: save & deduct credits
     if (user && result && result.files && result.files.length > 0) {

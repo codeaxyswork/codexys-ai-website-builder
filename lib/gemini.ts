@@ -1,5 +1,6 @@
 import { GoogleGenAI } from "@google/genai";
 import { GenerationResponse, GeneratedFile, WebsitePlan, UploadedImage } from "./types";
+import { buildMultilingualSystemDirective } from "./multilingual";
 
 export function getGeminiConfig() {
   const apiKey = process.env.GEMINI_API_KEY;
@@ -94,12 +95,18 @@ CRITICAL INSTRUCTIONS:
 
 export async function generateWebsite(
   userPrompt: string,
-  images?: UploadedImage[]
+  images?: UploadedImage[],
+  options?: { conversationLanguage?: string; websiteLanguage?: string }
 ): Promise<GenerationResponse> {
   const { apiKey, model } = getGeminiConfig();
   const ai = new GoogleGenAI({ apiKey });
 
-  let promptText = `${SYSTEM_GENERATION_PROMPT}\n\nUSER PROMPT: "${userPrompt}"`;
+  const langDirective = buildMultilingualSystemDirective(
+    options?.conversationLanguage,
+    options?.websiteLanguage
+  );
+
+  let promptText = `${SYSTEM_GENERATION_PROMPT}\n\n${langDirective}\n\nUSER PROMPT: "${userPrompt}"`;
 
   if (images && images.length > 0) {
     promptText += `\n\nUSER ATTACHED ASSETS / IMAGES (${images.length} files attached):\n`;
@@ -128,6 +135,8 @@ export async function generateWebsite(
   console.log("REAL GEMINI API REQUEST STARTED");
   console.log(`MODEL BEING USED: ${model}`);
   console.log(`ATTACHED IMAGES: ${images ? images.length : 0}`);
+  console.log(`CONVERSATION LANG: ${options?.conversationLanguage || "auto"}`);
+  console.log(`WEBSITE CONTENT LANG: ${options?.websiteLanguage || "auto"}`);
   console.log("REQUEST SENT TO GEMINI...");
 
   const candidateModels = Array.from(new Set([model, "gemini-3.6-flash", "gemini-3.5-flash", "gemini-2.5-flash"]));
@@ -165,16 +174,22 @@ export async function generateWebsite(
 export async function editWebsite(
   currentFiles: GeneratedFile[],
   instruction: string,
-  images?: UploadedImage[]
+  images?: UploadedImage[],
+  options?: { conversationLanguage?: string; websiteLanguage?: string }
 ): Promise<GenerationResponse> {
   const { apiKey, model } = getGeminiConfig();
   const ai = new GoogleGenAI({ apiKey });
+
+  const langDirective = buildMultilingualSystemDirective(
+    options?.conversationLanguage,
+    options?.websiteLanguage
+  );
 
   const currentCodeSummary = currentFiles
     .map((f) => `--- FILE: ${f.path} ---\n${f.content}`)
     .join("\n\n");
 
-  let promptText = `${SYSTEM_EDIT_PROMPT}\n\nCURRENT WEBSITE SOURCE CODE:\n${currentCodeSummary}\n\nUSER EDIT INSTRUCTION: "${instruction}"`;
+  let promptText = `${SYSTEM_EDIT_PROMPT}\n\n${langDirective}\n\nCURRENT WEBSITE SOURCE CODE:\n${currentCodeSummary}\n\nUSER EDIT INSTRUCTION: "${instruction}"`;
 
   if (images && images.length > 0) {
     promptText += `\n\nNEW ATTACHED ASSETS (${images.length} images):\n`;

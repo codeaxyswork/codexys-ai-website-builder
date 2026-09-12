@@ -14,7 +14,7 @@ export async function POST(req: NextRequest) {
     }
 
     const body = await req.json();
-    const { history = [], userMessage } = body;
+    const { history = [], userMessage, conversationLanguage } = body;
 
     if (!userMessage || typeof userMessage !== "string" || userMessage.trim() === "") {
       return NextResponse.json(
@@ -25,7 +25,8 @@ export async function POST(req: NextRequest) {
 
     const result = await generateAssistantReply(
       history as AssistantChatMessage[],
-      userMessage.trim()
+      userMessage.trim(),
+      conversationLanguage
     );
 
     return NextResponse.json({

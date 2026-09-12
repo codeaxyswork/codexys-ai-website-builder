@@ -35,12 +35,13 @@ import {
   UserCheck,
   Rocket,
 } from "lucide-react";
-import { UploadedImage, LANGUAGE_OPTIONS } from "@/lib/types";
+import { UploadedImage } from "@/lib/types";
+import { SUPPORTED_LANGUAGES, getLanguageConfig } from "@/lib/multilingual";
 
 interface LandingViewProps {
   prompt: string;
   setPrompt: (p: string) => void;
-  onGenerate: () => void;
+  onGenerate: (conversationLang?: string) => void;
   onSelectSamplePrompt: (sample: string) => void;
   isGenerating: boolean;
   error: string | null;
@@ -69,6 +70,31 @@ export function LandingView({
   const initialPromptRef = useRef(prompt);
   const accumulatedTextRef = useRef("");
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem("codeaxys_conversation_lang");
+      if (saved) {
+        setSelectedLang(saved);
+      }
+    } catch (e) {}
+
+    const handleLangEvent = (e: any) => {
+      if (e.detail) {
+        setSelectedLang(e.detail);
+      }
+    };
+    window.addEventListener("codeaxys_lang_changed", handleLangEvent);
+    return () => window.removeEventListener("codeaxys_lang_changed", handleLangEvent);
+  }, []);
+
+  const handleLangSelect = (code: string) => {
+    setSelectedLang(code);
+    try {
+      localStorage.setItem("codeaxys_conversation_lang", code);
+      window.dispatchEvent(new CustomEvent("codeaxys_lang_changed", { detail: code }));
+    } catch (e) {}
+  };
 
   const sampleChips = [
     {
@@ -146,16 +172,15 @@ export function LandingView({
         recognition.continuous = true;
         recognition.interimResults = true;
 
-        if (selectedLang === "auto") {
+        const langCfg = getLanguageConfig(selectedLang);
+        if (langCfg.sttLocale) {
+          recognition.lang = langCfg.sttLocale;
+        } else {
           const detectedLang =
             (navigator.languages && navigator.languages.length ? navigator.languages[0] : null) ||
             navigator.language ||
-            "";
-          if (detectedLang) {
-            recognition.lang = detectedLang;
-          }
-        } else {
-          recognition.lang = selectedLang;
+            "en-US";
+          recognition.lang = detectedLang;
         }
 
         recognition.onstart = () => {
@@ -295,14 +320,14 @@ export function LandingView({
                 <div className="flex flex-wrap items-center justify-between gap-3 pb-3 border-b border-slate-100 bg-slate-50/70 p-2.5 sm:p-3 rounded-2xl border border-slate-200/60">
                   <div className="flex items-center gap-2">
                     <Languages className="w-4 h-4 text-purple-600 shrink-0" />
-                    <span className="text-xs font-semibold text-slate-700">Voice Language:</span>
+                    <span className="text-xs font-semibold text-slate-700">AI Language:</span>
                     <select
                       value={selectedLang}
-                      onChange={(e) => setSelectedLang(e.target.value)}
+                      onChange={(e) => handleLangSelect(e.target.value)}
                       disabled={isListening || isGenerating}
                       className="bg-white hover:bg-slate-50 border border-slate-200 text-xs font-semibold text-slate-800 rounded-xl px-3 py-1.5 outline-none focus:border-purple-500 transition-all cursor-pointer shadow-2xs max-w-[180px] sm:max-w-none truncate"
                     >
-                      {LANGUAGE_OPTIONS.map((lang) => (
+                      {SUPPORTED_LANGUAGES.map((lang) => (
                         <option key={lang.code} value={lang.code}>
                           {lang.label}
                         </option>
@@ -419,7 +444,7 @@ export function LandingView({
                   </div>
 
                   <button
-                    onClick={onGenerate}
+                    onClick={() => onGenerate(selectedLang)}
                     disabled={!prompt.trim() || isGenerating}
                     className="w-full sm:w-auto px-8 py-3.5 rounded-xl font-extrabold text-sm text-white bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 active:scale-[0.98] transition-all shadow-lg shadow-purple-600/25 hover:shadow-xl hover:shadow-purple-600/35 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2.5 shrink-0 cursor-pointer border border-purple-500/30"
                   >
