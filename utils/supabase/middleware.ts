@@ -9,7 +9,9 @@ export async function updateSession(request: NextRequest) {
   });
 
   let supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || "";
-  let supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || "";
+  let supabaseAnonKey = (process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || "")
+    .trim()
+    .replace(/^["'\s]+|["'\s]+$/g, "");
 
   if (!supabaseUrl || !supabaseUrl.startsWith("http")) {
     supabaseUrl = DEFAULT_SUPABASE_URL;
