@@ -2,7 +2,7 @@ import { createBrowserClient } from "@supabase/ssr";
 
 const DEFAULT_SUPABASE_URL = "https://yumsturujjjgdxsrqgbm.supabase.co";
 
-export function getAuthRedirectUrl(): string {
+export function getAuthRedirectUrl(nextPath?: string): string {
   let origin = "";
   if (typeof window !== "undefined" && window.location?.origin) {
     origin = window.location.origin;
@@ -17,7 +17,9 @@ export function getAuthRedirectUrl(): string {
   } else {
     origin = "http://localhost:3000";
   }
-  return `${origin.replace(/\/$/, "")}/auth/callback`;
+  const cleanOrigin = origin.replace(/\/$/, "");
+  const callbackUrl = `${cleanOrigin}/auth/callback`;
+  return nextPath ? `${callbackUrl}?next=${encodeURIComponent(nextPath)}` : callbackUrl;
 }
 
 export function createClient() {

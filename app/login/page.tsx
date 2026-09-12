@@ -27,7 +27,9 @@ export default function LoginPage() {
       const supabase = createClient();
       supabase.auth.getSession().then(({ data: { session } }) => {
         if (session) {
-          router.push("/dashboard");
+          const pendingPrompt = typeof window !== "undefined" ? sessionStorage.getItem("pending_prompt") : null;
+          const targetUrl = pendingPrompt ? "/" : "/dashboard";
+          router.push(targetUrl);
         }
       });
 
@@ -35,7 +37,9 @@ export default function LoginPage() {
         data: { subscription },
       } = supabase.auth.onAuthStateChange((_event, session) => {
         if (session) {
-          router.push("/dashboard");
+          const pendingPrompt = typeof window !== "undefined" ? sessionStorage.getItem("pending_prompt") : null;
+          const targetUrl = pendingPrompt ? "/" : "/dashboard";
+          router.push(targetUrl);
         }
       });
 
@@ -69,7 +73,9 @@ export default function LoginPage() {
         return;
       }
 
-      router.push("/dashboard");
+      const pendingPrompt = typeof window !== "undefined" ? sessionStorage.getItem("pending_prompt") : null;
+      const targetUrl = pendingPrompt ? "/" : "/dashboard";
+      router.push(targetUrl);
       router.refresh();
     } catch (err: any) {
       setError(err?.message || "An unexpected error occurred during login.");
@@ -82,18 +88,14 @@ export default function LoginPage() {
     setGoogleLoading(true);
 
     try {
-      const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-      if (!supabaseUrl || supabaseUrl.includes("your-project")) {
-        setError("Supabase project is not configured yet. Please update NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY in .env.local with your Supabase credentials.");
-        setGoogleLoading(false);
-        return;
-      }
+      const pendingPrompt = typeof window !== "undefined" ? sessionStorage.getItem("pending_prompt") : null;
+      const targetUrl = pendingPrompt ? "/" : "/dashboard";
 
       const supabase = createClient();
       const { error: authError } = await supabase.auth.signInWithOAuth({
         provider: "google",
         options: {
-          redirectTo: getAuthRedirectUrl(),
+          redirectTo: getAuthRedirectUrl(targetUrl),
         },
       });
 
