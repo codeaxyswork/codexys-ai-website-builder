@@ -1,6 +1,9 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { createClient, getAuthRedirectUrl } from "@/utils/supabase/client";
 import { Header } from "@/components/Header";
 import { LandingView } from "@/components/LandingView";
 import { GenerationModal } from "@/components/GenerationModal";
@@ -9,8 +12,10 @@ import { RightSidebar } from "@/components/RightSidebar";
 import { CodeaxysAIAssistant } from "@/components/CodeaxysAIAssistant";
 import { SaveState } from "@/components/SaveStatus";
 import { GeneratedFile, WebsitePlan, GenerationResponse, UploadedImage } from "@/lib/types";
+import { Sparkles, LogIn, X, ArrowRight, Loader2 } from "lucide-react";
 
 export function HomeClient() {
+  const router = useRouter();
   const [prompt, setPrompt] = useState<string>(
     "Create a premium luxury car showroom website called Velocity Motors."
   );
@@ -30,7 +35,42 @@ export function HomeClient() {
   const [error, setError] = useState<string | null>(null);
   const [isSidebarOpen, setIsSidebarOpen] = useState<boolean>(true);
 
-  // Load saved website if ?id=... query parameter exists in URL, or sync pending guest generation
+  // Authentication State & Auth Modal
+  const [user, setUser] = useState<any>(null);
+  const [isAuthModalOpen, setIsAuthModalOpen] = useState<boolean>(false);
+  const [googleLoading, setGoogleLoading] = useState<boolean>(false);
+
+  // Track Supabase Auth State & Pending Prompt Execution
+  useEffect(() => {
+    try {
+      const supabase = createClient();
+      supabase.auth.getUser().then(({ data }: { data: any }) => {
+        const currentUser = data?.user || null;
+        setUser(currentUser);
+
+        if (currentUser) {
+          checkAndExecutePendingPrompt(currentUser);
+        }
+      });
+
+      const { data: listener } = supabase.auth.onAuthStateChange((_: any, session: any) => {
+        const currentUser = session?.user || null;
+        setUser(currentUser);
+
+        if (currentUser) {
+          checkAndExecutePendingPrompt(currentUser);
+        }
+      });
+
+      return () => {
+        listener?.subscription?.unsubscribe();
+      };
+    } catch (e) {
+      // Ignore auth initialization errors
+    }
+  }, []);
+
+  // Load saved website if ?id=... query parameter exists
   useEffect(() => {
     if (typeof window === "undefined") return;
     const urlParams = new URLSearchParams(window.location.search);
@@ -38,21 +78,18 @@ export function HomeClient() {
 
     if (idParam && idParam !== currentWebsiteId) {
       loadSavedWebsite(idParam);
-    } else {
-      // Check for pending guest website to auto-save after authentication
-      const pendingDataStr = sessionStorage.getItem("pending_generated_website");
-      if (pendingDataStr) {
-        try {
-          const pendingData = JSON.parse(pendingDataStr);
-          if (pendingData && pendingData.files && pendingData.files.length > 0) {
-            autoSaveWebsite(pendingData.files, pendingData.plan, pendingData.prompt, null);
-          }
-        } catch (e) {
-          sessionStorage.removeItem("pending_generated_website");
-        }
-      }
     }
   }, []);
+
+  const checkAndExecutePendingPrompt = (authenticatedUser: any) => {
+    if (typeof window === "undefined") return;
+    const pendingPrompt = sessionStorage.getItem("pending_prompt");
+    if (pendingPrompt && pendingPrompt.trim()) {
+      sessionStorage.removeItem("pending_prompt");
+      setPrompt(pendingPrompt);
+      executeGeneration(pendingPrompt, authenticatedUser);
+    }
+  };
 
   const loadSavedWebsite = async (id: string) => {
     setIsLoadingSavedWebsite(true);
@@ -93,6 +130,7 @@ export function HomeClient() {
     targetPrompt: string,
     existingId: string | null
   ) => {
+    if (!user) return;
     setSaveState("saving");
 
     try {
@@ -109,28 +147,14 @@ export function HomeClient() {
 
       const data = await response.json();
 
-      if (response.ok && data.success) {
-        if (data.isGuest) {
-          // Store pending generated website in session storage for login auto-save
-          if (typeof window !== "undefined") {
-            sessionStorage.setItem(
-              "pending_generated_website",
-              JSON.stringify({ files: targetFiles, plan: targetPlan, prompt: targetPrompt })
-            );
-          }
-          setSaveState("idle");
-        } else if (data.websiteId) {
-          setCurrentWebsiteId(data.websiteId);
-          setSaveState("saved");
-          if (typeof window !== "undefined") {
-            sessionStorage.removeItem("pending_generated_website");
-            const newUrl = `${window.location.pathname}?id=${data.websiteId}`;
-            window.history.replaceState({ path: newUrl }, "", newUrl);
-          }
-          setTimeout(() => setSaveState("idle"), 2500);
-        } else {
-          setSaveState("idle");
+      if (response.ok && data.success && data.websiteId) {
+        setCurrentWebsiteId(data.websiteId);
+        setSaveState("saved");
+        if (typeof window !== "undefined") {
+          const newUrl = `${window.location.pathname}?id=${data.websiteId}`;
+          window.history.replaceState({ path: newUrl }, "", newUrl);
         }
+        setTimeout(() => setSaveState("idle"), 2500);
       } else {
         setSaveState("error");
       }
@@ -171,7 +195,18 @@ export function HomeClient() {
     setUploadedImages((prev) => prev.filter((img) => img.id !== id));
   };
 
-  const executeGeneration = async (promptToRun: string) => {
+  const executeGeneration = async (promptToRun: string, overrideUser?: any) => {
+    const activeUser = overrideUser || user;
+
+    // STRICT AUTHENTICATION REQUIREMENT BEFORE GENERATION
+    if (!activeUser) {
+      if (typeof window !== "undefined") {
+        sessionStorage.setItem("pending_prompt", promptToRun);
+      }
+      setIsAuthModalOpen(true);
+      return;
+    }
+
     if (!promptToRun.trim() || isGenerating || isEditing) return;
 
     setIsGenerating(true);
@@ -198,6 +233,10 @@ export function HomeClient() {
       const data = await response.json();
 
       if (!response.ok || data.error) {
+        if (response.status === 401) {
+          setIsAuthModalOpen(true);
+          return;
+        }
         const cleanMsg = formatCleanErrorMessage(data.error);
         setError(cleanMsg);
         setGenerationStage("error");
@@ -238,7 +277,27 @@ export function HomeClient() {
     executeGeneration(samplePrompt);
   };
 
+  const handleGoogleLoginInModal = async () => {
+    setGoogleLoading(true);
+    try {
+      const supabase = createClient();
+      await supabase.auth.signInWithOAuth({
+        provider: "google",
+        options: {
+          redirectTo: getAuthRedirectUrl(),
+        },
+      });
+    } catch (err) {
+      setGoogleLoading(false);
+    }
+  };
+
   const handleEdit = async (instruction: string) => {
+    if (!user) {
+      setIsAuthModalOpen(true);
+      return;
+    }
+
     if (!instruction.trim() || files.length === 0 || isEditing || isGenerating) return;
 
     setIsEditing(true);
@@ -259,6 +318,10 @@ export function HomeClient() {
       const data = await response.json();
 
       if (!response.ok || data.error) {
+        if (response.status === 401) {
+          setIsAuthModalOpen(true);
+          return;
+        }
         setError(formatCleanErrorMessage(data.error));
         return;
       }
@@ -379,6 +442,78 @@ export function HomeClient() {
 
       {/* Floating Codeaxys AI Personal Guide Assistant */}
       <CodeaxysAIAssistant onUsePrompt={(p) => setPrompt(p)} />
+
+      {/* Customer-Friendly Auth Required Modal */}
+      {isAuthModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs animate-in fade-in duration-200">
+          <div className="bg-white border border-slate-200 rounded-3xl p-6 sm:p-8 max-w-md w-full shadow-2xl space-y-6 relative">
+            {/* Close Button */}
+            <button
+              onClick={() => setIsAuthModalOpen(false)}
+              className="absolute top-5 right-5 p-1.5 rounded-full text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-all cursor-pointer"
+            >
+              <X className="w-5 h-5" />
+            </button>
+
+            {/* Header / Branding */}
+            <div className="flex flex-col items-center text-center space-y-2">
+              <div className="w-12 h-12 rounded-2xl bg-purple-50 border border-purple-200 text-purple-600 flex items-center justify-center shadow-xs">
+                <Sparkles className="w-6 h-6" />
+              </div>
+              <h3 className="text-xl font-extrabold text-slate-900 tracking-tight">
+                Please log in to create your website
+              </h3>
+              <p className="text-xs text-slate-600 leading-relaxed max-w-xs">
+                Sign in to generate, customize, and save your AI websites to your dashboard.
+              </p>
+            </div>
+
+            {/* Actions */}
+            <div className="space-y-3 pt-2">
+              {/* Primary Action: Log in with Google */}
+              <button
+                onClick={handleGoogleLoginInModal}
+                disabled={googleLoading}
+                className="w-full py-3 px-4 rounded-2xl font-bold text-xs text-slate-800 bg-slate-50 hover:bg-purple-50 hover:text-purple-700 border border-slate-200 hover:border-purple-200 transition-all flex items-center justify-center gap-3 shadow-2xs active:scale-[0.98] cursor-pointer disabled:opacity-50"
+              >
+                {googleLoading ? (
+                  <Loader2 className="w-4 h-4 animate-spin text-purple-600" />
+                ) : (
+                  <svg className="w-4 h-4 shrink-0" viewBox="0 0 24 24">
+                    <path
+                      fill="#EA4335"
+                      d="M12 5c1.6 0 3 .6 4.1 1.6l3.1-3.1C17.3 1.7 14.8 1 12 1 7.5 1 3.7 3.6 1.9 7.3l3.7 2.9C6.5 7.1 9 5 12 5z"
+                    />
+                    <path
+                      fill="#4285F4"
+                      d="M23.5 12.3c0-.8-.1-1.6-.2-2.3H12v4.5h6.5c-.3 1.5-1.1 2.8-2.4 3.7l3.7 2.9c2.2-2 3.7-5 3.7-8.8z"
+                    />
+                    <path
+                      fill="#FBBC05"
+                      d="M5.6 14.8c-.2-.7-.4-1.5-.4-2.3s.2-1.6.4-2.3L1.9 7.3C.7 9.7 0 12.4 0 15.3s.7 5.6 1.9 8l3.7-2.9z"
+                    />
+                    <path
+                      fill="#34A853"
+                      d="M12 23c3.2 0 6-1.1 8-3l-3.7-2.9c-1.1.7-2.5 1.2-4.3 1.2-3 0-5.5-2.1-6.4-5.2L1.9 16c1.8 3.7 5.6 7 10.1 7z"
+                    />
+                  </svg>
+                )}
+                <span>Log in with Google</span>
+              </button>
+
+              {/* Secondary Action: Email Sign In */}
+              <Link
+                href="/login"
+                onClick={() => setIsAuthModalOpen(false)}
+                className="w-full py-3 px-4 rounded-2xl font-bold text-xs text-white bg-purple-600 hover:bg-purple-700 active:scale-[0.98] transition-all flex items-center justify-center gap-2 shadow-md shadow-purple-600/20"
+              >
+                <LogIn className="w-4 h-4" />
+                <span>Sign in with Email</span>
+              </Link>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

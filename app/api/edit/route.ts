@@ -40,25 +40,29 @@ export async function POST(req: NextRequest) {
       data: { user },
     } = await supabase.auth.getUser();
 
-    // 1. Enforce AI credit check if authenticated
-    if (user) {
-      if (await isUserSuspended(user.id)) {
-        return NextResponse.json(
-          { error: "Your account has been suspended by an administrator." },
-          { status: 403 }
-        );
-      }
+    if (!user) {
+      return NextResponse.json(
+        { error: "Authentication required to edit websites. Please log in first." },
+        { status: 401 }
+      );
+    }
 
-      const creditCheck = await checkCreditBalance(user.id, CREDIT_COSTS.AI_EDIT);
-      if (!creditCheck.allowed) {
-        return NextResponse.json(
-          {
-            error: ERROR_CODES.INSUFFICIENT_CREDITS,
-            message: `You need ${CREDIT_COSTS.AI_EDIT} AI credits to edit your website. You currently have ${creditCheck.balance} credits remaining.`,
-          },
-          { status: 402 }
-        );
-      }
+    if (await isUserSuspended(user.id)) {
+      return NextResponse.json(
+        { error: "Your account has been suspended by an administrator." },
+        { status: 403 }
+      );
+    }
+
+    const creditCheck = await checkCreditBalance(user.id, CREDIT_COSTS.AI_EDIT);
+    if (!creditCheck.allowed) {
+      return NextResponse.json(
+        {
+          error: ERROR_CODES.INSUFFICIENT_CREDITS,
+          message: `You need ${CREDIT_COSTS.AI_EDIT} AI credits to edit your website. You currently have ${creditCheck.balance} credits remaining.`,
+        },
+        { status: 402 }
+      );
     }
 
     // 2. Call existing Gemini AI edit (lib/gemini.ts UNTOUCHED)

@@ -33,42 +33,48 @@ export async function POST(req: NextRequest) {
       data: { user },
     } = await supabase.auth.getUser();
 
-    // If user is logged in, enforce SaaS website limits & credit checks
-    if (user) {
-      if (await isUserSuspended(user.id)) {
+    // STRICT AUTHENTICATION REQUIREMENT
+    if (!user) {
+      return NextResponse.json(
+        { error: "Authentication required to generate websites. Please log in first." },
+        { status: 401 }
+      );
+    }
+
+    if (await isUserSuspended(user.id)) {
+      return NextResponse.json(
+        { error: "Your account has been suspended by an administrator." },
+        { status: 403 }
+      );
+    }
+
+    // 1. Check website limit if generating a new website
+    if (!websiteId) {
+      const webLimit = await checkWebsiteLimit(user.id);
+      if (!webLimit.allowed) {
         return NextResponse.json(
-          { error: "Your account has been suspended by an administrator." },
+          {
+            error: ERROR_CODES.WEBSITE_LIMIT_REACHED,
+            message: `Your current plan allows a maximum of ${webLimit.limit} website(s). Upgrade your plan to create more websites.`,
+          },
           { status: 403 }
         );
       }
-      // 1. Check website limit if generating a new website
-      if (!websiteId) {
-        const webLimit = await checkWebsiteLimit(user.id);
-        if (!webLimit.allowed) {
-          return NextResponse.json(
-            {
-              error: ERROR_CODES.WEBSITE_LIMIT_REACHED,
-              message: `Your current plan allows a maximum of ${webLimit.limit} website(s). Upgrade your plan to create more websites.`,
-            },
-            { status: 403 }
-          );
-        }
-      }
+    }
 
-      // 2. Check AI credit balance
-      const creditCheck = await checkCreditBalance(
-        user.id,
-        CREDIT_COSTS.INITIAL_GENERATION
+    // 2. Check AI credit balance
+    const creditCheck = await checkCreditBalance(
+      user.id,
+      CREDIT_COSTS.INITIAL_GENERATION
+    );
+    if (!creditCheck.allowed) {
+      return NextResponse.json(
+        {
+          error: ERROR_CODES.INSUFFICIENT_CREDITS,
+          message: `You need ${CREDIT_COSTS.INITIAL_GENERATION} AI credits to generate a website. You currently have ${creditCheck.balance} credits remaining.`,
+        },
+        { status: 402 }
       );
-      if (!creditCheck.allowed) {
-        return NextResponse.json(
-          {
-            error: ERROR_CODES.INSUFFICIENT_CREDITS,
-            message: `You need ${CREDIT_COSTS.INITIAL_GENERATION} AI credits to generate a website. You currently have ${creditCheck.balance} credits remaining.`,
-          },
-          { status: 402 }
-        );
-      }
     }
 
     // 3. Execute existing Gemini website generation (lib/gemini.ts UNTOUCHED)
