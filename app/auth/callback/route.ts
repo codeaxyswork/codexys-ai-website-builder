@@ -48,13 +48,20 @@ export async function GET(request: Request) {
       return response;
     } else {
       console.error("Exchange code for session error:", error);
+      const baseUrl = !isLocalEnv && forwardedHost
+        ? `${request.headers.get("x-forwarded-proto") || "https"}://${forwardedHost}`
+        : requestUrl.origin;
       return NextResponse.redirect(
-        `${requestUrl.origin}/login?error=${encodeURIComponent(error.message)}`
+        `${baseUrl}/login?error=${encodeURIComponent(error.message)}`
       );
     }
   }
 
+  const baseUrl = !isLocalEnv && forwardedHost
+    ? `${request.headers.get("x-forwarded-proto") || "https"}://${forwardedHost}`
+    : requestUrl.origin;
+
   return NextResponse.redirect(
-    `${requestUrl.origin}/login?error=Could%20not%20authenticate%20user`
+    `${baseUrl}/login?error=Could%20not%20authenticate%20user`
   );
 }

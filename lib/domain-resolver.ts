@@ -17,7 +17,13 @@ export async function resolveWebsiteFromHost(hostHeader: string | null): Promise
   // Clean host (strip port numbers if present, e.g. localhost:3000 -> localhost)
   const host = hostHeader.split(":")[0].toLowerCase().trim();
 
-  const appDomain = (process.env.APP_DOMAIN || process.env.NEXT_PUBLIC_APP_DOMAIN || "localhost").toLowerCase().trim();
+  const appDomain = (
+    process.env.APP_DOMAIN ||
+    process.env.NEXT_PUBLIC_APP_DOMAIN ||
+    process.env.NEXT_PUBLIC_VERCEL_PROJECT_PRODUCTION_URL ||
+    process.env.NEXT_PUBLIC_VERCEL_URL ||
+    "localhost"
+  ).toLowerCase().trim();
   const platformDomain = (process.env.PLATFORM_DOMAIN || "codexys.site").toLowerCase().trim();
 
   // 1. Main Application Host Check

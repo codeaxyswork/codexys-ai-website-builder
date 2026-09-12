@@ -53,11 +53,11 @@ export function Header({
   useEffect(() => {
     try {
       const supabase = createClient();
-      supabase.auth.getUser().then(({ data }) => {
+      supabase.auth.getUser().then(({ data }: { data: any }) => {
         setUser(data?.user || null);
       });
 
-      const { data: listener } = supabase.auth.onAuthStateChange((_, session) => {
+      const { data: listener } = supabase.auth.onAuthStateChange((_: any, session: any) => {
         setUser(session?.user || null);
       });
 

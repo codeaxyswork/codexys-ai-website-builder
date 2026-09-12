@@ -41,13 +41,20 @@ export async function updateSession(request: NextRequest) {
   const isRoutingEnabled = process.env.DOMAIN_ROUTING_ENABLED === "true";
   if (isRoutingEnabled) {
     const host = request.headers.get("host");
-    const appDomain = (process.env.APP_DOMAIN || process.env.NEXT_PUBLIC_APP_DOMAIN || "localhost").toLowerCase().trim();
+    const appDomain = (
+      process.env.APP_DOMAIN ||
+      process.env.NEXT_PUBLIC_APP_DOMAIN ||
+      process.env.NEXT_PUBLIC_VERCEL_PROJECT_PRODUCTION_URL ||
+      process.env.NEXT_PUBLIC_VERCEL_URL ||
+      "localhost"
+    ).toLowerCase().trim();
     const cleanHost = host ? host.split(":")[0].toLowerCase().trim() : "";
 
     // Ignore static assets, SaaS routes, and API routes
     const isSaaSPath =
       pathname.startsWith("/_next") ||
       pathname.startsWith("/api") ||
+      pathname.startsWith("/auth") ||
       pathname.startsWith("/dashboard") ||
       pathname.startsWith("/login") ||
       pathname.startsWith("/signup") ||

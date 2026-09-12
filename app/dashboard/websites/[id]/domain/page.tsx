@@ -71,9 +71,30 @@ export default function DomainManagementPage({ params }: DomainPageProps) {
     }
   };
 
+  const cleanDomainInput = (val: string): string => {
+    if (!val) return "";
+    let clean = val.trim().toLowerCase();
+    clean = clean.replace(/^(https?:\/\/|\/\/)/i, "");
+    clean = clean.replace(/[\/\?#].*$/, "");
+    clean = clean.replace(/:\d+$/, "");
+    clean = clean.replace(/\.+$/, "");
+    return clean;
+  };
+
+  const handleDomainInputChange = (val: string) => {
+    // Automatically clean if input contains URL artifacts like protocol or slashes
+    if (val.includes("://") || val.includes("/") || val.includes(" ") || val.includes(":")) {
+      const cleaned = cleanDomainInput(val);
+      setDomainInput(cleaned);
+    } else {
+      setDomainInput(val);
+    }
+  };
+
   const handleSaveDomain = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!domainInput.trim()) return;
+    const sanitized = cleanDomainInput(domainInput);
+    if (!sanitized) return;
 
     try {
       setIsSaving(true);
@@ -84,7 +105,7 @@ export default function DomainManagementPage({ params }: DomainPageProps) {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          custom_domain: domainInput,
+          custom_domain: sanitized,
           www_domain_configured: wwwConfigured,
         }),
       });
@@ -97,6 +118,7 @@ export default function DomainManagementPage({ params }: DomainPageProps) {
         throw new Error(data.error || "Failed to update domain settings.");
       }
 
+      setDomainInput(data.domain.custom_domain || sanitized);
       setDomainData(data.domain);
       setDnsInstructions(data.dnsInstructions);
       setStatusMessage("Custom domain configuration saved. Configure DNS records below.");
@@ -280,10 +302,17 @@ export default function DomainManagementPage({ params }: DomainPageProps) {
                 <input
                   type="text"
                   value={domainInput}
-                  onChange={(e) => setDomainInput(e.target.value)}
+                  onChange={(e) => handleDomainInputChange(e.target.value)}
+                  onPaste={(e) => {
+                    const pasted = e.clipboardData.getData("text");
+                    if (pasted) {
+                      e.preventDefault();
+                      handleDomainInputChange(pasted);
+                    }
+                  }}
                   placeholder="e.g. mycompany.com or www.mycompany.com"
                   disabled={!canCustomDomain || isSaving}
-                  className="flex-1 px-3.5 py-2.5 bg-white border border-slate-300 rounded-lg text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-purple-500 disabled:bg-slate-50"
+                  className="flex-1 px-3.5 py-2.5 bg-white border border-slate-300 rounded-lg text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-purple-500 disabled:bg-slate-50 font-mono"
                 />
                 <button
                   type="submit"
@@ -293,6 +322,10 @@ export default function DomainManagementPage({ params }: DomainPageProps) {
                   {isSaving ? "Saving..." : domainData?.custom_domain ? "Update Domain" : "Add Custom Domain"}
                 </button>
               </div>
+              <p className="text-[11px] text-slate-500 mt-1.5 flex items-center gap-1">
+                <span>💡</span>
+                <span>You can paste full URLs like <code className="bg-slate-100 px-1 py-0.5 rounded text-purple-700">https://mycompany.com/</code> — it will automatically clean to <code className="bg-slate-100 px-1 py-0.5 rounded font-semibold text-slate-800">mycompany.com</code>.</span>
+              </p>
             </div>
 
             <label className="flex items-center gap-2 cursor-pointer pt-2">

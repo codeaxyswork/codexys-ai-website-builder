@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/utils/supabase/server";
-import { verifyDomain } from "@/lib/domain-verification";
+import { verifyDomain, sanitizeDomain, isValidDomain } from "@/lib/domain-verification";
 import { getUserUsage } from "@/lib/billing";
 
 export async function GET(
@@ -118,12 +118,15 @@ export async function PUT(
       );
     }
 
-    // Clean domain string
-    const cleanDomain = rawDomain
-      .toLowerCase()
-      .replace(/^https?:\/\//, "")
-      .replace(/\/.*$/, "")
-      .trim();
+    // Clean domain string (automatically strips https://, http://, trailing slashes, paths, and ports)
+    const cleanDomain = sanitizeDomain(rawDomain);
+
+    if (!cleanDomain || !isValidDomain(cleanDomain)) {
+      return NextResponse.json(
+        { error: "Invalid domain format. Please enter a valid domain (e.g., example.com or www.example.com)." },
+        { status: 400 }
+      );
+    }
 
     // Generate token if not already existing
     const token =

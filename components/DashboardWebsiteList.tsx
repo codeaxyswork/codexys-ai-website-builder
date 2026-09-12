@@ -26,6 +26,9 @@ export interface WebsiteItem {
   design_plan?: any;
   is_published?: boolean;
   published_slug?: string | null;
+  custom_domain?: string | null;
+  custom_domain_verified?: boolean;
+  custom_domain_status?: string | null;
   published_at?: string | null;
   created_at: string;
   updated_at: string;
@@ -231,12 +234,19 @@ export function DashboardWebsiteList({ initialWebsites }: DashboardWebsiteListPr
                   {layoutStrategy}
                 </p>
 
-                {/* Public URL snippet if published */}
-                {site.is_published && site.published_slug && (
+                {/* Public URL & Custom Domain Snippet */}
+                {site.is_published && (
                   <div className="mt-2.5 p-2 rounded-lg bg-slate-50 border border-slate-200 text-[11px] font-mono text-purple-700 flex items-center justify-between">
-                    <span className="truncate max-w-[170px]">/site/{site.published_slug}</span>
+                    <span className="truncate max-w-[170px]" title={site.custom_domain || `/site/${site.published_slug}`}>
+                      {site.custom_domain ? `🌐 ${site.custom_domain}` : `/site/${site.published_slug}`}
+                    </span>
                     <button
-                      onClick={() => handleCopyLink(site.published_slug!, site.id)}
+                      onClick={() => {
+                        const linkToCopy = site.custom_domain ? `https://${site.custom_domain}` : `${window.location.origin}/site/${site.published_slug}`;
+                        navigator.clipboard.writeText(linkToCopy);
+                        setCopiedId(site.id);
+                        setTimeout(() => setCopiedId(null), 2000);
+                      }}
                       className="text-slate-400 hover:text-purple-700 transition-colors"
                       title="Copy Public Link"
                     >

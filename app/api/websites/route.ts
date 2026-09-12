@@ -15,7 +15,7 @@ export async function GET() {
 
     const { data: websites, error } = await supabase
       .from("websites")
-      .select("id, title, slug, prompt, design_plan, is_published, published_slug, created_at, updated_at, website_seo(seo_score)")
+      .select("id, title, slug, prompt, design_plan, is_published, published_slug, custom_domain, custom_domain_verified, custom_domain_status, created_at, updated_at, website_seo(seo_score)")
       .eq("user_id", user.id)
       .order("updated_at", { ascending: false });
 

@@ -9,11 +9,32 @@ export interface DomainVerificationResult {
   };
 }
 
+export function sanitizeDomain(input: string): string {
+  if (!input) return "";
+  let domain = input.trim().toLowerCase();
+  // Strip protocols (https://, http://, //)
+  domain = domain.replace(/^(https?:\/\/|\/\/)/i, "");
+  // Strip paths, query strings, and hash fragments (e.g., /path?q=1#hash)
+  domain = domain.replace(/[\/\?#].*$/, "");
+  // Strip port numbers if present (e.g., example.com:8080)
+  domain = domain.replace(/:\d+$/, "");
+  // Strip trailing dots
+  domain = domain.replace(/\.+$/, "");
+  return domain;
+}
+
+export function isValidDomain(domain: string): boolean {
+  if (!domain || domain.length > 253) return false;
+  // Domain regex validating hostname labels and standard TLDs
+  const domainRegex = /^(?:[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\.)+[a-z0-9][a-z0-9-]{0,61}[a-z0-9]$/i;
+  return domainRegex.test(domain);
+}
+
 export async function verifyDomain(
   domainName: string,
   verificationToken?: string
 ): Promise<DomainVerificationResult> {
-  const cleanDomain = domainName.toLowerCase().replace(/^https?:\/\//, "").replace(/\/.*$/, "").trim();
+  const cleanDomain = sanitizeDomain(domainName);
   const cnameTarget = process.env.NEXT_PUBLIC_APP_DOMAIN || process.env.APP_DOMAIN || "cname.codexys.site";
   const aRecordIp = process.env.HOSTING_A_RECORD_IP || "76.76.21.21"; // Standard configurable hosting IP
 
@@ -23,11 +44,11 @@ export async function verifyDomain(
     txtRecord: verificationToken ? { host: "_codexys-challenge", value: verificationToken } : undefined,
   };
 
-  if (!cleanDomain) {
+  if (!cleanDomain || !isValidDomain(cleanDomain)) {
     return {
       verified: false,
       status: "none",
-      message: "No custom domain provided.",
+      message: "Invalid domain format provided.",
       dnsRecordsRequired,
     };
   }
