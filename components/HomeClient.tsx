@@ -352,6 +352,9 @@ export function HomeClient() {
         msg = parsed.error.message;
       }
     } catch (e) {}
+    if (msg.includes("WEBSITE_LIMIT_REACHED") || msg.includes("website limit")) {
+      return "You've reached the website limit for your current plan. Your Free plan includes 1 website. You can continue editing your existing website from your Dashboard, or upgrade your plan to create more websites.";
+    }
     if (msg.includes("503") || msg.includes("high demand") || msg.includes("UNAVAILABLE")) {
       return "The AI engine is currently experiencing high demand. Please wait a moment and try generating again.";
     }

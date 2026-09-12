@@ -55,7 +55,9 @@ export async function POST(req: NextRequest) {
         return NextResponse.json(
           {
             error: ERROR_CODES.WEBSITE_LIMIT_REACHED,
-            message: `Your current plan allows a maximum of ${webLimit.limit} website(s). Upgrade your plan to create more websites.`,
+            message: `You've reached the website limit for your current plan. Your Free plan includes ${webLimit.limit} website. You can continue editing your existing website from your Dashboard, or upgrade your plan to create more websites.`,
+            current: webLimit.current,
+            limit: webLimit.limit,
           },
           { status: 403 }
         );

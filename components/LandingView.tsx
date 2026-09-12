@@ -459,9 +459,46 @@ export function LandingView({
 
           {/* Error Alert */}
           {error && (
-            <div className="w-full p-4 rounded-2xl bg-red-50 border border-red-200 text-red-800 text-xs text-left">
-              <p className="font-bold mb-0.5">Generation Error</p>
-              <p className="text-red-700 font-medium">{error}</p>
+            <div className="w-full p-4.5 sm:p-5 rounded-2xl bg-amber-50/90 border border-amber-200 text-amber-900 text-xs text-left shadow-xs space-y-3">
+              {error.includes("website limit") || error.includes("WEBSITE_LIMIT_REACHED") ? (
+                <>
+                  <div className="flex items-start gap-3">
+                    <div className="w-8 h-8 rounded-xl bg-amber-100 border border-amber-300 text-amber-700 flex items-center justify-center shrink-0 mt-0.5">
+                      <ShieldCheck className="w-4 h-4" />
+                    </div>
+                    <div className="space-y-1">
+                      <h4 className="font-extrabold text-sm text-slate-900">
+                        You've reached the website limit for your current plan.
+                      </h4>
+                      <p className="text-slate-600 text-xs leading-relaxed">
+                        Your Free plan includes 1 website. You can continue editing your existing website from your Dashboard, or upgrade your plan to create more websites.
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="flex flex-wrap items-center gap-2.5 pt-1 border-t border-amber-200/60">
+                    <Link
+                      href="/dashboard"
+                      className="px-4 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs flex items-center gap-1.5 transition-all shadow-2xs cursor-pointer"
+                    >
+                      <Layout className="w-3.5 h-3.5" />
+                      <span>Go to Dashboard</span>
+                    </Link>
+                    <Link
+                      href="/pricing"
+                      className="px-4 py-2 rounded-xl bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white font-bold text-xs flex items-center gap-1.5 transition-all shadow-2xs cursor-pointer"
+                    >
+                      <Sparkles className="w-3.5 h-3.5" />
+                      <span>Upgrade Plan</span>
+                    </Link>
+                  </div>
+                </>
+              ) : (
+                <div>
+                  <p className="font-bold text-red-900 mb-0.5">Notice</p>
+                  <p className="text-red-700 font-medium leading-relaxed">{error}</p>
+                </div>
+              )}
             </div>
           )}
 
