@@ -7,12 +7,13 @@ export async function GET(
 ) {
   try {
     const { slug } = await params;
+    const cleanSlug = slug.replace(/\.txt$/i, "").toLowerCase().trim();
     const supabase = await createClient();
 
     const { data: website } = await supabase
       .from("websites")
       .select("id, published_slug, is_published")
-      .eq("published_slug", slug)
+      .or(`published_slug.eq.${cleanSlug},slug.eq.${cleanSlug}`)
       .eq("is_published", true)
       .single();
 

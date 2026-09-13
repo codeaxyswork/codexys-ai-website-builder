@@ -11,7 +11,7 @@ export async function GET(
     const supabase = await createClient();
 
     // 1. Fetch published website by published_slug OR custom_domain
-    const cleanSlug = slug.toLowerCase().trim();
+    const cleanSlug = slug.toLowerCase().trim().replace(/\/+$/, "");
     const rootDomainSlug = cleanSlug.startsWith("www.") ? cleanSlug.slice(4) : cleanSlug;
 
     const { data: website, error: websiteErr } = await supabase

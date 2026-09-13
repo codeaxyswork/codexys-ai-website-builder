@@ -7,13 +7,14 @@ export async function GET(
 ) {
   try {
     const { slug } = await params;
+    const cleanSlug = slug.replace(/\.xml$/i, "").toLowerCase().trim();
     const supabase = await createClient();
 
-    // Fetch published website by published_slug
+    // Fetch published website by published_slug or slug
     const { data: website } = await supabase
       .from("websites")
       .select("id, published_slug, is_published, updated_at")
-      .eq("published_slug", slug)
+      .or(`published_slug.eq.${cleanSlug},slug.eq.${cleanSlug}`)
       .eq("is_published", true)
       .single();
 
