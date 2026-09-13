@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/utils/supabase/server";
+import { deleteGscCredentials } from "@/lib/gsc-client";
 
 export async function GET(
   request: Request,
@@ -135,6 +136,10 @@ export async function PUT(
     if (upsertErr) {
       console.error("Upsert Integration Error:", upsertErr);
       return NextResponse.json({ error: upsertErr.message }, { status: 500 });
+    }
+
+    if (provider === "google_search_console" && (status === "disconnected" || !status)) {
+      await deleteGscCredentials(supabase, websiteId);
     }
 
     return NextResponse.json({

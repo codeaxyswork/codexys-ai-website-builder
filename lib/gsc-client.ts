@@ -169,6 +169,27 @@ export async function loadGscCredentials(
 }
 
 /**
+ * Securely delete OAuth credentials from server-only gsc_oauth_credentials table for a website
+ */
+export async function deleteGscCredentials(
+  supabase: any,
+  websiteId: string
+): Promise<void> {
+  const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  const dbClient = serviceKey ? createAdminClient() : supabase;
+
+  const { error } = await dbClient
+    .from("gsc_oauth_credentials")
+    .delete()
+    .eq("website_id", websiteId);
+
+  if (error) {
+    console.error("Failed to delete gsc_oauth_credentials:", error.message || error.code);
+    throw new Error(`Failed to delete OAuth credentials: ${error.message || error.code}`);
+  }
+}
+
+/**
  * Generate CSRF-safe OAuth state token signed with HMAC
  */
 export function generateGscAuthState(websiteId: string, userId: string): string {
@@ -245,7 +266,7 @@ export function getGscAuthUrl(websiteId: string, userId: string, appUrl: string)
     response_type: "code",
     scope,
     access_type: "offline",
-    prompt: "consent",
+    prompt: "select_account consent",
     state,
   });
 
