@@ -74,7 +74,7 @@ export async function POST(
       candidateUrls.push(`${baseUrl}/site/${publishedSlug}`);
     }
 
-    const properties = await fetchGscProperties(accessToken, candidateUrls);
+    const { properties } = await fetchGscProperties(accessToken, candidateUrls);
     const matchedProperty = properties.find((p) => p.siteUrl === property_url);
 
     if (!matchedProperty) {

@@ -46,7 +46,11 @@ export function GscPropertySelectorModal({
       }
 
       const data = await res.json();
-      const list = data.properties || [];
+      const list = Array.isArray(data.properties)
+        ? data.properties
+        : Array.isArray(data.properties?.properties)
+        ? data.properties.properties
+        : [];
       setProperties(list);
       if (list.length > 0) {
         setSelectedUrl(list[0].siteUrl);

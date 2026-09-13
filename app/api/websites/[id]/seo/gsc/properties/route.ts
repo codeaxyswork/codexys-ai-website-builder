@@ -85,10 +85,11 @@ export async function GET(
     }
 
     // Call Google Search Console API for properties (with fallback candidate URLs for sites.get)
-    const properties = await fetchGscProperties(accessToken, fallbackCandidateUrls);
+    const { properties, debug } = await fetchGscProperties(accessToken, fallbackCandidateUrls);
 
     return NextResponse.json({
       properties,
+      debug,
       website: {
         id: website.id,
         title: website.title,

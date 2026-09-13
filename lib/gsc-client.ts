@@ -347,7 +347,7 @@ export async function refreshGscAccessToken(refreshToken: string): Promise<{
 export async function fetchGscProperties(
   accessToken: string,
   fallbackCandidateUrls: string[] = []
-): Promise<GscProperty[]> {
+): Promise<{ properties: GscProperty[]; debug: any }> {
   const res = await fetch("https://www.googleapis.com/webmasters/v3/sites", {
     headers: {
       Authorization: `Bearer ${accessToken}`,
@@ -378,6 +378,14 @@ export async function fetchGscProperties(
     };
   });
 
+  const debugInfo: any = {
+    sitesListStatus: res.status,
+    sitesListCount: properties.length,
+    sitesListRawCount: siteEntries.length,
+    fallbackCandidateUrls,
+    probeResults: [],
+  };
+
   // FALLBACK PROBE: If sites.list returned zero properties, probe fallbackCandidateUrls via sites.get
   if (properties.length === 0 && fallbackCandidateUrls.length > 0) {
     const validLevels = new Set([
@@ -389,8 +397,19 @@ export async function fetchGscProperties(
 
     for (const candidateUrl of fallbackCandidateUrls) {
       if (!candidateUrl || typeof candidateUrl !== "string") continue;
+      const cleanCandidate = candidateUrl.trim();
+      const probeItem: any = {
+        candidateUrl: cleanCandidate,
+        encodedUrl: encodeURIComponent(cleanCandidate),
+        requestEndpoint: `https://www.googleapis.com/webmasters/v3/sites/${encodeURIComponent(cleanCandidate)}`,
+        status: 0,
+        ok: false,
+        permissionLevel: null,
+        returnedSiteUrl: null,
+      };
+
       try {
-        const encodedUrl = encodeURIComponent(candidateUrl.trim());
+        const encodedUrl = encodeURIComponent(cleanCandidate);
         const getRes = await fetch(`https://www.googleapis.com/webmasters/v3/sites/${encodedUrl}`, {
           headers: {
             Authorization: `Bearer ${accessToken}`,
@@ -398,11 +417,17 @@ export async function fetchGscProperties(
           },
         });
 
+        probeItem.status = getRes.status;
+        probeItem.ok = getRes.ok;
+
         if (getRes.ok) {
           const siteData = await getRes.json();
           const pLevel = siteData.permissionLevel || "siteFullUser";
+          probeItem.permissionLevel = pLevel;
+          probeItem.returnedSiteUrl = siteData.siteUrl || cleanCandidate;
+
           if (validLevels.has(pLevel) || getRes.status === 200) {
-            const returnedUrl = siteData.siteUrl || candidateUrl.trim();
+            const returnedUrl = siteData.siteUrl || cleanCandidate;
             const isDomain = returnedUrl.startsWith("sc-domain:");
             const foundProperty: GscProperty = {
               siteUrl: returnedUrl,
@@ -414,14 +439,19 @@ export async function fetchGscProperties(
               properties.push(foundProperty);
             }
           }
+        } else {
+          const errBody = await getRes.json().catch(() => ({}));
+          probeItem.errorMessage = errBody?.error?.message || getRes.statusText;
         }
-      } catch (probeErr) {
-        console.warn(`GSC sites.get fallback probe error for ${candidateUrl}:`, probeErr);
+      } catch (probeErr: any) {
+        probeItem.errorMessage = probeErr?.message || "Network error during probe";
       }
+
+      debugInfo.probeResults.push(probeItem);
     }
   }
 
-  return properties;
+  return { properties, debug: debugInfo };
 }
 
 /**
