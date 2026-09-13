@@ -1,6 +1,10 @@
 import { NextResponse } from "next/server";
-import { createClient } from "@/utils/supabase/server";
-import { verifyAndDecodeGscState, exchangeCodeForGscTokens, saveGscCredentials } from "@/lib/gsc-client";
+import {
+  verifyAndDecodeGscState,
+  exchangeCodeForGscTokens,
+  saveGscCredentials,
+  createAdminClient,
+} from "@/lib/gsc-client";
 
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
@@ -15,9 +19,10 @@ export async function GET(request: Request) {
   // Handle Google OAuth cancellation or explicit errors
   if (errorParam) {
     console.warn("Google OAuth Authorization Error:", errorParam);
-    const errorMsg = errorParam === "access_denied"
-      ? "Google Search Console connection was cancelled or permission was not granted."
-      : `Google OAuth error: ${errorParam}`;
+    const errorMsg =
+      errorParam === "access_denied"
+        ? "Google Search Console connection was cancelled or permission was not granted."
+        : `Google OAuth error: ${errorParam}`;
 
     return NextResponse.redirect(
       `${appUrl}/dashboard?gsc_error=${encodeURIComponent(errorMsg)}`
@@ -31,44 +36,34 @@ export async function GET(request: Request) {
   }
 
   try {
-    // 1. Verify and decode state token (CSRF & Expiration protection)
+    // 1. Verify and decode HMAC-signed state token (CSRF & Expiration protection)
     const { websiteId, userId } = verifyAndDecodeGscState(state);
     const redirectTarget = `${appUrl}/dashboard/websites/${websiteId}/seo`;
 
-    // 2. Authenticate user
-    const supabase = await createClient();
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
+    // 2. Admin client for secure server-side verification and credential storage
+    const dbClient = createAdminClient();
 
-    if (!user || user.id !== userId) {
-      return NextResponse.redirect(
-        `${redirectTarget}?tab=integrations&gsc_error=${encodeURIComponent("User session mismatch during OAuth callback.")}`
-      );
-    }
-
-    // 3. Verify website ownership
-    const { data: website, error: siteErr } = await supabase
+    // 3. Verify website existence & user ownership via server database
+    const { data: website, error: siteErr } = await dbClient
       .from("websites")
-      .select("id")
+      .select("id, user_id")
       .eq("id", websiteId)
-      .eq("user_id", user.id)
       .single();
 
-    if (siteErr || !website) {
+    if (siteErr || !website || website.user_id !== userId) {
       return NextResponse.redirect(
         `${redirectTarget}?tab=integrations&gsc_error=${encodeURIComponent("Website ownership verification failed.")}`
       );
     }
 
-    // 4. Exchange code for tokens
+    // 4. Exchange authorization code for Google tokens
     const tokens = await exchangeCodeForGscTokens(code, appUrl);
 
     // 5. Store encrypted OAuth tokens in server-only gsc_oauth_credentials table
-    await saveGscCredentials(supabase, websiteId, user.id, tokens);
+    await saveGscCredentials(dbClient, websiteId, userId, tokens);
 
     // 6. Fetch existing integration config to preserve selected property
-    const { data: existingIntegration } = await supabase
+    const { data: existingIntegration } = await dbClient
       .from("seo_integrations")
       .select("configuration")
       .eq("website_id", websiteId)
@@ -85,12 +80,12 @@ export async function GET(request: Request) {
     };
 
     // 7. Upsert GSC integration metadata in seo_integrations
-    const { error: upsertErr } = await supabase
+    const { error: upsertErr } = await dbClient
       .from("seo_integrations")
       .upsert(
         {
           website_id: websiteId,
-          user_id: user.id,
+          user_id: userId,
           provider: "google_search_console",
           status: safeConfig.selected_property ? "connected" : "property_selection_required",
           configuration: safeConfig,

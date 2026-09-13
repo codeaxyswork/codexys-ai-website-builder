@@ -1,4 +1,5 @@
 import crypto from "crypto";
+import { createClient as createSupabaseDirectClient } from "@supabase/supabase-js";
 
 const HMAC_SECRET =
   process.env.SUPABASE_SERVICE_ROLE_KEY ||
@@ -29,6 +30,25 @@ export interface SearchAnalyticsRow {
   impressions: number;
   ctr: number;
   position: number;
+}
+
+/**
+ * Create server admin Supabase client using SUPABASE_SERVICE_ROLE_KEY if available
+ */
+export function createAdminClient() {
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || "https://yumsturujjjgdxsrqgbm.supabase.co";
+  const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+
+  if (serviceKey) {
+    return createSupabaseDirectClient(supabaseUrl, serviceKey, {
+      auth: { persistSession: false, autoRefreshToken: false },
+    });
+  }
+
+  const anonKey = (process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || "").trim().replace(/^["'\s]+|["'\s]+$/g, "");
+  return createSupabaseDirectClient(supabaseUrl, anonKey, {
+    auth: { persistSession: false, autoRefreshToken: false },
+  });
 }
 
 /**
@@ -78,6 +98,8 @@ export async function saveGscCredentials(
     scope?: string;
   }
 ) {
+  const dbClient = process.env.SUPABASE_SERVICE_ROLE_KEY ? createAdminClient() : supabase;
+
   const encAccess = encryptGscToken(tokens.access_token);
   const encRefresh = tokens.refresh_token ? encryptGscToken(tokens.refresh_token) : undefined;
   const expiresAt = tokens.expires_in ? Date.now() + tokens.expires_in * 1000 : undefined;
@@ -94,7 +116,7 @@ export async function saveGscCredentials(
   if (expiresAt) payload.token_expires_at = expiresAt;
   if (tokens.scope) payload.scope = tokens.scope;
 
-  const { error } = await supabase
+  const { error } = await dbClient
     .from("gsc_oauth_credentials")
     .upsert(payload, { onConflict: "website_id" });
 
@@ -116,7 +138,9 @@ export async function loadGscCredentials(
   token_expires_at: number;
   scope: string | null;
 }> {
-  const { data, error } = await supabase
+  const dbClient = process.env.SUPABASE_SERVICE_ROLE_KEY ? createAdminClient() : supabase;
+
+  const { data, error } = await dbClient
     .from("gsc_oauth_credentials")
     .select("encrypted_access_token, encrypted_refresh_token, token_expires_at, scope")
     .eq("website_id", websiteId)
