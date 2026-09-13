@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React from "react";
 
 export interface IntegrationItem {
   id?: string;
@@ -19,6 +19,8 @@ interface SEOIntegrationsProps {
   onUpdateGtmId: (val: string) => void;
   onSaveIntegration: (provider: string, status: string, config: any) => Promise<void>;
   canUseIntegrations: boolean;
+  websiteId?: string;
+  onOpenPropertySelector?: () => void;
 }
 
 export function SEOIntegrations({
@@ -28,19 +30,28 @@ export function SEOIntegrations({
   onUpdateGaId,
   onUpdateGtmId,
   onSaveIntegration,
-  canUseIntegrations,
+  websiteId,
 }: SEOIntegrationsProps) {
-  const [searchConsoleModalOpen, setSearchConsoleModalOpen] = useState(false);
+  const gscItem = integrations.find((i) => i.provider === "google_search_console");
+  const gscStatus = gscItem?.status || "disconnected";
+  const gscConfig = gscItem?.configuration || {};
+  const selectedProperty = gscConfig.selected_property || null;
 
-  const getProviderStatus = (prov: string) => {
-    const found = integrations.find((i) => i.provider === prov);
-    return found?.status || "disconnected";
+  const handleConnectGsc = () => {
+    if (!websiteId) return;
+    window.location.href = `/api/seo/gsc/connect?website_id=${websiteId}&redirect=1`;
+  };
+
+  const handleDisconnectGsc = async () => {
+    if (confirm("Are you sure you want to disconnect Google Search Console?")) {
+      await onSaveIntegration("google_search_console", "disconnected", {});
+    }
   };
 
   return (
     <div className="space-y-8">
       {/* 1. GOOGLE ANALYTICS & TAG MANAGER */}
-      <div className="bg-white border border-slate-200 rounded-xl p-6 shadow-sm">
+      <div className="bg-white border border-slate-200 rounded-2xl p-6 shadow-xs">
         <div className="flex items-center justify-between border-b border-slate-100 pb-4 mb-5">
           <div>
             <h3 className="text-lg font-bold text-slate-900 flex items-center gap-2">
@@ -50,7 +61,7 @@ export function SEOIntegrations({
               Google Analytics & Tracking Tags
             </h3>
             <p className="text-xs text-slate-500 mt-1">
-              Tracking scripts are automatically injected into published site pages only.
+              Tracking scripts are automatically injected into published site pages.
             </p>
           </div>
 
@@ -115,7 +126,7 @@ export function SEOIntegrations({
       </div>
 
       {/* 2. EXTERNAL SEO PLATFORMS & SEARCH CONSOLE */}
-      <div className="bg-white border border-slate-200 rounded-xl p-6 shadow-sm">
+      <div className="bg-white border border-slate-200 rounded-2xl p-6 shadow-xs">
         <h3 className="text-lg font-bold text-slate-900 border-b border-slate-100 pb-3 mb-5 flex items-center gap-2">
           <svg className="w-5 h-5 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
@@ -123,26 +134,76 @@ export function SEOIntegrations({
           SEO Platform Integrations & Search Console
         </h3>
 
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
           {/* Google Search Console */}
-          <div className="p-5 bg-white border border-slate-200 rounded-xl shadow-xs flex flex-col justify-between">
+          <div className="p-5 bg-white border border-slate-200 rounded-xl shadow-xs flex flex-col justify-between space-y-4">
             <div>
               <div className="flex items-center justify-between mb-3">
                 <span className="font-bold text-slate-900 text-sm">Google Search Console</span>
-                <span className="text-[11px] font-semibold px-2 py-0.5 bg-slate-100 text-slate-600 rounded-full">
-                  Disconnected
+                {gscStatus === "connected" ? (
+                  <span className="text-[11px] font-semibold px-2 py-0.5 bg-emerald-50 text-emerald-700 border border-emerald-200 rounded-full">
+                    Connected
+                  </span>
+                ) : gscStatus === "property_selection_required" ? (
+                  <span className="text-[11px] font-semibold px-2 py-0.5 bg-amber-50 text-amber-700 border border-amber-200 rounded-full">
+                    Select Property
+                  </span>
+                ) : (
+                  <span className="text-[11px] font-semibold px-2 py-0.5 bg-slate-100 text-slate-600 rounded-full">
+                    Disconnected
+                  </span>
+                )}
+              </div>
+              <p className="text-xs text-slate-500 leading-relaxed mb-3">
+                Real Search Analytics, clicks, impressions, CTR, and search query position tracking.
+              </p>
+
+              {selectedProperty && (
+                <div className="p-2.5 bg-slate-50 border border-slate-200 rounded-lg text-xs font-mono text-slate-700 truncate mb-2">
+                  {selectedProperty}
+                </div>
+              )}
+            </div>
+
+            {gscStatus === "connected" ? (
+              <div className="space-y-2">
+                <button
+                  type="button"
+                  onClick={handleDisconnectGsc}
+                  className="w-full py-1.5 px-3 bg-rose-50 hover:bg-rose-100 text-rose-700 text-xs font-semibold rounded-lg transition-all"
+                >
+                  Disconnect Account
+                </button>
+              </div>
+            ) : (
+              <button
+                type="button"
+                onClick={handleConnectGsc}
+                className="w-full py-2 px-3 bg-purple-600 hover:bg-purple-700 text-white text-xs font-semibold rounded-lg transition-all"
+              >
+                Connect Search Console
+              </button>
+            )}
+          </div>
+
+          {/* Google Ads */}
+          <div className="p-5 bg-slate-50 border border-slate-200 rounded-xl shadow-xs flex flex-col justify-between">
+            <div>
+              <div className="flex items-center justify-between mb-3">
+                <span className="font-bold text-slate-900 text-sm">Google Ads</span>
+                <span className="text-[11px] font-semibold px-2 py-0.5 bg-slate-200 text-slate-500 rounded-full">
+                  Available
                 </span>
               </div>
               <p className="text-xs text-slate-500 leading-relaxed mb-4">
-                Monitor index status and search queries directly from your dashboard.
+                Ad conversion tracking and PPC keyword query insights integration.
               </p>
             </div>
             <button
-              type="button"
-              onClick={() => setSearchConsoleModalOpen(true)}
-              className="w-full py-2 px-3 bg-slate-900 hover:bg-slate-800 text-white text-xs font-semibold rounded-lg transition-all"
+              disabled
+              className="w-full py-2 px-3 bg-slate-200 text-slate-400 text-xs font-semibold rounded-lg cursor-not-allowed"
             >
-              Connect Search Console
+              Not Connected
             </button>
           </div>
 
@@ -151,8 +212,8 @@ export function SEOIntegrations({
             <div>
               <div className="flex items-center justify-between mb-3">
                 <span className="font-bold text-slate-900 text-sm">SEMrush</span>
-                <span className="text-[11px] font-semibold px-2 py-0.5 bg-amber-50 text-amber-700 border border-amber-200 rounded-full">
-                  Coming Soon
+                <span className="text-[11px] font-semibold px-2 py-0.5 bg-slate-200 text-slate-500 rounded-full">
+                  Available
                 </span>
               </div>
               <p className="text-xs text-slate-500 leading-relaxed mb-4">
@@ -163,7 +224,7 @@ export function SEOIntegrations({
               disabled
               className="w-full py-2 px-3 bg-slate-200 text-slate-400 text-xs font-semibold rounded-lg cursor-not-allowed"
             >
-              Connect SEMrush
+              Not Connected
             </button>
           </div>
 
@@ -172,8 +233,8 @@ export function SEOIntegrations({
             <div>
               <div className="flex items-center justify-between mb-3">
                 <span className="font-bold text-slate-900 text-sm">Ahrefs</span>
-                <span className="text-[11px] font-semibold px-2 py-0.5 bg-amber-50 text-amber-700 border border-amber-200 rounded-full">
-                  Coming Soon
+                <span className="text-[11px] font-semibold px-2 py-0.5 bg-slate-200 text-slate-500 rounded-full">
+                  Available
                 </span>
               </div>
               <p className="text-xs text-slate-500 leading-relaxed mb-4">
@@ -184,32 +245,11 @@ export function SEOIntegrations({
               disabled
               className="w-full py-2 px-3 bg-slate-200 text-slate-400 text-xs font-semibold rounded-lg cursor-not-allowed"
             >
-              Connect Ahrefs
+              Not Connected
             </button>
           </div>
         </div>
       </div>
-
-      {/* Search Console Notice Modal */}
-      {searchConsoleModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-xs">
-          <div className="bg-white border border-slate-200 rounded-2xl p-6 max-w-md w-full shadow-xl">
-            <h4 className="text-base font-bold text-slate-900 mb-2">Google Search Console Integration</h4>
-            <p className="text-sm text-slate-600 mb-6 leading-relaxed">
-              Google Search Console integration requires Google OAuth configuration.
-            </p>
-            <div className="flex justify-end">
-              <button
-                type="button"
-                onClick={() => setSearchConsoleModalOpen(false)}
-                className="px-4 py-2 bg-purple-600 text-white font-medium text-sm rounded-lg hover:bg-purple-700 transition-all"
-              >
-                Got It
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 }

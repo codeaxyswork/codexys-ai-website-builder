@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/utils/supabase/server";
-import { analyzeWebsiteSEO } from "@/lib/seo-analyzer";
+import { executeSEOAnalysis } from "@/lib/seo-job-processor";
 
 export async function POST(
   request: Request,
@@ -33,52 +33,21 @@ export async function POST(
       );
     }
 
-    // Load website page content
-    const { data: indexPage } = await supabase
-      .from("website_pages")
-      .select("html_content")
-      .eq("website_id", websiteId)
-      .eq("path", "index.html")
-      .single();
+    // Execute multi-page Cheerio SEO analysis (0 credits, deterministic)
+    const result = await executeSEOAnalysis(supabase, websiteId, user.id, "manual");
 
-    const htmlContent = indexPage?.html_content || "";
-
-    // Load SEO settings
-    const { data: seoSettings } = await supabase
-      .from("website_seo")
-      .select("*")
-      .eq("website_id", websiteId)
-      .single();
-
-    // Perform analysis
-    const result = analyzeWebsiteSEO(htmlContent, seoSettings || {});
-
-    // Save into history table
-    await supabase.from("seo_analysis_history").insert({
-      website_id: websiteId,
-      user_id: user.id,
-      seo_score: result.seo_score,
-      analysis: result.analysis,
-      recommendations: result.recommendations,
-    });
-
-    // Update current website_seo score and analysis
-    if (seoSettings) {
-      await supabase
-        .from("website_seo")
-        .update({
-          seo_score: result.seo_score,
-          seo_analysis: result.analysis,
-          updated_at: new Date().toISOString(),
-        })
-        .eq("website_id", websiteId);
-    }
+    // Return backward-compatible structure + multi-page details
+    const indexPage = result.pages.find((p) => p.path === "index.html") || result.pages[0];
 
     return NextResponse.json({
       seo_score: result.seo_score,
-      analysis: result.analysis,
+      analysis: result.aggregate_analysis,
       recommendations: result.recommendations,
-      image_stats: result.image_stats,
+      image_stats: indexPage?.image_stats || { total: 0, with_alt: 0, missing_alt: 0 },
+      issue_counts: result.issue_counts,
+      site_links_summary: result.site_links_summary,
+      pages: result.pages,
+      analysis_version: result.analysis_version,
     });
   } catch (err: any) {
     console.error("POST SEO Analyze API Error:", err);
@@ -88,3 +57,4 @@ export async function POST(
     );
   }
 }
+

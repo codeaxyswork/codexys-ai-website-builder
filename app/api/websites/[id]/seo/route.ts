@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/utils/supabase/server";
-import { analyzeWebsiteSEO } from "@/lib/seo-analyzer";
+import { executeSEOAnalysis } from "@/lib/seo-job-processor";
 
 export async function GET(
   request: Request,
@@ -66,6 +66,12 @@ export async function GET(
       seoData = createdSeo || defaultSeo;
     }
 
+    // Fetch page-level SEO data
+    const { data: pagesSeo } = await supabase
+      .from("website_page_seo")
+      .select("*")
+      .eq("website_id", websiteId);
+
     // Fetch integration statuses
     const { data: integrations } = await supabase
       .from("seo_integrations")
@@ -74,6 +80,7 @@ export async function GET(
 
     return NextResponse.json({
       seo: seoData,
+      pages_seo: pagesSeo || [],
       integrations: integrations || [],
     });
   } catch (err: any) {
@@ -118,19 +125,6 @@ export async function PUT(
 
     const body = await request.json();
 
-    // Fetch index page for live html scoring
-    const { data: indexPage } = await supabase
-      .from("website_pages")
-      .select("html_content")
-      .eq("website_id", websiteId)
-      .eq("path", "index.html")
-      .single();
-
-    const htmlContent = indexPage?.html_content || "";
-
-    // Run deterministic analysis
-    const analysisResult = analyzeWebsiteSEO(htmlContent, body);
-
     const seoPayload = {
       website_id: websiteId,
       user_id: user.id,
@@ -150,8 +144,6 @@ export async function PUT(
       schema_markup: body.schema_markup || {},
       google_analytics_id: body.google_analytics_id || null,
       google_tag_manager_id: body.google_tag_manager_id || null,
-      seo_score: analysisResult.seo_score,
-      seo_analysis: analysisResult.analysis,
       updated_at: new Date().toISOString(),
     };
 
@@ -166,9 +158,17 @@ export async function PUT(
       return NextResponse.json({ error: upsertErr.message }, { status: 500 });
     }
 
+    // Execute multi-page Cheerio analysis to recalculate scores & page-level state
+    const analysisResult = await executeSEOAnalysis(supabase, websiteId, user.id, "manual");
+
     return NextResponse.json({
       seo: updatedSeo,
-      analysis: analysisResult,
+      analysis: {
+        seo_score: analysisResult.seo_score,
+        analysis: analysisResult.aggregate_analysis,
+        recommendations: analysisResult.recommendations,
+        image_stats: analysisResult.pages[0]?.image_stats || { total: 0, with_alt: 0, missing_alt: 0 },
+      },
       message: "SEO settings saved successfully.",
     });
   } catch (err: any) {
@@ -179,3 +179,4 @@ export async function PUT(
     );
   }
 }
+

@@ -344,6 +344,14 @@ CREATE TABLE IF NOT EXISTS public.website_seo (
   google_search_console_verified BOOLEAN DEFAULT false,
   seo_score INTEGER DEFAULT 0,
   seo_analysis JSONB DEFAULT '{}'::jsonb,
+  is_dirty BOOLEAN DEFAULT false,
+  analysis_status TEXT DEFAULT 'completed',
+  critical_issues_count INTEGER DEFAULT 0,
+  warnings_count INTEGER DEFAULT 0,
+  opportunities_count INTEGER DEFAULT 0,
+  passed_checks_count INTEGER DEFAULT 0,
+  last_analyzed_at TIMESTAMPTZ,
+  analysis_version TEXT DEFAULT 'seo-v1',
   created_at TIMESTAMPTZ DEFAULT NOW(),
   updated_at TIMESTAMPTZ DEFAULT NOW()
 );
@@ -373,6 +381,62 @@ CREATE POLICY "Users can delete own website_seo" ON public.website_seo FOR DELET
 
 
 -- ---------------------------------------------------------------------
+-- 9B. PAGE-LEVEL SEO STATE TABLE (website_page_seo)
+-- ---------------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS public.website_page_seo (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  website_id UUID NOT NULL REFERENCES public.websites(id) ON DELETE CASCADE,
+  page_id UUID NOT NULL UNIQUE REFERENCES public.website_pages(id) ON DELETE CASCADE,
+  user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
+  path TEXT NOT NULL DEFAULT 'index.html',
+  seo_title TEXT,
+  meta_description TEXT,
+  focus_keywords TEXT[] DEFAULT '{}'::text[],
+  canonical_url TEXT,
+  robots_index BOOLEAN DEFAULT true,
+  robots_follow BOOLEAN DEFAULT true,
+  og_title TEXT,
+  og_description TEXT,
+  og_image_url TEXT,
+  twitter_card TEXT DEFAULT 'summary_large_image',
+  twitter_title TEXT,
+  twitter_description TEXT,
+  twitter_image_url TEXT,
+  schema_markup JSONB DEFAULT '{}'::jsonb,
+  seo_score INTEGER DEFAULT 0,
+  seo_analysis JSONB DEFAULT '{}'::jsonb,
+  analysis_status TEXT DEFAULT 'pending',
+  last_analyzed_at TIMESTAMPTZ,
+  content_fingerprint TEXT,
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  updated_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+ALTER TABLE public.website_page_seo ENABLE ROW LEVEL SECURITY;
+
+DROP POLICY IF EXISTS "Users can view own website_page_seo" ON public.website_page_seo;
+CREATE POLICY "Users can view own website_page_seo" ON public.website_page_seo FOR SELECT USING (auth.uid() = user_id);
+
+DROP POLICY IF EXISTS "Anyone can view published website_page_seo" ON public.website_page_seo;
+CREATE POLICY "Anyone can view published website_page_seo" ON public.website_page_seo FOR SELECT USING (
+  EXISTS (
+    SELECT 1 FROM public.websites
+    WHERE public.websites.id = public.website_page_seo.website_id
+    AND public.websites.is_published = true
+  )
+);
+
+DROP POLICY IF EXISTS "Users can insert own website_page_seo" ON public.website_page_seo;
+CREATE POLICY "Users can insert own website_page_seo" ON public.website_page_seo FOR INSERT WITH CHECK (auth.uid() = user_id);
+
+DROP POLICY IF EXISTS "Users can update own website_page_seo" ON public.website_page_seo;
+CREATE POLICY "Users can update own website_page_seo" ON public.website_page_seo FOR UPDATE USING (auth.uid() = user_id) WITH CHECK (auth.uid() = user_id);
+
+DROP POLICY IF EXISTS "Users can delete own website_page_seo" ON public.website_page_seo;
+CREATE POLICY "Users can delete own website_page_seo" ON public.website_page_seo FOR DELETE USING (auth.uid() = user_id);
+
+
+-- ---------------------------------------------------------------------
 -- 10. SEO ANALYSIS HISTORY TABLE
 -- ---------------------------------------------------------------------
 CREATE TABLE IF NOT EXISTS public.seo_analysis_history (
@@ -382,6 +446,11 @@ CREATE TABLE IF NOT EXISTS public.seo_analysis_history (
   seo_score INTEGER,
   analysis JSONB,
   recommendations JSONB,
+  trigger_type TEXT DEFAULT 'manual',
+  analysis_version TEXT DEFAULT 'seo-v1',
+  critical_issues_count INTEGER DEFAULT 0,
+  warnings_count INTEGER DEFAULT 0,
+  opportunities_count INTEGER DEFAULT 0,
   created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
@@ -395,6 +464,46 @@ CREATE POLICY "Users can insert own seo_analysis_history" ON public.seo_analysis
 
 DROP POLICY IF EXISTS "Users can delete own seo_analysis_history" ON public.seo_analysis_history;
 CREATE POLICY "Users can delete own seo_analysis_history" ON public.seo_analysis_history FOR DELETE USING (auth.uid() = user_id);
+
+
+-- ---------------------------------------------------------------------
+-- 10B. BACKGROUND SEO ANALYSIS JOBS TABLE (seo_analysis_jobs)
+-- ---------------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS public.seo_analysis_jobs (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  website_id UUID NOT NULL REFERENCES public.websites(id) ON DELETE CASCADE,
+  page_id UUID REFERENCES public.website_pages(id) ON DELETE CASCADE,
+  user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
+  requested_by UUID REFERENCES auth.users(id) ON DELETE SET NULL,
+  trigger_type TEXT NOT NULL DEFAULT 'manual',
+  status TEXT NOT NULL DEFAULT 'queued',
+  priority INTEGER DEFAULT 0,
+  attempt_count INTEGER DEFAULT 0,
+  max_attempts INTEGER DEFAULT 3,
+  available_at TIMESTAMPTZ DEFAULT NOW(),
+  started_at TIMESTAMPTZ,
+  completed_at TIMESTAMPTZ,
+  error_code TEXT,
+  error_message_safe TEXT,
+  idempotency_key TEXT UNIQUE,
+  analysis_version TEXT DEFAULT 'seo-v1',
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  updated_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+ALTER TABLE public.seo_analysis_jobs ENABLE ROW LEVEL SECURITY;
+
+DROP POLICY IF EXISTS "Users can view own seo_analysis_jobs" ON public.seo_analysis_jobs;
+CREATE POLICY "Users can view own seo_analysis_jobs" ON public.seo_analysis_jobs FOR SELECT USING (auth.uid() = user_id);
+
+DROP POLICY IF EXISTS "Users can insert own seo_analysis_jobs" ON public.seo_analysis_jobs;
+CREATE POLICY "Users can insert own seo_analysis_jobs" ON public.seo_analysis_jobs FOR INSERT WITH CHECK (auth.uid() = user_id);
+
+DROP POLICY IF EXISTS "Users can update own seo_analysis_jobs" ON public.seo_analysis_jobs;
+CREATE POLICY "Users can update own seo_analysis_jobs" ON public.seo_analysis_jobs FOR UPDATE USING (auth.uid() = user_id) WITH CHECK (auth.uid() = user_id);
+
+DROP POLICY IF EXISTS "Users can delete own seo_analysis_jobs" ON public.seo_analysis_jobs;
+CREATE POLICY "Users can delete own seo_analysis_jobs" ON public.seo_analysis_jobs FOR DELETE USING (auth.uid() = user_id);
 
 
 -- ---------------------------------------------------------------------
@@ -427,6 +536,66 @@ CREATE POLICY "Users can update own seo_integrations" ON public.seo_integrations
 
 DROP POLICY IF EXISTS "Users can delete own seo_integrations" ON public.seo_integrations;
 CREATE POLICY "Users can delete own seo_integrations" ON public.seo_integrations FOR DELETE USING (auth.uid() = user_id);
+
+
+-- ---------------------------------------------------------------------
+-- 11B. SERVER-ONLY GSC OAUTH CREDENTIALS TABLE (gsc_oauth_credentials)
+-- ---------------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS public.gsc_oauth_credentials (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  website_id UUID NOT NULL UNIQUE REFERENCES public.websites(id) ON DELETE CASCADE,
+  user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
+  provider TEXT NOT NULL DEFAULT 'google_search_console',
+  encrypted_access_token TEXT,
+  encrypted_refresh_token TEXT,
+  token_expires_at BIGINT,
+  scope TEXT,
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  updated_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- Enable RLS with ZERO public/client policies (Server Service-Role access only)
+ALTER TABLE public.gsc_oauth_credentials ENABLE ROW LEVEL SECURITY;
+
+CREATE INDEX IF NOT EXISTS idx_gsc_credentials_website_id ON public.gsc_oauth_credentials(website_id);
+CREATE INDEX IF NOT EXISTS idx_gsc_credentials_user_id ON public.gsc_oauth_credentials(user_id);
+
+
+-- ---------------------------------------------------------------------
+-- 11C. SEARCH ANALYTICS CACHE TABLE (gsc_search_analytics)
+-- ---------------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS public.gsc_search_analytics (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  website_id UUID NOT NULL REFERENCES public.websites(id) ON DELETE CASCADE,
+  user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
+  gsc_property TEXT NOT NULL,
+  date DATE NOT NULL,
+  dimension_type TEXT NOT NULL CHECK (dimension_type IN ('overall', 'query', 'page', 'device', 'country')),
+  dimension_value TEXT NOT NULL DEFAULT '',
+  clicks INTEGER NOT NULL DEFAULT 0,
+  impressions INTEGER NOT NULL DEFAULT 0,
+  ctr NUMERIC(7,4) NOT NULL DEFAULT 0.0000,
+  position NUMERIC(6,2) NOT NULL DEFAULT 0.00,
+  synced_at TIMESTAMPTZ DEFAULT NOW(),
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  CONSTRAINT gsc_analytics_uniq UNIQUE (website_id, gsc_property, date, dimension_type, dimension_value)
+);
+
+ALTER TABLE public.gsc_search_analytics ENABLE ROW LEVEL SECURITY;
+
+DROP POLICY IF EXISTS "Users can view own gsc_search_analytics" ON public.gsc_search_analytics;
+CREATE POLICY "Users can view own gsc_search_analytics" ON public.gsc_search_analytics FOR SELECT USING (auth.uid() = user_id);
+
+DROP POLICY IF EXISTS "Users can insert own gsc_search_analytics" ON public.gsc_search_analytics;
+CREATE POLICY "Users can insert own gsc_search_analytics" ON public.gsc_search_analytics FOR INSERT WITH CHECK (auth.uid() = user_id);
+
+DROP POLICY IF EXISTS "Users can update own gsc_search_analytics" ON public.gsc_search_analytics;
+CREATE POLICY "Users can update own gsc_search_analytics" ON public.gsc_search_analytics FOR UPDATE USING (auth.uid() = user_id) WITH CHECK (auth.uid() = user_id);
+
+DROP POLICY IF EXISTS "Users can delete own gsc_search_analytics" ON public.gsc_search_analytics;
+CREATE POLICY "Users can delete own gsc_search_analytics" ON public.gsc_search_analytics FOR DELETE USING (auth.uid() = user_id);
+
+
 
 
 -- ---------------------------------------------------------------------

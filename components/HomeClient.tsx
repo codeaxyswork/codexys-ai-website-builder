@@ -348,6 +348,7 @@ export function HomeClient() {
         return;
       }
 
+      setError(null);
       const res = data as GenerationResponse;
       const updatedPlan = res.plan || plan;
       const updatedFiles = res.files && res.files.length > 0 ? res.files : files;
@@ -460,6 +461,7 @@ export function HomeClient() {
               uploadedImages={uploadedImages}
               onAddImages={handleAddImages}
               onRemoveImage={handleRemoveImage}
+              error={error}
             />
           </>
         )}

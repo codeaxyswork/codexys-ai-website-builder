@@ -142,4 +142,17 @@ async function saveEditedWebsiteToDb(
       throw new Error(`Failed to update website page content: ${insertError.message}`);
     }
   }
+
+  // Non-blocking SEO dirty state & job enqueue
+  try {
+    const { enqueueSEOJob } = await import("@/lib/seo-job-processor");
+    enqueueSEOJob(supabase, {
+      websiteId,
+      userId,
+      triggerType: "website_refinement",
+      idempotencyKey: `refine_${websiteId}_${Date.now()}`,
+    }).catch((err) => console.error("Non-blocking SEO job enqueue warning:", err));
+  } catch (e) {
+    console.error("Failed to enqueue SEO refinement job:", e);
+  }
 }

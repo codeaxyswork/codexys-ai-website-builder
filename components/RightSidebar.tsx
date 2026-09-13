@@ -24,6 +24,7 @@ import {
   Paperclip,
   X,
   Languages,
+  AlertTriangle,
 } from "lucide-react";
 import { GeneratedFile, WebsitePlan, UploadedImage } from "@/lib/types";
 import { SUPPORTED_LANGUAGES, getLanguageConfig } from "@/lib/multilingual";
@@ -39,6 +40,7 @@ interface RightSidebarProps {
   uploadedImages: UploadedImage[];
   onAddImages: (files: FileList | null) => void;
   onRemoveImage: (id: string) => void;
+  error?: string | null;
 }
 
 export function RightSidebar({
@@ -52,6 +54,7 @@ export function RightSidebar({
   uploadedImages,
   onAddImages,
   onRemoveImage,
+  error,
 }: RightSidebarProps) {
   const [activeTab, setActiveTab] = useState<"edit" | "code" | "settings">("edit");
   const [editInstruction, setEditInstruction] = useState("");
@@ -335,6 +338,21 @@ export function RightSidebar({
             <p className="text-xs text-slate-500 mb-3">
               Describe what you want to modify, and Codexys AI will update your code.
             </p>
+
+            {/* Visible Refinement Error Alert */}
+            {error && (
+              <div className="mb-3 rounded-xl border border-red-200 bg-red-50/90 p-3 text-xs text-red-700 flex flex-col gap-1.5 shadow-2xs animate-in fade-in duration-200">
+                <div className="flex items-center gap-1.5 font-bold text-red-800">
+                  <AlertTriangle className="w-4 h-4 text-red-600 shrink-0" />
+                  <span>Refinement Failed</span>
+                </div>
+                <p className="text-red-700 leading-relaxed font-medium">{error}</p>
+                <div className="pt-2 border-t border-red-200/60 flex items-center justify-between text-[11px] text-red-600 font-semibold">
+                  <span>• No changes applied</span>
+                  <span>• 0 credits charged</span>
+                </div>
+              </div>
+            )}
 
             <form onSubmit={handleEditSubmit} className="space-y-3">
               {/* Separate Voice Language & Mic Controls Bar (Outside Textarea) */}

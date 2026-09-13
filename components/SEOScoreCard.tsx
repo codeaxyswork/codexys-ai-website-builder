@@ -12,6 +12,9 @@ interface SEOScoreCardProps {
   isAnalyzing: boolean;
   isGeneratingAI: boolean;
   canUseAI: boolean;
+  isDirty?: boolean;
+  issueCounts?: { critical: number; warning: number; opportunity: number; passed: number } | null;
+  pagesCount?: number;
 }
 
 export function SEOScoreCard({
@@ -23,6 +26,9 @@ export function SEOScoreCard({
   isAnalyzing,
   isGeneratingAI,
   canUseAI,
+  isDirty,
+  issueCounts,
+  pagesCount,
 }: SEOScoreCardProps) {
   // Score color helper
   const getScoreColor = (val: number) => {
@@ -66,7 +72,7 @@ export function SEOScoreCard({
           </div>
 
           <div>
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 flex-wrap">
               <h2 className="text-xl font-bold text-slate-900">Website SEO Score</h2>
               <span
                 className={`text-xs font-semibold px-2.5 py-1 rounded-full border ${getScoreColor(
@@ -75,9 +81,14 @@ export function SEOScoreCard({
               >
                 {score >= 80 ? "Good" : score >= 50 ? "Needs Work" : "Poor"}
               </span>
+              {isDirty && (
+                <span className="text-xs font-semibold px-2.5 py-1 rounded-full bg-amber-100 text-amber-800 border border-amber-300 flex items-center gap-1">
+                  ⚡ Content Modified • Re-analysis Ready
+                </span>
+              )}
             </div>
             <p className="text-sm text-slate-600 mt-1 max-w-md">
-              Real-time audit of title, meta tags, heading structure, images, schema markup, and robots configuration.
+              Multi-page Cheerio audit of HTML tags, heading hierarchy, images, links, schema, and directives.
             </p>
           </div>
         </div>
