@@ -13,6 +13,7 @@ export interface UserUsageData {
     monthlyUsed: number;
     lifetimeUsed: number;
     limit: number;
+    monthlyOperations: number;
   };
   websites: {
     used: number;
@@ -62,6 +63,17 @@ export async function getUserUsage(userId: string): Promise<UserUsageData | null
       creditRec = newCredit || { balance: 50, monthly_used: 0, lifetime_used: 0 };
     }
 
+    // 2b. Fetch monthly AI operations count from ai_credit_transactions
+    const startOfMonth = new Date();
+    startOfMonth.setDate(1);
+    startOfMonth.setHours(0, 0, 0, 0);
+
+    const { count: monthlyOpsCount } = await supabase
+      .from("ai_credit_transactions")
+      .select("id", { count: "exact", head: true })
+      .eq("user_id", userId)
+      .gte("created_at", startOfMonth.toISOString());
+
     // 3. Fetch Websites Count
     const { count: websiteCount } = await supabase
       .from("websites")
@@ -91,6 +103,7 @@ export async function getUserUsage(userId: string): Promise<UserUsageData | null
         monthlyUsed: creditRec?.monthly_used ?? 0,
         lifetimeUsed: creditRec?.lifetime_used ?? 0,
         limit: plan.monthly_ai_credits || 50,
+        monthlyOperations: monthlyOpsCount || 0,
       },
       websites: {
         used: websiteCount || 0,

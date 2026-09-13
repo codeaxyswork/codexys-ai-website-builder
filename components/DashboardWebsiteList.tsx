@@ -16,6 +16,10 @@ import {
   Check,
   Send,
   Eye,
+  FileText,
+  Sparkles,
+  RefreshCw,
+  HardDrive,
 } from "lucide-react";
 
 export interface WebsiteItem {
@@ -35,6 +39,10 @@ export interface WebsiteItem {
   website_seo?: {
     seo_score?: number;
   } | null;
+  pagesCount?: number;
+  aiCreditsUsed?: number;
+  refinementCount?: number;
+  storageBytes?: number;
 }
 
 interface DashboardWebsiteListProps {
@@ -114,13 +122,6 @@ export function DashboardWebsiteList({ initialWebsites }: DashboardWebsiteListPr
     }
   };
 
-  const handleCopyLink = (slug: string, id: string) => {
-    const fullUrl = `${window.location.origin}/site/${slug}`;
-    navigator.clipboard.writeText(fullUrl);
-    setCopiedId(id);
-    setTimeout(() => setCopiedId(null), 2000);
-  };
-
   const formatDate = (dateStr: string) => {
     try {
       const d = new Date(dateStr);
@@ -134,9 +135,18 @@ export function DashboardWebsiteList({ initialWebsites }: DashboardWebsiteListPr
     }
   };
 
+  const formatMediaStorage = (bytes: number | undefined) => {
+    if (!bytes || bytes === 0) return "0 MB";
+    const kb = bytes / 1024;
+    if (kb < 1000) return `${kb.toFixed(1)} KB`;
+    const mb = kb / 1024;
+    if (mb < 1000) return `${mb.toFixed(1)} MB`;
+    return `${(mb / 1024).toFixed(1)} GB`;
+  };
+
   if (websites.length === 0) {
     return (
-      <div className="rounded-2xl border border-slate-200 bg-white p-8 sm:p-12 text-center flex flex-col items-center justify-center shadow-xs">
+      <div className="rounded-2xl border border-slate-200 bg-white p-8 sm:p-12 text-center flex flex-col items-center justify-center shadow-xs w-full">
         <div className="w-16 h-16 rounded-2xl bg-purple-50 border border-purple-200 flex items-center justify-center mb-4">
           <Globe className="w-8 h-8 text-purple-600" />
         </div>
@@ -160,7 +170,7 @@ export function DashboardWebsiteList({ initialWebsites }: DashboardWebsiteListPr
   const targetWebsite = websites.find((w) => w.id === deleteTargetId);
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-4 w-full">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
           <h2 className="text-sm font-bold text-slate-900 uppercase tracking-wider">
@@ -176,152 +186,239 @@ export function DashboardWebsiteList({ initialWebsites }: DashboardWebsiteListPr
         </Link>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+      {/* FULL-WIDTH LONG HORIZONTAL WEBSITE CARDS STACK */}
+      <div className="flex flex-col gap-5 w-full">
         {websites.map((site) => {
           const plan = site.design_plan;
           const websiteType = plan?.websiteType || "Custom Website";
-          const layoutStrategy = plan?.layoutStrategy || site.prompt || "Responsive Design";
+          const layoutStrategy = plan?.layoutStrategy || site.prompt || "Responsive Standalone SaaS Website";
           const seoScore = site.website_seo?.seo_score;
 
           return (
             <div
               key={site.id}
-              className="rounded-2xl border border-slate-200 bg-white p-5 shadow-xs hover:shadow-md transition-all flex flex-col justify-between group"
+              className="w-full rounded-2xl border border-slate-200 bg-white p-6 shadow-xs hover:shadow-md transition-all flex flex-col gap-5 group relative overflow-hidden"
             >
-              <div>
-                {/* Header Row */}
-                <div className="flex items-start justify-between gap-2 mb-3">
-                  <div className="flex items-center gap-2">
-                    <div className="w-8 h-8 rounded-xl bg-purple-50 border border-purple-200 flex items-center justify-center shrink-0">
-                      <Globe className="w-4 h-4 text-purple-600" />
-                    </div>
-                    <span className="px-2 py-0.5 rounded bg-purple-50 border border-purple-200 text-purple-700 text-[10px] font-semibold uppercase tracking-wider">
-                      {websiteType}
-                    </span>
+              {/* TOP ROW: Icon + Category + Status Badges */}
+              <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-100 pb-4">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-xl bg-purple-50 border border-purple-200 flex items-center justify-center shrink-0 shadow-2xs">
+                    <Globe className="w-5 h-5 text-purple-600" />
                   </div>
-
-                  {/* Status Badge */}
-                  <div className="flex items-center gap-1.5">
-                    {typeof seoScore === "number" ? (
-                      <span className="px-2 py-0.5 rounded-full text-[10px] font-extrabold bg-purple-50 text-purple-700 border border-purple-200">
-                        SEO: {seoScore}/100
+                  <div className="flex flex-col">
+                    <div className="flex items-center gap-2">
+                      <span className="px-2.5 py-0.5 rounded-md bg-purple-50 border border-purple-200 text-purple-700 text-[10px] font-bold uppercase tracking-wider">
+                        {websiteType}
                       </span>
-                    ) : (
-                      <span className="px-2 py-0.5 rounded-full text-[10px] font-medium bg-slate-100 text-slate-500 border border-slate-200">
-                        SEO Not Analyzed
-                      </span>
-                    )}
-
-                    <span
-                      className={`px-2 py-0.5 rounded-full text-[10px] font-extrabold uppercase border ${
-                        site.is_published
-                          ? "bg-emerald-50 border-emerald-200 text-emerald-700"
-                          : "bg-amber-50 border-amber-200 text-amber-700"
-                      }`}
-                    >
-                      {site.is_published ? "Published" : "Draft"}
-                    </span>
+                      {plan?.colorPalette && Array.isArray(plan.colorPalette) && (
+                        <div className="hidden sm:flex items-center gap-1">
+                          {plan.colorPalette.slice(0, 4).map((col: any, idx: number) => (
+                            <span
+                              key={idx}
+                              className="w-3 h-3 rounded-full border border-slate-200 shrink-0"
+                              style={{ backgroundColor: col.hex }}
+                              title={`${col.name}: ${col.hex}`}
+                            />
+                          ))}
+                        </div>
+                      )}
+                    </div>
                   </div>
                 </div>
 
-                {/* Title */}
-                <h3 className="font-bold text-slate-900 text-base line-clamp-1 group-hover:text-purple-700 transition-colors">
-                  {site.title}
-                </h3>
-
-                {/* Description / Prompt snippet */}
-                <p className="text-xs text-slate-500 mt-1 line-clamp-2 leading-relaxed">
-                  {layoutStrategy}
-                </p>
-
-                {/* Public URL & Custom Domain Snippet */}
-                {site.is_published && (
-                  <div className="mt-2.5 p-2 rounded-lg bg-slate-50 border border-slate-200 text-[11px] font-mono text-purple-700 flex items-center justify-between">
-                    <span className="truncate max-w-[170px]" title={site.custom_domain || `/site/${site.published_slug}`}>
-                      {site.custom_domain ? `🌐 ${site.custom_domain}` : `/site/${site.published_slug}`}
+                <div className="flex items-center gap-2">
+                  {typeof seoScore === "number" ? (
+                    <span className="px-2.5 py-1 rounded-full text-[11px] font-extrabold bg-purple-50 text-purple-700 border border-purple-200 flex items-center gap-1">
+                      <span>SEO:</span>
+                      <span className="text-purple-800 font-black">{seoScore}/100</span>
                     </span>
-                    <button
-                      onClick={() => {
-                        const linkToCopy = site.custom_domain ? `https://${site.custom_domain}` : `${window.location.origin}/site/${site.published_slug}`;
-                        navigator.clipboard.writeText(linkToCopy);
-                        setCopiedId(site.id);
-                        setTimeout(() => setCopiedId(null), 2000);
-                      }}
-                      className="text-slate-400 hover:text-purple-700 transition-colors"
-                      title="Copy Public Link"
-                    >
-                      {copiedId === site.id ? <Check className="w-3.5 h-3.5 text-emerald-600" /> : <Copy className="w-3.5 h-3.5" />}
-                    </button>
-                  </div>
-                )}
+                  ) : (
+                    <span className="px-2.5 py-1 rounded-full text-[11px] font-medium bg-slate-100 text-slate-500 border border-slate-200">
+                      SEO Not Analyzed
+                    </span>
+                  )}
 
-                {/* Color Palette Micro Preview */}
-                {plan?.colorPalette && Array.isArray(plan.colorPalette) && (
-                  <div className="flex items-center gap-1 mt-3">
-                    {plan.colorPalette.slice(0, 4).map((col: any, idx: number) => (
-                      <span
-                        key={idx}
-                        className="w-3.5 h-3.5 rounded-full border border-slate-200 shrink-0"
-                        style={{ backgroundColor: col.hex }}
-                        title={`${col.name}: ${col.hex}`}
-                      />
-                    ))}
-                  </div>
-                )}
-              </div>
-
-              {/* Footer Meta & Actions */}
-              <div className="pt-4 mt-4 border-t border-slate-100 flex flex-col gap-3">
-                <div className="flex items-center justify-between text-[11px] text-slate-400">
-                  <span className="flex items-center gap-1">
-                    <Clock className="w-3 h-3" />
-                    Updated {formatDate(site.updated_at)}
+                  <span
+                    className={`px-3 py-1 rounded-full text-[11px] font-extrabold uppercase border ${
+                      site.is_published
+                        ? "bg-emerald-50 border-emerald-200 text-emerald-700"
+                        : "bg-amber-50 border-amber-200 text-amber-700"
+                    }`}
+                  >
+                    {site.is_published ? "Published" : "Draft"}
                   </span>
                 </div>
+              </div>
 
-                <div className="flex items-center justify-between gap-1.5 flex-wrap">
+              {/* SECOND AREA: Title, Description, and Custom Domain / URL Preview */}
+              <div className="space-y-2">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                  <h3 className="font-extrabold text-slate-900 text-lg sm:text-xl tracking-tight group-hover:text-purple-600 transition-colors">
+                    {site.title}
+                  </h3>
+
+                  {site.is_published && (
+                    <div className="inline-flex items-center gap-2 px-3 py-1 rounded-lg bg-slate-50 border border-slate-200 text-xs font-mono text-purple-700 shrink-0 max-w-full overflow-hidden">
+                      <span className="truncate" title={site.custom_domain || `/site/${site.published_slug}`}>
+                        {site.custom_domain ? `🌐 ${site.custom_domain}` : `/site/${site.published_slug}`}
+                      </span>
+                      <button
+                        onClick={() => {
+                          const linkToCopy = site.custom_domain
+                            ? `https://${site.custom_domain}`
+                            : `${window.location.origin}/site/${site.published_slug}`;
+                          navigator.clipboard.writeText(linkToCopy);
+                          setCopiedId(site.id);
+                          setTimeout(() => setCopiedId(null), 2000);
+                        }}
+                        className="text-slate-400 hover:text-purple-700 transition-colors shrink-0"
+                        title="Copy Public Link"
+                      >
+                        {copiedId === site.id ? (
+                          <Check className="w-3.5 h-3.5 text-emerald-600" />
+                        ) : (
+                          <Copy className="w-3.5 h-3.5" />
+                        )}
+                      </button>
+                    </div>
+                  )}
+                </div>
+
+                <p className="text-xs sm:text-sm text-slate-600 line-clamp-2 leading-relaxed">
+                  {layoutStrategy}
+                </p>
+              </div>
+
+              {/* THIRD AREA: Compact Metadata Row inside ONE unified card */}
+              <div className="bg-slate-50/80 border border-slate-200/80 rounded-xl p-3.5 sm:p-4 grid grid-cols-2 sm:grid-cols-5 gap-3 items-center text-xs">
+                {/* Pages */}
+                <div className="flex items-center gap-2">
+                  <div className="w-7 h-7 rounded-lg bg-white border border-slate-200 flex items-center justify-center shrink-0 text-slate-600">
+                    <FileText className="w-3.5 h-3.5 text-purple-600" />
+                  </div>
+                  <div>
+                    <span className="text-[10px] uppercase font-bold text-slate-400 block leading-none">
+                      Pages
+                    </span>
+                    <span className="font-bold text-slate-800 text-xs">
+                      {site.pagesCount ?? 1}
+                    </span>
+                  </div>
+                </div>
+
+                {/* AI Usage */}
+                <div className="flex items-center gap-2">
+                  <div className="w-7 h-7 rounded-lg bg-white border border-slate-200 flex items-center justify-center shrink-0 text-slate-600">
+                    <Sparkles className="w-3.5 h-3.5 text-amber-500" />
+                  </div>
+                  <div>
+                    <span className="text-[10px] uppercase font-bold text-slate-400 block leading-none">
+                      AI Usage
+                    </span>
+                    <span className="font-bold text-slate-800 text-xs">
+                      {site.aiCreditsUsed ?? 0} credits
+                    </span>
+                  </div>
+                </div>
+
+                {/* Refinement Count */}
+                <div className="flex items-center gap-2">
+                  <div className="w-7 h-7 rounded-lg bg-white border border-slate-200 flex items-center justify-center shrink-0 text-slate-600">
+                    <RefreshCw className="w-3.5 h-3.5 text-indigo-600" />
+                  </div>
+                  <div>
+                    <span className="text-[10px] uppercase font-bold text-slate-400 block leading-none">
+                      Refinement
+                    </span>
+                    <span className="font-bold text-slate-800 text-xs">
+                      {site.refinementCount ?? 0}
+                    </span>
+                  </div>
+                </div>
+
+                {/* Media Storage */}
+                <div className="flex items-center gap-2">
+                  <div className="w-7 h-7 rounded-lg bg-white border border-slate-200 flex items-center justify-center shrink-0 text-slate-600">
+                    <HardDrive className="w-3.5 h-3.5 text-emerald-600" />
+                  </div>
+                  <div>
+                    <span className="text-[10px] uppercase font-bold text-slate-400 block leading-none">
+                      Media Storage
+                    </span>
+                    <span className="font-bold text-slate-800 text-xs">
+                      {formatMediaStorage(site.storageBytes)}
+                    </span>
+                  </div>
+                </div>
+
+                {/* Last Updated */}
+                <div className="flex items-center gap-2 col-span-2 sm:col-span-1">
+                  <div className="w-7 h-7 rounded-lg bg-white border border-slate-200 flex items-center justify-center shrink-0 text-slate-600">
+                    <Clock className="w-3.5 h-3.5 text-slate-500" />
+                  </div>
+                  <div>
+                    <span className="text-[10px] uppercase font-bold text-slate-400 block leading-none">
+                      Last Updated
+                    </span>
+                    <span className="font-semibold text-slate-700 text-xs">
+                      {formatDate(site.updated_at)}
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              {/* BOTTOM ACTION AREA */}
+              <div className="pt-2 flex flex-wrap items-center justify-between gap-2.5">
+                <div className="flex items-center gap-2 flex-wrap">
+                  {/* Primary Action: Open */}
                   <Link
                     href={`/dashboard/websites/${site.id}`}
-                    className="py-1.5 px-2.5 rounded-xl border border-purple-200 bg-purple-50 hover:bg-purple-100 text-purple-700 text-xs font-semibold flex items-center justify-center gap-1 transition-all"
+                    className="py-2 px-4 rounded-xl border border-purple-200 bg-purple-50 hover:bg-purple-100 text-purple-700 text-xs font-bold flex items-center gap-1.5 transition-all shadow-2xs active:scale-95"
                     title="Open Website Management Hub"
                   >
-                    <Eye className="w-3.5 h-3.5" />
+                    <Eye className="w-4 h-4" />
                     <span>Open</span>
                   </Link>
 
+                  {/* Prominent Action: Refine */}
                   <Link
                     href={`/?id=${site.id}`}
-                    className="py-1.5 px-2.5 rounded-xl bg-purple-600 hover:bg-purple-700 text-white text-xs font-semibold flex items-center justify-center gap-1 transition-all shadow-xs active:scale-95"
+                    className="py-2 px-4 rounded-xl bg-purple-600 hover:bg-purple-700 text-white text-xs font-bold flex items-center gap-1.5 transition-all shadow-xs active:scale-95"
                     title="Refine website with AI"
                   >
-                    <Edit3 className="w-3.5 h-3.5" />
+                    <Edit3 className="w-4 h-4" />
                     <span>Refine</span>
                   </Link>
 
+                  {/* SEO Action */}
                   <Link
                     href={`/dashboard/websites/${site.id}/seo`}
-                    className="py-1.5 px-2.5 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 text-xs font-semibold flex items-center justify-center gap-1 transition-all"
+                    className="py-2 px-3.5 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 text-xs font-semibold flex items-center gap-1 transition-all"
                   >
                     <span>SEO</span>
                   </Link>
 
+                  {/* Domain Action */}
                   <Link
                     href={`/dashboard/websites/${site.id}/domain`}
-                    className="py-1.5 px-2.5 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 text-xs font-semibold flex items-center justify-center gap-1 transition-all"
+                    className="py-2 px-3.5 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 text-xs font-semibold flex items-center gap-1 transition-all"
                     title="Domain & Host Settings"
                   >
                     <span>Domain</span>
                   </Link>
+                </div>
 
+                <div className="flex items-center gap-2">
                   {site.is_published && site.published_slug && (
                     <a
                       href={`/site/${site.published_slug}`}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="p-1.5 rounded-xl border border-slate-200 bg-white text-purple-600 hover:bg-purple-50 hover:border-purple-200 transition-all shrink-0"
+                      className="py-2 px-3 rounded-xl border border-slate-200 bg-white text-purple-600 hover:bg-purple-50 hover:border-purple-200 text-xs font-semibold flex items-center gap-1 transition-all"
                       title="View Live Website"
                     >
                       <ExternalLink className="w-3.5 h-3.5" />
+                      <span className="hidden sm:inline">Live Site</span>
                     </a>
                   )}
 
@@ -329,23 +426,29 @@ export function DashboardWebsiteList({ initialWebsites }: DashboardWebsiteListPr
                     onClick={() => handleTogglePublish(site)}
                     disabled={actionLoadingId === site.id}
                     title={site.is_published ? "Unpublish Website" : "Publish Website"}
-                    className="p-1.5 rounded-xl border border-slate-200 bg-white text-slate-600 hover:text-purple-700 hover:bg-slate-50 transition-all shrink-0 disabled:opacity-50"
+                    className="py-2 px-3 rounded-xl border border-slate-200 bg-white text-slate-700 hover:text-purple-700 hover:bg-slate-50 text-xs font-semibold flex items-center gap-1.5 transition-all disabled:opacity-50"
                   >
                     {actionLoadingId === site.id ? (
                       <Loader2 className="w-3.5 h-3.5 animate-spin text-purple-600" />
                     ) : site.is_published ? (
-                      <Globe className="w-3.5 h-3.5 text-emerald-600" />
+                      <>
+                        <Globe className="w-3.5 h-3.5 text-emerald-600" />
+                        <span>Unpublish</span>
+                      </>
                     ) : (
-                      <Send className="w-3.5 h-3.5 text-slate-400" />
+                      <>
+                        <Send className="w-3.5 h-3.5 text-slate-400" />
+                        <span>Publish</span>
+                      </>
                     )}
                   </button>
 
                   <button
                     onClick={() => setDeleteTargetId(site.id)}
                     title="Delete Website"
-                    className="p-1.5 rounded-xl border border-slate-200 bg-white text-slate-400 hover:text-red-600 hover:bg-red-50 hover:border-red-200 transition-all shrink-0"
+                    className="p-2 rounded-xl border border-slate-200 bg-white text-slate-400 hover:text-red-600 hover:bg-red-50 hover:border-red-200 transition-all shrink-0"
                   >
-                    <Trash2 className="w-3.5 h-3.5" />
+                    <Trash2 className="w-4 h-4" />
                   </button>
                 </div>
               </div>

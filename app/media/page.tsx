@@ -28,7 +28,7 @@ export default async function MediaPage() {
   // Fetch user usage metrics for storage quota checks
   const usageData = (await getUserUsage(user.id)) || {
     plan: { id: "free", name: "Free", allow_custom_domain: false, allow_advanced_seo: false },
-    credits: { balance: 50, monthlyUsed: 0, lifetimeUsed: 0, limit: 50 },
+    credits: { balance: 50, monthlyUsed: 0, lifetimeUsed: 0, limit: 50, monthlyOperations: 0 },
     websites: { used: 0, limit: 1 },
     storage: { usedBytes: 0, limitBytes: 104857600 },
   };

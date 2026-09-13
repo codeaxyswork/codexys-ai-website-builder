@@ -13,8 +13,10 @@ export function DashboardUsageCards({ usage }: DashboardUsageCardsProps) {
   const [showUpgradeModal, setShowUpgradeModal] = useState(false);
 
   const formatBytes = (bytes: number) => {
-    if (bytes === 0) return "0 MB";
-    const mb = bytes / (1024 * 1024);
+    if (!bytes || bytes === 0) return "0 MB";
+    const kb = bytes / 1024;
+    if (kb < 1000) return `${kb.toFixed(1)} KB`;
+    const mb = kb / 1024;
     if (mb < 1000) return `${mb.toFixed(1)} MB`;
     return `${(mb / 1024).toFixed(1)} GB`;
   };
@@ -40,22 +42,22 @@ export function DashboardUsageCards({ usage }: DashboardUsageCardsProps) {
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         {/* 1. AI Credits Card */}
         <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-xs flex flex-col justify-between">
-          <div className="flex items-center justify-between mb-3">
-            <span className="text-xs font-bold uppercase text-slate-500 tracking-wider">
-              AI Credits
-            </span>
-            <div className="w-8 h-8 rounded-xl bg-purple-50 border border-purple-200 flex items-center justify-center">
-              <Sparkles className="w-4 h-4 text-purple-600" />
-            </div>
-          </div>
-
           <div>
+            <div className="flex items-center justify-between mb-3">
+              <span className="text-xs font-bold uppercase text-slate-500 tracking-wider">
+                AI Credits
+              </span>
+              <div className="w-8 h-8 rounded-xl bg-purple-50 border border-purple-200 flex items-center justify-center">
+                <Sparkles className="w-4 h-4 text-purple-600" />
+              </div>
+            </div>
+
             <div className="flex items-baseline justify-between">
               <span className="text-2xl font-extrabold text-slate-900">
                 {usage.credits.balance}
               </span>
               <span className="text-xs font-semibold text-slate-500">
-                / {usage.credits.limit} Remaining
+                / {usage.credits.limit} Monthly
               </span>
             </div>
 
@@ -65,17 +67,33 @@ export function DashboardUsageCards({ usage }: DashboardUsageCardsProps) {
                 style={{ width: `${creditPercentage}%` }}
               />
             </div>
-            <span className="text-[10px] text-slate-400 font-medium block mt-1.5">
-              {usage.credits.monthlyUsed} credits used this month
-            </span>
+            
+            <div className="mt-2.5 flex items-center justify-between text-[11px] text-slate-500">
+              <span>Used this month: <strong className="text-slate-700 font-semibold">{usage.credits.monthlyUsed} credits</strong></span>
+            </div>
+            {typeof usage.credits.monthlyOperations === "number" && (
+              <div className="mt-0.5 text-[11px] text-slate-400">
+                AI operations: <strong className="text-slate-600 font-medium">{usage.credits.monthlyOperations}</strong>
+              </div>
+            )}
+          </div>
+
+          <div className="mt-3 pt-2 border-t border-slate-100 flex justify-end">
+            <Link
+              href="/dashboard/billing"
+              className="text-xs font-semibold text-purple-600 hover:text-purple-700 flex items-center gap-1 transition-colors"
+            >
+              <span>View Usage</span>
+              <ArrowUpRight className="w-3.5 h-3.5" />
+            </Link>
           </div>
         </div>
 
-        {/* 2. Storage Quota Card */}
+        {/* 2. Media Storage Card */}
         <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-xs flex flex-col justify-between">
           <div className="flex items-center justify-between mb-3">
             <span className="text-xs font-bold uppercase text-slate-500 tracking-wider">
-              Storage Quota
+              Media Storage
             </span>
             <div className="w-8 h-8 rounded-xl bg-indigo-50 border border-indigo-200 flex items-center justify-center">
               <HardDrive className="w-4 h-4 text-indigo-600" />
@@ -88,7 +106,7 @@ export function DashboardUsageCards({ usage }: DashboardUsageCardsProps) {
                 {formatBytes(usage.storage.usedBytes)}
               </span>
               <span className="text-xs font-semibold text-slate-500">
-                / {formatBytes(usage.storage.limitBytes)}
+                / {formatBytes(usage.storage.limitBytes)} Limit
               </span>
             </div>
 
@@ -98,8 +116,8 @@ export function DashboardUsageCards({ usage }: DashboardUsageCardsProps) {
                 style={{ width: `${storagePercentage}%` }}
               />
             </div>
-            <span className="text-[10px] text-slate-400 font-medium block mt-1.5">
-              Asset storage limit
+            <span className="text-[10px] text-slate-400 font-medium block mt-2">
+              Persistent media asset storage
             </span>
           </div>
         </div>

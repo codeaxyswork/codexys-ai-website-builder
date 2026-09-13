@@ -50,10 +50,55 @@ export default async function DashboardPage() {
     .eq("user_id", user.id)
     .order("updated_at", { ascending: false });
 
+  // Fetch website-specific aggregated metrics (AI Credits, Refinements, Pages count, Media storage)
+  const websiteIds = (dbWebsites || []).map((w: any) => w.id);
+
+  let transMap: Record<string, { credits: number; refinements: number }> = {};
+  let pagesMap: Record<string, number> = {};
+  let storageMap: Record<string, number> = {};
+
+  if (websiteIds.length > 0) {
+    const [transRes, pagesRes, mediaRes] = await Promise.all([
+      supabase
+        .from("ai_credit_transactions")
+        .select("website_id, credits_used, action_type")
+        .in("website_id", websiteIds),
+      supabase
+        .from("website_pages")
+        .select("website_id, id")
+        .in("website_id", websiteIds),
+      supabase
+        .from("media_assets")
+        .select("website_id, file_size_bytes")
+        .in("website_id", websiteIds),
+    ]);
+
+    (transRes.data || []).forEach((t: any) => {
+      if (!t.website_id) return;
+      if (!transMap[t.website_id]) {
+        transMap[t.website_id] = { credits: 0, refinements: 0 };
+      }
+      transMap[t.website_id].credits += Number(t.credits_used) || 0;
+      if (t.action_type === "ai_edit" || t.action_type === "refinement") {
+        transMap[t.website_id].refinements += 1;
+      }
+    });
+
+    (pagesRes.data || []).forEach((p: any) => {
+      if (!p.website_id) return;
+      pagesMap[p.website_id] = (pagesMap[p.website_id] || 0) + 1;
+    });
+
+    (mediaRes.data || []).forEach((m: any) => {
+      if (!m.website_id) return;
+      storageMap[m.website_id] = (storageMap[m.website_id] || 0) + (Number(m.file_size_bytes) || 0);
+    });
+  }
+
   // Fetch usage metrics (credits, plan, storage, limits)
   const usageData = (await getUserUsage(user.id)) || {
     plan: { id: "free", name: "Free", allow_custom_domain: false, allow_advanced_seo: false },
-    credits: { balance: 50, monthlyUsed: 0, lifetimeUsed: 0, limit: 50 },
+    credits: { balance: 50, monthlyUsed: 0, lifetimeUsed: 0, limit: 50, monthlyOperations: 0 },
     websites: { used: dbWebsites?.length || 0, limit: 1 },
     storage: { usedBytes: 0, limitBytes: 104857600 },
   };
@@ -79,6 +124,10 @@ export default async function DashboardPage() {
     created_at: w.created_at,
     updated_at: w.updated_at,
     website_seo: Array.isArray(w.website_seo) ? w.website_seo[0] : w.website_seo,
+    pagesCount: pagesMap[w.id] || 1,
+    aiCreditsUsed: transMap[w.id]?.credits || 0,
+    refinementCount: transMap[w.id]?.refinements || 0,
+    storageBytes: storageMap[w.id] || 0,
   }));
 
   return (
