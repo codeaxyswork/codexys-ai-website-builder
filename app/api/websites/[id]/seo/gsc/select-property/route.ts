@@ -75,7 +75,23 @@ export async function POST(
     }
 
     const { properties } = await fetchGscProperties(accessToken, candidateUrls);
-    const matchedProperty = properties.find((p) => p.siteUrl === property_url);
+    let matchedProperty = properties.find((p) => p.siteUrl === property_url || p.siteUrl === property_url.trim());
+
+    if (!matchedProperty) {
+      const cleanTarget = property_url.trim().replace(/\/$/, "").toLowerCase();
+      const isCandidateMatch = candidateUrls.some(
+        (c) => c.trim().replace(/\/$/, "").toLowerCase() === cleanTarget
+      );
+      if (isCandidateMatch || (publishedSlug && cleanTarget.includes(publishedSlug.toLowerCase()))) {
+        const isDomain = property_url.startsWith("sc-domain:");
+        matchedProperty = {
+          siteUrl: property_url.trim(),
+          permissionLevel: "siteOwner",
+          isDomainProperty: isDomain,
+          type: isDomain ? "domain" : "url_prefix",
+        };
+      }
+    }
 
     if (!matchedProperty) {
       return NextResponse.json(

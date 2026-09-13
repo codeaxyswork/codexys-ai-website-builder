@@ -57,6 +57,11 @@ export function GscPropertySelectorModal({
       setProperties(list);
       if (list.length > 0) {
         setSelectedUrl(list[0].siteUrl);
+      } else {
+        const fallback = data.debug?.fallbackCandidateUrls?.[0] || (data.website?.slug ? `https://codexys-ai-website-builder.vercel.app/site/${data.website.slug}/` : "");
+        if (fallback) {
+          setSelectedUrl(fallback);
+        }
       }
     } catch (err: any) {
       console.error("Fetch Properties Modal Error:", err);
@@ -115,17 +120,23 @@ export function GscPropertySelectorModal({
             </svg>
             Discovering Search Console properties from Google...
           </div>
-        ) : properties.length === 0 ? (
-          <div className="p-6 text-center bg-slate-50 border border-slate-200 rounded-xl space-y-3">
-            <p className="text-xs text-slate-700 font-medium">
-              No Search Console properties were found for this Google account.
-            </p>
-            <p className="text-[11px] text-slate-500 leading-relaxed">
-              Please verify that your domain is added and verified inside your Google Search Console account.
-            </p>
-          </div>
         ) : (
           <div className="space-y-3 max-h-60 overflow-y-auto pr-1">
+            {properties.length === 0 && (
+              <div className="p-4 bg-purple-50/50 border border-purple-200 rounded-xl space-y-3">
+                <div className="text-xs font-bold text-slate-900">Verified Website Property URL</div>
+                <div className="text-xs text-slate-600 leading-relaxed">
+                  Confirm your verified published website URL to associate with Search Console:
+                </div>
+                <input
+                  type="text"
+                  value={selectedUrl}
+                  onChange={(e) => setSelectedUrl(e.target.value)}
+                  placeholder="https://codexys-ai-website-builder.vercel.app/site/..."
+                  className="w-full px-3 py-2 bg-white border border-slate-300 rounded-lg text-xs font-mono text-slate-900 focus:ring-2 focus:ring-purple-500 focus:outline-none"
+                />
+              </div>
+            )}
             {properties.map((prop) => (
               <label
                 key={prop.siteUrl}
@@ -178,7 +189,7 @@ export function GscPropertySelectorModal({
           <button
             type="button"
             onClick={handleConfirm}
-            disabled={isSubmitting || !selectedUrl || properties.length === 0}
+            disabled={isSubmitting || !selectedUrl}
             className="px-5 py-2 bg-purple-600 hover:bg-purple-700 disabled:opacity-50 text-white text-xs font-semibold rounded-xl shadow-xs transition-all flex items-center gap-2"
           >
             {isSubmitting ? "Associating..." : "Associate Property & Sync"}
