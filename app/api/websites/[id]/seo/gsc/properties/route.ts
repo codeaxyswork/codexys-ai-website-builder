@@ -21,7 +21,7 @@ export async function GET(
     // Verify website ownership
     const { data: website, error: siteErr } = await supabase
       .from("websites")
-      .select("id, title, slug, custom_domain")
+      .select("id, title, slug, published_slug, custom_domain")
       .eq("id", websiteId)
       .eq("user_id", user.id)
       .single();
@@ -69,8 +69,23 @@ export async function GET(
       );
     }
 
-    // Call Google Search Console API for properties
-    const properties = await fetchGscProperties(accessToken);
+    // Construct dynamic candidate URLs for fallback sites.get probe
+    const baseUrl = (process.env.NEXT_PUBLIC_APP_URL || "https://codexys-ai-website-builder.vercel.app").replace(/\/$/, "");
+    const publishedSlug = website.published_slug || website.slug;
+    const fallbackCandidateUrls: string[] = [];
+
+    if (publishedSlug) {
+      fallbackCandidateUrls.push(`${baseUrl}/site/${publishedSlug}/`);
+      fallbackCandidateUrls.push(`${baseUrl}/site/${publishedSlug}`);
+    }
+    if (website.custom_domain) {
+      const cleanDomain = website.custom_domain.replace(/^https?:\/\//i, "").replace(/\/$/, "");
+      fallbackCandidateUrls.push(`https://${cleanDomain}/`);
+      fallbackCandidateUrls.push(`https://${cleanDomain}`);
+    }
+
+    // Call Google Search Console API for properties (with fallback candidate URLs for sites.get)
+    const properties = await fetchGscProperties(accessToken, fallbackCandidateUrls);
 
     return NextResponse.json({
       properties,

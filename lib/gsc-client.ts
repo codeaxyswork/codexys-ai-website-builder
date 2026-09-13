@@ -340,9 +340,14 @@ export async function refreshGscAccessToken(refreshToken: string): Promise<{
 }
 
 /**
- * Fetch Search Console properties accessible by authenticated account
+ * Fetch Search Console properties accessible by authenticated account.
+ * Primary: sites.list (GET /webmasters/v3/sites)
+ * Fallback: sites.get for candidate URLs if sites.list returns 0 properties.
  */
-export async function fetchGscProperties(accessToken: string): Promise<GscProperty[]> {
+export async function fetchGscProperties(
+  accessToken: string,
+  fallbackCandidateUrls: string[] = []
+): Promise<GscProperty[]> {
   const res = await fetch("https://www.googleapis.com/webmasters/v3/sites", {
     headers: {
       Authorization: `Bearer ${accessToken}`,
@@ -360,9 +365,9 @@ export async function fetchGscProperties(accessToken: string): Promise<GscProper
   }
 
   const data = await res.json();
-  const siteEntries = data.siteEntry || [];
+  const siteEntries = data.siteEntry || data.sites || [];
 
-  return siteEntries.map((site: any) => {
+  let properties: GscProperty[] = siteEntries.map((site: any) => {
     const url = site.siteUrl || "";
     const isDomain = url.startsWith("sc-domain:");
     return {
@@ -372,6 +377,51 @@ export async function fetchGscProperties(accessToken: string): Promise<GscProper
       type: isDomain ? "domain" : "url_prefix",
     };
   });
+
+  // FALLBACK PROBE: If sites.list returned zero properties, probe fallbackCandidateUrls via sites.get
+  if (properties.length === 0 && fallbackCandidateUrls.length > 0) {
+    const validLevels = new Set([
+      "siteOwner",
+      "siteFullUser",
+      "siteRestrictedUser",
+      "siteUnverifiedUser",
+    ]);
+
+    for (const candidateUrl of fallbackCandidateUrls) {
+      if (!candidateUrl || typeof candidateUrl !== "string") continue;
+      try {
+        const encodedUrl = encodeURIComponent(candidateUrl.trim());
+        const getRes = await fetch(`https://www.googleapis.com/webmasters/v3/sites/${encodedUrl}`, {
+          headers: {
+            Authorization: `Bearer ${accessToken}`,
+            Accept: "application/json",
+          },
+        });
+
+        if (getRes.ok) {
+          const siteData = await getRes.json();
+          const pLevel = siteData.permissionLevel || "siteFullUser";
+          if (validLevels.has(pLevel) || getRes.status === 200) {
+            const returnedUrl = siteData.siteUrl || candidateUrl.trim();
+            const isDomain = returnedUrl.startsWith("sc-domain:");
+            const foundProperty: GscProperty = {
+              siteUrl: returnedUrl,
+              permissionLevel: pLevel,
+              isDomainProperty: isDomain,
+              type: isDomain ? "domain" : "url_prefix",
+            };
+            if (!properties.some((p) => p.siteUrl === foundProperty.siteUrl)) {
+              properties.push(foundProperty);
+            }
+          }
+        }
+      } catch (probeErr) {
+        console.warn(`GSC sites.get fallback probe error for ${candidateUrl}:`, probeErr);
+      }
+    }
+  }
+
+  return properties;
 }
 
 /**

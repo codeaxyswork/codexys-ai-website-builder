@@ -27,7 +27,7 @@ export async function POST(
     // Verify website ownership
     const { data: website, error: siteErr } = await supabase
       .from("websites")
-      .select("id, title, slug, custom_domain")
+      .select("id, title, slug, published_slug, custom_domain")
       .eq("id", websiteId)
       .eq("user_id", user.id)
       .single();
@@ -66,7 +66,15 @@ export async function POST(
     }
 
     // Validate that property_url came from user's authenticated Google account
-    const properties = await fetchGscProperties(accessToken);
+    const candidateUrls = [property_url.trim()];
+    const baseUrl = (process.env.NEXT_PUBLIC_APP_URL || "https://codexys-ai-website-builder.vercel.app").replace(/\/$/, "");
+    const publishedSlug = website.published_slug || website.slug;
+    if (publishedSlug) {
+      candidateUrls.push(`${baseUrl}/site/${publishedSlug}/`);
+      candidateUrls.push(`${baseUrl}/site/${publishedSlug}`);
+    }
+
+    const properties = await fetchGscProperties(accessToken, candidateUrls);
     const matchedProperty = properties.find((p) => p.siteUrl === property_url);
 
     if (!matchedProperty) {
