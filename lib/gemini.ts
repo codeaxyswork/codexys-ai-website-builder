@@ -111,9 +111,11 @@ export async function generateWebsite(
   if (images && images.length > 0) {
     promptText += `\n\nUSER ATTACHED ASSETS / IMAGES (${images.length} files attached):\n`;
     images.forEach((img, idx) => {
-      promptText += `- Asset #${idx + 1}: name="${img.name}", mime="${img.mimeType}"\n`;
+      const assetUrl = img.publicUrl || img.dataUrl;
+      promptText += `- Asset #${idx + 1}: name="${img.name}", url="${assetUrl}"\n`;
     });
-    promptText += `\nCRITICAL MULTIMODAL INSTRUCTION: The user has uploaded ${images.length} custom image asset(s) (logo, hero image, product photo). You MUST inspect these attached images and include them in the generated HTML code using their exact data URL (e.g., <img src="${images[0].dataUrl}" alt="${images[0].name}" />) in the header logo, hero banner, or gallery sections!\n`;
+    const targetUrl = images[0].publicUrl || images[0].dataUrl;
+    promptText += `\nCRITICAL MULTIMODAL INSTRUCTION: The user has uploaded ${images.length} custom image asset(s) (logo, hero image, product photo). You MUST inspect these attached images and include them in the generated HTML code using their exact public URL (e.g., <img src="${targetUrl}" alt="${images[0].name}" />) in the header logo, hero banner, or gallery sections! Do NOT generate or echo Base64 data URLs into the HTML code.\n`;
   }
 
   promptText += `\nGenerate the complete website plan and source files using the specified markers now:`;
@@ -122,12 +124,15 @@ export async function generateWebsite(
 
   if (images && images.length > 0) {
     images.forEach((img) => {
-      contentsPayload.push({
-        inlineData: {
-          mimeType: img.mimeType,
-          data: img.base64,
-        },
-      });
+      const b64Data = img.base64 || (img.dataUrl ? img.dataUrl.split(",")[1] : "");
+      if (b64Data) {
+        contentsPayload.push({
+          inlineData: {
+            mimeType: img.mimeType,
+            data: b64Data,
+          },
+        });
+      }
     });
   }
 
@@ -139,7 +144,7 @@ export async function generateWebsite(
   console.log(`WEBSITE CONTENT LANG: ${options?.websiteLanguage || "auto"}`);
   console.log("REQUEST SENT TO GEMINI...");
 
-  const candidateModels = Array.from(new Set([model, "gemini-3.6-flash", "gemini-3.5-flash", "gemini-2.5-flash"]));
+  const candidateModels = Array.from(new Set([model, "gemini-3.6-flash", "gemini-3.5-flash"]));
   let lastError: any = null;
 
   for (const currentModel of candidateModels) {
@@ -193,10 +198,12 @@ export async function editWebsite(
 
   if (images && images.length > 0) {
     promptText += `\n\nNEW ATTACHED ASSETS (${images.length} images):\n`;
-    images.forEach((img) => {
-      promptText += `- Image name="${img.name}", dataUrl="${img.dataUrl.substring(0, 40)}..."\n`;
+    images.forEach((img, idx) => {
+      const assetUrl = img.publicUrl || img.dataUrl;
+      promptText += `- Asset #${idx + 1}: name="${img.name}", url="${assetUrl}"\n`;
     });
-    promptText += `\nIncorporate these uploaded images into the updated index.html code using exact src="${images[0].dataUrl}".\n`;
+    const targetUrl = images[0].publicUrl || images[0].dataUrl;
+    promptText += `\nCRITICAL IMAGE REFINEMENT INSTRUCTION: The user has attached ${images.length} custom image asset(s). When the user asks to use, replace, add, or set an image (e.g. hero image, background, gallery photo, logo), you MUST update the HTML code (<img src="${targetUrl}"> or CSS background-image: url("${targetUrl}")) using the EXACT URL specified above: "${targetUrl}". Do NOT use Base64 strings, do NOT truncate the URL, and do NOT leave placeholder image links.\n`;
   }
 
   promptText += `\nReturn updated website plan and files using the marker format now:`;
@@ -205,24 +212,40 @@ export async function editWebsite(
 
   if (images && images.length > 0) {
     images.forEach((img) => {
-      contentsPayload.push({
-        inlineData: {
-          mimeType: img.mimeType,
-          data: img.base64,
-        },
-      });
+      const b64Data = img.base64 || (img.dataUrl ? img.dataUrl.split(",")[1] : "");
+      if (b64Data) {
+        contentsPayload.push({
+          inlineData: {
+            mimeType: img.mimeType,
+            data: b64Data,
+          },
+        });
+      }
     });
   }
 
-  const candidateModels = Array.from(new Set([model, "gemini-3.6-flash", "gemini-3.5-flash", "gemini-2.5-flash"]));
+  const candidateModels = Array.from(new Set([model, "gemini-3.6-flash", "gemini-3.5-flash"]));
   let lastError: any = null;
 
   for (const currentModel of candidateModels) {
     try {
-      const response = await ai.models.generateContent({
-        model: currentModel,
-        contents: contentsPayload,
-      });
+      let response: any;
+      try {
+        response = await ai.models.generateContent({
+          model: currentModel,
+          contents: contentsPayload,
+        });
+      } catch (err: any) {
+        if (err?.message?.includes("INVALID_ARGUMENT") || err?.message?.includes("Unable to process input image")) {
+          console.warn(`Model ${currentModel} failed inlineData vision, retrying with HTTPS URL promptText directive...`);
+          response = await ai.models.generateContent({
+            model: currentModel,
+            contents: [promptText],
+          });
+        } else {
+          throw err;
+        }
+      }
 
       const responseText = response.text;
       if (!responseText || responseText.trim() === "") {

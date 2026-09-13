@@ -8,6 +8,9 @@ import { DashboardWebsiteList, WebsiteItem } from "@/components/DashboardWebsite
 import { DashboardUsageCards } from "@/components/DashboardUsageCards";
 import { getUserUsage } from "@/lib/billing";
 
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
+
 export default async function DashboardPage() {
   const supabase = await createClient();
 

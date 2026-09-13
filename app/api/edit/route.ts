@@ -98,31 +98,48 @@ async function saveEditedWebsiteToDb(
   plan: WebsitePlan,
   files: GeneratedFile[]
 ) {
-  try {
-    const htmlContent = files.find((f) => f.path.endsWith("index.html"))?.content || "";
-    const cssContent = files.find((f) => f.path.endsWith("styles.css"))?.content || "";
-    const jsContent = files.find((f) => f.path.endsWith("script.js"))?.content || "";
+  const htmlContent = files.find((f) => f.path.endsWith("index.html"))?.content || "";
+  const cssContent = files.find((f) => f.path.endsWith("styles.css"))?.content || "";
+  const jsContent = files.find((f) => f.path.endsWith("script.js"))?.content || "";
 
-    await supabase
-      .from("websites")
-      .update({
-        design_plan: plan || {},
-        updated_at: new Date().toISOString(),
-      })
-      .eq("id", websiteId)
-      .eq("user_id", userId);
+  const { error: webError } = await supabase
+    .from("websites")
+    .update({
+      design_plan: plan || {},
+      updated_at: new Date().toISOString(),
+    })
+    .eq("id", websiteId)
+    .eq("user_id", userId);
 
-    await supabase
-      .from("website_pages")
-      .update({
-        html_content: htmlContent,
-        css_content: cssContent,
-        js_content: jsContent,
-        updated_at: new Date().toISOString(),
-      })
-      .eq("website_id", websiteId)
-      .eq("user_id", userId);
-  } catch (e) {
-    console.error("Save edit failed:", e);
+  if (webError) {
+    console.error("Save website edit metadata failed:", webError);
+    throw new Error(`Failed to update website record: ${webError.message}`);
+  }
+
+  const { error: pageError } = await supabase
+    .from("website_pages")
+    .update({
+      html_content: htmlContent,
+      css_content: cssContent,
+      js_content: jsContent,
+      updated_at: new Date().toISOString(),
+    })
+    .eq("website_id", websiteId)
+    .eq("user_id", userId);
+
+  if (pageError) {
+    console.error("Save website_pages edit failed:", pageError);
+    // Fallback: Insert index.html page row if missing
+    const { error: insertError } = await supabase.from("website_pages").insert({
+      website_id: websiteId,
+      user_id: userId,
+      path: "index.html",
+      html_content: htmlContent,
+      css_content: cssContent,
+      js_content: jsContent,
+    });
+    if (insertError) {
+      throw new Error(`Failed to update website page content: ${insertError.message}`);
+    }
   }
 }

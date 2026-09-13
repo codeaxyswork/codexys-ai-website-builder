@@ -370,17 +370,7 @@ export function DashboardWebsiteList({ initialWebsites }: DashboardWebsiteListPr
               {/* BOTTOM ACTION AREA */}
               <div className="pt-2 flex flex-wrap items-center justify-between gap-2.5">
                 <div className="flex items-center gap-2 flex-wrap">
-                  {/* Primary Action: Open */}
-                  <Link
-                    href={`/dashboard/websites/${site.id}`}
-                    className="py-2 px-4 rounded-xl border border-purple-200 bg-purple-50 hover:bg-purple-100 text-purple-700 text-xs font-bold flex items-center gap-1.5 transition-all shadow-2xs active:scale-95"
-                    title="Open Website Management Hub"
-                  >
-                    <Eye className="w-4 h-4" />
-                    <span>Open</span>
-                  </Link>
-
-                  {/* Prominent Action: Refine */}
+                  {/* Primary Action: Refine */}
                   <Link
                     href={`/?id=${site.id}`}
                     className="py-2 px-4 rounded-xl bg-purple-600 hover:bg-purple-700 text-white text-xs font-bold flex items-center gap-1.5 transition-all shadow-xs active:scale-95"

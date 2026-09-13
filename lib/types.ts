@@ -35,6 +35,7 @@ export interface UploadedImage {
   mimeType: string;
   base64: string;
   dataUrl: string;
+  publicUrl?: string;
 }
 
 export interface EditRequest {

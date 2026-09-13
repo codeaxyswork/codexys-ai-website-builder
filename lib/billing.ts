@@ -147,6 +147,27 @@ export async function checkCreditBalance(
   };
 }
 
+export async function deductCreditsWithClient(
+  supabase: any,
+  userId: string,
+  credits: number,
+  actionType: string,
+  websiteId?: string
+): Promise<boolean> {
+  const { data: success, error } = await supabase.rpc("deduct_user_credits", {
+    p_user_id: userId,
+    p_credits: credits,
+    p_action_type: actionType,
+    p_website_id: websiteId || null,
+  });
+
+  if (error) {
+    console.error("Deduct Credits RPC Error:", error);
+    return false;
+  }
+  return success ?? true;
+}
+
 export async function deductCredits(
   userId: string,
   credits: number,
@@ -155,47 +176,9 @@ export async function deductCredits(
 ): Promise<boolean> {
   try {
     const supabase = await createClient();
-
-    // Call PostgreSQL RPC function for atomic credit deduction with row locking
-    const { data: success, error } = await supabase.rpc("deduct_user_credits", {
-      p_user_id: userId,
-      p_credits: credits,
-      p_action_type: actionType,
-      p_website_id: websiteId || null,
-    });
-
-    if (error) {
-      console.error("Deduct Credits RPC Error:", error);
-      // Fallback manual update if RPC is missing
-      const { data: current } = await supabase
-        .from("user_credits")
-        .select("balance")
-        .eq("user_id", userId)
-        .single();
-
-      if (!current || current.balance < credits) return false;
-
-      await supabase
-        .from("user_credits")
-        .update({
-          balance: current.balance - credits,
-          updated_at: new Date().toISOString(),
-        })
-        .eq("user_id", userId);
-
-      await supabase.from("ai_credit_transactions").insert({
-        user_id: userId,
-        website_id: websiteId || null,
-        credits_used: credits,
-        action_type: actionType,
-      });
-
-      return true;
-    }
-
-    return Boolean(success);
+    return await deductCreditsWithClient(supabase, userId, credits, actionType, websiteId);
   } catch (err) {
-    console.error("deductCredits Exception:", err);
+    console.error("deductCredits Error:", err);
     return false;
   }
 }

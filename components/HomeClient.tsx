@@ -289,13 +289,49 @@ export function HomeClient() {
     const activeLang = conversationLangParam || (typeof window !== "undefined" ? localStorage.getItem("codeaxys_conversation_lang") : null) || "auto";
 
     try {
+      // Pre-upload attached refinement images to Supabase Storage to get clean public HTTPS URLs
+      let processedImages = uploadedImages;
+
+      if (uploadedImages.length > 0) {
+        processedImages = await Promise.all(
+          uploadedImages.map(async (img) => {
+            if (img.publicUrl) return img;
+            try {
+              const res = await fetch(img.dataUrl);
+              const blob = await res.blob();
+              const formData = new FormData();
+              formData.append("file", blob, img.name);
+              if (currentWebsiteId) {
+                formData.append("websiteId", currentWebsiteId);
+              }
+
+              const uploadRes = await fetch("/api/media/upload", {
+                method: "POST",
+                body: formData,
+              });
+
+              const uploadData = await uploadRes.json();
+              if (uploadRes.ok && uploadData.asset?.public_url) {
+                return {
+                  ...img,
+                  publicUrl: uploadData.asset.public_url,
+                };
+              }
+            } catch (upErr) {
+              console.warn("Pre-upload of refinement image failed:", upErr);
+            }
+            return img;
+          })
+        );
+      }
+
       const response = await fetch("/api/edit", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           files,
           instruction,
-          images: uploadedImages,
+          images: processedImages,
           websiteId: currentWebsiteId || undefined,
           conversationLanguage: activeLang,
         }),
