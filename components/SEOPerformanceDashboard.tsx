@@ -91,12 +91,6 @@ export function SEOPerformanceDashboard({
             </p>
           </div>
 
-          {syncError && (
-            <div className="p-4 bg-rose-50 border border-rose-200 rounded-xl text-rose-800 text-xs font-medium text-left">
-              {syncError}
-            </div>
-          )}
-
           <div className="pt-2 flex flex-col sm:flex-row items-center justify-center gap-3">
             <button
               type="button"

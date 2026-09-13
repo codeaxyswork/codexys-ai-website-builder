@@ -184,10 +184,12 @@ export default function SEODashboardPage({ params }: SEODashboardPageProps) {
   };
 
   const handleConnectGsc = () => {
+    setGscSyncError(null);
     window.location.href = `/api/seo/gsc/connect?website_id=${websiteId}&redirect=1`;
   };
 
   const handleSelectGscProperty = async (propertyUrl: string) => {
+    setGscSyncError(null);
     const res = await fetch(`/api/websites/${websiteId}/seo/gsc/select-property`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -344,6 +346,9 @@ export default function SEODashboardPage({ params }: SEODashboardPageProps) {
 
   const handleSaveIntegration = async (provider: string, status: string, config: any) => {
     try {
+      if (provider === "google_search_console" && (status === "disconnected" || !status)) {
+        setGscSyncError(null);
+      }
       const res = await fetch(`/api/websites/${websiteId}/seo/integrations`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
@@ -355,6 +360,10 @@ export default function SEODashboardPage({ params }: SEODashboardPageProps) {
           const filtered = prev.filter((i) => i.provider !== provider);
           return [...filtered, data.integration];
         });
+        if (provider === "google_search_console" && (status === "disconnected" || !status)) {
+          setGscSyncError(null);
+          await fetchGscPerformance();
+        }
       }
     } catch (err) {
       console.error("Save integration error:", err);
