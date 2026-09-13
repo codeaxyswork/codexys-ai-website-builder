@@ -144,7 +144,7 @@ export async function PUT(
       schema_markup: body.schema_markup || {},
       google_analytics_id: body.google_analytics_id || null,
       google_tag_manager_id: body.google_tag_manager_id || null,
-      google_site_verification_token: body.google_site_verification_token || null,
+      google_site_verification_token: sanitizeGscToken(body.google_site_verification_token),
       updated_at: new Date().toISOString(),
     };
 
@@ -179,5 +179,23 @@ export async function PUT(
       { status: 500 }
     );
   }
+}
+
+function sanitizeGscToken(rawToken: string | null | undefined): string | null {
+  if (!rawToken || !rawToken.trim()) return null;
+  let clean = rawToken.trim();
+
+  // If user pasted full meta tag: <meta name="google-site-verification" content="TOKEN" />
+  const metaMatch = clean.match(/content=["']([^"']+)["']/i);
+  if (metaMatch && metaMatch[1]) {
+    clean = metaMatch[1].trim();
+  }
+
+  // If user pasted filename: googleTOKEN.html
+  if (clean.toLowerCase().startsWith("google") && clean.toLowerCase().endsWith(".html")) {
+    clean = clean.slice(6, -5).trim();
+  }
+
+  return clean || null;
 }
 
