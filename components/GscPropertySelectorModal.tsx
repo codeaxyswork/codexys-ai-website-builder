@@ -38,7 +38,10 @@ export function GscPropertySelectorModal({
     try {
       setLoading(true);
       setErrorMsg(null);
-      const res = await fetch(`/api/websites/${websiteId}/seo/gsc/properties`);
+      const res = await fetch(`/api/websites/${websiteId}/seo/gsc/properties?_t=${Date.now()}`, {
+        cache: "no-store",
+        headers: { "Cache-Control": "no-cache" },
+      });
 
       if (!res.ok) {
         const errJson = await res.json().catch(() => ({}));
