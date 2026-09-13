@@ -86,7 +86,11 @@ export default function SEODashboardPage({ params }: SEODashboardPageProps) {
     const gscConnected = searchParams.get("gsc_connected");
     const openSelectProperty = searchParams.get("select_property");
     const gscError = searchParams.get("gsc_error");
+    const tabParam = searchParams.get("tab");
 
+    if (tabParam) {
+      setActiveTab(tabParam);
+    }
     if (gscError) {
       setErrorMessage(gscError);
     }

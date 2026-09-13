@@ -16,6 +16,28 @@ export async function GET(request: Request) {
   const protocol = host.includes("localhost") ? "http" : "https";
   const appUrl = process.env.NEXT_PUBLIC_APP_URL || `${protocol}://${host}`;
 
+  // Safely extract targetWebsiteId from state payload for error redirect fallback
+  let targetWebsiteId: string | null = null;
+  if (state && typeof state === "string" && state.includes(".")) {
+    try {
+      const [base64Payload] = state.split(".");
+      const jsonStr = Buffer.from(base64Payload, "base64url").toString("utf8");
+      const parsed = JSON.parse(jsonStr);
+      if (parsed && typeof parsed.websiteId === "string") {
+        targetWebsiteId = parsed.websiteId;
+      }
+    } catch {
+      // Ignore unparseable state for fallback
+    }
+  }
+
+  const getErrorRedirectUrl = (errorMsg: string) => {
+    if (targetWebsiteId) {
+      return `${appUrl}/dashboard/websites/${targetWebsiteId}/seo?tab=integrations&gsc_error=${encodeURIComponent(errorMsg)}`;
+    }
+    return `${appUrl}/dashboard?gsc_error=${encodeURIComponent(errorMsg)}`;
+  };
+
   // Handle Google OAuth cancellation or explicit errors
   if (errorParam) {
     console.warn("Google OAuth Authorization Error:", errorParam);
@@ -24,21 +46,19 @@ export async function GET(request: Request) {
         ? "Google Search Console connection was cancelled or permission was not granted."
         : `Google OAuth error: ${errorParam}`;
 
-    return NextResponse.redirect(
-      `${appUrl}/dashboard?gsc_error=${encodeURIComponent(errorMsg)}`
-    );
+    return NextResponse.redirect(getErrorRedirectUrl(errorMsg));
   }
 
   if (!code || !state) {
-    return NextResponse.redirect(
-      `${appUrl}/dashboard?gsc_error=${encodeURIComponent("Missing authorization code or state parameter.")}`
-    );
+    return NextResponse.redirect(getErrorRedirectUrl("Missing authorization code or state parameter."));
   }
 
   try {
     // 1. Verify and decode HMAC-signed state token (CSRF & Expiration protection)
     const { websiteId, userId } = verifyAndDecodeGscState(state);
-    const redirectTarget = `${appUrl}/dashboard/websites/${websiteId}/seo`;
+    targetWebsiteId = websiteId; // HMAC-verified websiteId!
+
+    const successRedirectUrl = `${appUrl}/dashboard/websites/${websiteId}/seo?tab=integrations&gsc_connected=1&select_property=1`;
 
     // 2. Admin client for secure server-side verification and credential storage
     const dbClient = createAdminClient();
@@ -52,7 +72,7 @@ export async function GET(request: Request) {
 
     if (siteErr || !website || website.user_id !== userId) {
       return NextResponse.redirect(
-        `${redirectTarget}?tab=integrations&gsc_error=${encodeURIComponent("Website ownership verification failed.")}`
+        `${appUrl}/dashboard/websites/${websiteId}/seo?tab=integrations&gsc_error=${encodeURIComponent("Website ownership verification failed.")}`
       );
     }
 
@@ -98,18 +118,16 @@ export async function GET(request: Request) {
     if (upsertErr) {
       console.error("Failed to save GSC integration metadata:", upsertErr);
       return NextResponse.redirect(
-        `${redirectTarget}?tab=integrations&gsc_error=${encodeURIComponent("Failed to store Search Console integration status.")}`
+        `${appUrl}/dashboard/websites/${websiteId}/seo?tab=integrations&gsc_error=${encodeURIComponent("Failed to store Search Console integration status.")}`
       );
     }
 
-    // Redirect to SEO integrations tab with success & open property selector trigger
-    return NextResponse.redirect(
-      `${redirectTarget}?tab=integrations&gsc_connected=1&select_property=1`
-    );
+    // Redirect to website SEO integrations tab with success & open property selector trigger
+    return NextResponse.redirect(successRedirectUrl);
   } catch (err: any) {
     console.error("GSC Callback Handler Error:", err);
     return NextResponse.redirect(
-      `${appUrl}/dashboard?gsc_error=${encodeURIComponent(err?.message || "Google Search Console OAuth callback failed.")}`
+      getErrorRedirectUrl(err?.message || "Google Search Console OAuth callback failed.")
     );
   }
 }
