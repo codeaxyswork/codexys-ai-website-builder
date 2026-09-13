@@ -18,6 +18,7 @@ export interface SEOSettingsFormData {
   twitter_image_url: string;
   google_analytics_id: string;
   google_tag_manager_id: string;
+  google_site_verification_token: string;
 }
 
 interface SEOSettingsFormProps {
@@ -164,6 +165,37 @@ export function SEOSettingsForm({
               className="w-full px-3.5 py-2.5 bg-white border border-slate-300 rounded-lg text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-all"
             />
           </div>
+        </div>
+      </div>
+
+      {/* 2. GOOGLE SEARCH CONSOLE VERIFICATION */}
+      <div className="bg-white border border-slate-200 rounded-xl p-6 shadow-sm">
+        <h3 className="text-lg font-bold text-slate-900 border-b border-slate-100 pb-3 mb-5 flex items-center gap-2">
+          <svg className="w-5 h-5 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+          </svg>
+          Google Search Console Ownership Verification
+        </h3>
+
+        <div>
+          <div className="flex justify-between items-center mb-1">
+            <label className="block text-sm font-semibold text-slate-700">Google Site Verification Token</label>
+            {formData.google_site_verification_token && (
+              <span className="text-xs font-semibold text-emerald-600 flex items-center gap-1">
+                ✓ Meta tag configured
+              </span>
+            )}
+          </div>
+          <input
+            type="text"
+            value={formData.google_site_verification_token}
+            onChange={(e) => handleTextChange("google_site_verification_token", e.target.value)}
+            placeholder="e.g. ODXf_Oowi3i3g-gHB_PaUZ6IvHCXfUMRVCUC_G14qBk"
+            className="w-full px-3.5 py-2.5 bg-white border border-slate-300 rounded-lg text-slate-900 font-mono text-sm focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-all"
+          />
+          <p className="text-xs text-slate-500 mt-2 leading-relaxed">
+            Enter your site ownership verification token provided by Google Search Console. This will inject <code className="bg-slate-100 px-1.5 py-0.5 rounded border border-slate-200 text-slate-700 font-mono">&lt;meta name="google-site-verification" content="..."&gt;</code> into this specific website's HTML <code className="bg-slate-100 px-1 py-0.5 rounded text-slate-700 font-mono">&lt;head&gt;</code>.
+          </p>
         </div>
       </div>
 

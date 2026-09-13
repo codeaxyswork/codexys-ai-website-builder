@@ -342,6 +342,7 @@ CREATE TABLE IF NOT EXISTS public.website_seo (
   schema_markup JSONB DEFAULT '{}'::jsonb,
   google_analytics_id TEXT,
   google_tag_manager_id TEXT,
+  google_site_verification_token TEXT,
   google_search_console_verified BOOLEAN DEFAULT false,
   seo_score INTEGER DEFAULT 0,
   seo_analysis JSONB DEFAULT '{}'::jsonb,

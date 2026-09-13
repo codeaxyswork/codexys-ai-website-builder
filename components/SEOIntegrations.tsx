@@ -15,8 +15,10 @@ interface SEOIntegrationsProps {
   integrations: IntegrationItem[];
   gaId: string;
   gtmId: string;
+  gscVerificationToken?: string;
   onUpdateGaId: (val: string) => void;
   onUpdateGtmId: (val: string) => void;
+  onUpdateGscVerificationToken?: (val: string) => void;
   onSaveIntegration: (provider: string, status: string, config: any) => Promise<void>;
   canUseIntegrations: boolean;
   websiteId?: string;
@@ -27,8 +29,10 @@ export function SEOIntegrations({
   integrations,
   gaId,
   gtmId,
+  gscVerificationToken,
   onUpdateGaId,
   onUpdateGtmId,
+  onUpdateGscVerificationToken,
   onSaveIntegration,
   websiteId,
 }: SEOIntegrationsProps) {
@@ -120,6 +124,29 @@ export function SEOIntegrations({
             </div>
             <p className="text-xs text-slate-500">
               Format: <code className="bg-white px-1 py-0.5 rounded border border-slate-200">GTM-XXXXXXX</code>
+            </p>
+          </div>
+
+          {/* GSC Verification Meta Tag */}
+          <div className="p-4 bg-slate-50 border border-slate-200 rounded-xl space-y-3 col-span-1 md:col-span-2">
+            <div className="flex items-center justify-between">
+              <span className="text-sm font-bold text-slate-900 flex items-center gap-2">
+                <span className="w-2.5 h-2.5 rounded-full bg-emerald-500"></span>
+                Google Search Console HTML Verification Meta Tag
+              </span>
+              <span className="text-[11px] font-mono text-slate-400">Meta Tag Token</span>
+            </div>
+            <div>
+              <input
+                type="text"
+                value={gscVerificationToken || ""}
+                onChange={(e) => onUpdateGscVerificationToken && onUpdateGscVerificationToken(e.target.value)}
+                placeholder="e.g. ODXf_Oowi3i3g-gHB_PaUZ6IvHCXfUMRVCUC_G14qBk"
+                className="w-full px-3.5 py-2 bg-white border border-slate-300 rounded-lg text-slate-900 font-mono text-sm focus:outline-none focus:ring-2 focus:ring-purple-500"
+              />
+            </div>
+            <p className="text-xs text-slate-500">
+              Injects <code className="bg-white px-1 py-0.5 rounded border border-slate-200">&lt;meta name="google-site-verification" content="..."&gt;</code> into this website's published HTML <code className="bg-white px-1 py-0.5 rounded border border-slate-200">&lt;head&gt;</code>.
             </p>
           </div>
         </div>

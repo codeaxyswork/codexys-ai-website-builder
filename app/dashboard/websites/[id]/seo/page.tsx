@@ -47,6 +47,7 @@ export default function SEODashboardPage({ params }: SEODashboardPageProps) {
     twitter_image_url: "",
     google_analytics_id: "",
     google_tag_manager_id: "",
+    google_site_verification_token: "",
   });
 
   const [schemaMarkup, setSchemaMarkup] = useState<Record<string, any>>({});
@@ -142,6 +143,7 @@ export default function SEODashboardPage({ params }: SEODashboardPageProps) {
             twitter_image_url: s.twitter_image_url || "",
             google_analytics_id: s.google_analytics_id || "",
             google_tag_manager_id: s.google_tag_manager_id || "",
+            google_site_verification_token: s.google_site_verification_token || "",
           });
 
           setSchemaMarkup(s.schema_markup || {});
@@ -760,8 +762,10 @@ export default function SEODashboardPage({ params }: SEODashboardPageProps) {
             integrations={integrations}
             gaId={formData.google_analytics_id}
             gtmId={formData.google_tag_manager_id}
+            gscVerificationToken={formData.google_site_verification_token}
             onUpdateGaId={(val) => setFormData((prev) => ({ ...prev, google_analytics_id: val }))}
             onUpdateGtmId={(val) => setFormData((prev) => ({ ...prev, google_tag_manager_id: val }))}
+            onUpdateGscVerificationToken={(val) => setFormData((prev) => ({ ...prev, google_site_verification_token: val }))}
             onSaveIntegration={handleSaveIntegration}
             canUseIntegrations={canUseIntegrations}
             websiteId={websiteId}

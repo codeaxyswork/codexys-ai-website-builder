@@ -98,7 +98,12 @@ export async function saveGscCredentials(
     scope?: string;
   }
 ) {
-  const dbClient = process.env.SUPABASE_SERVICE_ROLE_KEY ? createAdminClient() : supabase;
+  const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  if (!serviceKey) {
+    console.warn("SUPABASE_SERVICE_ROLE_KEY is missing in server environment variables.");
+  }
+
+  const dbClient = serviceKey ? createAdminClient() : supabase;
 
   const encAccess = encryptGscToken(tokens.access_token);
   const encRefresh = tokens.refresh_token ? encryptGscToken(tokens.refresh_token) : undefined;
@@ -121,8 +126,9 @@ export async function saveGscCredentials(
     .upsert(payload, { onConflict: "website_id" });
 
   if (error) {
-    console.error("Failed to save gsc_oauth_credentials:", error);
-    throw new Error("Failed to store OAuth credentials securely.");
+    const safeDetail = error.message ? `${error.message} (Code: ${error.code || 'DB_ERR'})` : "Database write error";
+    console.error("Failed to save gsc_oauth_credentials:", safeDetail);
+    throw new Error(`Failed to store OAuth credentials securely: ${safeDetail}`);
   }
 }
 
@@ -138,7 +144,8 @@ export async function loadGscCredentials(
   token_expires_at: number;
   scope: string | null;
 }> {
-  const dbClient = process.env.SUPABASE_SERVICE_ROLE_KEY ? createAdminClient() : supabase;
+  const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  const dbClient = serviceKey ? createAdminClient() : supabase;
 
   const { data, error } = await dbClient
     .from("gsc_oauth_credentials")
@@ -147,6 +154,9 @@ export async function loadGscCredentials(
     .single();
 
   if (error || !data) {
+    if (error && error.code !== "PGRST116") {
+      console.error("Failed to load gsc_oauth_credentials:", error.message || error.code);
+    }
     return { access_token: null, refresh_token: null, token_expires_at: 0, scope: null };
   }
 

@@ -17,6 +17,7 @@ export interface SEOSettingsInput {
   schema_markup?: Record<string, any> | null;
   google_analytics_id?: string | null;
   google_tag_manager_id?: string | null;
+  google_site_verification_token?: string | null;
 }
 
 export interface SEOAnalysisResult {

@@ -140,6 +140,13 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
     }
   }
 
+  // 11. Google Search Console Ownership Verification Meta Tag Injection
+  if (seo.google_site_verification_token?.trim()) {
+    const tokenClean = escapeHtml(seo.google_site_verification_token.trim());
+    html = removeMetaTag(html, "name", "google-site-verification");
+    tagsToInject.push(`<meta name="google-site-verification" content="${tokenClean}">`);
+  }
+
   // Inject before </head>
   const injectionBlock = tagsToInject.join("\n");
   if (html.includes("</head>")) {

@@ -144,6 +144,7 @@ export async function PUT(
       schema_markup: body.schema_markup || {},
       google_analytics_id: body.google_analytics_id || null,
       google_tag_manager_id: body.google_tag_manager_id || null,
+      google_site_verification_token: body.google_site_verification_token || null,
       updated_at: new Date().toISOString(),
     };
 
