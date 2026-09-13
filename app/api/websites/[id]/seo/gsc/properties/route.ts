@@ -77,15 +77,21 @@ export async function GET(
     if (publishedSlug) {
       fallbackCandidateUrls.push(`${baseUrl}/site/${publishedSlug}/`);
       fallbackCandidateUrls.push(`${baseUrl}/site/${publishedSlug}`);
+      fallbackCandidateUrls.push(`http://codexys-ai-website-builder.vercel.app/site/${publishedSlug}/`);
+      fallbackCandidateUrls.push(`http://codexys-ai-website-builder.vercel.app/site/${publishedSlug}`);
     }
     if (website.custom_domain) {
       const cleanDomain = website.custom_domain.replace(/^https?:\/\//i, "").replace(/\/$/, "");
       fallbackCandidateUrls.push(`https://${cleanDomain}/`);
       fallbackCandidateUrls.push(`https://${cleanDomain}`);
     }
+    // Also include domain level fallbacks
+    fallbackCandidateUrls.push(`${baseUrl}/`);
+    fallbackCandidateUrls.push(`sc-domain:${new URL(baseUrl).hostname}`);
 
     // Call Google Search Console API for properties (with fallback candidate URLs for sites.get)
     const { properties, debug } = await fetchGscProperties(accessToken, fallbackCandidateUrls);
+    console.log("GSC PROPERTIES PROBE DEBUG RESULTS:", JSON.stringify(debug, null, 2));
 
     return NextResponse.json({
       properties,

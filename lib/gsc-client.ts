@@ -398,56 +398,75 @@ export async function fetchGscProperties(
     for (const candidateUrl of fallbackCandidateUrls) {
       if (!candidateUrl || typeof candidateUrl !== "string") continue;
       const cleanCandidate = candidateUrl.trim();
-      const probeItem: any = {
-        candidateUrl: cleanCandidate,
-        encodedUrl: encodeURIComponent(cleanCandidate),
-        requestEndpoint: `https://www.googleapis.com/webmasters/v3/sites/${encodeURIComponent(cleanCandidate)}`,
-        status: 0,
-        ok: false,
-        permissionLevel: null,
-        returnedSiteUrl: null,
-      };
 
-      try {
-        const encodedUrl = encodeURIComponent(cleanCandidate);
-        const getRes = await fetch(`https://www.googleapis.com/webmasters/v3/sites/${encodedUrl}`, {
-          headers: {
-            Authorization: `Bearer ${accessToken}`,
-            Accept: "application/json",
-          },
-        });
+      const endpointsToTry = [
+        {
+          name: "v3_single_encode",
+          url: `https://www.googleapis.com/webmasters/v3/sites/${encodeURIComponent(cleanCandidate)}`,
+        },
+        {
+          name: "v1_single_encode",
+          url: `https://searchconsole.googleapis.com/v1/sites/${encodeURIComponent(cleanCandidate)}`,
+        },
+        {
+          name: "v3_double_encode",
+          url: `https://www.googleapis.com/webmasters/v3/sites/${encodeURIComponent(encodeURIComponent(cleanCandidate))}`,
+        },
+      ];
 
-        probeItem.status = getRes.status;
-        probeItem.ok = getRes.ok;
+      for (const ep of endpointsToTry) {
+        const probeItem: any = {
+          candidateUrl: cleanCandidate,
+          strategy: ep.name,
+          requestEndpoint: ep.url,
+          status: 0,
+          ok: false,
+          permissionLevel: null,
+          returnedSiteUrl: null,
+        };
 
-        if (getRes.ok) {
-          const siteData = await getRes.json();
-          const pLevel = siteData.permissionLevel || "siteFullUser";
-          probeItem.permissionLevel = pLevel;
-          probeItem.returnedSiteUrl = siteData.siteUrl || cleanCandidate;
+        try {
+          const getRes = await fetch(ep.url, {
+            headers: {
+              Authorization: `Bearer ${accessToken}`,
+              Accept: "application/json",
+            },
+          });
 
-          if (validLevels.has(pLevel) || getRes.status === 200) {
-            const returnedUrl = siteData.siteUrl || cleanCandidate;
-            const isDomain = returnedUrl.startsWith("sc-domain:");
-            const foundProperty: GscProperty = {
-              siteUrl: returnedUrl,
-              permissionLevel: pLevel,
-              isDomainProperty: isDomain,
-              type: isDomain ? "domain" : "url_prefix",
-            };
-            if (!properties.some((p) => p.siteUrl === foundProperty.siteUrl)) {
-              properties.push(foundProperty);
+          probeItem.status = getRes.status;
+          probeItem.ok = getRes.ok;
+
+          if (getRes.ok) {
+            const siteData = await getRes.json();
+            const pLevel = siteData.permissionLevel || "siteFullUser";
+            probeItem.permissionLevel = pLevel;
+            probeItem.returnedSiteUrl = siteData.siteUrl || cleanCandidate;
+
+            if (validLevels.has(pLevel) || getRes.status === 200) {
+              const returnedUrl = siteData.siteUrl || cleanCandidate;
+              const isDomain = returnedUrl.startsWith("sc-domain:");
+              const foundProperty: GscProperty = {
+                siteUrl: returnedUrl,
+                permissionLevel: pLevel,
+                isDomainProperty: isDomain,
+                type: isDomain ? "domain" : "url_prefix",
+              };
+              if (!properties.some((p) => p.siteUrl === foundProperty.siteUrl)) {
+                properties.push(foundProperty);
+              }
+              debugInfo.probeResults.push(probeItem);
+              break; // Stop probing further endpoints for this candidate once successful
             }
+          } else {
+            const errBody = await getRes.json().catch(() => ({}));
+            probeItem.errorMessage = errBody?.error?.message || getRes.statusText;
           }
-        } else {
-          const errBody = await getRes.json().catch(() => ({}));
-          probeItem.errorMessage = errBody?.error?.message || getRes.statusText;
+        } catch (probeErr: any) {
+          probeItem.errorMessage = probeErr?.message || "Network error during probe";
         }
-      } catch (probeErr: any) {
-        probeItem.errorMessage = probeErr?.message || "Network error during probe";
-      }
 
-      debugInfo.probeResults.push(probeItem);
+        debugInfo.probeResults.push(probeItem);
+      }
     }
   }
 
