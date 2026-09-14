@@ -10,6 +10,7 @@ import { SEOIntegrations } from "@/components/SEOIntegrations";
 import { AISEOSuggestionsModal } from "@/components/AISEOSuggestions";
 import { SEOPerformanceDashboard, GscPerformanceData } from "@/components/SEOPerformanceDashboard";
 import { GscPropertySelectorModal } from "@/components/GscPropertySelectorModal";
+import { SEOOverviewDashboard } from "@/components/SEOOverviewDashboard";
 import { SEOAnalysisResult } from "@/lib/seo-analyzer";
 import { AISEOSuggestions } from "@/lib/seo-ai";
 
@@ -59,6 +60,9 @@ export default function SEODashboardPage({ params }: SEODashboardPageProps) {
   const [imageStats, setImageStats] = useState<SEOAnalysisResult["image_stats"] | null>(null);
   const [isDirty, setIsDirty] = useState<boolean>(false);
   const [pagesSeo, setPagesSeo] = useState<any[]>([]);
+  const [seoAnalysisHistory, setSeoAnalysisHistory] = useState<any[]>([]);
+  const [analysisStatus, setAnalysisStatus] = useState<string | null>(null);
+  const [lastAnalyzedAt, setLastAnalyzedAt] = useState<string | null>(null);
 
   // GSC Performance & Property Selector State
   const [gscPerformance, setGscPerformance] = useState<GscPerformanceData | null>(null);
@@ -150,12 +154,17 @@ export default function SEODashboardPage({ params }: SEODashboardPageProps) {
           setSeoScore(s.seo_score || 0);
           setAnalysis(s.seo_analysis || null);
           setIsDirty(s.is_dirty || false);
+          setAnalysisStatus(s.analysis_status || null);
+          setLastAnalyzedAt(s.last_analyzed_at || null);
         }
         if (seoData.pages_seo) {
           setPagesSeo(seoData.pages_seo);
         }
         if (seoData.integrations) {
           setIntegrations(seoData.integrations);
+        }
+        if (seoData.history) {
+          setSeoAnalysisHistory(seoData.history);
         }
       }
 
@@ -493,48 +502,26 @@ export default function SEODashboardPage({ params }: SEODashboardPageProps) {
 
         {/* 1. SEO OVERVIEW TAB */}
         {activeTab === "overview" && (
-          <div className="space-y-8">
-            <SEOScoreCard
-              score={seoScore}
-              analysis={analysis}
-              imageStats={imageStats}
-              onAnalyze={handleAnalyze}
-              onGenerateAI={handleGenerateAI}
-              isAnalyzing={isAnalyzing}
-              isGeneratingAI={isGeneratingAI}
-              canUseAI={canUseAI}
-              isDirty={isDirty}
-            />
-
-            {/* Search Visibility Status Alert */}
-            <div className="bg-white border border-slate-200 rounded-2xl p-6 shadow-xs flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-              <div>
-                <h4 className="text-base font-bold text-slate-900 flex items-center gap-2">
-                  <span className="w-2.5 h-2.5 rounded-full bg-blue-500"></span>
-                  Google Search Visibility Status
-                </h4>
-                {gscPerformance?.connected && gscPerformance?.gsc_property ? (
-                  <p className="text-xs text-slate-600 mt-1">
-                    Connected to Search Console property <strong className="font-mono text-slate-800">{gscPerformance.gsc_property}</strong>. Overall clicks: {gscPerformance.totals?.clicks.toLocaleString() || 0}.
-                  </p>
-                ) : (
-                  <p className="text-xs text-slate-500 mt-1">
-                    Search visibility data unavailable — connect Google Search Console to track real search impressions and keyword ranks.
-                  </p>
-                )}
-              </div>
-
-              {!gscPerformance?.connected && (
-                <button
-                  type="button"
-                  onClick={handleConnectGsc}
-                  className="px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white font-semibold text-xs rounded-xl shadow-xs transition-all whitespace-nowrap"
-                >
-                  Connect Search Console
-                </button>
-              )}
-            </div>
-          </div>
+          <SEOOverviewDashboard
+            websiteId={websiteId}
+            seoScore={seoScore}
+            analysis={analysis}
+            imageStats={imageStats}
+            pagesSeo={pagesSeo}
+            history={seoAnalysisHistory}
+            gscPerformance={gscPerformance}
+            loadingPerformance={loadingPerformance}
+            isDirty={isDirty}
+            analysisStatus={analysisStatus}
+            lastAnalyzedAt={lastAnalyzedAt}
+            onAnalyze={handleAnalyze}
+            isAnalyzing={isAnalyzing}
+            onNavigateTab={(tabId) => setActiveTab(tabId)}
+            onConnectGsc={handleConnectGsc}
+            onSyncGsc={handleSyncGsc}
+            isSyncingGsc={isSyncingGsc}
+            gscSyncError={gscSyncError}
+          />
         )}
 
         {/* 2. PERFORMANCE TAB */}

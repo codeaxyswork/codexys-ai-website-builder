@@ -78,10 +78,19 @@ export async function GET(
       .select("provider, status, connected_at, last_synced_at")
       .eq("website_id", websiteId);
 
+    // Fetch 5 most recent analysis history records
+    const { data: historyRows } = await supabase
+      .from("seo_analysis_history")
+      .select("id, seo_score, critical_issues_count, warnings_count, opportunities_count, trigger_type, analysis_version, created_at")
+      .eq("website_id", websiteId)
+      .order("created_at", { ascending: false })
+      .limit(5);
+
     return NextResponse.json({
       seo: seoData,
       pages_seo: pagesSeo || [],
       integrations: integrations || [],
+      history: historyRows || [],
     });
   } catch (err: any) {
     console.error("GET SEO API Error:", err);
