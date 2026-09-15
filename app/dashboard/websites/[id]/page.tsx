@@ -55,13 +55,7 @@ export default async function WebsiteManagementPage({ params }: WebsiteManagemen
       custom_domain_status,
       published_at,
       created_at,
-      updated_at,
-      website_seo (
-        seo_score,
-        meta_title,
-        meta_description,
-        keywords
-      )
+      updated_at
     `)
     .eq("id", id)
     .eq("user_id", user.id)
@@ -70,6 +64,13 @@ export default async function WebsiteManagementPage({ params }: WebsiteManagemen
   if (!website) {
     notFound();
   }
+
+  // Fetch website SEO settings separately to prevent PostgREST column mismatch errors
+  const { data: seoData } = await supabase
+    .from("website_seo")
+    .select("seo_score, seo_title, meta_description, focus_keywords")
+    .eq("website_id", website.id)
+    .maybeSingle();
 
   // Fetch website page content for live preview snippet
   const { data: indexPage } = await supabase
@@ -80,7 +81,6 @@ export default async function WebsiteManagementPage({ params }: WebsiteManagemen
     .maybeSingle();
 
   const plan = website.design_plan || {};
-  const seoData = Array.isArray(website.website_seo) ? website.website_seo[0] : website.website_seo;
 
   return (
     <div className="min-h-screen bg-slate-50 text-slate-900 font-sans pb-16">
@@ -92,7 +92,7 @@ export default async function WebsiteManagementPage({ params }: WebsiteManagemen
             className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-slate-200 bg-slate-50 hover:bg-slate-100 text-xs font-semibold text-slate-700 transition-all"
           >
             <ArrowLeft className="w-3.5 h-3.5" />
-            <span>Dashboard</span>
+            <span>All Websites</span>
           </Link>
           <div className="h-4 w-px bg-slate-200" />
           <div className="flex items-center gap-2">

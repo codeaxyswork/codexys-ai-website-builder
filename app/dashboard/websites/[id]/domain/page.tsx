@@ -217,10 +217,10 @@ export default function DomainManagementPage({ params }: DomainPageProps) {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex items-center justify-between">
           <div className="flex items-center gap-4">
             <Link
-              href="/dashboard"
-              className="p-2 text-slate-500 hover:text-slate-900 rounded-lg hover:bg-slate-100 transition-all"
+              href={`/dashboard/websites/${websiteId}`}
+              className="p-2 text-slate-500 hover:text-slate-900 rounded-lg hover:bg-slate-100 transition-all font-semibold text-xs flex items-center gap-1"
             >
-              ← Back to Dashboard
+              ← Website Dashboard
             </Link>
             <div>
               <h1 className="text-xl font-bold text-slate-900">{website?.title || "Custom Domain"}</h1>

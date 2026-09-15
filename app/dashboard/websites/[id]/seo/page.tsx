@@ -427,11 +427,11 @@ export default function SEODashboardPage({ params }: SEODashboardPageProps) {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
           <div className="flex items-center gap-4">
             <Link
-              href="/dashboard"
-              className="p-2 text-slate-500 hover:text-slate-900 rounded-lg hover:bg-slate-100 transition-all"
-              title="Back to Dashboard"
+              href={`/dashboard/websites/${websiteId}`}
+              className="p-2 text-slate-500 hover:text-slate-900 rounded-lg hover:bg-slate-100 transition-all font-semibold text-xs flex items-center gap-1"
+              title="Back to Website Dashboard"
             >
-              ← Back
+              ← Website Dashboard
             </Link>
             <div>
               <div className="flex items-center gap-2">
