@@ -11,6 +11,10 @@ import { AISEOSuggestionsModal } from "@/components/AISEOSuggestions";
 import { SEOPerformanceDashboard, GscPerformanceData } from "@/components/SEOPerformanceDashboard";
 import { GscPropertySelectorModal } from "@/components/GscPropertySelectorModal";
 import { SEOOverviewDashboard } from "@/components/SEOOverviewDashboard";
+import { SEOAgentChat } from "@/components/SEOAgentChat";
+import { InternalLinkingDashboard } from "@/components/InternalLinkingDashboard";
+import { LocalSEODashboard } from "@/components/LocalSEODashboard";
+import { SEOMonitoringDashboard } from "@/components/SEOMonitoringDashboard";
 import { SEOAnalysisResult } from "@/lib/seo-analyzer";
 import { AISEOSuggestions } from "@/lib/seo-ai";
 
@@ -30,6 +34,7 @@ export default function SEODashboardPage({ params }: SEODashboardPageProps) {
   const [loading, setLoading] = useState(true);
   const [website, setWebsite] = useState<any>(null);
   const [userPlan, setUserPlan] = useState<string>("free");
+  const [userCredits, setUserCredits] = useState<number>(0);
 
   // SEO Form Data State
   const [formData, setFormData] = useState<SEOSettingsFormData>({
@@ -122,6 +127,9 @@ export default function SEODashboardPage({ params }: SEODashboardPageProps) {
         const usageData = await usageRes.json();
         if (usageData?.plan?.id) {
           setUserPlan(usageData.plan.id);
+        }
+        if (typeof usageData?.credits?.balance === "number") {
+          setUserCredits(usageData.credits.balance);
         }
       }
 
@@ -400,11 +408,14 @@ export default function SEODashboardPage({ params }: SEODashboardPageProps) {
   const tabs = [
     { id: "overview", label: "SEO Overview" },
     { id: "performance", label: "Performance" },
+    { id: "monitoring", label: "Monitoring 🔔" },
     { id: "organic", label: "Organic SEO" },
     { id: "technical", label: "Technical SEO" },
+    { id: "internal-links", label: "Internal Links 🔗" },
+    { id: "local-seo", label: "Local SEO 📍" },
+    { id: "blog", label: "Content & Blog ✍️" },
     { id: "pages", label: "Pages" },
     { id: "keywords", label: "Keywords / Rankings" },
-    { id: "agent", label: "AI SEO Agent" },
     { id: "integrations", label: "Integrations" },
     { id: "settings", label: "SEO Settings" },
   ];
@@ -440,6 +451,12 @@ export default function SEODashboardPage({ params }: SEODashboardPageProps) {
           </div>
 
           <div className="flex items-center gap-3 flex-wrap">
+            <Link
+              href={`/dashboard/websites/${websiteId}/blog`}
+              className="px-3.5 py-1.5 bg-purple-50 hover:bg-purple-100 text-purple-700 border border-purple-200 text-xs font-semibold rounded-lg transition-all flex items-center gap-1.5 shadow-2xs"
+            >
+              <span>✍️ Blog Engine</span>
+            </Link>
             {website?.is_published && website?.published_slug && (
               <>
                 <a
@@ -475,7 +492,13 @@ export default function SEODashboardPage({ params }: SEODashboardPageProps) {
             {tabs.map((t) => (
               <button
                 key={t.id}
-                onClick={() => setActiveTab(t.id)}
+                onClick={() => {
+                  if (t.id === "blog") {
+                    router.push(`/dashboard/websites/${websiteId}/blog`);
+                  } else {
+                    setActiveTab(t.id);
+                  }
+                }}
                 className={`px-3.5 py-2 text-xs font-semibold rounded-xl whitespace-nowrap transition-all ${
                   activeTab === t.id
                     ? "bg-slate-900 text-white shadow-xs"
@@ -536,6 +559,11 @@ export default function SEODashboardPage({ params }: SEODashboardPageProps) {
             syncError={gscSyncError}
             onOpenPropertySelector={() => setIsPropertySelectorOpen(true)}
           />
+        )}
+
+        {/* MONITORING TAB */}
+        {activeTab === "monitoring" && (
+          <SEOMonitoringDashboard websiteId={websiteId} />
         )}
 
         {/* 3. ORGANIC SEO TAB */}
@@ -631,6 +659,16 @@ export default function SEODashboardPage({ params }: SEODashboardPageProps) {
               </div>
             </div>
           </div>
+        )}
+
+        {/* INTERNAL LINKS TAB */}
+        {activeTab === "internal-links" && (
+          <InternalLinkingDashboard websiteId={websiteId} />
+        )}
+
+        {/* LOCAL SEO TAB */}
+        {activeTab === "local-seo" && (
+          <LocalSEODashboard websiteId={websiteId} />
         )}
 
         {/* 5. PAGES TAB */}
@@ -735,24 +773,7 @@ export default function SEODashboardPage({ params }: SEODashboardPageProps) {
             )}
           </div>
         )}
-
-        {/* 7. AI SEO AGENT TAB (PLACEHOLDER ONLY) */}
-        {activeTab === "agent" && (
-          <div className="bg-white border border-slate-200 rounded-2xl p-8 sm:p-12 text-center shadow-xs space-y-4">
-            <div className="w-16 h-16 bg-purple-100 text-purple-600 rounded-2xl mx-auto flex items-center justify-center font-bold text-2xl">
-              🤖
-            </div>
-            <h3 className="text-xl font-bold text-slate-900">AI SEO Agent — Autonomous Optimization</h3>
-            <p className="text-xs text-slate-500 max-w-lg mx-auto leading-relaxed">
-              Autonomous AI SEO Agent monitoring and automatic meta-tag optimization will be introduced in a future update.
-            </p>
-            <span className="inline-block px-3 py-1 bg-purple-50 text-purple-700 border border-purple-200 text-xs font-semibold rounded-full">
-              Coming Soon in Phase 3
-            </span>
-          </div>
-        )}
-
-        {/* 8. INTEGRATIONS TAB */}
+        {/* 7. INTEGRATIONS TAB */}
         {activeTab === "integrations" && (
           <SEOIntegrations
             integrations={integrations}
@@ -769,7 +790,7 @@ export default function SEODashboardPage({ params }: SEODashboardPageProps) {
           />
         )}
 
-        {/* 9. SEO SETTINGS TAB */}
+        {/* 8. SEO SETTINGS TAB */}
         {activeTab === "settings" && (
           <div className="space-y-8">
             <SEOSettingsForm
@@ -806,6 +827,15 @@ export default function SEODashboardPage({ params }: SEODashboardPageProps) {
           onApply={handleApplyAISuggestions}
         />
       )}
+
+      {/* Floating SEO AI Assistant */}
+      <SEOAgentChat
+        websiteId={websiteId}
+        userPlan={userPlan}
+        userCredits={userCredits}
+        gscConnected={gscPerformance?.connected}
+        onNavigateTab={(tabId) => setActiveTab(tabId)}
+      />
     </div>
   );
 }

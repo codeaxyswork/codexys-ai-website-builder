@@ -348,6 +348,35 @@ export function WebsiteManagementClient({ website, indexPage, seoData }: Managem
             </div>
           </div>
 
+          {/* Content & Blog Engine Card */}
+          <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-xs space-y-4">
+            <div className="flex items-center justify-between">
+              <h3 className="text-sm font-bold text-slate-900 uppercase tracking-wider flex items-center gap-2">
+                <Globe className="w-4 h-4 text-purple-600" />
+                <span>Content & Blog Engine</span>
+              </h3>
+              <Link
+                href={`/dashboard/websites/${website.id}/blog`}
+                className="text-xs font-semibold text-purple-600 hover:text-purple-700 underline"
+              >
+                Manage
+              </Link>
+            </div>
+
+            <div className="p-3.5 rounded-xl bg-purple-50/60 border border-purple-200 space-y-2">
+              <span className="text-xs font-semibold text-slate-900 block">SEO Article Engine</span>
+              <p className="text-[11px] text-slate-500 leading-relaxed">
+                Create, edit, and publish SEO-optimized blog posts generated with Codeaxys SEO AI.
+              </p>
+              <Link
+                href={`/dashboard/websites/${website.id}/blog`}
+                className="inline-block pt-1 text-xs font-bold text-purple-600 hover:underline"
+              >
+                Open Blog Manager &rarr;
+              </Link>
+            </div>
+          </div>
+
           {/* Technical Info Card */}
           <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-xs space-y-3">
             <h3 className="text-xs font-bold text-slate-800 uppercase tracking-wider flex items-center gap-2">

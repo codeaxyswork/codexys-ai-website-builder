@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useRef, useEffect } from "react";
+import Link from "next/link";
 import {
   Sparkles,
   MessageSquare,
@@ -16,11 +17,19 @@ import {
   MicOff,
   Loader2,
   AlertCircle,
+  ArrowRight,
 } from "lucide-react";
 
 import { SUPPORTED_LANGUAGES, getLanguageConfig } from "@/lib/multilingual";
+import { SEOAgentResponsePayload, StructuredSEOFix } from "@/lib/seo-agent";
 
 export interface CodeaxysAIAssistantProps {
+  mode?: "general" | "seo";
+  websiteId?: string;
+  userPlan?: string;
+  userCredits?: number;
+  gscConnected?: boolean;
+  onNavigateTab?: (tabId: string) => void;
   onUsePrompt?: (generatedPrompt: string) => void;
 }
 
@@ -29,10 +38,16 @@ interface MessageItem {
   role: "user" | "assistant";
   text: string;
   suggestedPrompt?: string | null;
+  suggestedActions?: string[];
+  navigationTarget?: string;
+  proposedFix?: StructuredSEOFix | null;
+  appliedFixState?: "idle" | "applying" | "applied" | "failed";
+  oldScore?: number;
+  newScore?: number;
   timestamp: string;
 }
 
-const QUICK_STARTERS = [
+const GENERAL_QUICK_STARTERS = [
   { label: "🚀 Create My Website", prompt: "I want to create a website for my business." },
   { label: "✍️ Help Me Write a Prompt", prompt: "Can you help me write a great prompt for my website?" },
   { label: "💡 Show How Codeaxys Works", prompt: "How does Codeaxys AI Website Builder work?" },
@@ -41,12 +56,44 @@ const QUICK_STARTERS = [
   { label: "❓ I Have a Question", prompt: "I have a question about building a website." },
 ];
 
-export function CodeaxysAIAssistant({ onUsePrompt }: CodeaxysAIAssistantProps) {
+const SEO_QUICK_STARTERS = [
+  { label: "🔍 What are my biggest SEO problems?", prompt: "What are my biggest SEO problems?" },
+  { label: "📊 Explain my SEO score", prompt: "Explain my SEO score." },
+  { label: "🚨 What should I fix first?", prompt: "What should I fix first?" },
+  { label: "📈 How is my Google Search performance?", prompt: "How is my Google Search performance?" },
+  { label: "🔗 Find my internal linking problems", prompt: "Find my internal linking problems." },
+  { label: "📝 How can I improve my content SEO?", prompt: "How can I improve my content SEO?" },
+];
+
+const TAB_LABELS: Record<string, string> = {
+  overview: "SEO Overview",
+  performance: "Performance",
+  organic: "Organic SEO",
+  technical: "Technical SEO",
+  pages: "Pages",
+  keywords: "Keywords / Rankings",
+  integrations: "Integrations",
+  settings: "SEO Settings",
+};
+
+export function CodeaxysAIAssistant({
+  mode = "general",
+  websiteId,
+  userPlan = "free",
+  userCredits = 0,
+  gscConnected = false,
+  onNavigateTab,
+  onUsePrompt,
+}: CodeaxysAIAssistantProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [inputValue, setInputValue] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [copiedPromptId, setCopiedPromptId] = useState<string | null>(null);
   const [selectedLang, setSelectedLang] = useState<string>("auto");
+  const [errorState, setErrorState] = useState<{ message: string; code?: string } | null>(null);
+  const [remainingCreditsState, setRemainingCreditsState] = useState<number | null>(
+    mode === "seo" ? userCredits : null
+  );
 
   // Dual-Engine Audio State & Refs
   const [isListening, setIsListening] = useState(false);
@@ -65,14 +112,38 @@ export function CodeaxysAIAssistant({ onUsePrompt }: CodeaxysAIAssistantProps) {
   const initialInputRef = useRef<string>("");
   const liveSpeechTranscriptRef = useRef<string>("");
 
+  const initialWelcomeMessage: MessageItem = {
+    id: "msg_welcome",
+    role: "assistant",
+    text:
+      mode === "seo"
+        ? "Hi 👋 I'm your **SEO Specialist**.\n\nI can analyze your website SEO, explain your SEO issues, and help you decide what to improve first."
+        : "Hi 👋 I'm **Codeaxys AI**.\n\nTell me what you're trying to build, and I'll help turn your idea into a complete website prompt!",
+    timestamp: "Just now",
+  };
+
+  const [messages, setMessages] = useState<MessageItem[]>([initialWelcomeMessage]);
+  const messagesEndRef = useRef<HTMLDivElement>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
+
   useEffect(() => {
     try {
-      const saved = localStorage.getItem("codeaxys_conversation_lang");
-      if (saved) {
-        setSelectedLang(saved);
-      }
+      const storageKey = mode === "seo" ? "codeaxys_seo_lang" : "codeaxys_conversation_lang";
+      const saved = localStorage.getItem(storageKey);
+      if (saved) setSelectedLang(saved);
     } catch (e) {}
-  }, []);
+  }, [mode]);
+
+  const scrollToBottom = () => {
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  };
+
+  useEffect(() => {
+    if (isOpen) {
+      scrollToBottom();
+      setTimeout(() => inputRef.current?.focus(), 150);
+    }
+  }, [isOpen, messages, isLoading]);
 
   // Helper to detect browser SpeechRecognition support
   const getSpeechRecognitionClass = () => {
@@ -96,7 +167,6 @@ export function CodeaxysAIAssistant({ onUsePrompt }: CodeaxysAIAssistantProps) {
     return "";
   };
 
-  // Helper to update composer input dynamically during live speech recording
   const updateComposerLiveInput = (liveSpeech: string) => {
     liveSpeechTranscriptRef.current = liveSpeech;
     const baseText = initialInputRef.current.trim();
@@ -109,7 +179,6 @@ export function CodeaxysAIAssistant({ onUsePrompt }: CodeaxysAIAssistantProps) {
     setInputValue(fullText);
   };
 
-  // Cleanup media recording streams and recognition on unmount
   useEffect(() => {
     return () => {
       if (recognitionRef.current) {
@@ -131,34 +200,14 @@ export function CodeaxysAIAssistant({ onUsePrompt }: CodeaxysAIAssistantProps) {
   const handleLangChange = (code: string) => {
     setSelectedLang(code);
     try {
-      localStorage.setItem("codeaxys_conversation_lang", code);
-      window.dispatchEvent(new CustomEvent("codeaxys_lang_changed", { detail: code }));
+      const storageKey = mode === "seo" ? "codeaxys_seo_lang" : "codeaxys_conversation_lang";
+      localStorage.setItem(storageKey, code);
+      if (mode === "general") {
+        window.dispatchEvent(new CustomEvent("codeaxys_lang_changed", { detail: code }));
+      }
     } catch (e) {}
   };
 
-  const initialWelcomeMessage: MessageItem = {
-    id: "msg_welcome",
-    role: "assistant",
-    text: "Hi 👋 I'm **Codeaxys AI**.\n\nTell me what you're trying to build, and I'll help turn your idea into a complete website prompt!",
-    timestamp: "Just now",
-  };
-
-  const [messages, setMessages] = useState<MessageItem[]>([initialWelcomeMessage]);
-  const messagesEndRef = useRef<HTMLDivElement>(null);
-  const inputRef = useRef<HTMLInputElement>(null);
-
-  const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  };
-
-  useEffect(() => {
-    if (isOpen) {
-      scrollToBottom();
-      setTimeout(() => inputRef.current?.focus(), 150);
-    }
-  }, [isOpen, messages, isLoading]);
-
-  // Start Hybrid Dual-Engine (Live Client SpeechRecognition + Authoritative Server MediaRecorder)
   const startListening = async () => {
     setAudioError(null);
 
@@ -171,11 +220,9 @@ export function CodeaxysAIAssistant({ onUsePrompt }: CodeaxysAIAssistantProps) {
     liveSpeechTranscriptRef.current = "";
 
     try {
-      // 1. Get Microphone Stream
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
       mediaStreamRef.current = stream;
 
-      // 2. Start Background MediaRecorder (Authoritative Waveform Data)
       const mimeType = getSupportedMimeType();
       const options = mimeType ? { mimeType } : undefined;
       const mediaRecorder = new MediaRecorder(stream, options);
@@ -189,7 +236,6 @@ export function CodeaxysAIAssistant({ onUsePrompt }: CodeaxysAIAssistantProps) {
       };
 
       mediaRecorder.onstop = async () => {
-        // Clean up media stream tracks
         if (mediaStreamRef.current) {
           mediaStreamRef.current.getTracks().forEach((t) => t.stop());
           mediaStreamRef.current = null;
@@ -204,7 +250,6 @@ export function CodeaxysAIAssistant({ onUsePrompt }: CodeaxysAIAssistantProps) {
           return;
         }
 
-        // Send Audio Blob to Server Gemini AI Transcription /api/transcribe
         setIsTranscribing(true);
         try {
           const formData = new FormData();
@@ -236,10 +281,8 @@ export function CodeaxysAIAssistant({ onUsePrompt }: CodeaxysAIAssistantProps) {
         }
       };
 
-      // Start MediaRecorder with 100ms continuous chunks
       mediaRecorder.start(100);
 
-      // 3. Start Client SpeechRecognition for Real-Time Live Feedback
       const SpeechRecognition = getSpeechRecognitionClass();
       if (SpeechRecognition) {
         try {
@@ -304,16 +347,13 @@ export function CodeaxysAIAssistant({ onUsePrompt }: CodeaxysAIAssistantProps) {
     }
   };
 
-  // Stop Dual-Engine Recording
   const stopListening = () => {
-    // Stop Live SpeechRecognition
     if (recognitionRef.current) {
       try {
         recognitionRef.current.stop();
       } catch (e) {}
     }
 
-    // Stop MediaRecorder
     if (mediaRecorderRef.current && mediaRecorderRef.current.state !== "inactive") {
       try {
         mediaRecorderRef.current.stop();
@@ -337,6 +377,8 @@ export function CodeaxysAIAssistant({ onUsePrompt }: CodeaxysAIAssistantProps) {
     const messageContent = (textToSend || inputValue).trim();
     if (!messageContent || isLoading) return;
 
+    setErrorState(null);
+
     const userMsgId = `user_${Date.now()}`;
     const newUserMsg: MessageItem = {
       id: userMsgId,
@@ -350,45 +392,104 @@ export function CodeaxysAIAssistant({ onUsePrompt }: CodeaxysAIAssistantProps) {
     setIsLoading(true);
 
     try {
-      const historyPayload = messages
-        .filter((m) => m.id !== "msg_welcome")
-        .map((m) => ({
-          role: m.role === "user" ? ("user" as const) : ("model" as const),
-          content: m.text,
-        }));
+      if (mode === "seo") {
+        if (!websiteId) {
+          setErrorState({ message: "Website ID is required for SEO Specialist assistance." });
+          setIsLoading(false);
+          return;
+        }
 
-      const res = await fetch("/api/ai/assistant", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          history: historyPayload,
-          userMessage: messageContent,
-          conversationLanguage: selectedLang,
-        }),
-      });
+        const historyForApi = messages
+          .filter((m) => m.id !== "msg_welcome")
+          .map((m) => ({ role: m.role, content: m.text }));
 
-      const data = await res.json();
+        const res = await fetch(`/api/websites/${websiteId}/seo/agent`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            prompt: messageContent,
+            history: historyForApi,
+          }),
+        });
 
-      if (!res.ok || data.error) {
-        const errorMsg: MessageItem = {
-          id: `assistant_err_${Date.now()}`,
+        const data = await res.json();
+
+        if (!res.ok) {
+          if (res.status === 402 || data.code === "INSUFFICIENT_CREDITS") {
+            setErrorState({
+              message: "Insufficient AI Credits. You need 5 AI credits to query the SEO AI Agent.",
+              code: "INSUFFICIENT_CREDITS",
+            });
+          } else if (res.status === 403 || data.code === "UPGRADE_REQUIRED") {
+            setErrorState({
+              message: "The Dedicated AI SEO Agent requires a Pro or Agency subscription plan.",
+              code: "UPGRADE_REQUIRED",
+            });
+          } else {
+            setErrorState({ message: data.error || "Failed to reach AI SEO Agent." });
+          }
+          setIsLoading(false);
+          return;
+        }
+
+        if (typeof data.remainingCredits === "number") {
+          setRemainingCreditsState(data.remainingCredits);
+        }
+
+        const payload: SEOAgentResponsePayload = data.response || {};
+        const assistantMsg: MessageItem = {
+          id: `assistant_${Date.now()}`,
           role: "assistant",
-          text: data.error || "I ran into a temporary connection issue. Please try again!",
+          text: payload.message || "I have analyzed your request.",
+          suggestedActions: payload.suggestedActions,
+          navigationTarget: payload.navigationTarget,
+          proposedFix: payload.proposedFix || null,
           timestamp: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
         };
-        setMessages((prev) => [...prev, errorMsg]);
-        return;
+
+        setMessages((prev) => [...prev, assistantMsg]);
+      } else {
+        // mode === "general"
+        const historyPayload = messages
+          .filter((m) => m.id !== "msg_welcome")
+          .map((m) => ({
+            role: m.role === "user" ? ("user" as const) : ("model" as const),
+            content: m.text,
+          }));
+
+        const res = await fetch("/api/ai/assistant", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            history: historyPayload,
+            userMessage: messageContent,
+            conversationLanguage: selectedLang,
+          }),
+        });
+
+        const data = await res.json();
+
+        if (!res.ok || data.error) {
+          const errorMsg: MessageItem = {
+            id: `assistant_err_${Date.now()}`,
+            role: "assistant",
+            text: data.error || "I ran into a temporary connection issue. Please try again!",
+            timestamp: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
+          };
+          setMessages((prev) => [...prev, errorMsg]);
+          return;
+        }
+
+        const assistantMsg: MessageItem = {
+          id: `assistant_${Date.now()}`,
+          role: "assistant",
+          text: data.text || "I can help you build that website prompt!",
+          suggestedPrompt: data.suggestedPrompt || null,
+          timestamp: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
+        };
+
+        setMessages((prev) => [...prev, assistantMsg]);
       }
-
-      const assistantMsg: MessageItem = {
-        id: `assistant_${Date.now()}`,
-        role: "assistant",
-        text: data.text || "I can help you build that website prompt!",
-        suggestedPrompt: data.suggestedPrompt || null,
-        timestamp: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
-      };
-
-      setMessages((prev) => [...prev, assistantMsg]);
     } catch (err) {
       console.error("Assistant Chat Error:", err);
       const errorMsg: MessageItem = {
@@ -400,6 +501,74 @@ export function CodeaxysAIAssistant({ onUsePrompt }: CodeaxysAIAssistantProps) {
       setMessages((prev) => [...prev, errorMsg]);
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const handleApplyFix = async (msgId: string, fix: StructuredSEOFix) => {
+    if (!websiteId) return;
+
+    setMessages((prev) =>
+      prev.map((m) => (m.id === msgId ? { ...m, appliedFixState: "applying" } : m))
+    );
+
+    try {
+      const res = await fetch(`/api/websites/${websiteId}/seo/agent/fix`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ proposedFix: fix }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok || !data.success) {
+        setMessages((prev) =>
+          prev.map((m) => (m.id === msgId ? { ...m, appliedFixState: "failed" } : m))
+        );
+        const errFollowUp: MessageItem = {
+          id: `msg_err_${Date.now()}`,
+          role: "assistant",
+          text: data.error || "I couldn't apply this fix right now. Your website has not been changed.",
+          timestamp: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
+        };
+        setMessages((prev) => [...prev, errFollowUp]);
+        return;
+      }
+
+      const oldScore = data.oldScore ?? 0;
+      const newScore = data.newScore ?? oldScore;
+
+      setMessages((prev) =>
+        prev.map((m) =>
+          m.id === msgId
+            ? { ...m, appliedFixState: "applied", oldScore, newScore }
+            : m
+        )
+      );
+
+      const successFollowUp: MessageItem = {
+        id: `msg_success_${Date.now()}`,
+        role: "assistant",
+        text: `Done! I updated your **${fix.issueType.replace("_", " ")}**.\n\nRunning a fresh SEO check...\n\nYour SEO score changed from **${oldScore}** → **${newScore}**.`,
+        timestamp: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
+      };
+
+      setMessages((prev) => [...prev, successFollowUp]);
+
+      if (onNavigateTab) {
+        onNavigateTab("overview");
+      }
+    } catch (err: any) {
+      console.error("Apply SEO Fix Error:", err);
+      setMessages((prev) =>
+        prev.map((m) => (m.id === msgId ? { ...m, appliedFixState: "failed" } : m))
+      );
+      const errFollowUp: MessageItem = {
+        id: `msg_err_${Date.now()}`,
+        role: "assistant",
+        text: "I couldn't apply this fix right now. Your website has not been changed.",
+        timestamp: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
+      };
+      setMessages((prev) => [...prev, errFollowUp]);
     }
   };
 
@@ -424,6 +593,7 @@ export function CodeaxysAIAssistant({ onUsePrompt }: CodeaxysAIAssistantProps) {
     if (isListening) stopListening();
     setMessages([initialWelcomeMessage]);
     setInputValue("");
+    setErrorState(null);
     setAudioError(null);
   };
 
@@ -448,14 +618,16 @@ export function CodeaxysAIAssistant({ onUsePrompt }: CodeaxysAIAssistantProps) {
     });
   };
 
+  const quickStarters = mode === "seo" ? SEO_QUICK_STARTERS : GENERAL_QUICK_STARTERS;
+
   return (
     <div className="fixed bottom-5 right-5 sm:bottom-6 sm:right-6 z-[999999] font-sans">
       {/* FLOATING LAUNCHER BUTTON */}
       {!isOpen && (
         <button
           onClick={() => setIsOpen(true)}
-          title="Open Codeaxys AI Assistant"
-          aria-label="Open Codeaxys AI Assistant"
+          title={mode === "seo" ? "Open SEO AI Specialist" : "Open Codeaxys AI Assistant"}
+          aria-label={mode === "seo" ? "Open SEO AI Specialist" : "Open Codeaxys AI Assistant"}
           className="group relative flex items-center gap-3 px-5 py-3.5 rounded-full bg-slate-950 text-white shadow-2xl shadow-purple-900/60 hover:bg-purple-950 border-2 border-purple-500/70 transition-all duration-300 hover:scale-105 active:scale-95 cursor-pointer ring-4 ring-purple-500/20"
         >
           <span className="absolute -inset-1 rounded-full bg-gradient-to-r from-purple-600 via-fuchsia-500 to-indigo-600 opacity-85 blur-sm group-hover:opacity-100 transition-opacity animate-pulse" />
@@ -466,80 +638,187 @@ export function CodeaxysAIAssistant({ onUsePrompt }: CodeaxysAIAssistantProps) {
             </div>
             <div className="flex flex-col text-left">
               <span className="text-xs font-black tracking-wide text-white flex items-center gap-1.5">
-                Codeaxys AI <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping inline-block shadow-xs shadow-emerald-400" />
+                {mode === "seo" ? "SEO AI" : "Codeaxys AI"}{" "}
+                <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping inline-block shadow-xs shadow-emerald-400" />
               </span>
-              <span className="text-[10px] text-purple-200 font-bold tracking-tight">Ask or Speak Website Prompts</span>
+              <span className="text-[10px] text-purple-200 font-bold tracking-tight">
+                {mode === "seo" ? "SEO Specialist Chat" : "Ask or Speak Website Prompts"}
+              </span>
             </div>
           </div>
         </button>
       )}
 
-      {/* CHAT POPUP WINDOW */}
+      {/* CHAT POPUP WINDOW - VISUALLY MASTER SHELL */}
       {isOpen && (
         <div className="w-[350px] sm:w-[400px] md:w-[420px] h-[540px] sm:h-[600px] bg-white rounded-3xl border border-purple-200/90 shadow-2xl shadow-purple-950/20 flex flex-col overflow-hidden animate-in fade-in slide-in-from-bottom-5 duration-300">
           {/* HEADER BAR */}
-          <div className="bg-gradient-to-r from-slate-950 via-purple-950 to-slate-900 px-4 py-3.5 text-white flex items-center justify-between border-b border-purple-800/40 shrink-0 shadow-xs">
-            <div className="flex items-center gap-2.5">
-              <div className="w-8 h-8 rounded-xl bg-gradient-to-tr from-purple-600 to-indigo-600 text-white flex items-center justify-center shadow-md shadow-purple-950/50 relative shrink-0">
-                <Bot className="w-4 h-4 text-white" />
-                <span className="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 rounded-full bg-emerald-400 border-2 border-slate-950" />
-              </div>
-              <div>
-                <div className="flex items-center gap-1.5">
-                  <h3 className="text-xs sm:text-sm font-extrabold text-white tracking-tight">Codeaxys AI</h3>
-                  <span className="text-[9px] font-extrabold text-purple-300 bg-purple-900/80 px-1.5 py-0.2 rounded border border-purple-700/50">
-                    Guide
-                  </span>
+          <div className="bg-gradient-to-r from-slate-950 via-purple-950 to-slate-900 px-4 py-3.5 text-white flex items-start justify-between border-b border-purple-800/40 shrink-0 shadow-xs">
+            {mode === "seo" ? (
+              /* SEO AI AGENT HEADER - FINAL APPROVED LAYOUT */
+              <>
+                <div className="flex items-start gap-2.5 min-w-0">
+                  <div className="w-8 h-8 rounded-xl bg-gradient-to-tr from-purple-600 to-indigo-600 text-white flex items-center justify-center shadow-md shadow-purple-950/50 relative shrink-0 mt-0.5">
+                    <Bot className="w-4 h-4 text-white" />
+                    <span className="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 rounded-full bg-emerald-400 border-2 border-slate-950" />
+                  </div>
+                  <div className="flex flex-col gap-0.5 min-w-0">
+                    <h3 className="text-xs sm:text-sm font-extrabold text-white tracking-tight leading-snug">
+                      Codeaxys SEO AI Agent
+                    </h3>
+                    <p className="text-[10px] text-purple-200/80 font-medium flex items-center gap-1">
+                      <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse shrink-0" />{" "}
+                      Online • SEO Specialist
+                    </p>
+
+                    {/* LANGUAGE SELECTOR UNDERNEATH ONLINE STATUS */}
+                    <div className="flex items-center gap-1 bg-purple-900/50 border border-purple-700/60 rounded-lg px-2 py-0.5 text-white w-fit mt-1">
+                      <Globe className="w-3 h-3 text-purple-300 shrink-0" />
+                      <select
+                        value={selectedLang}
+                        onChange={(e) => handleLangChange(e.target.value)}
+                        aria-label="Select AI Conversation Language"
+                        className="bg-transparent text-[10px] font-semibold text-purple-100 outline-none cursor-pointer max-w-[110px] truncate"
+                        title="Select AI Conversation Language"
+                      >
+                        {SUPPORTED_LANGUAGES.map((lang) => (
+                          <option key={lang.code} value={lang.code} className="bg-slate-950 text-white">
+                            {lang.label}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                  </div>
                 </div>
-                <p className="text-[10px] text-purple-200/80 font-medium flex items-center gap-1">
-                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" /> Online • AI Website Expert
-                </p>
-              </div>
-            </div>
 
-            <div className="flex items-center gap-1.5">
-              {/* LANGUAGE SELECTOR */}
-              <div className="flex items-center gap-1 bg-purple-900/50 border border-purple-700/60 rounded-lg px-2 py-1 text-white">
-                <Globe className="w-3 h-3 text-purple-300 shrink-0" />
-                <select
-                  value={selectedLang}
-                  onChange={(e) => handleLangChange(e.target.value)}
-                  aria-label="Select AI Conversation Language"
-                  className="bg-transparent text-[11px] font-semibold text-purple-100 outline-none cursor-pointer max-w-[95px] truncate"
-                  title="Select AI Conversation Language"
-                >
-                  {SUPPORTED_LANGUAGES.map((lang) => (
-                    <option key={lang.code} value={lang.code} className="bg-slate-950 text-white">
-                      {lang.label}
-                    </option>
-                  ))}
-                </select>
-              </div>
+                <div className="flex items-center gap-1.5 shrink-0 self-start">
+                  {/* RESET CONVERSATION */}
+                  <button
+                    onClick={handleResetChat}
+                    title="Start new conversation"
+                    aria-label="Start new conversation"
+                    className="p-1.5 rounded-lg text-slate-300 hover:text-white hover:bg-purple-900/60 transition-colors cursor-pointer"
+                  >
+                    <RotateCcw className="w-3.5 h-3.5" />
+                  </button>
 
-              {/* RESET CONVERSATION */}
-              <button
-                onClick={handleResetChat}
-                title="Start new conversation"
-                aria-label="Start new conversation"
-                className="p-1.5 rounded-lg text-slate-300 hover:text-white hover:bg-purple-900/60 transition-colors cursor-pointer"
-              >
-                <RotateCcw className="w-3.5 h-3.5" />
-              </button>
+                  {/* CLOSE CHAT */}
+                  <button
+                    onClick={() => {
+                      stopListening();
+                      setIsOpen(false);
+                    }}
+                    title="Close AI assistant"
+                    aria-label="Close AI assistant"
+                    className="p-1.5 rounded-lg text-slate-300 hover:text-white hover:bg-purple-900/60 transition-colors cursor-pointer"
+                  >
+                    <X className="w-4 h-4" />
+                  </button>
+                </div>
+              </>
+            ) : (
+              /* GENERAL MAIN CODEAXYS AI HEADER - UNTOUCHED MASTER */
+              <>
+                <div className="flex items-center gap-2.5 min-w-0">
+                  <div className="w-8 h-8 rounded-xl bg-gradient-to-tr from-purple-600 to-indigo-600 text-white flex items-center justify-center shadow-md shadow-purple-950/50 relative shrink-0">
+                    <Bot className="w-4 h-4 text-white" />
+                    <span className="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 rounded-full bg-emerald-400 border-2 border-slate-950" />
+                  </div>
+                  <div className="min-w-0">
+                    <div className="flex items-center gap-1.5">
+                      <h3 className="text-xs sm:text-sm font-extrabold text-white tracking-tight truncate">
+                        Codeaxys AI
+                      </h3>
+                      <span className="text-[9px] font-extrabold text-purple-300 bg-purple-900/80 px-1.5 py-0.5 rounded border border-purple-700/50 shrink-0">
+                        Guide
+                      </span>
+                    </div>
+                    <p className="text-[10px] text-purple-200/80 font-medium flex items-center gap-1 truncate">
+                      <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse shrink-0" />{" "}
+                      Online • AI Website Expert
+                    </p>
+                  </div>
+                </div>
 
-              {/* CLOSE CHAT */}
-              <button
-                onClick={() => {
-                  stopListening();
-                  setIsOpen(false);
-                }}
-                title="Close AI assistant"
-                aria-label="Close AI assistant"
-                className="p-1.5 rounded-lg text-slate-300 hover:text-white hover:bg-purple-900/60 transition-colors cursor-pointer"
-              >
-                <X className="w-4 h-4" />
-              </button>
-            </div>
+                <div className="flex items-center gap-1.5 shrink-0">
+                  {/* LANGUAGE SELECTOR */}
+                  <div className="flex items-center gap-1 bg-purple-900/50 border border-purple-700/60 rounded-lg px-2 py-1 text-white">
+                    <Globe className="w-3 h-3 text-purple-300 shrink-0" />
+                    <select
+                      value={selectedLang}
+                      onChange={(e) => handleLangChange(e.target.value)}
+                      aria-label="Select AI Conversation Language"
+                      className="bg-transparent text-[11px] font-semibold text-purple-100 outline-none cursor-pointer max-w-[80px] sm:max-w-[95px] truncate"
+                      title="Select AI Conversation Language"
+                    >
+                      {SUPPORTED_LANGUAGES.map((lang) => (
+                        <option key={lang.code} value={lang.code} className="bg-slate-950 text-white">
+                          {lang.label}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+
+                  {/* RESET CONVERSATION */}
+                  <button
+                    onClick={handleResetChat}
+                    title="Start new conversation"
+                    aria-label="Start new conversation"
+                    className="p-1.5 rounded-lg text-slate-300 hover:text-white hover:bg-purple-900/60 transition-colors cursor-pointer"
+                  >
+                    <RotateCcw className="w-3.5 h-3.5" />
+                  </button>
+
+                  {/* CLOSE CHAT */}
+                  <button
+                    onClick={() => {
+                      stopListening();
+                      setIsOpen(false);
+                    }}
+                    title="Close AI assistant"
+                    aria-label="Close AI assistant"
+                    className="p-1.5 rounded-lg text-slate-300 hover:text-white hover:bg-purple-900/60 transition-colors cursor-pointer"
+                  >
+                    <X className="w-4 h-4" />
+                  </button>
+                </div>
+              </>
+            )}
           </div>
+
+          {/* ERROR / SUBSCRIPTION ALERT BANNER */}
+          {errorState && (
+            <div className="w-full max-w-full box-border p-3.5 bg-rose-50 border-b border-rose-200 text-rose-900 text-xs sm:text-sm shrink-0 min-w-0">
+              <div className="flex items-start gap-2.5 min-w-0 w-full">
+                <AlertCircle className="w-4 h-4 text-rose-600 shrink-0 mt-0.5" />
+                <div className="flex-1 min-w-0 space-y-2 leading-relaxed break-words whitespace-normal font-sans">
+                  <p className="text-slate-900 font-semibold text-xs sm:text-sm">
+                    {errorState.message}
+                  </p>
+                  {errorState.code === "UPGRADE_REQUIRED" && (
+                    <div className="pt-1">
+                      <Link
+                        href="/pricing"
+                        className="inline-flex items-center gap-1 px-3 py-1.5 bg-purple-600 hover:bg-purple-700 text-white font-bold rounded-lg text-xs transition-all shadow-xs"
+                      >
+                        <span>Upgrade Plan</span>
+                        <span>→</span>
+                      </Link>
+                    </div>
+                  )}
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setErrorState(null)}
+                  className="text-rose-400 hover:text-rose-700 font-bold text-sm shrink-0 p-0.5 cursor-pointer ml-1"
+                  title="Dismiss message"
+                  aria-label="Dismiss message"
+                >
+                  ×
+                </button>
+              </div>
+            </div>
+          )}
 
           {/* MESSAGES FEED AREA */}
           <div className="flex-1 overflow-y-auto p-3.5 space-y-3.5 bg-slate-50/70 custom-scrollbar">
@@ -561,13 +840,13 @@ export function CodeaxysAIAssistant({ onUsePrompt }: CodeaxysAIAssistantProps) {
                     className={`max-w-[85%] sm:max-w-[88%] rounded-2xl px-3.5 py-2.5 text-xs sm:text-sm leading-relaxed shadow-2xs ${
                       msg.role === "user"
                         ? "bg-gradient-to-r from-purple-600 to-indigo-600 text-white rounded-tr-xs"
-                        : "bg-white text-slate-800 border border-slate-200/90 rounded-tl-xs shadow-xs"
+                        : "bg-white text-slate-800 border border-slate-200/90 rounded-tl-xs shadow-xs space-y-2"
                     }`}
                   >
                     {renderFormattedText(msg.text)}
 
-                    {/* SUGGESTED PROMPT CARD */}
-                    {msg.suggestedPrompt && (
+                    {/* GENERAL MODE: SUGGESTED PROMPT CARD */}
+                    {mode === "general" && msg.suggestedPrompt && (
                       <div className="mt-3 p-3 rounded-xl bg-purple-50/90 border border-purple-200 text-slate-900 space-y-2">
                         <div className="flex items-center justify-between text-purple-700 font-bold text-xs border-b border-purple-200/60 pb-1.5">
                           <span className="flex items-center gap-1.5">
@@ -610,6 +889,103 @@ export function CodeaxysAIAssistant({ onUsePrompt }: CodeaxysAIAssistantProps) {
                         </div>
                       </div>
                     )}
+
+                    {/* SEO MODE: RECOMMENDED ACTIONS LIST */}
+                    {mode === "seo" && msg.role === "assistant" && msg.suggestedActions && msg.suggestedActions.length > 0 && (
+                      <div className="pt-2 border-t border-slate-100 space-y-1">
+                        <span className="text-[10px] font-bold text-slate-900 block uppercase tracking-wider">
+                          Recommended Actions:
+                        </span>
+                        <ul className="space-y-1 text-xs text-slate-600">
+                          {msg.suggestedActions.map((act, i) => (
+                            <li key={i} className="flex items-start gap-1.5">
+                              <span className="text-purple-600 font-bold">•</span>
+                              <span>{act}</span>
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    )}
+
+                    {/* SEO MODE: PROPOSED FIX CARD */}
+                    {mode === "seo" && msg.role === "assistant" && msg.proposedFix && (
+                      <div className="mt-3 p-3.5 rounded-2xl bg-purple-50/90 border border-purple-200 text-slate-800 space-y-2.5 text-xs">
+                        <div className="flex items-center justify-between font-bold text-purple-900 border-b border-purple-200/60 pb-1.5">
+                          <span className="flex items-center gap-1.5">
+                            <Wand2 className="w-3.5 h-3.5 text-purple-600" />
+                            Recommended SEO Fix
+                          </span>
+                          <span className="text-[10px] bg-purple-200/80 text-purple-800 px-2 py-0.5 rounded font-mono uppercase">
+                            {msg.proposedFix.issueType.replace("_", " ")}
+                          </span>
+                        </div>
+
+                        {msg.proposedFix.currentValue && (
+                          <div className="text-[11px] text-slate-600">
+                            <span className="font-semibold text-slate-700">Current: </span>
+                            <code className="bg-slate-100 px-1 py-0.5 rounded text-rose-700 font-mono text-[10px] break-all">
+                              {msg.proposedFix.currentValue}
+                            </code>
+                          </div>
+                        )}
+
+                        <div className="text-[11px] text-slate-800">
+                          <span className="font-semibold text-purple-900">Recommended: </span>
+                          <code className="bg-white border border-purple-200 px-2 py-1 rounded text-emerald-800 font-medium block mt-1 whitespace-pre-wrap text-[11px] break-words">
+                            {msg.proposedFix.recommendedValue}
+                          </code>
+                        </div>
+
+                        <p className="text-[11px] text-slate-600 italic leading-snug">
+                          {msg.proposedFix.reason}
+                        </p>
+
+                        {/* FIX ACTION BUTTONS & STATES */}
+                        {msg.appliedFixState === "applying" ? (
+                          <div className="flex items-center gap-2 text-purple-700 font-semibold text-xs py-1">
+                            <Loader2 className="w-3.5 h-3.5 text-purple-600 animate-spin" />
+                            <span>Applying this SEO fix...</span>
+                          </div>
+                        ) : msg.appliedFixState === "applied" ? (
+                          <div className="p-2 bg-emerald-50 border border-emerald-200 rounded-xl text-emerald-800 font-semibold text-xs flex items-center gap-1.5">
+                            <Check className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
+                            <span>Fix applied! Score updated to {msg.newScore}/100</span>
+                          </div>
+                        ) : msg.appliedFixState === "failed" ? (
+                          <div className="p-2 bg-rose-50 border border-rose-200 rounded-xl text-rose-800 font-medium text-xs">
+                            I couldn't apply this fix right now. Your website has not been changed.
+                          </div>
+                        ) : (
+                          <div className="flex items-center gap-2 pt-1">
+                            <button
+                              type="button"
+                              onClick={() => handleApplyFix(msg.id, msg.proposedFix!)}
+                              className="flex-1 py-1.5 px-3 rounded-xl bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white font-bold text-xs flex items-center justify-center gap-1.5 shadow-xs transition-all cursor-pointer"
+                            >
+                              <Wand2 className="w-3.5 h-3.5" />
+                              <span>Apply This Fix</span>
+                            </button>
+                          </div>
+                        )}
+                      </div>
+                    )}
+
+                    {/* SEO MODE: NAVIGATION CTA BUTTON */}
+                    {mode === "seo" && msg.role === "assistant" && msg.navigationTarget && (
+                      <div className="pt-1.5">
+                        <button
+                          type="button"
+                          onClick={() => {
+                            if (onNavigateTab) onNavigateTab(msg.navigationTarget!);
+                            setIsOpen(false);
+                          }}
+                          className="px-3 py-1.5 bg-slate-900 hover:bg-slate-800 text-white text-xs font-semibold rounded-lg inline-flex items-center gap-1.5 transition-all cursor-pointer shadow-xs"
+                        >
+                          <span>Go to {TAB_LABELS[msg.navigationTarget] || msg.navigationTarget}</span>
+                          <ArrowRight className="w-3 h-3" />
+                        </button>
+                      </div>
+                    )}
                   </div>
 
                   <span className="text-[10px] text-slate-400 mt-1 px-1">{msg.timestamp}</span>
@@ -637,15 +1013,15 @@ export function CodeaxysAIAssistant({ onUsePrompt }: CodeaxysAIAssistantProps) {
             <div ref={messagesEndRef} />
           </div>
 
-          {/* QUICK STARTER CHIPS */}
+          {/* QUICK ACTION STARTERS - WRAPPING LAYOUT WITHOUT HORIZONTAL SCROLLBAR */}
           {messages.length === 1 && (
             <div className="px-3.5 py-2.5 bg-purple-50/60 border-t border-slate-200/80 shrink-0 space-y-1.5">
               <div className="flex items-center gap-1.5 text-[10px] font-bold text-purple-700 uppercase tracking-wider">
                 <Sparkles className="w-3 h-3 text-purple-600" />
                 <span>Quick Action Starters:</span>
               </div>
-              <div className="flex flex-wrap gap-1.5 max-h-24 overflow-y-auto custom-scrollbar">
-                {QUICK_STARTERS.map((item, idx) => (
+              <div className="flex flex-wrap gap-1.5 max-h-32 overflow-y-auto custom-scrollbar">
+                {quickStarters.map((item, idx) => (
                   <button
                     key={idx}
                     onClick={() => handleSendMessage(item.prompt)}
@@ -715,13 +1091,13 @@ export function CodeaxysAIAssistant({ onUsePrompt }: CodeaxysAIAssistantProps) {
               }}
               className="flex items-center gap-2"
             >
-              {/* CLEARLY VISIBLE MICROPHONE BUTTON */}
+              {/* MICROPHONE BUTTON */}
               <button
                 type="button"
                 onClick={toggleListening}
                 disabled={isLoading || isTranscribing}
-                title={isListening ? "Stop recording" : "Speak to Codeaxys AI"}
-                aria-label={isListening ? "Stop recording" : "Speak to Codeaxys AI"}
+                title={isListening ? "Stop recording" : mode === "seo" ? "Speak to SEO Specialist" : "Speak to Codeaxys AI"}
+                aria-label={isListening ? "Stop recording" : mode === "seo" ? "Speak to SEO Specialist" : "Speak to Codeaxys AI"}
                 className={`w-9.5 h-9.5 sm:w-10 sm:h-10 rounded-xl flex items-center justify-center transition-all cursor-pointer shrink-0 ${
                   isListening
                     ? "bg-rose-600 text-white shadow-md shadow-rose-600/30 animate-pulse"
@@ -750,6 +1126,8 @@ export function CodeaxysAIAssistant({ onUsePrompt }: CodeaxysAIAssistantProps) {
                     ? "Listening..."
                     : isTranscribing
                     ? "AI finalizing transcript..."
+                    : mode === "seo"
+                    ? "Ask SEO Specialist or describe your SEO question..."
                     : "Ask Codeaxys AI or describe your website..."
                 }
                 disabled={isLoading || isTranscribing}

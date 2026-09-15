@@ -28,6 +28,13 @@ export async function GET(
       .select("path, updated_at")
       .eq("website_id", website.id);
 
+    // Fetch published blog posts
+    const { data: publishedPosts } = await supabase
+      .from("blog_posts")
+      .select("slug, updated_at")
+      .eq("website_id", website.id)
+      .eq("status", "published");
+
     const host = request.headers.get("host") || "localhost:3000";
     const protocol = request.headers.get("x-forwarded-proto") || "https";
     const baseUrl = `${protocol}://${host}`;
@@ -51,9 +58,22 @@ export async function GET(
       })
       .join("\n");
 
+    const blogEntries = (publishedPosts || []).map((b) => {
+      const bMod = b.updated_at
+        ? new Date(b.updated_at).toISOString().split("T")[0]
+        : lastMod;
+      return `  <url>
+    <loc>${baseUrl}/site/${website.published_slug}/blog/${b.slug}</loc>
+    <lastmod>${bMod}</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.7</priority>
+  </url>`;
+    }).join("\n");
+
     const xml = `<?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
 ${pageEntries}
+${blogEntries}
 </urlset>`;
 
     return new NextResponse(xml, {

@@ -694,3 +694,317 @@ CREATE INDEX IF NOT EXISTS idx_website_seo_website_id ON public.website_seo(webs
 CREATE INDEX IF NOT EXISTS idx_website_seo_user_id ON public.website_seo(user_id);
 CREATE INDEX IF NOT EXISTS idx_seo_history_website_id ON public.seo_analysis_history(website_id);
 CREATE INDEX IF NOT EXISTS idx_seo_integrations_website_id ON public.seo_integrations(website_id);
+
+
+-- ---------------------------------------------------------------------
+-- 14. BLOG POSTS TABLE (Content Engine)
+-- ---------------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS public.blog_posts (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  website_id UUID NOT NULL REFERENCES public.websites(id) ON DELETE CASCADE,
+  user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
+  title TEXT NOT NULL,
+  slug TEXT NOT NULL,
+  excerpt TEXT,
+  content TEXT,
+  status TEXT NOT NULL DEFAULT 'draft',
+  featured_image TEXT,
+  author TEXT DEFAULT 'Admin',
+  category TEXT DEFAULT 'General',
+  tags TEXT[] DEFAULT '{}'::text[],
+  seo_title TEXT,
+  meta_description TEXT,
+  focus_keyword TEXT,
+  canonical_url TEXT,
+  og_title TEXT,
+  og_description TEXT,
+  og_image TEXT,
+  robots_config TEXT DEFAULT 'index, follow',
+  published_at TIMESTAMPTZ,
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  updated_at TIMESTAMPTZ DEFAULT NOW(),
+  CONSTRAINT blog_posts_website_slug_uniq UNIQUE (website_id, slug)
+);
+
+ALTER TABLE public.blog_posts ENABLE ROW LEVEL SECURITY;
+
+DROP POLICY IF EXISTS "Users can view own blog_posts" ON public.blog_posts;
+CREATE POLICY "Users can view own blog_posts" ON public.blog_posts FOR SELECT USING (auth.uid() = user_id);
+
+DROP POLICY IF EXISTS "Anyone can view published blog_posts" ON public.blog_posts;
+CREATE POLICY "Anyone can view published blog_posts" ON public.blog_posts FOR SELECT USING (
+  status = 'published' AND EXISTS (
+    SELECT 1 FROM public.websites
+    WHERE public.websites.id = public.blog_posts.website_id
+    AND public.websites.is_published = true
+  )
+);
+
+DROP POLICY IF EXISTS "Users can insert own blog_posts" ON public.blog_posts;
+CREATE POLICY "Users can insert own blog_posts" ON public.blog_posts FOR INSERT WITH CHECK (auth.uid() = user_id);
+
+DROP POLICY IF EXISTS "Users can update own blog_posts" ON public.blog_posts;
+CREATE POLICY "Users can update own blog_posts" ON public.blog_posts FOR UPDATE USING (auth.uid() = user_id) WITH CHECK (auth.uid() = user_id);
+
+DROP POLICY IF EXISTS "Users can delete own blog_posts" ON public.blog_posts;
+CREATE POLICY "Users can delete own blog_posts" ON public.blog_posts FOR DELETE USING (auth.uid() = user_id);
+
+CREATE INDEX IF NOT EXISTS idx_blog_posts_website_id ON public.blog_posts(website_id);
+CREATE INDEX IF NOT EXISTS idx_blog_posts_user_id ON public.blog_posts(user_id);
+CREATE INDEX IF NOT EXISTS idx_blog_posts_status ON public.blog_posts(status);
+
+
+-- ---------------------------------------------------------------------
+-- 15. INTERNAL LINKING ENGINE TABLE
+-- ---------------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS public.website_internal_links (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  website_id UUID NOT NULL REFERENCES public.websites(id) ON DELETE CASCADE,
+  internal_link_score INTEGER DEFAULT 0,
+  summary JSONB DEFAULT '{}'::jsonb,
+  link_graph JSONB DEFAULT '{}'::jsonb,
+  opportunities JSONB DEFAULT '[]'::jsonb,
+  last_analyzed_at TIMESTAMPTZ DEFAULT NOW(),
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  updated_at TIMESTAMPTZ DEFAULT NOW(),
+  CONSTRAINT website_internal_links_website_uniq UNIQUE (website_id)
+);
+
+ALTER TABLE public.website_internal_links ENABLE ROW LEVEL SECURITY;
+
+DROP POLICY IF EXISTS "Users can view own website_internal_links" ON public.website_internal_links;
+CREATE POLICY "Users can view own website_internal_links" ON public.website_internal_links FOR SELECT USING (
+  EXISTS (
+    SELECT 1 FROM public.websites
+    WHERE public.websites.id = public.website_internal_links.website_id
+    AND public.websites.user_id = auth.uid()
+  )
+);
+
+DROP POLICY IF EXISTS "Users can insert own website_internal_links" ON public.website_internal_links;
+CREATE POLICY "Users can insert own website_internal_links" ON public.website_internal_links FOR INSERT WITH CHECK (
+  EXISTS (
+    SELECT 1 FROM public.websites
+    WHERE public.websites.id = public.website_internal_links.website_id
+    AND public.websites.user_id = auth.uid()
+  )
+);
+
+DROP POLICY IF EXISTS "Users can update own website_internal_links" ON public.website_internal_links;
+CREATE POLICY "Users can update own website_internal_links" ON public.website_internal_links FOR UPDATE USING (
+  EXISTS (
+    SELECT 1 FROM public.websites
+    WHERE public.websites.id = public.website_internal_links.website_id
+    AND public.websites.user_id = auth.uid()
+  )
+) WITH CHECK (
+  EXISTS (
+    SELECT 1 FROM public.websites
+    WHERE public.websites.id = public.website_internal_links.website_id
+    AND public.websites.user_id = auth.uid()
+  )
+);
+
+DROP POLICY IF EXISTS "Users can delete own website_internal_links" ON public.website_internal_links;
+CREATE POLICY "Users can delete own website_internal_links" ON public.website_internal_links FOR DELETE USING (
+  EXISTS (
+    SELECT 1 FROM public.websites
+    WHERE public.websites.id = public.website_internal_links.website_id
+    AND public.websites.user_id = auth.uid()
+  )
+);
+
+CREATE INDEX IF NOT EXISTS idx_website_internal_links_website ON public.website_internal_links(website_id);
+
+
+-- ---------------------------------------------------------------------
+-- 16. LOCAL SEO ENGINE TABLE
+-- ---------------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS public.website_local_seo (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  website_id UUID NOT NULL REFERENCES public.websites(id) ON DELETE CASCADE,
+  business_name TEXT,
+  business_type TEXT DEFAULT 'LocalBusiness',
+  primary_category TEXT,
+  additional_categories TEXT[] DEFAULT '{}'::text[],
+  address_line1 TEXT,
+  address_line2 TEXT,
+  city TEXT,
+  state_region TEXT,
+  postal_code TEXT,
+  country TEXT,
+  phone TEXT,
+  website_url TEXT,
+  business_description TEXT,
+  service_area TEXT,
+  latitude NUMERIC,
+  longitude NUMERIC,
+  opening_hours JSONB DEFAULT '[]'::jsonb,
+  price_range TEXT,
+  logo_url TEXT,
+  image_url TEXT,
+  social_profiles TEXT[] DEFAULT '{}'::text[],
+  contact_url TEXT,
+  appointment_url TEXT,
+  gbp_profile_url TEXT,
+  local_seo_score INTEGER DEFAULT 0,
+  analysis_result JSONB DEFAULT '{}'::jsonb,
+  last_analyzed_at TIMESTAMPTZ DEFAULT NOW(),
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  updated_at TIMESTAMPTZ DEFAULT NOW(),
+  CONSTRAINT website_local_seo_website_uniq UNIQUE (website_id)
+);
+
+ALTER TABLE public.website_local_seo ENABLE ROW LEVEL SECURITY;
+
+DROP POLICY IF EXISTS "Users can view own website_local_seo" ON public.website_local_seo;
+CREATE POLICY "Users can view own website_local_seo" ON public.website_local_seo FOR SELECT USING (
+  EXISTS (
+    SELECT 1 FROM public.websites
+    WHERE public.websites.id = public.website_local_seo.website_id
+    AND public.websites.user_id = auth.uid()
+  )
+);
+
+DROP POLICY IF EXISTS "Users can insert own website_local_seo" ON public.website_local_seo;
+CREATE POLICY "Users can insert own website_local_seo" ON public.website_local_seo FOR INSERT WITH CHECK (
+  EXISTS (
+    SELECT 1 FROM public.websites
+    WHERE public.websites.id = public.website_local_seo.website_id
+    AND public.websites.user_id = auth.uid()
+  )
+);
+
+DROP POLICY IF EXISTS "Users can update own website_local_seo" ON public.website_local_seo;
+CREATE POLICY "Users can update own website_local_seo" ON public.website_local_seo FOR UPDATE USING (
+  EXISTS (
+    SELECT 1 FROM public.websites
+    WHERE public.websites.id = public.website_local_seo.website_id
+    AND public.websites.user_id = auth.uid()
+  )
+) WITH CHECK (
+  EXISTS (
+    SELECT 1 FROM public.websites
+    WHERE public.websites.id = public.website_local_seo.website_id
+    AND public.websites.user_id = auth.uid()
+  )
+);
+
+DROP POLICY IF EXISTS "Users can delete own website_local_seo" ON public.website_local_seo;
+CREATE POLICY "Users can delete own website_local_seo" ON public.website_local_seo FOR DELETE USING (
+  EXISTS (
+    SELECT 1 FROM public.websites
+    WHERE public.websites.id = public.website_local_seo.website_id
+    AND public.websites.user_id = auth.uid()
+  )
+);
+
+CREATE INDEX IF NOT EXISTS idx_website_local_seo_website ON public.website_local_seo(website_id);
+
+-- ---------------------------------------------------------------------
+-- 17. SEO PHASE 9: MONITORING & SCHEDULED SEO JOBS
+-- ---------------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS public.website_monitoring_schedules (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  website_id UUID NOT NULL REFERENCES public.websites(id) ON DELETE CASCADE UNIQUE,
+  user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
+  enabled BOOLEAN DEFAULT true,
+  frequency TEXT NOT NULL DEFAULT 'weekly',
+  preferred_hour INTEGER DEFAULT 3,
+  last_run_at TIMESTAMPTZ,
+  next_run_at TIMESTAMPTZ DEFAULT NOW(),
+  last_successful_run_at TIMESTAMPTZ,
+  last_failure_at TIMESTAMPTZ,
+  failure_count INTEGER DEFAULT 0,
+  last_error TEXT,
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  updated_at TIMESTAMPTZ DEFAULT NOW(),
+  CONSTRAINT chk_frequency CHECK (frequency IN ('manual', 'daily', 'weekly', 'monthly'))
+);
+
+ALTER TABLE public.website_monitoring_schedules ENABLE ROW LEVEL SECURITY;
+
+DROP POLICY IF EXISTS "Users can view own website_monitoring_schedules" ON public.website_monitoring_schedules;
+CREATE POLICY "Users can view own website_monitoring_schedules" ON public.website_monitoring_schedules FOR SELECT USING (
+  EXISTS (
+    SELECT 1 FROM public.websites
+    WHERE public.websites.id = public.website_monitoring_schedules.website_id
+    AND public.websites.user_id = auth.uid()
+  )
+);
+
+DROP POLICY IF EXISTS "Users can insert own website_monitoring_schedules" ON public.website_monitoring_schedules;
+CREATE POLICY "Users can insert own website_monitoring_schedules" ON public.website_monitoring_schedules FOR INSERT WITH CHECK (
+  EXISTS (
+    SELECT 1 FROM public.websites
+    WHERE public.websites.id = public.website_monitoring_schedules.website_id
+    AND public.websites.user_id = auth.uid()
+  )
+);
+
+DROP POLICY IF EXISTS "Users can update own website_monitoring_schedules" ON public.website_monitoring_schedules;
+CREATE POLICY "Users can update own website_monitoring_schedules" ON public.website_monitoring_schedules FOR UPDATE USING (
+  EXISTS (
+    SELECT 1 FROM public.websites
+    WHERE public.websites.id = public.website_monitoring_schedules.website_id
+    AND public.websites.user_id = auth.uid()
+  )
+);
+
+DROP POLICY IF EXISTS "Users can delete own website_monitoring_schedules" ON public.website_monitoring_schedules;
+CREATE POLICY "Users can delete own website_monitoring_schedules" ON public.website_monitoring_schedules FOR DELETE USING (
+  EXISTS (
+    SELECT 1 FROM public.websites
+    WHERE public.websites.id = public.website_monitoring_schedules.website_id
+    AND public.websites.user_id = auth.uid()
+  )
+);
+
+CREATE INDEX IF NOT EXISTS idx_monitoring_schedules_next_run ON public.website_monitoring_schedules(enabled, next_run_at);
+CREATE INDEX IF NOT EXISTS idx_monitoring_schedules_website ON public.website_monitoring_schedules(website_id);
+
+CREATE TABLE IF NOT EXISTS public.seo_monitoring_events (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  website_id UUID NOT NULL REFERENCES public.websites(id) ON DELETE CASCADE,
+  user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
+  event_type TEXT NOT NULL,
+  severity TEXT NOT NULL DEFAULT 'warning',
+  title TEXT NOT NULL,
+  message TEXT NOT NULL,
+  previous_value TEXT,
+  current_value TEXT,
+  affected_page TEXT,
+  metadata JSONB DEFAULT '{}'::jsonb,
+  is_read BOOLEAN DEFAULT false,
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  CONSTRAINT chk_severity CHECK (severity IN ('critical', 'warning', 'info'))
+);
+
+ALTER TABLE public.seo_monitoring_events ENABLE ROW LEVEL SECURITY;
+
+DROP POLICY IF EXISTS "Users can view own seo_monitoring_events" ON public.seo_monitoring_events;
+CREATE POLICY "Users can view own seo_monitoring_events" ON public.seo_monitoring_events FOR SELECT USING (
+  auth.uid() = user_id
+);
+
+DROP POLICY IF EXISTS "Users can insert own seo_monitoring_events" ON public.seo_monitoring_events;
+CREATE POLICY "Users can insert own seo_monitoring_events" ON public.seo_monitoring_events FOR INSERT WITH CHECK (
+  auth.uid() = user_id
+);
+
+DROP POLICY IF EXISTS "Users can update own seo_monitoring_events" ON public.seo_monitoring_events;
+CREATE POLICY "Users can update own seo_monitoring_events" ON public.seo_monitoring_events FOR UPDATE USING (
+  auth.uid() = user_id
+);
+
+DROP POLICY IF EXISTS "Users can delete own seo_monitoring_events" ON public.seo_monitoring_events;
+CREATE POLICY "Users can delete own seo_monitoring_events" ON public.seo_monitoring_events FOR DELETE USING (
+  auth.uid() = user_id
+);
+
+CREATE INDEX IF NOT EXISTS idx_monitoring_events_website ON public.seo_monitoring_events(website_id, created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_monitoring_events_unread ON public.seo_monitoring_events(user_id, is_read);
+
+
+
+

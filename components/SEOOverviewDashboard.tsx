@@ -126,45 +126,105 @@ export function SEOOverviewDashboard({
 
     if (!analysis) return issues;
 
-    if (analysis.title && analysis.title.score < 15) {
-      issues.push({
-        severity: "critical",
-        title: "SEO Title Tag Needs Improvement",
-        details: analysis.title.details || "The page title is missing or not optimized for search engines.",
+    const ISSUE_CONFIG: Record<
+      string,
+      {
+        title: string;
+        tabDestination: string;
+        actionLabel: string;
+        defaultCriticalDetails: string;
+        defaultWarningDetails: string;
+      }
+    > = {
+      title: {
+        title: "SEO Title Tag Optimization",
         tabDestination: "settings",
         actionLabel: "Fix in SEO Settings",
-      });
-    }
-
-    if (analysis.description && analysis.description.score < 10) {
-      issues.push({
-        severity: "critical",
-        title: "Meta Description Missing or Too Short",
-        details: analysis.description.details || "A compelling meta description is required for high click-through rates.",
+        defaultCriticalDetails: "The page title tag is missing or critically unoptimized.",
+        defaultWarningDetails: "The page title tag can be further optimized for search length and target keywords.",
+      },
+      description: {
+        title: "Meta Description Optimization",
         tabDestination: "settings",
         actionLabel: "Fix Meta Description",
-      });
-    }
-
-    if (analysis.robots && analysis.robots.score < 5) {
-      issues.push({
-        severity: "critical",
-        title: "Robots Indexing Directive Restrictive",
-        details: analysis.robots.details || "Search engine crawlers may be restricted from indexing pages.",
+        defaultCriticalDetails: "A compelling meta description is required for high click-through rates.",
+        defaultWarningDetails: "Meta description length or wording can be optimized for higher click-through rates.",
+      },
+      headings: {
+        title: "Heading Structure Hierarchy",
+        tabDestination: "settings",
+        actionLabel: "Review Headings",
+        defaultCriticalDetails: "Missing H1 tag or improper heading hierarchy detected.",
+        defaultWarningDetails: "Heading tags (H1/H2) hierarchy can be enhanced for keyword clarity.",
+      },
+      canonical: {
+        title: "Canonical URL Configuration",
+        tabDestination: "technical",
+        actionLabel: "Fix Canonical Tag",
+        defaultCriticalDetails: "No canonical URL configured. Search engines may index duplicate URL variations.",
+        defaultWarningDetails: "Canonical URL formatting should be reviewed.",
+      },
+      robots: {
+        title: "Robots Indexing Directive",
         tabDestination: "technical",
         actionLabel: "Review Technical SEO",
-      });
-    }
-
-    if (analysis.images && analysis.images.score < 8) {
-      issues.push({
-        severity: "warning",
+        defaultCriticalDetails: "Search engine crawlers may be restricted from indexing pages.",
+        defaultWarningDetails: "Robots indexing configurations need review.",
+      },
+      open_graph: {
+        title: "Social Preview Cards Incomplete",
+        tabDestination: "settings",
+        actionLabel: "Fix Open Graph Cards",
+        defaultCriticalDetails: "Configure Open Graph images and titles for WhatsApp, LinkedIn, and X.",
+        defaultWarningDetails: "Social preview metadata can be enriched.",
+      },
+      schema: {
+        title: "Enhance Structured Data (Schema.org)",
+        tabDestination: "settings",
+        actionLabel: "Configure Schema",
+        defaultCriticalDetails: "Adding Organization or Article schema helps Google render rich snippets.",
+        defaultWarningDetails: "Adding Schema.org rich markup helps Google render rich snippets.",
+      },
+      images: {
         title: "Missing Image Alt Attributes",
-        details: analysis.images.details || "Several images on the website lack descriptive alt text.",
         tabDestination: "pages",
         actionLabel: "Review Image Alts",
-      });
-    }
+        defaultCriticalDetails: "Several images on the website lack descriptive alt text.",
+        defaultWarningDetails: "Some images can be improved with descriptive alt text.",
+      },
+      technical: {
+        title: "Technical HTML Standards",
+        tabDestination: "technical",
+        actionLabel: "Review Technical SEO",
+        defaultCriticalDetails: "HTML5 doctype, viewport, or charset directives missing.",
+        defaultWarningDetails: "Technical HTML markup can be enhanced.",
+      },
+    };
+
+    Object.entries(analysis).forEach(([key, item]: [string, any]) => {
+      if (!item || typeof item.max !== "number" || item.max <= 0) return;
+      const pct = (item.score / item.max) * 100;
+      if (pct < 100) {
+        const config = ISSUE_CONFIG[key] || {
+          title: `Optimize ${key}`,
+          tabDestination: "settings",
+          actionLabel: "Review SEO",
+          defaultCriticalDetails: `${key} requires critical SEO attention.`,
+          defaultWarningDetails: `${key} can be further optimized.`,
+        };
+
+        const severity: "critical" | "warning" | "opportunity" =
+          pct < 60 ? "critical" : key === "schema" ? "opportunity" : "warning";
+
+        issues.push({
+          severity,
+          title: config.title,
+          details: item.details || (pct < 60 ? config.defaultCriticalDetails : config.defaultWarningDetails),
+          tabDestination: config.tabDestination,
+          actionLabel: config.actionLabel,
+        });
+      }
+    });
 
     if (orphanedPagesCount > 0) {
       issues.push({
@@ -176,25 +236,9 @@ export function SEOOverviewDashboard({
       });
     }
 
-    if (analysis.schema && analysis.schema.score < 10) {
-      issues.push({
-        severity: "opportunity",
-        title: "Enhance Structured Data (Schema.org)",
-        details: analysis.schema.details || "Adding Organization or Article schema helps Google render rich snippets.",
-        tabDestination: "settings",
-        actionLabel: "Configure Schema",
-      });
-    }
-
-    if (analysis.open_graph && analysis.open_graph.score < 10) {
-      issues.push({
-        severity: "opportunity",
-        title: "Social Preview Cards Incomplete",
-        details: analysis.open_graph.details || "Configure Open Graph images and titles for WhatsApp, LinkedIn, and X.",
-        tabDestination: "settings",
-        actionLabel: "Fix Open Graph Cards",
-      });
-    }
+    // Sort by severity: critical first, then warning, then opportunity
+    const severityOrder = { critical: 0, warning: 1, opportunity: 2 };
+    issues.sort((a, b) => severityOrder[a.severity] - severityOrder[b.severity]);
 
     return issues;
   };
@@ -690,6 +734,16 @@ export function SEOOverviewDashboard({
             <div className="text-purple-600 font-bold text-xs group-hover:translate-x-0.5 transition-transform">Integrations →</div>
             <div className="text-slate-900 font-bold text-xs mt-1">Connected Tools</div>
             <div className="text-[11px] text-slate-500 mt-0.5">GSC & Analytics Tags</div>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => onNavigateTab("monitoring")}
+            className="p-4 bg-slate-50 hover:bg-purple-50 hover:border-purple-200 border border-slate-200 rounded-xl text-left transition-all group"
+          >
+            <div className="text-purple-600 font-bold text-xs group-hover:translate-x-0.5 transition-transform">Monitoring 🔔 →</div>
+            <div className="text-slate-900 font-bold text-xs mt-1">Scheduled Audits</div>
+            <div className="text-[11px] text-slate-500 mt-0.5">Alerts & Trend History</div>
           </button>
 
           <button
