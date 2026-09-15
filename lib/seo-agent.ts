@@ -76,6 +76,12 @@ export interface SEOAgentContext {
       createdAt: string;
     }>;
   };
+  thirdPartyIntegrations: Array<{
+    provider: string;
+    status: string;
+    capabilities: string[];
+    lastTestedAt: string | null;
+  }>;
 }
 
 /**
@@ -298,6 +304,19 @@ export async function buildSEOContext(supabase: any, websiteId: string): Promise
     createdAt: e.created_at,
   }));
 
+  // 10. Fetch Third-Party SEO Integrations (website_third_party_seo_integrations)
+  const { data: thirdPartyRows } = await supabase
+    .from("website_third_party_seo_integrations")
+    .select("provider, status, capabilities, last_tested_at")
+    .eq("website_id", websiteId);
+
+  const thirdPartyIntegrations = (thirdPartyRows || []).map((t: any) => ({
+    provider: t.provider,
+    status: t.status,
+    capabilities: t.capabilities || [],
+    lastTestedAt: t.last_tested_at || null,
+  }));
+
   return {
     website: {
       title: website?.title || "Untitled Website",
@@ -364,6 +383,7 @@ export async function buildSEOContext(supabase: any, websiteId: string): Promise
       failureCount: schedRow?.failure_count || 0,
       recentAlerts,
     },
+    thirdPartyIntegrations,
   };
 }
 
