@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/utils/supabase/server";
 import { GeneratedFile, WebsitePlan } from "@/lib/types";
+import { deriveWebsiteTitle } from "@/lib/website-title-helper";
 
 export async function POST(req: NextRequest) {
   try {
@@ -33,8 +34,8 @@ export async function POST(req: NextRequest) {
     const cssContent = files.find((f) => f.path.endsWith("styles.css"))?.content || "";
     const jsContent = files.find((f) => f.path.endsWith("script.js"))?.content || "";
 
-    // Generate title from plan or prompt
-    let title = plan?.brandIdentity || plan?.websiteType || "My AI Website";
+    // Generate clean website title
+    let title = deriveWebsiteTitle(plan, files, prompt);
     if (title.length > 60) {
       title = title.substring(0, 57) + "...";
     }

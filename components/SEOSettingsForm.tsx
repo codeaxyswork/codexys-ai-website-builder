@@ -67,20 +67,20 @@ export function SEOSettingsForm({
   return (
     <div className="space-y-8">
       {/* 1. BASIC SEO */}
-      <div className="bg-white border border-slate-200 rounded-xl p-6 shadow-sm">
-        <h3 className="text-lg font-bold text-slate-900 border-b border-slate-100 pb-3 mb-5 flex items-center gap-2">
+      <div className="bg-white border border-slate-200/90 rounded-2xl p-6 sm:p-8 shadow-xs">
+        <h3 className="text-lg font-bold text-slate-900 border-b border-slate-100 pb-3 mb-6 flex items-center gap-2">
           <svg className="w-5 h-5 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
           </svg>
           Basic SEO Configuration
         </h3>
 
-        <div className="space-y-5">
+        <div className="space-y-6">
           {/* SEO Title */}
           <div>
-            <div className="flex justify-between items-center mb-1">
-              <label className="block text-sm font-semibold text-slate-700">SEO Title</label>
-              <span className={`text-xs ${formData.seo_title.length > 60 ? "text-amber-600 font-semibold" : "text-slate-400"}`}>
+            <div className="flex justify-between items-center mb-1.5">
+              <label className="block text-sm font-bold text-slate-800">SEO Title</label>
+              <span className={`text-xs ${formData.seo_title.length > 60 ? "text-amber-600 font-bold" : "text-slate-400"}`}>
                 {formData.seo_title.length} / 60 chars
               </span>
             </div>
@@ -89,15 +89,15 @@ export function SEOSettingsForm({
               value={formData.seo_title}
               onChange={(e) => handleTextChange("seo_title", e.target.value)}
               placeholder="e.g. Best Luxury Dental Clinic in Chicago | Smile Design"
-              className="w-full px-3.5 py-2.5 bg-white border border-slate-300 rounded-lg text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-all"
+              className="w-full px-4 py-3 bg-white border border-slate-300 rounded-xl text-slate-900 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-purple-500/20 focus:border-purple-600 transition-all"
             />
           </div>
 
           {/* Meta Description */}
           <div>
-            <div className="flex justify-between items-center mb-1">
-              <label className="block text-sm font-semibold text-slate-700">Meta Description</label>
-              <span className={`text-xs ${formData.meta_description.length > 160 ? "text-amber-600 font-semibold" : "text-slate-400"}`}>
+            <div className="flex justify-between items-center mb-1.5">
+              <label className="block text-sm font-bold text-slate-800">Meta Description</label>
+              <span className={`text-xs ${formData.meta_description.length > 160 ? "text-amber-600 font-bold" : "text-slate-400"}`}>
                 {formData.meta_description.length} / 160 chars
               </span>
             </div>
@@ -106,14 +106,14 @@ export function SEOSettingsForm({
               value={formData.meta_description}
               onChange={(e) => handleTextChange("meta_description", e.target.value)}
               placeholder="e.g. Experience premium dental care with state-of-the-art technology. Book your consultation online today."
-              className="w-full px-3.5 py-2.5 bg-white border border-slate-300 rounded-lg text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-all"
+              className="w-full px-4 py-3 bg-white border border-slate-300 rounded-xl text-slate-900 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-purple-500/20 focus:border-purple-600 transition-all"
             />
           </div>
 
           {/* Focus Keywords */}
           <div>
-            <label className="block text-sm font-semibold text-slate-700 mb-1">Focus Keywords</label>
-            <div className="flex gap-2 mb-2">
+            <label className="block text-sm font-bold text-slate-800 mb-1.5">Focus Keywords</label>
+            <div className="flex gap-2 mb-3">
               <input
                 type="text"
                 value={keywordInput}
@@ -125,12 +125,12 @@ export function SEOSettingsForm({
                   }
                 }}
                 placeholder="Add keyword and press Enter..."
-                className="flex-1 px-3.5 py-2 bg-white border border-slate-300 rounded-lg text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
+                className="flex-1 px-4 py-2.5 bg-white border border-slate-300 rounded-xl text-slate-900 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-purple-500/20 focus:border-purple-600"
               />
               <button
                 type="button"
                 onClick={addKeyword}
-                className="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 text-sm font-medium rounded-lg transition-all"
+                className="px-5 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-800 text-sm font-bold rounded-xl transition-all cursor-pointer"
               >
                 Add
               </button>
@@ -139,13 +139,13 @@ export function SEOSettingsForm({
               {formData.focus_keywords.map((kw) => (
                 <span
                   key={kw}
-                  className="inline-flex items-center gap-1.5 px-3 py-1 bg-purple-50 text-purple-700 border border-purple-200 rounded-full text-xs font-semibold"
+                  className="inline-flex items-center gap-1.5 px-3 py-1 bg-purple-50 text-purple-700 border border-purple-200 rounded-full text-xs font-bold"
                 >
                   {kw}
                   <button
                     type="button"
                     onClick={() => removeKeyword(kw)}
-                    className="hover:text-purple-900"
+                    className="hover:text-purple-900 cursor-pointer font-extrabold"
                   >
                     ×
                   </button>
@@ -156,21 +156,21 @@ export function SEOSettingsForm({
 
           {/* Canonical URL */}
           <div>
-            <label className="block text-sm font-semibold text-slate-700 mb-1">Canonical URL</label>
+            <label className="block text-sm font-bold text-slate-800 mb-1.5">Canonical URL</label>
             <input
               type="url"
               value={formData.canonical_url}
               onChange={(e) => handleTextChange("canonical_url", e.target.value)}
               placeholder="https://example.com/site/your-slug"
-              className="w-full px-3.5 py-2.5 bg-white border border-slate-300 rounded-lg text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-all"
+              className="w-full px-4 py-3 bg-white border border-slate-300 rounded-xl text-slate-900 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-purple-500/20 focus:border-purple-600 transition-all"
             />
           </div>
         </div>
       </div>
 
       {/* 2. GOOGLE SEARCH CONSOLE VERIFICATION */}
-      <div className="bg-white border border-slate-200 rounded-xl p-6 shadow-sm">
-        <h3 className="text-lg font-bold text-slate-900 border-b border-slate-100 pb-3 mb-5 flex items-center gap-2">
+      <div className="bg-white border border-slate-200/90 rounded-2xl p-6 sm:p-8 shadow-xs">
+        <h3 className="text-lg font-bold text-slate-900 border-b border-slate-100 pb-3 mb-6 flex items-center gap-2">
           <svg className="w-5 h-5 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
           </svg>
@@ -178,10 +178,10 @@ export function SEOSettingsForm({
         </h3>
 
         <div>
-          <div className="flex justify-between items-center mb-1">
-            <label className="block text-sm font-semibold text-slate-700">Google Site Verification Token</label>
+          <div className="flex justify-between items-center mb-1.5">
+            <label className="block text-sm font-bold text-slate-800">Google Site Verification Token</label>
             {formData.google_site_verification_token && (
-              <span className="text-xs font-semibold text-emerald-600 flex items-center gap-1">
+              <span className="text-xs font-bold text-emerald-600 flex items-center gap-1">
                 ✓ Meta tag configured
               </span>
             )}
@@ -191,17 +191,17 @@ export function SEOSettingsForm({
             value={formData.google_site_verification_token}
             onChange={(e) => handleTextChange("google_site_verification_token", e.target.value)}
             placeholder="e.g. ODXf_Oowi3i3g-gHB_PaUZ6IvHCXfUMRVCUC_G14qBk"
-            className="w-full px-3.5 py-2.5 bg-white border border-slate-300 rounded-lg text-slate-900 font-mono text-sm focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-all"
+            className="w-full px-4 py-3 bg-white border border-slate-300 rounded-xl text-slate-900 font-mono text-sm focus:outline-none focus:ring-2 focus:ring-purple-500/20 focus:border-purple-600 transition-all"
           />
-          <p className="text-xs text-slate-500 mt-2 leading-relaxed">
-            Enter your site ownership verification token provided by Google Search Console. This will inject <code className="bg-slate-100 px-1.5 py-0.5 rounded border border-slate-200 text-slate-700 font-mono">&lt;meta name="google-site-verification" content="..."&gt;</code> into this specific website's HTML <code className="bg-slate-100 px-1 py-0.5 rounded text-slate-700 font-mono">&lt;head&gt;</code>.
+          <p className="text-xs text-slate-500 mt-2.5 leading-relaxed">
+            Enter your site ownership verification token provided by Google Search Console. This will inject <code className="bg-slate-100 px-1.5 py-0.5 rounded border border-slate-200 text-slate-700 font-mono">&lt;meta name="google-site-verification" content="..."&gt;</code> into this website's HTML <code className="bg-slate-100 px-1 py-0.5 rounded text-slate-700 font-mono">&lt;head&gt;</code>.
           </p>
         </div>
       </div>
 
-      {/* 2. SEARCH ENGINE SETTINGS */}
-      <div className="bg-white border border-slate-200 rounded-xl p-6 shadow-sm">
-        <h3 className="text-lg font-bold text-slate-900 border-b border-slate-100 pb-3 mb-5 flex items-center gap-2">
+      {/* 3. SEARCH ENGINE ROBOTS DIRECTIVES */}
+      <div className="bg-white border border-slate-200/90 rounded-2xl p-6 sm:p-8 shadow-xs">
+        <h3 className="text-lg font-bold text-slate-900 border-b border-slate-100 pb-3 mb-6 flex items-center gap-2">
           <svg className="w-5 h-5 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
           </svg>
@@ -209,20 +209,20 @@ export function SEOSettingsForm({
         </h3>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <label className="flex items-start gap-3 p-4 bg-slate-50 border border-slate-200 rounded-lg cursor-pointer hover:bg-slate-100/50 transition-all">
+          <label className="flex items-start gap-3.5 p-5 bg-slate-50/80 border border-slate-200/90 rounded-xl cursor-pointer hover:bg-slate-100/60 transition-all">
             <input
               type="checkbox"
               checked={formData.robots_index}
               onChange={(e) => handleTextChange("robots_index", e.target.checked)}
-              className="mt-1 h-4 w-4 text-purple-600 border-slate-300 rounded focus:ring-purple-500"
+              className="mt-1 h-4 h-4 text-purple-600 border-slate-300 rounded focus:ring-purple-500"
             />
             <div>
-              <span className="text-sm font-bold text-slate-900 block">Allow Search Engines to Index (index)</span>
-              <span className="text-xs text-slate-500">Enable search engines like Google and Bing to list this website in search results.</span>
+              <span className="text-sm font-bold text-slate-900 block mb-0.5">Allow Search Engines to Index (index)</span>
+              <span className="text-xs text-slate-500 leading-relaxed">Enable search engines like Google and Bing to list this website in search results.</span>
             </div>
           </label>
 
-          <label className="flex items-start gap-3 p-4 bg-slate-50 border border-slate-200 rounded-lg cursor-pointer hover:bg-slate-100/50 transition-all">
+          <label className="flex items-start gap-3.5 p-5 bg-slate-50/80 border border-slate-200/90 rounded-xl cursor-pointer hover:bg-slate-100/60 transition-all">
             <input
               type="checkbox"
               checked={formData.robots_follow}
@@ -230,16 +230,16 @@ export function SEOSettingsForm({
               className="mt-1 h-4 w-4 text-purple-600 border-slate-300 rounded focus:ring-purple-500"
             />
             <div>
-              <span className="text-sm font-bold text-slate-900 block">Allow Search Engines to Follow Links (follow)</span>
-              <span className="text-xs text-slate-500">Instruct search engine crawlers to follow links on your pages.</span>
+              <span className="text-sm font-bold text-slate-900 block mb-0.5">Allow Search Engines to Follow Links (follow)</span>
+              <span className="text-xs text-slate-500 leading-relaxed">Instruct search engine crawlers to follow links on your pages.</span>
             </div>
           </label>
         </div>
       </div>
 
-      {/* 3. SOCIAL SEO (OPEN GRAPH & TWITTER) */}
-      <div className="bg-white border border-slate-200 rounded-xl p-6 shadow-sm">
-        <h3 className="text-lg font-bold text-slate-900 border-b border-slate-100 pb-3 mb-5 flex items-center gap-2">
+      {/* 4. SOCIAL SEO (OPEN GRAPH & TWITTER) */}
+      <div className="bg-white border border-slate-200/90 rounded-2xl p-6 sm:p-8 shadow-xs">
+        <h3 className="text-lg font-bold text-slate-900 border-b border-slate-100 pb-3 mb-6 flex items-center gap-2">
           <svg className="w-5 h-5 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z" />
           </svg>
@@ -249,71 +249,71 @@ export function SEOSettingsForm({
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {/* Open Graph */}
           <div className="space-y-4">
-            <h4 className="text-sm font-bold text-slate-800 uppercase tracking-wider text-purple-700">Open Graph (Facebook, LinkedIn)</h4>
+            <h4 className="text-xs font-extrabold text-purple-700 uppercase tracking-wider">Open Graph (Facebook, LinkedIn)</h4>
             <div>
-              <label className="block text-xs font-semibold text-slate-700 mb-1">OG Title</label>
+              <label className="block text-xs font-bold text-slate-800 mb-1">OG Title</label>
               <input
                 type="text"
                 value={formData.og_title}
                 onChange={(e) => handleTextChange("og_title", e.target.value)}
                 placeholder="Defaults to SEO Title if empty"
-                className="w-full px-3 py-2 bg-white border border-slate-300 rounded-lg text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-purple-500"
+                className="w-full px-3.5 py-2.5 bg-white border border-slate-300 rounded-xl text-slate-900 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-purple-500/20 focus:border-purple-600"
               />
             </div>
             <div>
-              <label className="block text-xs font-semibold text-slate-700 mb-1">OG Description</label>
+              <label className="block text-xs font-bold text-slate-800 mb-1">OG Description</label>
               <textarea
                 rows={2}
                 value={formData.og_description}
                 onChange={(e) => handleTextChange("og_description", e.target.value)}
                 placeholder="Defaults to Meta Description if empty"
-                className="w-full px-3 py-2 bg-white border border-slate-300 rounded-lg text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-purple-500"
+                className="w-full px-3.5 py-2.5 bg-white border border-slate-300 rounded-xl text-slate-900 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-purple-500/20 focus:border-purple-600"
               />
             </div>
             <div>
-              <label className="block text-xs font-semibold text-slate-700 mb-1">OG Image URL</label>
+              <label className="block text-xs font-bold text-slate-800 mb-1">OG Image URL</label>
               <input
                 type="url"
                 value={formData.og_image_url}
                 onChange={(e) => handleTextChange("og_image_url", e.target.value)}
                 placeholder="https://example.com/og-banner.jpg"
-                className="w-full px-3 py-2 bg-white border border-slate-300 rounded-lg text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-purple-500"
+                className="w-full px-3.5 py-2.5 bg-white border border-slate-300 rounded-xl text-slate-900 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-purple-500/20 focus:border-purple-600"
               />
             </div>
           </div>
 
           {/* Twitter Card */}
           <div className="space-y-4">
-            <h4 className="text-sm font-bold text-slate-800 uppercase tracking-wider text-purple-700">Twitter Card</h4>
+            <h4 className="text-xs font-extrabold text-purple-700 uppercase tracking-wider">Twitter Card</h4>
             <div>
-              <label className="block text-xs font-semibold text-slate-700 mb-1">Twitter Card Type</label>
+              <label className="block text-xs font-bold text-slate-800 mb-1">Twitter Card Type</label>
               <select
                 value={formData.twitter_card}
                 onChange={(e) => handleTextChange("twitter_card", e.target.value)}
-                className="w-full px-3 py-2 bg-white border border-slate-300 rounded-lg text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-purple-500"
+                className="w-full px-3.5 py-2.5 bg-white border border-slate-300 rounded-xl text-slate-900 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-purple-500/20 focus:border-purple-600"
               >
                 <option value="summary_large_image">Summary Card with Large Image</option>
                 <option value="summary">Summary Card</option>
               </select>
             </div>
             <div>
-              <label className="block text-xs font-semibold text-slate-700 mb-1">Twitter Title</label>
+              <label className="block text-xs font-bold text-slate-800 mb-1">Twitter Title</label>
               <input
                 type="text"
                 value={formData.twitter_title}
                 onChange={(e) => handleTextChange("twitter_title", e.target.value)}
                 placeholder="Defaults to OG Title if empty"
-                className="w-full px-3 py-2 bg-white border border-slate-300 rounded-lg text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-purple-500"
+                className="w-full px-3.5 py-2.5 bg-white border border-slate-300 rounded-xl text-slate-900 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-purple-500/20 focus:border-purple-600"
               />
             </div>
             <div>
-              <label className="block text-xs font-semibold text-slate-700 mb-1">Twitter Description</label>
+              <label className="block text-xs font-bold text-slate-800 mb-1">Twitter Description</label>
               <textarea
                 rows={2}
                 value={formData.twitter_description}
                 onChange={(e) => handleTextChange("twitter_description", e.target.value)}
                 placeholder="Defaults to OG Description if empty"
-                className="w-full px-3 py-2 bg-white border border-slate-300 rounded-lg text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-purple-500"
+                className="w-full px-3.5 py-2.5 bg-white border border-slate-300 rounded-xl text-slate-900 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-purple-500/20 focus:border-purple-600"
               />
             </div>
           </div>
@@ -321,10 +321,10 @@ export function SEOSettingsForm({
       </div>
 
       {/* Save Button Bar */}
-      <div className="flex items-center justify-between bg-white border border-slate-200 rounded-xl p-4 shadow-sm sticky bottom-4 z-10">
+      <div className="flex items-center justify-between bg-white/95 backdrop-blur-md border border-slate-200/90 rounded-2xl p-4 shadow-sm sticky bottom-4 z-20">
         <div className="flex items-center gap-2">
           {saveStatus === "saving" && (
-            <span className="text-xs font-medium text-purple-600 flex items-center gap-1.5">
+            <span className="text-xs font-bold text-purple-600 flex items-center gap-1.5">
               <svg className="animate-spin h-3.5 w-3.5" viewBox="0 0 24 24">
                 <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
                 <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z" />
@@ -333,12 +333,12 @@ export function SEOSettingsForm({
             </span>
           )}
           {saveStatus === "saved" && (
-            <span className="text-xs font-semibold text-emerald-600 flex items-center gap-1">
+            <span className="text-xs font-bold text-emerald-600 flex items-center gap-1">
               ✓ SEO settings saved!
             </span>
           )}
           {saveStatus === "error" && (
-            <span className="text-xs font-semibold text-rose-600 flex items-center gap-1">
+            <span className="text-xs font-bold text-rose-600 flex items-center gap-1">
               ✕ Error saving SEO settings.
             </span>
           )}
@@ -348,7 +348,7 @@ export function SEOSettingsForm({
           type="button"
           onClick={onSave}
           disabled={isSaving}
-          className="px-6 py-2.5 bg-purple-600 hover:bg-purple-700 text-white font-medium text-sm rounded-lg shadow-sm transition-all disabled:opacity-50"
+          className="h-11 px-6 py-2.5 bg-purple-600 hover:bg-purple-700 active:scale-[0.98] text-white font-bold text-sm rounded-xl shadow-xs transition-all disabled:opacity-50 cursor-pointer"
         >
           {isSaving ? "Saving..." : "Save SEO Settings"}
         </button>

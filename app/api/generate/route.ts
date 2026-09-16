@@ -6,6 +6,7 @@ import { isUserSuspended } from "@/lib/admin-auth";
 import { checkRateLimit } from "@/lib/rate-limit";
 import { CREDIT_COSTS, ERROR_CODES } from "@/lib/constants";
 import { GeneratedFile, WebsitePlan } from "@/lib/types";
+import { deriveWebsiteTitle } from "@/lib/website-title-helper";
 
 export async function POST(req: NextRequest) {
   try {
@@ -132,7 +133,7 @@ async function saveGeneratedWebsiteToDb(
   files: GeneratedFile[]
 ): Promise<string> {
   try {
-    let title = plan?.brandIdentity || plan?.websiteType || "My AI Website";
+    let title = deriveWebsiteTitle(plan, files, promptText);
     if (title.length > 60) title = title.substring(0, 57) + "...";
     const baseSlug = title
       .toLowerCase()

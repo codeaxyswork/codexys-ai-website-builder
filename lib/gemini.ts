@@ -325,7 +325,7 @@ function parseMarkerDelimitedResponse(text: string, originalPrompt: string): Gen
   // 4. Extract Plan JSON
   let plan: WebsitePlan = {
     websiteType: "Custom Website",
-    brandIdentity: originalPrompt,
+    brandIdentity: "My AI Website",
     designDirection: "Bespoke visual architecture",
     colorPalette: [
       { name: "Primary", hex: "#0f172a" },

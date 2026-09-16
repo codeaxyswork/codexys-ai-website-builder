@@ -15,8 +15,42 @@ import { SEOAgentChat } from "@/components/SEOAgentChat";
 import { InternalLinkingDashboard } from "@/components/InternalLinkingDashboard";
 import { LocalSEODashboard } from "@/components/LocalSEODashboard";
 import { SEOMonitoringDashboard } from "@/components/SEOMonitoringDashboard";
+import SEOOpportunitiesDashboard from "@/components/SEOOpportunitiesDashboard";
+import SEOAutopilotDashboard from "@/components/SEOAutopilotDashboard";
+import SEOAEODashboard from "@/components/SEOAEODashboard";
+import SEOTopicalAuthorityDashboard from "@/components/SEOTopicalAuthorityDashboard";
+import SEOCompetitorDashboard from "@/components/SEOCompetitorDashboard";
+import SEOContentGapDashboard from "@/components/SEOContentGapDashboard";
+import { SEOContentStudio } from "@/components/SEOContentStudio";
+import { SEOTechnicalDashboard } from "@/components/SEOTechnicalDashboard";
+import { SEOCommandCenterDashboard } from "@/components/SEOCommandCenterDashboard";
 import { SEOAnalysisResult } from "@/lib/seo-analyzer";
 import { AISEOSuggestions } from "@/lib/seo-ai";
+import { 
+  ChevronRight, 
+  Sparkles, 
+  ArrowLeft,
+  LayoutDashboard,
+  TrendingUp,
+  Bell,
+  Search,
+  Sliders,
+  Link2,
+  MapPin,
+  PenTool,
+  Layers,
+  FileText,
+  Boxes,
+  Settings,
+  Lightbulb,
+  Cpu,
+  Bot,
+  GitFork,
+  Swords,
+  Target,
+  Activity,
+  ShieldCheck
+} from "lucide-react";
 
 interface SEODashboardPageProps {
   params: Promise<{ id: string }>;
@@ -28,7 +62,7 @@ export default function SEODashboardPage({ params }: SEODashboardPageProps) {
   const searchParams = useSearchParams();
 
   // Active Navigation Tab
-  const initialTab = searchParams.get("tab") || "overview";
+  const initialTab = searchParams.get("tab") || "command-center";
   const [activeTab, setActiveTab] = useState<string>(initialTab);
 
   const [loading, setLoading] = useState(true);
@@ -82,10 +116,19 @@ export default function SEODashboardPage({ params }: SEODashboardPageProps) {
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [isGeneratingAI, setIsGeneratingAI] = useState(false);
 
-  // AI Modal
+  // AI Modal & Navigation State
   const [aiSuggestions, setAiSuggestions] = useState<AISEOSuggestions | null>(null);
   const [isAiModalOpen, setIsAiModalOpen] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [isMobileNavOpen, setIsMobileNavOpen] = useState(false);
+
+  const navScrollRef = React.useRef<HTMLDivElement>(null);
+  const scrollNav = (direction: "left" | "right") => {
+    if (navScrollRef.current) {
+      const scrollAmount = direction === "left" ? -240 : 240;
+      navScrollRef.current.scrollBy({ left: scrollAmount, behavior: "smooth" });
+    }
+  };
 
   useEffect(() => {
     fetchInitialData();
@@ -406,408 +449,569 @@ export default function SEODashboardPage({ params }: SEODashboardPageProps) {
   }
 
   const tabs = [
-    { id: "overview", label: "SEO Overview" },
-    { id: "performance", label: "Performance" },
-    { id: "monitoring", label: "Monitoring 🔔" },
-    { id: "organic", label: "Organic SEO" },
-    { id: "technical", label: "Technical SEO" },
-    { id: "internal-links", label: "Internal Links 🔗" },
-    { id: "local-seo", label: "Local SEO 📍" },
-    { id: "blog", label: "Content & Blog ✍️" },
-    { id: "pages", label: "Pages" },
-    { id: "keywords", label: "Keywords / Rankings" },
-    { id: "integrations", label: "Integrations" },
-    { id: "settings", label: "SEO Settings" },
+    { id: "command-center", label: "SEO Command Center", icon: ShieldCheck, badge: "🛡️" },
+    { id: "overview", label: "SEO Overview", icon: LayoutDashboard },
+    { id: "technical-crawl", label: "Technical Crawl", icon: Activity, badge: "🕸️" },
+    { id: "content-studio", label: "Content Studio", icon: PenTool, badge: "🚀" },
+    { id: "competitors", label: "Competitors", icon: Swords, badge: "⚔️" },
+    { id: "content-gaps", label: "Content Gaps", icon: Target, badge: "🎯" },
+    { id: "aeo", label: "AEO / AI Search", icon: Bot, badge: "🤖" },
+    { id: "topical-authority", label: "Topical Authority", icon: GitFork, badge: "🌳" },
+    { id: "opportunities", label: "Opportunity Engine", icon: Lightbulb, badge: "⚡" },
+    { id: "autopilot", label: "SEO Autopilot", icon: Cpu, badge: "⚙️" },
+    { id: "performance", label: "Performance", icon: TrendingUp },
+    { id: "monitoring", label: "Monitoring", icon: Bell, badge: "🔔" },
+    { id: "organic", label: "Organic SEO", icon: Search },
+    { id: "technical", label: "Technical SEO", icon: Sliders },
+    { id: "internal-links", label: "Internal Links", icon: Link2, badge: "🔗" },
+    { id: "local-seo", label: "Local SEO", icon: MapPin, badge: "📍" },
+    { id: "blog", label: "Content & Blog", icon: PenTool, badge: "✍️" },
+    { id: "pages", label: "Pages", icon: Layers },
+    { id: "keywords", label: "Keywords / Rankings", icon: FileText },
+    { id: "integrations", label: "Integrations", icon: Boxes },
+    { id: "settings", label: "SEO Settings", icon: Settings },
   ];
 
+  const activeTabObj = tabs.find((t) => t.id === activeTab) || tabs[0];
+
   return (
-    <div className="min-h-screen bg-slate-50 text-slate-900">
-      {/* Header */}
-      <header className="bg-white border-b border-slate-200 sticky top-0 z-20 shadow-2xs">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-          <div className="flex items-center gap-4">
-            <Link
-              href={`/dashboard/websites/${websiteId}`}
-              className="p-2 text-slate-500 hover:text-slate-900 rounded-lg hover:bg-slate-100 transition-all font-semibold text-xs flex items-center gap-1"
-              title="Back to Website Dashboard"
-            >
-              ← Website Dashboard
-            </Link>
-            <div>
-              <div className="flex items-center gap-2">
-                <h1 className="text-xl font-bold text-slate-900">{website?.title || "Website SEO"}</h1>
+    <div className="min-h-screen bg-slate-50/70 text-slate-900 flex flex-col font-sans">
+      {/* Premium Enterprise SaaS SEO Dashboard Header System */}
+      <header className="bg-white border-b border-slate-200/90 sticky top-0 z-30 shadow-xs">
+        <div className="w-full max-w-[1650px] mx-auto px-4 sm:px-6 lg:px-8">
+          {/* TOP UTILITY & IDENTITY ROW */}
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 py-4">
+            
+            {/* LEFT: Navigation Back Button, Title, Badges */}
+            <div className="space-y-2">
+              <div className="flex items-center gap-3 flex-wrap">
+                <Link
+                  href={`/dashboard/websites/${websiteId}`}
+                  className="inline-flex items-center justify-center gap-2 h-10 px-4 rounded-xl border border-slate-200/90 bg-slate-50 hover:bg-slate-100 text-xs sm:text-sm font-bold text-slate-700 transition-all shadow-2xs shrink-0"
+                  title="Return to Website Dashboard Hub"
+                >
+                  <ArrowLeft className="w-4 h-4 text-slate-500" />
+                  <span>Website Dashboard</span>
+                </Link>
+
+                <div className="h-4 w-px bg-slate-200 hidden sm:block" />
+
+                <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-purple-50 border border-purple-200/80 text-purple-700 text-xs font-bold tracking-wide">
+                  <span>SEO Control Center</span>
+                </span>
+
                 {website?.is_published ? (
-                  <span className="px-2.5 py-0.5 bg-emerald-50 text-emerald-700 border border-emerald-200 rounded-full text-xs font-semibold">
-                    Published
+                  <span className="inline-flex items-center px-3 py-1 bg-emerald-50 text-emerald-700 border border-emerald-200/80 rounded-full text-xs font-bold">
+                    Live Published
                   </span>
                 ) : (
-                  <span className="px-2.5 py-0.5 bg-slate-100 text-slate-600 rounded-full text-xs font-semibold">
+                  <span className="inline-flex items-center px-3 py-1 bg-slate-100 text-slate-600 border border-slate-200/80 rounded-full text-xs font-bold">
                     Draft
                   </span>
                 )}
+
+                {typeof seoScore === "number" && (
+                  <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-extrabold bg-purple-50 text-purple-700 border border-purple-200/80">
+                    Score: {seoScore}/100
+                  </span>
+                )}
               </div>
-              <p className="text-xs text-slate-500 mt-0.5">Website SEO Management & Search Console Performance</p>
+
+              <div>
+                <h1 className="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight">
+                  {website?.title || "Website SEO"}
+                </h1>
+                <p className="text-sm text-slate-500 font-medium">
+                  Search Engine Optimization & Google Search Console Intelligence
+                </p>
+              </div>
+            </div>
+
+            {/* RIGHT: Action Buttons Cluster */}
+            <div className="flex items-center gap-2.5 overflow-x-auto scrollbar-none py-0.5 shrink-0">
+              <Link
+                href="/"
+                className="inline-flex items-center justify-center gap-2 h-11 px-5 bg-purple-600 hover:bg-purple-700 active:scale-95 text-white text-sm font-bold rounded-xl shadow-md shadow-purple-600/20 transition-all shrink-0"
+              >
+                <span>Open AI Builder</span>
+                <span className="text-xs opacity-80">&rarr;</span>
+              </Link>
+
+              <Link
+                href={`/dashboard/websites/${websiteId}/blog`}
+                className="inline-flex items-center justify-center gap-2 h-11 px-5 border border-purple-200/90 bg-purple-50 hover:bg-purple-100 text-purple-700 text-sm font-bold rounded-xl transition-all shadow-2xs shrink-0"
+              >
+                <span>Blog Engine</span>
+              </Link>
+
+              {website?.is_published && website?.published_slug && (
+                <>
+                  <a
+                    href={`/sitemap/${website.published_slug}.xml`}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="inline-flex items-center justify-center gap-2 h-11 px-5 bg-white hover:bg-slate-50 text-slate-700 hover:text-slate-900 text-sm font-semibold rounded-xl border border-slate-200/90 shadow-2xs transition-all shrink-0"
+                  >
+                    <span>XML Sitemap</span>
+                    <span className="text-xs opacity-60">&rarr;</span>
+                  </a>
+                  <a
+                    href={`/robots/${website.published_slug}.txt`}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="inline-flex items-center justify-center gap-2 h-11 px-5 bg-white hover:bg-slate-50 text-slate-700 hover:text-slate-900 text-sm font-semibold rounded-xl border border-slate-200/90 shadow-2xs transition-all shrink-0"
+                  >
+                    <span>Robots.txt</span>
+                    <span className="text-xs opacity-60">&rarr;</span>
+                  </a>
+                </>
+              )}
             </div>
           </div>
-
-          <div className="flex items-center gap-3 flex-wrap">
-            <Link
-              href={`/dashboard/websites/${websiteId}/blog`}
-              className="px-3.5 py-1.5 bg-purple-50 hover:bg-purple-100 text-purple-700 border border-purple-200 text-xs font-semibold rounded-lg transition-all flex items-center gap-1.5 shadow-2xs"
-            >
-              <span>✍️ Blog Engine</span>
-            </Link>
-            {website?.is_published && website?.published_slug && (
-              <>
-                <a
-                  href={`/sitemap/${website.published_slug}.xml`}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold rounded-lg transition-all"
-                >
-                  XML Sitemap ↗
-                </a>
-                <a
-                  href={`/robots/${website.published_slug}.txt`}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold rounded-lg transition-all"
-                >
-                  Robots.txt ↗
-                </a>
-              </>
-            )}
-            <Link
-              href="/"
-              className="px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white text-xs font-semibold rounded-lg shadow-sm transition-all"
-            >
-              Open AI Builder ↗
-            </Link>
-          </div>
-        </div>
-
-        {/* Tab Navigation */}
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 border-t border-slate-100 overflow-x-auto scrollbar-none">
-          <nav className="flex space-x-1 py-2">
-            {tabs.map((t) => (
-              <button
-                key={t.id}
-                onClick={() => {
-                  if (t.id === "blog") {
-                    router.push(`/dashboard/websites/${websiteId}/blog`);
-                  } else {
-                    setActiveTab(t.id);
-                  }
-                }}
-                className={`px-3.5 py-2 text-xs font-semibold rounded-xl whitespace-nowrap transition-all ${
-                  activeTab === t.id
-                    ? "bg-slate-900 text-white shadow-xs"
-                    : "text-slate-600 hover:bg-slate-100 hover:text-slate-900"
-                }`}
-              >
-                {t.label}
-              </button>
-            ))}
-          </nav>
         </div>
       </header>
 
-      {/* Main Content Body */}
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {errorMessage && (
-          <div className="mb-6 p-4 bg-rose-50 border border-rose-200 rounded-xl text-rose-800 text-sm flex items-center justify-between">
-            <span>{errorMessage}</span>
-            <button onClick={() => setErrorMessage(null)} className="text-rose-500 font-bold hover:text-rose-900">
-              ×
-            </button>
-          </div>
-        )}
+      {/* Main Content Body (Full Screen Responsive Canvas) */}
+      <main className="w-full max-w-[1650px] mx-auto px-4 sm:px-6 lg:px-8 py-8 flex-1">
+        {/* MOBILE SECTION SELECTOR DROPDOWN (VISIBLE ON SMALL SCREENS) */}
+        <div className="lg:hidden w-full mb-6 bg-white border border-slate-200/90 rounded-2xl p-3.5 shadow-sm">
+          <button
+            type="button"
+            onClick={() => setIsMobileNavOpen(!isMobileNavOpen)}
+            className="w-full flex items-center justify-between px-4 py-3 bg-purple-50/70 border border-purple-200/80 rounded-xl text-sm font-bold text-purple-900"
+          >
+            <div className="flex items-center gap-3 min-w-0">
+              {activeTabObj?.icon && <activeTabObj.icon className="w-4.5 h-4.5 text-purple-600 shrink-0" />}
+              <span className="truncate">Section: {activeTabObj?.label || "SEO Overview"}</span>
+            </div>
+            <ChevronRight className={`w-4 h-4 text-purple-600 transition-transform duration-200 ${isMobileNavOpen ? "rotate-90" : ""}`} />
+          </button>
 
-        {/* 1. SEO OVERVIEW TAB */}
-        {activeTab === "overview" && (
-          <SEOOverviewDashboard
-            websiteId={websiteId}
-            seoScore={seoScore}
-            analysis={analysis}
-            imageStats={imageStats}
-            pagesSeo={pagesSeo}
-            history={seoAnalysisHistory}
-            gscPerformance={gscPerformance}
-            loadingPerformance={loadingPerformance}
-            isDirty={isDirty}
-            analysisStatus={analysisStatus}
-            lastAnalyzedAt={lastAnalyzedAt}
-            onAnalyze={handleAnalyze}
-            isAnalyzing={isAnalyzing}
-            onNavigateTab={(tabId) => setActiveTab(tabId)}
-            onConnectGsc={handleConnectGsc}
-            onSyncGsc={handleSyncGsc}
-            isSyncingGsc={isSyncingGsc}
-            gscSyncError={gscSyncError}
-          />
-        )}
+          {isMobileNavOpen && (
+            <div className="mt-3 pt-3 border-t border-slate-100 space-y-1">
+              {tabs.map((t) => {
+                const isActive = activeTab === t.id;
+                const Icon = t.icon;
+                return (
+                  <button
+                    key={t.id}
+                    type="button"
+                    onClick={() => {
+                      if (t.id === "blog") {
+                        router.push(`/dashboard/websites/${websiteId}/blog`);
+                      } else {
+                        setActiveTab(t.id);
+                        setIsMobileNavOpen(false);
+                      }
+                    }}
+                    className={`w-full flex items-center justify-between px-4 py-3 rounded-xl text-sm font-bold transition-all ${
+                      isActive ? "bg-purple-600 text-white shadow-xs" : "text-slate-700 hover:bg-slate-100/80"
+                    }`}
+                  >
+                    <div className="flex items-center gap-3">
+                      <Icon className="w-4.5 h-4.5 shrink-0" />
+                      <span>{t.label}</span>
+                    </div>
+                    {t.badge && <span className="text-sm">{t.badge}</span>}
+                  </button>
+                );
+              })}
+            </div>
+          )}
+        </div>
 
-        {/* 2. PERFORMANCE TAB */}
-        {activeTab === "performance" && (
-          <SEOPerformanceDashboard
-            websiteId={websiteId}
-            performance={gscPerformance}
-            loading={loadingPerformance}
-            onConnect={handleConnectGsc}
-            onSync={handleSyncGsc}
-            isSyncing={isSyncingGsc}
-            syncError={gscSyncError}
-            onOpenPropertySelector={() => setIsPropertySelectorOpen(true)}
-          />
-        )}
+        {/* SPLIT DASHBOARD LAYOUT */}
+        <div className="flex flex-col lg:flex-row items-start gap-8">
+          
+          {/* LEFT: SEO CONTROL CENTER SIDEBAR (DESKTOP) */}
+          <aside className="hidden lg:block w-72 shrink-0 bg-white border border-slate-200/90 rounded-2xl p-4 shadow-sm shadow-slate-200/50 sticky top-24">
+            <div className="px-3 py-2.5 border-b border-slate-100 mb-3 flex items-center justify-between">
+              <span className="text-xs font-black uppercase tracking-wider text-slate-400">
+                SEO Tools Navigation
+              </span>
+              <span className="text-[11px] font-extrabold px-2.5 py-0.5 bg-purple-50 text-purple-700 rounded-full border border-purple-100">
+                12 Tools
+              </span>
+            </div>
 
-        {/* MONITORING TAB */}
-        {activeTab === "monitoring" && (
-          <SEOMonitoringDashboard websiteId={websiteId} />
-        )}
+            <nav className="space-y-1.5">
+              {tabs.map((t) => {
+                const isActive = activeTab === t.id;
+                const Icon = t.icon;
+                return (
+                  <button
+                    key={t.id}
+                    type="button"
+                    onClick={() => {
+                      if (t.id === "blog") {
+                        router.push(`/dashboard/websites/${websiteId}/blog`);
+                      } else {
+                        setActiveTab(t.id);
+                      }
+                    }}
+                    className={`w-full flex items-center justify-between h-11 px-4 py-2.5 rounded-xl text-sm transition-all duration-150 group cursor-pointer ${
+                      isActive
+                        ? "bg-purple-600 text-white font-extrabold shadow-md shadow-purple-600/20"
+                        : "text-slate-700 hover:text-slate-900 hover:bg-slate-100/80 font-bold"
+                    }`}
+                  >
+                    <div className="flex items-center gap-3 min-w-0">
+                      <Icon className={`w-4.5 h-4.5 shrink-0 ${isActive ? "text-white" : "text-slate-400 group-hover:text-purple-600"}`} />
+                      <span className="truncate">{t.label}</span>
+                    </div>
+                    {t.badge && (
+                      <span className="text-sm shrink-0">{t.badge}</span>
+                    )}
+                  </button>
+                );
+              })}
+            </nav>
+          </aside>
 
-        {/* 3. ORGANIC SEO TAB */}
-        {activeTab === "organic" && (
-          <div className="bg-white border border-slate-200 rounded-2xl p-6 sm:p-8 shadow-xs space-y-6">
-            <h3 className="text-lg font-bold text-slate-900 border-b border-slate-100 pb-3">
-              Organic Content & Keyword SEO
-            </h3>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div className="p-5 bg-slate-50 border border-slate-200 rounded-xl space-y-3">
-                <h4 className="text-sm font-bold text-slate-900">Focus Keywords Analysis</h4>
-                <p className="text-xs text-slate-500 leading-relaxed">
-                  Target keywords configured for this website:
-                </p>
-                <div className="flex flex-wrap gap-2">
-                  {(formData.focus_keywords || []).length > 0 ? (
-                    formData.focus_keywords.map((kw, i) => (
-                      <span key={i} className="px-2.5 py-1 bg-purple-100 text-purple-800 text-xs font-medium rounded-lg">
-                        {kw}
-                      </span>
-                    ))
-                  ) : (
-                    <span className="text-xs text-slate-400 italic">No focus keywords set yet. Add keywords in SEO Settings.</span>
-                  )}
-                </div>
-              </div>
-
-              <div className="p-5 bg-slate-50 border border-slate-200 rounded-xl space-y-3">
-                <h4 className="text-sm font-bold text-slate-900">Page Content Fingerprint</h4>
-                <p className="text-xs text-slate-500 leading-relaxed">
-                  Deterministic keyword density and readability audits are updated automatically whenever you run a fresh analysis.
-                </p>
-                <button
-                  type="button"
-                  onClick={handleAnalyze}
-                  disabled={isAnalyzing}
-                  className="px-4 py-2 bg-slate-900 hover:bg-slate-800 text-white text-xs font-semibold rounded-lg"
-                >
-                  {isAnalyzing ? "Analyzing..." : "Re-run Content Audit"}
+          {/* RIGHT: MAIN SEO CONTENT AREA */}
+          <div className="flex-1 min-w-0 w-full">
+            {errorMessage && (
+              <div className="mb-6 p-4 bg-rose-50 border border-rose-200 rounded-xl text-rose-800 text-sm flex items-center justify-between">
+                <span>{errorMessage}</span>
+                <button onClick={() => setErrorMessage(null)} className="text-rose-500 font-bold hover:text-rose-900">
+                  ×
                 </button>
               </div>
-            </div>
-          </div>
-        )}
+            )}
 
-        {/* 4. TECHNICAL SEO TAB */}
-        {activeTab === "technical" && (
-          <div className="bg-white border border-slate-200 rounded-2xl p-6 sm:p-8 shadow-xs space-y-6">
-            <h3 className="text-lg font-bold text-slate-900 border-b border-slate-100 pb-3">
-              Technical SEO Checklist & Health
-            </h3>
+            {/* 1. SEO OVERVIEW TAB */}
+            {activeTab === "overview" && (
+              <SEOOverviewDashboard
+                websiteId={websiteId}
+                seoScore={seoScore}
+                analysis={analysis}
+                imageStats={imageStats}
+                pagesSeo={pagesSeo}
+                history={seoAnalysisHistory}
+                gscPerformance={gscPerformance}
+                loadingPerformance={loadingPerformance}
+                isDirty={isDirty}
+                analysisStatus={analysisStatus}
+                lastAnalyzedAt={lastAnalyzedAt}
+                onAnalyze={handleAnalyze}
+                isAnalyzing={isAnalyzing}
+                onNavigateTab={(tabId) => setActiveTab(tabId)}
+                onConnectGsc={handleConnectGsc}
+                onSyncGsc={handleSyncGsc}
+                isSyncingGsc={isSyncingGsc}
+                gscSyncError={gscSyncError}
+              />
+            )}
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div className="p-4 bg-slate-50 border border-slate-200 rounded-xl flex items-center justify-between">
-                <div>
-                  <span className="text-xs font-bold text-slate-900 block">XML Sitemap Status</span>
-                  <span className="text-[11px] text-slate-500">Automatically generated for published sites.</span>
-                </div>
-                <span className="px-2.5 py-1 bg-emerald-50 text-emerald-700 text-xs font-semibold rounded-full border border-emerald-200">
-                  Active
-                </span>
-              </div>
+            {/* 2. PERFORMANCE TAB */}
+            {activeTab === "performance" && (
+              <SEOPerformanceDashboard
+                websiteId={websiteId}
+                performance={gscPerformance}
+                loading={loadingPerformance}
+                onConnect={handleConnectGsc}
+                onSync={handleSyncGsc}
+                isSyncing={isSyncingGsc}
+                syncError={gscSyncError}
+                onOpenPropertySelector={() => setIsPropertySelectorOpen(true)}
+              />
+            )}
 
-              <div className="p-4 bg-slate-50 border border-slate-200 rounded-xl flex items-center justify-between">
-                <div>
-                  <span className="text-xs font-bold text-slate-900 block">Robots.txt Status</span>
-                  <span className="text-[11px] text-slate-500">Crawling directives configured.</span>
-                </div>
-                <span className="px-2.5 py-1 bg-emerald-50 text-emerald-700 text-xs font-semibold rounded-full border border-emerald-200">
-                  Active
-                </span>
-              </div>
+            {/* COMMAND CENTER TAB */}
+            {activeTab === "command-center" && (
+              <SEOCommandCenterDashboard websiteId={websiteId} onNavigateTab={(tab) => setActiveTab(tab)} />
+            )}
 
-              <div className="p-4 bg-slate-50 border border-slate-200 rounded-xl flex items-center justify-between">
-                <div>
-                  <span className="text-xs font-bold text-slate-900 block">Canonical URL Rule</span>
-                  <span className="text-[11px] text-slate-500">{formData.canonical_url || "Default domain canonical URL"}</span>
-                </div>
-                <span className="px-2.5 py-1 bg-blue-50 text-blue-700 text-xs font-semibold rounded-full border border-blue-200">
-                  Configured
-                </span>
-              </div>
+            {/* TECHNICAL CRAWL TAB */}
+            {activeTab === "technical-crawl" && (
+              <SEOTechnicalDashboard websiteId={websiteId} />
+            )}
 
-              <div className="p-4 bg-slate-50 border border-slate-200 rounded-xl flex items-center justify-between">
-                <div>
-                  <span className="text-xs font-bold text-slate-900 block">Schema JSON-LD Editor</span>
-                  <span className="text-[11px] text-slate-500">Structured data markup.</span>
-                </div>
-                <span className="px-2.5 py-1 bg-purple-50 text-purple-700 text-xs font-semibold rounded-full border border-purple-200">
-                  {Object.keys(schemaMarkup || {}).length > 0 ? "JSON-LD Active" : "Default Schema"}
-                </span>
-              </div>
-            </div>
-          </div>
-        )}
+            {/* CONTENT STUDIO TAB */}
+            {activeTab === "content-studio" && (
+              <SEOContentStudio websiteId={websiteId} />
+            )}
 
-        {/* INTERNAL LINKS TAB */}
-        {activeTab === "internal-links" && (
-          <InternalLinkingDashboard websiteId={websiteId} />
-        )}
+            {/* COMPETITORS TAB */}
+            {activeTab === "competitors" && (
+              <SEOCompetitorDashboard websiteId={websiteId} />
+            )}
 
-        {/* LOCAL SEO TAB */}
-        {activeTab === "local-seo" && (
-          <LocalSEODashboard websiteId={websiteId} />
-        )}
+            {/* CONTENT GAPS TAB */}
+            {activeTab === "content-gaps" && (
+              <SEOContentGapDashboard websiteId={websiteId} />
+            )}
 
-        {/* 5. PAGES TAB */}
-        {activeTab === "pages" && (
-          <div className="bg-white border border-slate-200 rounded-2xl p-6 shadow-xs space-y-4">
-            <div className="flex items-center justify-between border-b border-slate-100 pb-3">
-              <h3 className="text-lg font-bold text-slate-900">Page-Level SEO State ({pagesSeo.length} Pages)</h3>
-              <button
-                type="button"
-                onClick={handleAnalyze}
-                disabled={isAnalyzing}
-                className="px-3.5 py-1.5 bg-slate-900 hover:bg-slate-800 text-white text-xs font-semibold rounded-xl"
-              >
-                Analyze All Pages
-              </button>
-            </div>
+            {/* AEO TAB */}
+            {activeTab === "aeo" && (
+              <SEOAEODashboard websiteId={websiteId} />
+            )}
 
-            {pagesSeo.length === 0 ? (
-              <div className="p-8 text-center text-xs text-slate-500">
-                No page SEO records found yet. Run an analysis to index site pages.
-              </div>
-            ) : (
-              <div className="overflow-x-auto">
-                <table className="w-full text-left text-xs">
-                  <thead>
-                    <tr className="border-b border-slate-200 text-slate-500 uppercase font-semibold">
-                      <th className="py-3 px-4">Path</th>
-                      <th className="py-3 px-4">Page SEO Title</th>
-                      <th className="py-3 px-4 text-center">Score</th>
-                      <th className="py-3 px-4 text-center">Status</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-slate-100">
-                    {pagesSeo.map((p) => (
-                      <tr key={p.id} className="hover:bg-slate-50">
-                        <td className="py-3 px-4 font-mono font-semibold text-slate-900">{p.path}</td>
-                        <td className="py-3 px-4 text-slate-700">{p.seo_title || "Untitled Page"}</td>
-                        <td className="py-3 px-4 text-center">
-                          <span className="px-2 py-0.5 bg-purple-100 text-purple-800 font-bold rounded">
-                            {p.seo_score || 0}/100
+            {/* TOPICAL AUTHORITY TAB */}
+            {activeTab === "topical-authority" && (
+              <SEOTopicalAuthorityDashboard websiteId={websiteId} />
+            )}
+
+            {/* OPPORTUNITIES TAB */}
+            {activeTab === "opportunities" && (
+              <SEOOpportunitiesDashboard websiteId={websiteId} />
+            )}
+
+            {/* AUTOPILOT TAB */}
+            {activeTab === "autopilot" && (
+              <SEOAutopilotDashboard websiteId={websiteId} />
+            )}
+
+            {/* MONITORING TAB */}
+            {activeTab === "monitoring" && (
+              <SEOMonitoringDashboard websiteId={websiteId} />
+            )}
+
+            {/* 3. ORGANIC SEO TAB */}
+            {activeTab === "organic" && (
+              <div className="bg-white border border-slate-200 rounded-2xl p-6 sm:p-8 shadow-xs space-y-6">
+                <h3 className="text-lg font-bold text-slate-900 border-b border-slate-100 pb-3">
+                  Organic Content & Keyword SEO
+                </h3>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className="p-5 bg-slate-50 border border-slate-200 rounded-xl space-y-3">
+                    <h4 className="text-sm font-bold text-slate-900">Focus Keywords Analysis</h4>
+                    <p className="text-xs text-slate-500 leading-relaxed">
+                      Target keywords configured for this website:
+                    </p>
+                    <div className="flex flex-wrap gap-2">
+                      {(formData.focus_keywords || []).length > 0 ? (
+                        formData.focus_keywords.map((kw, i) => (
+                          <span key={i} className="px-2.5 py-1 bg-purple-100 text-purple-800 text-xs font-medium rounded-lg">
+                            {kw}
                           </span>
-                        </td>
-                        <td className="py-3 px-4 text-center">
-                          <span className="px-2 py-0.5 bg-emerald-50 text-emerald-700 font-semibold rounded-full border border-emerald-200">
-                            {p.analysis_status || "completed"}
-                          </span>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
+                        ))
+                      ) : (
+                        <span className="text-xs text-slate-400 italic">No focus keywords set yet. Add keywords in SEO Settings.</span>
+                      )}
+                    </div>
+                  </div>
+
+                  <div className="p-5 bg-slate-50 border border-slate-200 rounded-xl space-y-3">
+                    <h4 className="text-sm font-bold text-slate-900">Page Content Fingerprint</h4>
+                    <p className="text-xs text-slate-500 leading-relaxed">
+                      Deterministic keyword density and readability audits are updated automatically whenever you run a fresh analysis.
+                    </p>
+                    <button
+                      type="button"
+                      onClick={handleAnalyze}
+                      disabled={isAnalyzing}
+                      className="px-4 py-2 bg-slate-900 hover:bg-slate-800 text-white text-xs font-semibold rounded-lg cursor-pointer"
+                    >
+                      {isAnalyzing ? "Analyzing..." : "Re-run Content Audit"}
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* 4. TECHNICAL SEO TAB */}
+            {activeTab === "technical" && (
+              <div className="bg-white border border-slate-200 rounded-2xl p-6 sm:p-8 shadow-xs space-y-6">
+                <h3 className="text-lg font-bold text-slate-900 border-b border-slate-100 pb-3">
+                  Technical SEO Checklist & Health
+                </h3>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div className="p-4 bg-slate-50 border border-slate-200 rounded-xl flex items-center justify-between">
+                    <div>
+                      <span className="text-xs font-bold text-slate-900 block">XML Sitemap Status</span>
+                      <span className="text-[11px] text-slate-500">Automatically generated for published sites.</span>
+                    </div>
+                    <span className="px-2.5 py-1 bg-emerald-50 text-emerald-700 text-xs font-semibold rounded-full border border-emerald-200">
+                      Active
+                    </span>
+                  </div>
+
+                  <div className="p-4 bg-slate-50 border border-slate-200 rounded-xl flex items-center justify-between">
+                    <div>
+                      <span className="text-xs font-bold text-slate-900 block">Robots.txt Status</span>
+                      <span className="text-[11px] text-slate-500">Crawling directives configured.</span>
+                    </div>
+                    <span className="px-2.5 py-1 bg-emerald-50 text-emerald-700 text-xs font-semibold rounded-full border border-emerald-200">
+                      Active
+                    </span>
+                  </div>
+
+                  <div className="p-4 bg-slate-50 border border-slate-200 rounded-xl flex items-center justify-between">
+                    <div>
+                      <span className="text-xs font-bold text-slate-900 block">Canonical URL Rule</span>
+                      <span className="text-[11px] text-slate-500">{formData.canonical_url || "Default domain canonical URL"}</span>
+                    </div>
+                    <span className="px-2.5 py-1 bg-blue-50 text-blue-700 text-xs font-semibold rounded-full border border-blue-200">
+                      Configured
+                    </span>
+                  </div>
+
+                  <div className="p-4 bg-slate-50 border border-slate-200 rounded-xl flex items-center justify-between">
+                    <div>
+                      <span className="text-xs font-bold text-slate-900 block">Schema JSON-LD Editor</span>
+                      <span className="text-[11px] text-slate-500">Structured data markup.</span>
+                    </div>
+                    <span className="px-2.5 py-1 bg-purple-50 text-purple-700 text-xs font-semibold rounded-full border border-purple-200">
+                      {Object.keys(schemaMarkup || {}).length > 0 ? "JSON-LD Active" : "Default Schema"}
+                    </span>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* INTERNAL LINKS TAB */}
+            {activeTab === "internal-links" && (
+              <InternalLinkingDashboard websiteId={websiteId} />
+            )}
+
+            {/* LOCAL SEO TAB */}
+            {activeTab === "local-seo" && (
+              <LocalSEODashboard websiteId={websiteId} />
+            )}
+
+            {/* 5. PAGES TAB */}
+            {activeTab === "pages" && (
+              <div className="bg-white border border-slate-200 rounded-2xl p-6 shadow-xs space-y-4">
+                <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+                  <h3 className="text-lg font-bold text-slate-900">Page-Level SEO State ({pagesSeo.length} Pages)</h3>
+                  <button
+                    type="button"
+                    onClick={handleAnalyze}
+                    disabled={isAnalyzing}
+                    className="px-3.5 py-1.5 bg-slate-900 hover:bg-slate-800 text-white text-xs font-semibold rounded-xl cursor-pointer"
+                  >
+                    Analyze All Pages
+                  </button>
+                </div>
+
+                {pagesSeo.length === 0 ? (
+                  <div className="p-8 text-center text-xs text-slate-500">
+                    No page SEO records found yet. Run an analysis to index site pages.
+                  </div>
+                ) : (
+                  <div className="overflow-x-auto">
+                    <table className="w-full text-left text-xs">
+                      <thead>
+                        <tr className="border-b border-slate-200 text-slate-500 uppercase font-semibold">
+                          <th className="py-3 px-4">Path</th>
+                          <th className="py-3 px-4">Page SEO Title</th>
+                          <th className="py-3 px-4 text-center">Score</th>
+                          <th className="py-3 px-4 text-center">Status</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-slate-100">
+                        {pagesSeo.map((p) => (
+                          <tr key={p.id} className="hover:bg-slate-50">
+                            <td className="py-3 px-4 font-mono font-semibold text-slate-900">{p.path}</td>
+                            <td className="py-3 px-4 text-slate-700">{p.seo_title || "Untitled Page"}</td>
+                            <td className="py-3 px-4 text-center">
+                              <span className="px-2 py-0.5 bg-purple-100 text-purple-800 font-bold rounded">
+                                {p.seo_score || 0}/100
+                              </span>
+                            </td>
+                            <td className="py-3 px-4 text-center">
+                              <span className="px-2 py-0.5 bg-emerald-50 text-emerald-700 font-semibold rounded-full border border-emerald-200">
+                                {p.analysis_status || "completed"}
+                              </span>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* 6. KEYWORDS / RANKINGS TAB */}
+            {activeTab === "keywords" && (
+              <div className="bg-white border border-slate-200 rounded-2xl p-6 shadow-xs space-y-4">
+                <h3 className="text-lg font-bold text-slate-900 border-b border-slate-100 pb-3">
+                  Google Keyword Position Rankings
+                </h3>
+
+                {!gscPerformance?.connected ? (
+                  <div className="p-8 text-center bg-slate-50 border border-slate-200 rounded-xl space-y-3">
+                    <p className="text-xs text-slate-700 font-medium">
+                      Connect Google Search Console to display real Google keyword rankings.
+                    </p>
+                    <button
+                      type="button"
+                      onClick={handleConnectGsc}
+                      className="px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white font-semibold text-xs rounded-xl cursor-pointer"
+                    >
+                      Connect Search Console
+                    </button>
+                  </div>
+                ) : (
+                  <div className="overflow-x-auto">
+                    <table className="w-full text-left text-xs">
+                      <thead>
+                        <tr className="border-b border-slate-200 text-slate-500 uppercase font-semibold">
+                          <th className="py-3 px-4">Search Query</th>
+                          <th className="py-3 px-4 text-right">Avg Position</th>
+                          <th className="py-3 px-4 text-right">Clicks</th>
+                          <th className="py-3 px-4 text-right">Impressions</th>
+                          <th className="py-3 px-4 text-right">CTR</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-slate-100">
+                        {(gscPerformance?.queries || []).map((q, i) => (
+                          <tr key={i} className="hover:bg-slate-50">
+                            <td className="py-3 px-4 font-mono font-semibold text-slate-900">{q.query}</td>
+                            <td className="py-3 px-4 text-right font-bold text-purple-600">#{q.position.toFixed(1)}</td>
+                            <td className="py-3 px-4 text-right text-slate-900 font-semibold">{q.clicks}</td>
+                            <td className="py-3 px-4 text-right text-slate-600">{q.impressions}</td>
+                            <td className="py-3 px-4 text-right text-purple-700">{q.ctr.toFixed(2)}%</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* 7. INTEGRATIONS TAB */}
+            {activeTab === "integrations" && (
+              <SEOIntegrations
+                integrations={integrations}
+                gaId={formData.google_analytics_id}
+                gtmId={formData.google_tag_manager_id}
+                gscVerificationToken={formData.google_site_verification_token}
+                onUpdateGaId={(val) => setFormData((prev) => ({ ...prev, google_analytics_id: val }))}
+                onUpdateGtmId={(val) => setFormData((prev) => ({ ...prev, google_tag_manager_id: val }))}
+                onUpdateGscVerificationToken={(val) => setFormData((prev) => ({ ...prev, google_site_verification_token: val }))}
+                onSaveIntegration={handleSaveIntegration}
+                canUseIntegrations={canUseIntegrations}
+                websiteId={websiteId}
+                onOpenPropertySelector={() => setIsPropertySelectorOpen(true)}
+              />
+            )}
+
+            {/* 8. SEO SETTINGS TAB */}
+            {activeTab === "settings" && (
+              <div className="space-y-8">
+                <SEOSettingsForm
+                  formData={formData}
+                  onChange={setFormData}
+                  onSave={handleSave}
+                  isSaving={isSaving}
+                  saveStatus={saveStatus}
+                />
+
+                <SchemaMarkupEditor
+                  schemaMarkup={schemaMarkup}
+                  onChange={setSchemaMarkup}
+                  canUseSchema={canUseSchema}
+                />
               </div>
             )}
           </div>
-        )}
-
-        {/* 6. KEYWORDS / RANKINGS TAB */}
-        {activeTab === "keywords" && (
-          <div className="bg-white border border-slate-200 rounded-2xl p-6 shadow-xs space-y-4">
-            <h3 className="text-lg font-bold text-slate-900 border-b border-slate-100 pb-3">
-              Google Keyword Position Rankings
-            </h3>
-
-            {!gscPerformance?.connected ? (
-              <div className="p-8 text-center bg-slate-50 border border-slate-200 rounded-xl space-y-3">
-                <p className="text-xs text-slate-700 font-medium">
-                  Connect Google Search Console to display real Google keyword rankings.
-                </p>
-                <button
-                  type="button"
-                  onClick={handleConnectGsc}
-                  className="px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white font-semibold text-xs rounded-xl"
-                >
-                  Connect Search Console
-                </button>
-              </div>
-            ) : (
-              <div className="overflow-x-auto">
-                <table className="w-full text-left text-xs">
-                  <thead>
-                    <tr className="border-b border-slate-200 text-slate-500 uppercase font-semibold">
-                      <th className="py-3 px-4">Search Query</th>
-                      <th className="py-3 px-4 text-right">Avg Position</th>
-                      <th className="py-3 px-4 text-right">Clicks</th>
-                      <th className="py-3 px-4 text-right">Impressions</th>
-                      <th className="py-3 px-4 text-right">CTR</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-slate-100">
-                    {(gscPerformance?.queries || []).map((q, i) => (
-                      <tr key={i} className="hover:bg-slate-50">
-                        <td className="py-3 px-4 font-mono font-semibold text-slate-900">{q.query}</td>
-                        <td className="py-3 px-4 text-right font-bold text-purple-600">#{q.position.toFixed(1)}</td>
-                        <td className="py-3 px-4 text-right text-slate-900 font-semibold">{q.clicks}</td>
-                        <td className="py-3 px-4 text-right text-slate-600">{q.impressions}</td>
-                        <td className="py-3 px-4 text-right text-purple-700">{q.ctr.toFixed(2)}%</td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            )}
-          </div>
-        )}
-        {/* 7. INTEGRATIONS TAB */}
-        {activeTab === "integrations" && (
-          <SEOIntegrations
-            integrations={integrations}
-            gaId={formData.google_analytics_id}
-            gtmId={formData.google_tag_manager_id}
-            gscVerificationToken={formData.google_site_verification_token}
-            onUpdateGaId={(val) => setFormData((prev) => ({ ...prev, google_analytics_id: val }))}
-            onUpdateGtmId={(val) => setFormData((prev) => ({ ...prev, google_tag_manager_id: val }))}
-            onUpdateGscVerificationToken={(val) => setFormData((prev) => ({ ...prev, google_site_verification_token: val }))}
-            onSaveIntegration={handleSaveIntegration}
-            canUseIntegrations={canUseIntegrations}
-            websiteId={websiteId}
-            onOpenPropertySelector={() => setIsPropertySelectorOpen(true)}
-          />
-        )}
-
-        {/* 8. SEO SETTINGS TAB */}
-        {activeTab === "settings" && (
-          <div className="space-y-8">
-            <SEOSettingsForm
-              formData={formData}
-              onChange={setFormData}
-              onSave={handleSave}
-              isSaving={isSaving}
-              saveStatus={saveStatus}
-            />
-
-            <SchemaMarkupEditor
-              schemaMarkup={schemaMarkup}
-              onChange={setSchemaMarkup}
-              canUseSchema={canUseSchema}
-            />
-          </div>
-        )}
+        </div>
       </main>
 
       {/* GSC Property Selector Modal */}

@@ -19,7 +19,7 @@ export async function GET(
     // 2. Verify website ownership
     const { data: website, error: siteError } = await supabase
       .from("websites")
-      .select("id, user_id, title, pages, html_content")
+      .select("id, user_id, title")
       .eq("id", websiteId)
       .eq("user_id", user.id)
       .single();
@@ -70,7 +70,7 @@ export async function POST(
     // 2. Verify website ownership
     const { data: website, error: siteError } = await supabase
       .from("websites")
-      .select("id, user_id, title, pages, html_content")
+      .select("id, user_id, title")
       .eq("id", websiteId)
       .eq("user_id", user.id)
       .single();

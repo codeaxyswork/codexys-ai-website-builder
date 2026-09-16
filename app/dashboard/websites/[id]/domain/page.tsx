@@ -3,6 +3,7 @@
 import React, { useState, useEffect, use } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { ArrowLeft, Globe } from "lucide-react";
 
 interface DomainPageProps {
   params: Promise<{ id: string }>;
@@ -211,36 +212,69 @@ export default function DomainManagementPage({ params }: DomainPageProps) {
   }
 
   return (
-    <div className="min-h-screen bg-slate-50 text-slate-900">
-      {/* Header */}
-      <header className="bg-white border-b border-slate-200 sticky top-0 z-20">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex items-center justify-between">
-          <div className="flex items-center gap-4">
+    <div className="min-h-screen bg-slate-50/70 text-slate-900 flex flex-col font-sans">
+      {/* SaaS Navigation Header */}
+      <header className="h-16 border-b border-slate-200/90 bg-white/95 backdrop-blur-md px-4 sm:px-8 flex items-center justify-between sticky top-0 z-30 shadow-xs">
+        <div className="flex items-center gap-3 sm:gap-4 overflow-hidden">
+          <Link
+            href={`/dashboard/websites/${websiteId}`}
+            className="inline-flex items-center gap-2 h-10 px-4 rounded-xl border border-slate-200/90 bg-slate-50 hover:bg-slate-100 text-xs sm:text-sm font-bold text-slate-700 transition-all shadow-2xs shrink-0"
+            title="Return to Website Dashboard Hub"
+          >
+            <ArrowLeft className="w-4 h-4 text-slate-500" />
+            <span>Website Hub</span>
+          </Link>
+
+          <div className="h-4 w-px bg-slate-200 shrink-0" />
+
+          <div className="flex items-center gap-2 overflow-hidden">
+            <div className="w-7 h-7 rounded-lg bg-purple-50 border border-purple-200 flex items-center justify-center shrink-0">
+              <Globe className="w-4 h-4 text-purple-600" />
+            </div>
+            <h1 className="font-bold text-slate-900 text-sm sm:text-base truncate max-w-[180px] sm:max-w-md">
+              {website?.title || "Custom Domain"} — Domain Management
+            </h1>
+          </div>
+        </div>
+
+        {/* Quick Navigation Tabs & Primary Module Links */}
+        <div className="flex items-center gap-2 sm:gap-3">
+          <nav className="hidden md:flex items-center gap-1 bg-slate-100/90 p-1 rounded-xl border border-slate-200/80 mr-2">
             <Link
               href={`/dashboard/websites/${websiteId}`}
-              className="p-2 text-slate-500 hover:text-slate-900 rounded-lg hover:bg-slate-100 transition-all font-semibold text-xs flex items-center gap-1"
+              className="px-3.5 py-1.5 rounded-lg text-slate-600 hover:text-slate-900 hover:bg-white/60 font-semibold text-xs transition-all"
             >
-              ← Website Dashboard
+              Overview
             </Link>
-            <div>
-              <h1 className="text-xl font-bold text-slate-900">{website?.title || "Custom Domain"}</h1>
-              <p className="text-xs text-slate-500">Domain & DNS Host Configuration</p>
-            </div>
-          </div>
-
-          <div className="flex items-center gap-2">
             <Link
               href={`/dashboard/websites/${websiteId}/seo`}
-              className="px-3.5 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold rounded-lg transition-all"
+              className="px-3.5 py-1.5 rounded-lg text-slate-600 hover:text-slate-900 hover:bg-white/60 font-semibold text-xs transition-all"
             >
-              SEO Settings ↗
+              SEO Control Center
             </Link>
-          </div>
+            <Link
+              href={`/dashboard/websites/${websiteId}/blog`}
+              className="px-3.5 py-1.5 rounded-lg text-slate-600 hover:text-slate-900 hover:bg-white/60 font-semibold text-xs transition-all"
+            >
+              Blog Engine
+            </Link>
+            <span className="px-3.5 py-1.5 rounded-lg bg-white text-purple-700 font-extrabold text-xs shadow-2xs">
+              Domain
+            </span>
+          </nav>
+
+          <Link
+            href={`/dashboard/websites/${websiteId}/seo`}
+            className="inline-flex items-center justify-center gap-2 h-11 px-5 rounded-xl border border-purple-200/90 bg-purple-50 hover:bg-purple-100 text-purple-700 text-sm font-bold transition-all shadow-2xs shrink-0"
+          >
+            <span>SEO Optimizer</span>
+            <span className="text-xs opacity-80">&rarr;</span>
+          </Link>
         </div>
       </header>
 
       {/* Main Container */}
-      <main className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
+      <main className="max-w-[1650px] mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8 w-full flex-1">
         {/* Upgrade Notice Banner if Plan restricts */}
         {!canCustomDomain && (
           <div className="p-4 bg-amber-50 border border-amber-200 rounded-xl flex items-start justify-between gap-4">

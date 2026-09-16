@@ -250,8 +250,13 @@ export function SEOOverviewDashboard({
       {/* ------------------------------------------------------------- */}
       {/* SECTION A: SEO HEALTH SUMMARY CARD                            */}
       {/* ------------------------------------------------------------- */}
-      <div className="bg-white border border-slate-200 rounded-2xl p-6 sm:p-8 shadow-xs relative overflow-hidden">
-        <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-6">
+      {/* ------------------------------------------------------------- */}
+      {/* SECTION A: SEO HEALTH SUMMARY CARD (CODEAXYS LIGHT PREMIUM)  */}
+      {/* ------------------------------------------------------------- */}
+      <div className="bg-white border border-slate-200/90 rounded-2xl p-6 sm:p-8 shadow-xs relative overflow-hidden">
+        <div className="absolute top-0 right-0 w-80 h-80 bg-purple-500/5 rounded-full blur-3xl pointer-events-none -z-0" />
+
+        <div className="relative z-10 flex flex-col lg:flex-row items-start lg:items-center justify-between gap-6">
           {/* Left Score Gauge */}
           <div className="flex items-center gap-6">
             <div className="relative w-28 h-28 flex items-center justify-center shrink-0">
@@ -274,38 +279,38 @@ export function SEOOverviewDashboard({
                 />
               </svg>
               <div className="absolute flex flex-col items-center justify-center text-center">
-                <span className="text-3xl font-extrabold text-slate-900 font-mono tracking-tight">
+                <span className="text-3xl font-black text-slate-900 tracking-tight">
                   {seoScore}
                 </span>
-                <span className="text-[10px] uppercase font-bold text-slate-400">/ 100</span>
+                <span className="text-[10px] uppercase font-extrabold text-slate-400">/ 100</span>
               </div>
             </div>
 
             <div className="space-y-2">
               <div className="flex items-center gap-2.5 flex-wrap">
-                <h2 className="text-xl font-bold text-slate-900">Overall Website SEO Score</h2>
+                <h2 className="text-xl font-extrabold text-slate-900 tracking-tight">Overall Website SEO Score</h2>
                 {isDirty ? (
-                  <span className="px-2.5 py-0.5 bg-amber-50 text-amber-700 border border-amber-200 text-xs font-semibold rounded-full flex items-center gap-1">
-                    <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse"></span>
+                  <span className="px-2.5 py-1 bg-amber-50 border border-amber-200 text-amber-700 text-xs font-bold rounded-full flex items-center gap-1.5">
+                    <span className="w-2 h-2 rounded-full bg-amber-500 animate-pulse"></span>
                     Re-audit Needed
                   </span>
                 ) : analysisStatus === "queued" ? (
-                  <span className="px-2.5 py-0.5 bg-blue-50 text-blue-700 border border-blue-200 text-xs font-semibold rounded-full">
+                  <span className="px-2.5 py-1 bg-blue-50 border border-blue-200 text-blue-700 text-xs font-bold rounded-full">
                     Analysis Queued
                   </span>
                 ) : (
-                  <span className="px-2.5 py-0.5 bg-emerald-50 text-emerald-700 border border-emerald-200 text-xs font-semibold rounded-full">
+                  <span className="px-2.5 py-1 bg-emerald-50 border border-emerald-200 text-emerald-700 text-xs font-bold rounded-full">
                     Audit Up-to-Date
                   </span>
                 )}
               </div>
 
-              <p className="text-xs text-slate-600 max-w-md leading-relaxed">
-                Deterministic server-side audit evaluating website title, meta tags, image alts, crawlability, canonicals, and open graph standards.
+              <p className="text-sm text-slate-600 max-w-md leading-relaxed">
+                Server-side audit evaluating title tags, meta tags, image alts, crawlability, canonicals, and open graph standards.
               </p>
 
               {lastAnalyzedAt && (
-                <p className="text-[11px] text-slate-400 font-mono">
+                <p className="text-xs text-slate-500 font-mono">
                   Last analyzed: {new Date(lastAnalyzedAt).toLocaleString()}
                 </p>
               )}
@@ -318,7 +323,7 @@ export function SEOOverviewDashboard({
               type="button"
               onClick={onAnalyze}
               disabled={isAnalyzing}
-              className="px-5 py-3 bg-purple-600 hover:bg-purple-700 disabled:opacity-50 text-white font-semibold text-xs rounded-xl shadow-xs transition-all flex items-center justify-center gap-2 whitespace-nowrap"
+              className="px-5 py-3 bg-purple-600 hover:bg-purple-700 disabled:opacity-50 text-white font-bold text-sm rounded-xl shadow-xs transition-all flex items-center justify-center gap-2 whitespace-nowrap active:scale-[0.98] cursor-pointer"
             >
               {isAnalyzing ? (
                 <>
@@ -340,19 +345,19 @@ export function SEOOverviewDashboard({
 
             {/* Issue Count Badges */}
             <div className="flex items-center gap-2 flex-wrap">
-              <span className="px-2.5 py-1 bg-rose-50 border border-rose-200 text-rose-700 text-xs font-semibold rounded-lg flex items-center gap-1.5">
+              <span className="px-3 py-1 bg-rose-50 border border-rose-200 text-rose-700 text-xs font-bold rounded-lg flex items-center gap-1.5">
                 <span className="w-2 h-2 rounded-full bg-rose-500"></span>
                 {criticalCount} Critical
               </span>
-              <span className="px-2.5 py-1 bg-amber-50 border border-amber-200 text-amber-700 text-xs font-semibold rounded-lg flex items-center gap-1.5">
+              <span className="px-3 py-1 bg-amber-50 border border-amber-200 text-amber-700 text-xs font-bold rounded-lg flex items-center gap-1.5">
                 <span className="w-2 h-2 rounded-full bg-amber-500"></span>
                 {warningCount} Warnings
               </span>
-              <span className="px-2.5 py-1 bg-blue-50 border border-blue-200 text-blue-700 text-xs font-semibold rounded-lg flex items-center gap-1.5">
+              <span className="px-3 py-1 bg-blue-50 border border-blue-200 text-blue-700 text-xs font-bold rounded-lg flex items-center gap-1.5">
                 <span className="w-2 h-2 rounded-full bg-blue-500"></span>
                 {opportunityCount} Growth Ops
               </span>
-              <span className="px-2.5 py-1 bg-emerald-50 border border-emerald-200 text-emerald-700 text-xs font-semibold rounded-lg flex items-center gap-1.5">
+              <span className="px-3 py-1 bg-emerald-50 border border-emerald-200 text-emerald-700 text-xs font-bold rounded-lg flex items-center gap-1.5">
                 <span className="w-2 h-2 rounded-full bg-emerald-500"></span>
                 {passedCount} Passed
               </span>
@@ -365,25 +370,25 @@ export function SEOOverviewDashboard({
       {/* SECTION B: SEO CATEGORY HEALTH BREAKDOWN                     */}
       {/* ------------------------------------------------------------- */}
       {categories && (
-        <div className="bg-white border border-slate-200 rounded-2xl p-6 sm:p-8 shadow-xs space-y-6">
+        <div className="bg-white border border-slate-200/90 rounded-2xl p-6 sm:p-8 shadow-xs hover:shadow-sm transition-all space-y-6">
           <div className="flex items-center justify-between border-b border-slate-100 pb-4">
             <div>
-              <h3 className="text-base font-bold text-slate-900">SEO Category Health Breakdown</h3>
-              <p className="text-xs text-slate-500 mt-0.5">High-level status of core search optimization domains.</p>
+              <h3 className="text-lg font-bold text-slate-900 tracking-tight">SEO Category Health Breakdown</h3>
+              <p className="text-sm text-slate-500 mt-0.5 font-medium">High-level status of core search optimization domains.</p>
             </div>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
             {categories.map((cat, idx) => (
-              <div key={idx} className="p-4 bg-slate-50 border border-slate-200 rounded-xl space-y-3">
+              <div key={idx} className="p-5 bg-slate-50/80 border border-slate-200/90 rounded-xl space-y-3">
                 <div className="flex items-center justify-between">
-                  <span className="text-xs font-bold text-slate-900">{cat.name}</span>
-                  <span className={`text-xs font-bold font-mono px-2 py-0.5 rounded border ${getScoreColor(cat.score)}`}>
+                  <span className="text-sm font-bold text-slate-900">{cat.name}</span>
+                  <span className={`text-xs font-bold font-mono px-2.5 py-1 rounded-lg border ${getScoreColor(cat.score)}`}>
                     {cat.score}%
                   </span>
                 </div>
-                <p className="text-[11px] text-slate-500 leading-snug">{cat.desc}</p>
-                <div className="w-full h-2 bg-slate-200 rounded-full overflow-hidden">
+                <p className="text-xs text-slate-600 leading-relaxed">{cat.desc}</p>
+                <div className="w-full h-2.5 bg-slate-200/90 rounded-full overflow-hidden">
                   <div
                     style={{ width: `${cat.score}%` }}
                     className={`h-full transition-all duration-500 ${
@@ -392,13 +397,13 @@ export function SEOOverviewDashboard({
                   />
                 </div>
                 <div className="flex items-center justify-between pt-1">
-                  <span className="text-[10px] text-slate-400 font-medium uppercase tracking-wider">
+                  <span className="text-xs text-slate-500 font-bold uppercase tracking-wider">
                     {cat.score >= 80 ? "Optimal" : cat.score >= 50 ? "Needs Improvement" : "Critical Attention"}
                   </span>
                   <button
                     type="button"
                     onClick={() => onNavigateTab(cat.tab)}
-                    className="text-[11px] font-semibold text-purple-600 hover:text-purple-800 transition-colors"
+                    className="text-xs font-bold text-purple-600 hover:text-purple-800 transition-colors cursor-pointer"
                   >
                     View Details →
                   </button>
@@ -412,58 +417,58 @@ export function SEOOverviewDashboard({
       {/* ------------------------------------------------------------- */}
       {/* SECTION C: PRIORITY ISSUES & ACTION ITEMS                     */}
       {/* ------------------------------------------------------------- */}
-      <div className="bg-white border border-slate-200 rounded-2xl p-6 sm:p-8 shadow-xs space-y-6">
+      <div className="bg-white border border-slate-200/90 rounded-2xl p-6 sm:p-8 shadow-xs hover:shadow-sm transition-all space-y-6">
         <div className="flex items-center justify-between border-b border-slate-100 pb-4">
           <div>
-            <h3 className="text-base font-bold text-slate-900">Priority Issues & Action Items</h3>
-            <p className="text-xs text-slate-500 mt-0.5">Recommended tasks prioritized by severity impact on Google rankings.</p>
+            <h3 className="text-lg font-bold text-slate-900 tracking-tight">Priority Issues & Action Items</h3>
+            <p className="text-sm text-slate-500 mt-0.5 font-medium">Recommended tasks prioritized by severity impact on Google rankings.</p>
           </div>
-          <span className="text-xs font-semibold text-slate-500 font-mono">
+          <span className="text-xs font-bold text-slate-500 font-mono">
             {priorityIssues.length} Recommended Actions
           </span>
         </div>
 
         {priorityIssues.length === 0 ? (
-          <div className="p-8 text-center bg-emerald-50 border border-emerald-200 rounded-xl text-emerald-800 space-y-2">
+          <div className="p-8 text-center bg-emerald-50/70 border border-emerald-200/90 rounded-xl text-emerald-800 space-y-2">
             <svg className="w-8 h-8 mx-auto text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
             </svg>
-            <h4 className="text-sm font-bold">No Critical SEO Issues Found</h4>
-            <p className="text-xs text-emerald-600">Your website passes all primary search engine health directives.</p>
+            <h4 className="text-base font-bold">No Critical SEO Issues Found</h4>
+            <p className="text-sm text-emerald-700">Your website passes all primary search engine health directives.</p>
           </div>
         ) : (
-          <div className="space-y-3">
+          <div className="space-y-3.5">
             {priorityIssues.map((issue, idx) => (
               <div
                 key={idx}
-                className="p-4 border rounded-xl flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 bg-white hover:bg-slate-50 transition-colors"
+                className="p-5 border border-slate-200/90 rounded-xl flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 bg-white hover:bg-slate-50/80 transition-colors shadow-2xs"
               >
-                <div className="space-y-1">
-                  <div className="flex items-center gap-2 flex-wrap">
+                <div className="space-y-1.5">
+                  <div className="flex items-center gap-2.5 flex-wrap">
                     {issue.severity === "critical" && (
-                      <span className="px-2 py-0.5 bg-rose-100 text-rose-800 text-[10px] font-bold rounded uppercase tracking-wider">
+                      <span className="px-2.5 py-0.5 bg-rose-100 text-rose-800 text-xs font-extrabold rounded uppercase tracking-wider">
                         Critical
                       </span>
                     )}
                     {issue.severity === "warning" && (
-                      <span className="px-2 py-0.5 bg-amber-100 text-amber-800 text-[10px] font-bold rounded uppercase tracking-wider">
+                      <span className="px-2.5 py-0.5 bg-amber-100 text-amber-800 text-xs font-extrabold rounded uppercase tracking-wider">
                         Warning
                       </span>
                     )}
                     {issue.severity === "opportunity" && (
-                      <span className="px-2 py-0.5 bg-blue-100 text-blue-800 text-[10px] font-bold rounded uppercase tracking-wider">
+                      <span className="px-2.5 py-0.5 bg-blue-100 text-blue-800 text-xs font-extrabold rounded uppercase tracking-wider">
                         Growth Op
                       </span>
                     )}
-                    <h4 className="text-xs font-bold text-slate-900">{issue.title}</h4>
+                    <h4 className="text-sm font-bold text-slate-900">{issue.title}</h4>
                   </div>
-                  <p className="text-xs text-slate-600 leading-snug">{issue.details}</p>
+                  <p className="text-sm text-slate-600 leading-relaxed">{issue.details}</p>
                 </div>
 
                 <button
                   type="button"
                   onClick={() => onNavigateTab(issue.tabDestination)}
-                  className="px-3 py-1.5 bg-slate-900 hover:bg-slate-800 text-white text-xs font-semibold rounded-lg shrink-0 transition-all self-end sm:self-auto"
+                  className="h-10 px-4 py-2 bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold rounded-xl shrink-0 transition-all self-end sm:self-auto cursor-pointer shadow-xs"
                 >
                   {issue.actionLabel} →
                 </button>
@@ -476,40 +481,40 @@ export function SEOOverviewDashboard({
       {/* ------------------------------------------------------------- */}
       {/* SECTION D: PAGE HEALTH OVERVIEW                              */}
       {/* ------------------------------------------------------------- */}
-      <div className="bg-white border border-slate-200 rounded-2xl p-6 sm:p-8 shadow-xs space-y-6">
+      <div className="bg-white border border-slate-200/90 rounded-2xl p-6 sm:p-8 shadow-xs hover:shadow-sm transition-all space-y-6">
         <div className="flex items-center justify-between border-b border-slate-100 pb-4">
           <div>
-            <h3 className="text-base font-bold text-slate-900">Website Page Health Summary</h3>
-            <p className="text-xs text-slate-500 mt-0.5">Aggregated audit status across all website pages.</p>
+            <h3 className="text-lg font-bold text-slate-900 tracking-tight">Website Page Health Summary</h3>
+            <p className="text-sm text-slate-500 mt-0.5 font-medium">Aggregated audit status across all website pages.</p>
           </div>
           <button
             type="button"
             onClick={() => onNavigateTab("pages")}
-            className="text-xs font-bold text-purple-600 hover:text-purple-800 transition-colors"
+            className="text-xs font-bold text-purple-600 hover:text-purple-800 transition-colors cursor-pointer"
           >
             View All Pages ({totalPagesCount}) →
           </button>
         </div>
 
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-          <div className="p-4 bg-slate-50 border border-slate-200 rounded-xl">
-            <span className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider block">Total Pages</span>
-            <span className="text-2xl font-extrabold text-slate-900 font-mono mt-1 block">{totalPagesCount}</span>
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 sm:gap-6">
+          <div className="p-5 bg-slate-50/80 border border-slate-200/90 rounded-xl">
+            <span className="text-xs font-bold text-slate-500 uppercase tracking-wider block">Total Pages</span>
+            <span className="text-3xl font-black text-slate-900 font-mono mt-1 block">{totalPagesCount}</span>
           </div>
 
-          <div className="p-4 bg-slate-50 border border-slate-200 rounded-xl">
-            <span className="text-[11px] font-semibold text-emerald-600 uppercase tracking-wider block">Healthy Pages</span>
-            <span className="text-2xl font-extrabold text-emerald-600 font-mono mt-1 block">{healthyPagesCount}</span>
+          <div className="p-5 bg-slate-50/80 border border-slate-200/90 rounded-xl">
+            <span className="text-xs font-bold text-emerald-600 uppercase tracking-wider block">Healthy Pages</span>
+            <span className="text-3xl font-black text-emerald-600 font-mono mt-1 block">{healthyPagesCount}</span>
           </div>
 
-          <div className="p-4 bg-slate-50 border border-slate-200 rounded-xl">
-            <span className="text-[11px] font-semibold text-rose-600 uppercase tracking-wider block">Critical Issues</span>
-            <span className="text-2xl font-extrabold text-rose-600 font-mono mt-1 block">{criticalPagesCount}</span>
+          <div className="p-5 bg-slate-50/80 border border-slate-200/90 rounded-xl">
+            <span className="text-xs font-bold text-rose-600 uppercase tracking-wider block">Critical Issues</span>
+            <span className="text-3xl font-black text-rose-600 font-mono mt-1 block">{criticalPagesCount}</span>
           </div>
 
-          <div className="p-4 bg-slate-50 border border-slate-200 rounded-xl">
-            <span className="text-[11px] font-semibold text-amber-600 uppercase tracking-wider block">Orphaned Pages</span>
-            <span className="text-2xl font-extrabold text-amber-600 font-mono mt-1 block">{orphanedPagesCount}</span>
+          <div className="p-5 bg-slate-50/80 border border-slate-200/90 rounded-xl">
+            <span className="text-xs font-bold text-amber-600 uppercase tracking-wider block">Orphaned Pages</span>
+            <span className="text-3xl font-black text-amber-600 font-mono mt-1 block">{orphanedPagesCount}</span>
           </div>
         </div>
       </div>

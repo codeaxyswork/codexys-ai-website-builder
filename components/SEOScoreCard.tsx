@@ -44,11 +44,11 @@ export function SEOScoreCard({
   };
 
   return (
-    <div className="bg-white border border-slate-200 rounded-xl shadow-sm p-6 mb-8">
+    <div className="bg-white border border-slate-200/90 rounded-2xl shadow-xs p-6 sm:p-8 mb-8">
       <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
         {/* Left: Score Badge & Title */}
         <div className="flex items-center gap-6">
-          <div className="relative w-24 h-24 flex items-center justify-center">
+          <div className="relative w-24 h-24 flex items-center justify-center shrink-0">
             <svg className="w-full h-full transform -rotate-90" viewBox="0 0 36 36">
               <path
                 className="stroke-slate-100"
@@ -66,29 +66,30 @@ export function SEOScoreCard({
               />
             </svg>
             <div className="absolute flex flex-col items-center justify-center">
-              <span className="text-2xl font-extrabold text-slate-900">{score}</span>
-              <span className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider">/ 100</span>
+              <span className="text-2xl font-black text-slate-900">{score}</span>
+              <span className="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider">/ 100</span>
             </div>
           </div>
 
-          <div>
+          <div className="space-y-1">
             <div className="flex items-center gap-2 flex-wrap">
-              <h2 className="text-xl font-bold text-slate-900">Website SEO Score</h2>
+              <h2 className="text-xl font-extrabold text-slate-900 tracking-tight">Website SEO Score</h2>
               <span
-                className={`text-xs font-semibold px-2.5 py-1 rounded-full border ${getScoreColor(
+                className={`text-xs font-bold px-3 py-1 rounded-full border ${getScoreColor(
                   score
                 )}`}
               >
                 {score >= 80 ? "Good" : score >= 50 ? "Needs Work" : "Poor"}
               </span>
               {isDirty && (
-                <span className="text-xs font-semibold px-2.5 py-1 rounded-full bg-amber-100 text-amber-800 border border-amber-300 flex items-center gap-1">
-                  ⚡ Content Modified • Re-analysis Ready
+                <span className="text-xs font-bold px-3 py-1 rounded-full bg-amber-50 text-amber-800 border border-amber-300 flex items-center gap-1.5">
+                  <span className="w-2 h-2 rounded-full bg-amber-500 animate-pulse"></span>
+                  Content Modified • Re-analysis Ready
                 </span>
               )}
             </div>
-            <p className="text-sm text-slate-600 mt-1 max-w-md">
-              Multi-page Cheerio audit of HTML tags, heading hierarchy, images, links, schema, and directives.
+            <p className="text-sm text-slate-600 max-w-md leading-relaxed">
+              Multi-page audit evaluating HTML tags, heading structure, images, links, schema markup, and crawling directives.
             </p>
           </div>
         </div>
@@ -98,7 +99,7 @@ export function SEOScoreCard({
           <button
             onClick={onAnalyze}
             disabled={isAnalyzing}
-            className="flex-1 md:flex-initial inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-white border border-slate-300 hover:border-slate-400 text-slate-700 font-medium text-sm rounded-lg shadow-sm hover:bg-slate-50 transition-all disabled:opacity-50"
+            className="flex-1 md:flex-initial inline-flex items-center justify-center gap-2 h-11 px-5 py-2.5 bg-white border border-slate-300 hover:border-slate-400 text-slate-700 font-bold text-sm rounded-xl shadow-2xs hover:bg-slate-50 transition-all disabled:opacity-50 cursor-pointer"
           >
             {isAnalyzing ? (
               <>
@@ -121,9 +122,9 @@ export function SEOScoreCard({
           <button
             onClick={onGenerateAI}
             disabled={isGeneratingAI || !canUseAI}
-            className={`flex-1 md:flex-initial inline-flex items-center justify-center gap-2 px-4 py-2.5 font-medium text-sm rounded-lg shadow-sm transition-all text-white ${
+            className={`flex-1 md:flex-initial inline-flex items-center justify-center gap-2 h-11 px-5 py-2.5 font-bold text-sm rounded-xl shadow-2xs transition-all text-white cursor-pointer ${
               canUseAI
-                ? "bg-purple-600 hover:bg-purple-700 shadow-purple-200 active:scale-95"
+                ? "bg-purple-600 hover:bg-purple-700 active:scale-[0.98]"
                 : "bg-slate-300 cursor-not-allowed opacity-80"
             }`}
             title={!canUseAI ? "Requires Pro or Agency Plan" : "Generate SEO with Gemini AI"}

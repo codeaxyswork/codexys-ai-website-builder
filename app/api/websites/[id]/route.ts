@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/utils/supabase/server";
 import { GeneratedFile } from "@/lib/types";
+import { deriveWebsiteTitle } from "@/lib/website-title-helper";
 
 export async function GET(
   request: NextRequest,
@@ -46,8 +47,15 @@ export async function GET(
       { path: "script.js", content: mainPage?.js_content || "" },
     ];
 
+    const derivedTitle = deriveWebsiteTitle(website.design_plan, files, website.prompt);
+    const isTitleClean = website.title && website.title.length <= 45 && !website.title.toLowerCase().includes("see i don't") && !website.title.toLowerCase().includes("create a");
+    const cleanWebsite = {
+      ...website,
+      title: isTitleClean ? website.title : derivedTitle,
+    };
+
     return NextResponse.json({
-      website,
+      website: cleanWebsite,
       plan: website.design_plan,
       prompt: website.prompt,
       files,

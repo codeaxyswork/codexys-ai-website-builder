@@ -134,43 +134,43 @@ export default async function DashboardPage() {
   }));
 
   return (
-    <div className="min-h-screen w-screen bg-slate-50 text-slate-900 flex flex-col font-sans selection:bg-purple-500 selection:text-white">
-      {/* Light Header Bar */}
-      <header className="h-16 border-b border-slate-200 bg-white px-4 sm:px-8 flex items-center justify-between sticky top-0 z-20 shadow-2xs">
+    <div className="min-h-screen w-full bg-slate-50/70 text-slate-900 flex flex-col font-sans selection:bg-purple-500 selection:text-white">
+      {/* Light Glassmorphic Header Bar */}
+      <header className="h-16 border-b border-slate-200/80 bg-white/80 backdrop-blur-md px-4 sm:px-8 flex items-center justify-between sticky top-0 z-30 shadow-2xs">
         <div className="flex items-center gap-3">
           <Link href="/" className="flex items-center gap-2 group">
-            <img src="/logo.png" alt="codeaxys logo" className="h-8 w-auto object-contain" />
+            <img src="/logo.png" alt="codeaxys logo" className="h-7 w-auto object-contain transition-transform group-hover:scale-105 duration-200" />
           </Link>
           <div className="h-4 w-px bg-slate-200 hidden sm:block" />
-          <div className="hidden sm:flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-purple-50 border border-purple-200 text-purple-700 text-xs font-medium">
+          <div className="hidden sm:flex items-center gap-1.5 px-3 py-1 rounded-full bg-slate-100 border border-slate-200/80 text-slate-700 text-xs font-semibold">
             <LayoutDashboard className="w-3.5 h-3.5 text-purple-600" />
-            <span>Dashboard</span>
+            <span>Dashboard Control Hub</span>
           </div>
         </div>
 
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2.5">
           <Link
             href="/media"
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-xs font-semibold text-slate-700 transition-all shadow-2xs"
+            className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl border border-slate-200/80 bg-white hover:bg-slate-50 text-xs font-semibold text-slate-700 transition-all shadow-2xs"
           >
             <ImageIcon className="w-3.5 h-3.5 text-purple-600" />
-            <span className="hidden sm:inline">Media Library</span>
+            <span className="hidden sm:inline">Media Assets</span>
           </Link>
 
           <Link
             href="/dashboard/billing"
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-purple-200 bg-purple-50 hover:bg-purple-100 text-xs font-semibold text-purple-700 transition-all shadow-2xs"
+            className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl border border-purple-200/80 bg-purple-50/80 hover:bg-purple-100/80 text-xs font-semibold text-purple-700 transition-all shadow-2xs"
           >
             <span className="text-xs">💳</span>
-            <span className="hidden sm:inline">Billing</span>
+            <span className="hidden sm:inline">Billing & Plan</span>
           </Link>
 
           <Link
             href="/"
-            className="flex items-center gap-2 px-3.5 py-1.5 rounded-xl bg-purple-600 hover:bg-purple-700 text-white text-xs font-semibold shadow-xs transition-all active:scale-95"
+            className="flex items-center gap-2 px-4 py-2 rounded-xl bg-purple-600 hover:bg-purple-700 text-white text-xs font-bold shadow-xs transition-all active:scale-95"
           >
             <Wand2 className="w-3.5 h-3.5" />
-            <span>Launch AI Generator</span>
+            <span>New AI Website</span>
           </Link>
 
           <LogoutButton />
@@ -178,28 +178,29 @@ export default async function DashboardPage() {
       </header>
 
       {/* Main Dashboard Content */}
-      <main className="flex-1 max-w-6xl w-full mx-auto p-4 sm:p-8 flex flex-col gap-6">
-        {/* Welcome Banner */}
-        <div className="relative rounded-2xl border border-purple-200/80 bg-gradient-to-r from-purple-50/80 via-white to-purple-50/40 p-6 sm:p-8 shadow-sm overflow-hidden">
-          <div className="absolute top-0 right-0 w-96 h-96 bg-purple-200/30 rounded-full blur-3xl pointer-events-none -z-10" />
+      <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8 flex flex-col gap-8">
+        {/* Premium Welcome Hero Banner */}
+        <div className="relative rounded-3xl border border-slate-800 bg-slate-900 text-white p-6 sm:p-8 shadow-xl overflow-hidden">
+          <div className="absolute top-0 right-0 w-96 h-96 bg-purple-600/20 rounded-full blur-3xl pointer-events-none -z-0" />
+          <div className="absolute bottom-0 left-1/3 w-64 h-64 bg-indigo-600/20 rounded-full blur-2xl pointer-events-none -z-0" />
 
-          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-            <div>
-              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-50 border border-emerald-200 text-emerald-700 text-xs font-semibold mb-3">
-                <ShieldCheck className="w-3.5 h-3.5 text-emerald-600" />
+          <div className="relative z-10 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6">
+            <div className="space-y-2.5">
+              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-xs font-semibold">
+                <ShieldCheck className="w-3.5 h-3.5 text-emerald-400" />
                 <span>Authenticated Session Active</span>
               </div>
-              <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">
+              <h1 className="text-2xl sm:text-3xl font-black tracking-tight text-white">
                 Welcome back, {userName}!
               </h1>
-              <p className="text-slate-600 text-xs sm:text-sm mt-1 max-w-xl">
-                Track your AI credits balance, publish standalone websites, and manage custom media assets.
+              <p className="text-slate-300 text-xs sm:text-sm max-w-xl leading-relaxed">
+                Manage your websites, track AI credits, monitor search rankings, and deploy custom domains from your unified SaaS hub.
               </p>
             </div>
 
             <Link
               href="/"
-              className="px-5 py-3 rounded-xl font-semibold text-xs text-white bg-purple-600 hover:bg-purple-700 transition-all shadow-md shadow-purple-600/20 flex items-center gap-2 shrink-0 active:scale-95"
+              className="px-5 py-3 rounded-xl font-bold text-xs text-white bg-purple-600 hover:bg-purple-500 transition-all shadow-lg shadow-purple-600/30 flex items-center gap-2 shrink-0 active:scale-95"
             >
               <span>Create New Website</span>
               <ArrowRight className="w-4 h-4" />
@@ -211,7 +212,7 @@ export default async function DashboardPage() {
         <DashboardUsageCards usage={usageData} />
 
         {/* My Saved Websites Grid Section */}
-        <div className="mt-2">
+        <div>
           <DashboardWebsiteList initialWebsites={websites} />
         </div>
       </main>

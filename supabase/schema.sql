@@ -1083,7 +1083,356 @@ CREATE POLICY "Users can insert own seo_integration_requests" ON public.seo_inte
   auth.uid() = user_id
 );
 
-CREATE INDEX IF NOT EXISTS idx_integration_requests_user ON public.seo_integration_requests(user_id);
+
+-- ==============================================================================
+-- SECTION 19: PHASE 11 — SEO AUTOPILOT + OPPORTUNITY ENGINE
+-- ==============================================================================
+
+DO $$ BEGIN
+  IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'seo_opportunity_status') THEN
+    CREATE TYPE seo_opportunity_status AS ENUM ('new', 'viewed', 'in_progress', 'completed', 'dismissed');
+  END IF;
+  IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'seo_opportunity_priority') THEN
+    CREATE TYPE seo_opportunity_priority AS ENUM ('Critical', 'High', 'Medium', 'Low');
+  END IF;
+  IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'seo_autopilot_status') THEN
+    CREATE TYPE seo_autopilot_status AS ENUM ('active', 'paused');
+  END IF;
+END $$;
+
+CREATE TABLE IF NOT EXISTS public.seo_opportunities (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  website_id UUID NOT NULL REFERENCES public.websites(id) ON DELETE CASCADE,
+  user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
+  type TEXT NOT NULL,
+  category TEXT NOT NULL,
+  title TEXT NOT NULL,
+  description TEXT NOT NULL,
+  affected_page TEXT,
+  affected_keyword TEXT,
+  severity TEXT NOT NULL DEFAULT 'medium',
+  impact TEXT NOT NULL DEFAULT 'medium',
+  effort TEXT NOT NULL DEFAULT 'low',
+  priority public.seo_opportunity_priority NOT NULL DEFAULT 'Medium',
+  priority_score NUMERIC(5, 2) NOT NULL DEFAULT 50.00,
+  source TEXT NOT NULL DEFAULT 'audit',
+  recommended_action TEXT NOT NULL,
+  action_type TEXT,
+  action_payload JSONB DEFAULT '{}'::jsonb,
+  status public.seo_opportunity_status NOT NULL DEFAULT 'new',
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS idx_seo_opportunities_website_status ON public.seo_opportunities(website_id, status);
+CREATE INDEX IF NOT EXISTS idx_seo_opportunities_priority_score ON public.seo_opportunities(website_id, priority_score DESC);
+CREATE INDEX IF NOT EXISTS idx_seo_opportunities_category ON public.seo_opportunities(website_id, category);
+
+CREATE UNIQUE INDEX IF NOT EXISTS idx_seo_opportunities_unique_open
+  ON public.seo_opportunities(website_id, category, COALESCE(affected_page, ''))
+  WHERE status IN ('new', 'viewed', 'in_progress');
+
+CREATE TABLE IF NOT EXISTS public.seo_autopilot_settings (
+  website_id UUID PRIMARY KEY REFERENCES public.websites(id) ON DELETE CASCADE,
+  user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
+  status public.seo_autopilot_status NOT NULL DEFAULT 'active',
+  scan_frequency TEXT NOT NULL DEFAULT 'weekly',
+  auto_stage_safe_fixes BOOLEAN NOT NULL DEFAULT true,
+  notify_on_critical BOOLEAN NOT NULL DEFAULT true,
+  last_scanned_at TIMESTAMPTZ,
+  next_scan_at TIMESTAMPTZ,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS idx_seo_autopilot_user ON public.seo_autopilot_settings(user_id);
+
+CREATE TABLE IF NOT EXISTS public.seo_autopilot_activity (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  website_id UUID NOT NULL REFERENCES public.websites(id) ON DELETE CASCADE,
+  user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
+  event_type TEXT NOT NULL,
+  title TEXT NOT NULL,
+  details TEXT,
+  metadata JSONB DEFAULT '{}'::jsonb,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS idx_seo_autopilot_activity_website ON public.seo_autopilot_activity(website_id, created_at DESC);
+
+ALTER TABLE public.seo_opportunities ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.seo_autopilot_settings ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.seo_autopilot_activity ENABLE ROW LEVEL SECURITY;
+
+DROP POLICY IF EXISTS "Users can manage their own website SEO opportunities" ON public.seo_opportunities;
+CREATE POLICY "Users can manage their own website SEO opportunities"
+  ON public.seo_opportunities
+  FOR ALL
+  USING (auth.uid() = user_id)
+  WITH CHECK (auth.uid() = user_id);
+
+DROP POLICY IF EXISTS "Users can manage their own website SEO autopilot settings" ON public.seo_autopilot_settings;
+CREATE POLICY "Users can manage their own website SEO autopilot settings"
+  ON public.seo_autopilot_settings
+  FOR ALL
+  USING (auth.uid() = user_id)
+  WITH CHECK (auth.uid() = user_id);
+
+DROP POLICY IF EXISTS "Users can view their own website SEO autopilot activity" ON public.seo_autopilot_activity;
+CREATE POLICY "Users can view their own website SEO autopilot activity"
+  ON public.seo_autopilot_activity
+  FOR ALL
+  USING (auth.uid() = user_id)
+  WITH CHECK (auth.uid() = user_id);
+
+-- ==============================================================================
+-- SECTION 20: PHASE 12 — AI SEARCH / AEO + TOPICAL AUTHORITY
+-- ==============================================================================
+
+CREATE TABLE IF NOT EXISTS public.website_aeo_analysis (
+  website_id UUID PRIMARY KEY REFERENCES public.websites(id) ON DELETE CASCADE,
+  user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
+  answer_readiness_score NUMERIC(5, 2) NOT NULL DEFAULT 0.00,
+  topic_coverage_score NUMERIC(5, 2) NOT NULL DEFAULT 0.00,
+  aeo_breakdown JSONB NOT NULL DEFAULT '{}'::jsonb,
+  entity_clarity JSONB NOT NULL DEFAULT '{}'::jsonb,
+  questions_discovered JSONB NOT NULL DEFAULT '[]'::jsonb,
+  topic_clusters JSONB NOT NULL DEFAULT '[]'::jsonb,
+  content_gaps JSONB NOT NULL DEFAULT '[]'::jsonb,
+  last_analyzed_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS idx_website_aeo_analysis_user ON public.website_aeo_analysis(user_id);
+
+ALTER TABLE public.website_aeo_analysis ENABLE ROW LEVEL SECURITY;
+
+DROP POLICY IF EXISTS "Users can manage their own website AEO analysis" ON public.website_aeo_analysis;
+CREATE POLICY "Users can manage their own website AEO analysis"
+  ON public.website_aeo_analysis
+  FOR ALL
+  USING (auth.uid() = user_id)
+  WITH CHECK (auth.uid() = user_id);
+
+-- ==============================================================================
+-- SECTION 21: PHASE 13 — COMPETITOR + CONTENT GAP INTELLIGENCE
+-- ==============================================================================
+
+CREATE TABLE IF NOT EXISTS public.seo_competitors (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  website_id UUID NOT NULL REFERENCES public.websites(id) ON DELETE CASCADE,
+  user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
+  domain TEXT NOT NULL,
+  name TEXT,
+  status TEXT NOT NULL DEFAULT 'active',
+  last_analyzed_at TIMESTAMPTZ,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  CONSTRAINT seo_competitors_website_domain_uniq UNIQUE (website_id, domain)
+);
+
+CREATE INDEX IF NOT EXISTS idx_seo_competitors_website ON public.seo_competitors(website_id);
+CREATE INDEX IF NOT EXISTS idx_seo_competitors_user ON public.seo_competitors(user_id);
+
+CREATE TABLE IF NOT EXISTS public.competitor_analyses (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  competitor_id UUID NOT NULL REFERENCES public.seo_competitors(id) ON DELETE CASCADE,
+  website_id UUID NOT NULL REFERENCES public.websites(id) ON DELETE CASCADE,
+  user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
+  scraped_pages JSONB DEFAULT '[]'::jsonb,
+  extracted_topics JSONB DEFAULT '[]'::jsonb,
+  content_gaps JSONB DEFAULT '[]'::jsonb,
+  page_gaps JSONB DEFAULT '[]'::jsonb,
+  data_source TEXT NOT NULL DEFAULT 'PUBLIC_SITE',
+  last_analyzed_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS idx_competitor_analyses_competitor ON public.competitor_analyses(competitor_id);
+CREATE INDEX IF NOT EXISTS idx_competitor_analyses_website ON public.competitor_analyses(website_id);
+
+ALTER TABLE public.seo_competitors ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.competitor_analyses ENABLE ROW LEVEL SECURITY;
+
+DROP POLICY IF EXISTS "Users can manage their own website competitors" ON public.seo_competitors;
+CREATE POLICY "Users can manage their own website competitors"
+  ON public.seo_competitors
+  FOR ALL
+  USING (auth.uid() = user_id)
+  WITH CHECK (auth.uid() = user_id);
+
+DROP POLICY IF EXISTS "Users can manage their own competitor analyses" ON public.competitor_analyses;
+CREATE POLICY "Users can manage their own competitor analyses"
+  ON public.competitor_analyses
+  FOR ALL
+  USING (auth.uid() = user_id)
+  WITH CHECK (auth.uid() = user_id);
+
+-- =====================================================================
+-- 24. CONTENT STUDIO & CONTENT REFRESH TABLES (Phase 14)
+-- =====================================================================
+CREATE TABLE IF NOT EXISTS public.content_briefs (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  website_id UUID NOT NULL REFERENCES public.websites(id) ON DELETE CASCADE,
+  user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
+  topic TEXT NOT NULL,
+  primary_keyword TEXT,
+  secondary_keywords TEXT[] DEFAULT '{}'::text[],
+  search_intent TEXT DEFAULT 'informational',
+  target_audience TEXT,
+  content_type TEXT DEFAULT 'blog_post',
+  topic_cluster TEXT,
+  desired_tone TEXT DEFAULT 'professional',
+  opportunity_id UUID,
+  competitor_gap_context JSONB DEFAULT '{}'::jsonb,
+  gsc_context JSONB DEFAULT '{}'::jsonb,
+  brief_data JSONB NOT NULL DEFAULT '{}'::jsonb,
+  outline_data JSONB DEFAULT '{}'::jsonb,
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  updated_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+ALTER TABLE public.content_briefs ENABLE ROW LEVEL SECURITY;
+DROP POLICY IF EXISTS "Users can view own content_briefs" ON public.content_briefs;
+CREATE POLICY "Users can view own content_briefs" ON public.content_briefs FOR SELECT USING (auth.uid() = user_id);
+DROP POLICY IF EXISTS "Users can insert own content_briefs" ON public.content_briefs;
+CREATE POLICY "Users can insert own content_briefs" ON public.content_briefs FOR INSERT WITH CHECK (auth.uid() = user_id);
+DROP POLICY IF EXISTS "Users can update own content_briefs" ON public.content_briefs;
+CREATE POLICY "Users can update own content_briefs" ON public.content_briefs FOR UPDATE USING (auth.uid() = user_id) WITH CHECK (auth.uid() = user_id);
+DROP POLICY IF EXISTS "Users can delete own content_briefs" ON public.content_briefs;
+CREATE POLICY "Users can delete own content_briefs" ON public.content_briefs FOR DELETE USING (auth.uid() = user_id);
+CREATE INDEX IF NOT EXISTS idx_content_briefs_website_id ON public.content_briefs(website_id);
+CREATE INDEX IF NOT EXISTS idx_content_briefs_user_id ON public.content_briefs(user_id);
+
+CREATE TABLE IF NOT EXISTS public.content_revisions (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  website_id UUID NOT NULL REFERENCES public.websites(id) ON DELETE CASCADE,
+  user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
+  target_id UUID NOT NULL,
+  target_type TEXT NOT NULL DEFAULT 'blog',
+  version_number INT NOT NULL DEFAULT 1,
+  title TEXT NOT NULL,
+  content TEXT NOT NULL,
+  seo_metadata JSONB DEFAULT '{}'::jsonb,
+  change_summary TEXT,
+  created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+ALTER TABLE public.content_revisions ENABLE ROW LEVEL SECURITY;
+DROP POLICY IF EXISTS "Users can view own content_revisions" ON public.content_revisions;
+CREATE POLICY "Users can view own content_revisions" ON public.content_revisions FOR SELECT USING (auth.uid() = user_id);
+DROP POLICY IF EXISTS "Users can insert own content_revisions" ON public.content_revisions;
+CREATE POLICY "Users can insert own content_revisions" ON public.content_revisions FOR INSERT WITH CHECK (auth.uid() = user_id);
+CREATE INDEX IF NOT EXISTS idx_content_revisions_website_id ON public.content_revisions(website_id);
+CREATE INDEX IF NOT EXISTS idx_content_revisions_target_id ON public.content_revisions(target_id);
+
+CREATE TABLE IF NOT EXISTS public.content_refresh_runs (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  website_id UUID NOT NULL REFERENCES public.websites(id) ON DELETE CASCADE,
+  user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
+  target_id UUID NOT NULL,
+  target_type TEXT NOT NULL DEFAULT 'blog',
+  quality_score INT DEFAULT 0,
+  analysis_result JSONB NOT NULL DEFAULT '{}'::jsonb,
+  recommendations JSONB DEFAULT '[]'::jsonb,
+  created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+ALTER TABLE public.content_refresh_runs ENABLE ROW LEVEL SECURITY;
+DROP POLICY IF EXISTS "Users can view own content_refresh_runs" ON public.content_refresh_runs;
+CREATE POLICY "Users can view own content_refresh_runs" ON public.content_refresh_runs FOR SELECT USING (auth.uid() = user_id);
+DROP POLICY IF EXISTS "Users can insert own content_refresh_runs" ON public.content_refresh_runs;
+CREATE POLICY "Users can insert own content_refresh_runs" ON public.content_refresh_runs FOR INSERT WITH CHECK (auth.uid() = user_id);
+CREATE INDEX IF NOT EXISTS idx_content_refresh_runs_website_id ON public.content_refresh_runs(website_id);
+CREATE INDEX IF NOT EXISTS idx_content_refresh_runs_target_id ON public.content_refresh_runs(target_id);
+
+-- =====================================================================
+-- 25. TECHNICAL SEO & CRAWL INTELLIGENCE TABLES (Phase 15)
+-- =====================================================================
+CREATE TABLE IF NOT EXISTS public.technical_crawl_runs (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  website_id UUID NOT NULL REFERENCES public.websites(id) ON DELETE CASCADE,
+  user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
+  technical_score INT NOT NULL DEFAULT 0,
+  total_urls_crawled INT NOT NULL DEFAULT 0,
+  total_issues_count INT NOT NULL DEFAULT 0,
+  summary_breakdown JSONB NOT NULL DEFAULT '{}'::jsonb,
+  crawl_graph JSONB NOT NULL DEFAULT '{}'::jsonb,
+  crawl_duration_ms INT DEFAULT 0,
+  created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+ALTER TABLE public.technical_crawl_runs ENABLE ROW LEVEL SECURITY;
+DROP POLICY IF EXISTS "Users can view own technical_crawl_runs" ON public.technical_crawl_runs;
+CREATE POLICY "Users can view own technical_crawl_runs" ON public.technical_crawl_runs FOR SELECT USING (auth.uid() = user_id);
+DROP POLICY IF EXISTS "Users can insert own technical_crawl_runs" ON public.technical_crawl_runs;
+CREATE POLICY "Users can insert own technical_crawl_runs" ON public.technical_crawl_runs FOR INSERT WITH CHECK (auth.uid() = user_id);
+DROP POLICY IF EXISTS "Users can delete own technical_crawl_runs" ON public.technical_crawl_runs;
+CREATE POLICY "Users can delete own technical_crawl_runs" ON public.technical_crawl_runs FOR DELETE USING (auth.uid() = user_id);
+CREATE INDEX IF NOT EXISTS idx_technical_crawl_runs_website_id ON public.technical_crawl_runs(website_id);
+CREATE INDEX IF NOT EXISTS idx_technical_crawl_runs_user_id ON public.technical_crawl_runs(user_id);
+CREATE INDEX IF NOT EXISTS idx_technical_crawl_runs_created_at ON public.technical_crawl_runs(website_id, created_at DESC);
+
+CREATE TABLE IF NOT EXISTS public.technical_crawl_issues (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  crawl_id UUID NOT NULL REFERENCES public.technical_crawl_runs(id) ON DELETE CASCADE,
+  website_id UUID NOT NULL REFERENCES public.websites(id) ON DELETE CASCADE,
+  user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
+  issue_type TEXT NOT NULL,
+  url TEXT NOT NULL,
+  category TEXT NOT NULL DEFAULT 'crawlability',
+  severity TEXT NOT NULL DEFAULT 'medium',
+  explanation TEXT NOT NULL,
+  evidence TEXT,
+  recommended_action TEXT NOT NULL,
+  status TEXT NOT NULL DEFAULT 'open',
+  created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+ALTER TABLE public.technical_crawl_issues ENABLE ROW LEVEL SECURITY;
+DROP POLICY IF EXISTS "Users can view own technical_crawl_issues" ON public.technical_crawl_issues;
+CREATE POLICY "Users can view own technical_crawl_issues" ON public.technical_crawl_issues FOR SELECT USING (auth.uid() = user_id);
+DROP POLICY IF EXISTS "Users can insert own technical_crawl_issues" ON public.technical_crawl_issues;
+CREATE POLICY "Users can insert own technical_crawl_issues" ON public.technical_crawl_issues FOR INSERT WITH CHECK (auth.uid() = user_id);
+DROP POLICY IF EXISTS "Users can update own technical_crawl_issues" ON public.technical_crawl_issues;
+CREATE POLICY "Users can update own technical_crawl_issues" ON public.technical_crawl_issues FOR UPDATE USING (auth.uid() = user_id) WITH CHECK (auth.uid() = user_id);
+DROP POLICY IF EXISTS "Users can delete own technical_crawl_issues" ON public.technical_crawl_issues;
+CREATE POLICY "Users can delete own technical_crawl_issues" ON public.technical_crawl_issues FOR DELETE USING (auth.uid() = user_id);
+CREATE INDEX IF NOT EXISTS idx_technical_crawl_issues_website_id ON public.technical_crawl_issues(website_id);
+CREATE INDEX IF NOT EXISTS idx_technical_crawl_issues_crawl_id ON public.technical_crawl_issues(crawl_id);
+CREATE INDEX IF NOT EXISTS idx_technical_crawl_issues_severity ON public.technical_crawl_issues(severity);
+
+-- =====================================================================
+-- 26. SEO COMMAND CENTER + UNIFIED SCORING (Phase 16)
+-- =====================================================================
+CREATE TABLE IF NOT EXISTS public.seo_unified_scores (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  website_id UUID NOT NULL REFERENCES public.websites(id) ON DELETE CASCADE,
+  user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
+  unified_score INT NOT NULL DEFAULT 0,
+  confidence_level TEXT NOT NULL DEFAULT 'high',
+  category_scores JSONB NOT NULL DEFAULT '{}'::jsonb,
+  data_availability JSONB NOT NULL DEFAULT '{}'::jsonb,
+  created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+ALTER TABLE public.seo_unified_scores ENABLE ROW LEVEL SECURITY;
+DROP POLICY IF EXISTS "Users can view own seo_unified_scores" ON public.seo_unified_scores;
+CREATE POLICY "Users can view own seo_unified_scores" ON public.seo_unified_scores FOR SELECT USING (auth.uid() = user_id);
+DROP POLICY IF EXISTS "Users can insert own seo_unified_scores" ON public.seo_unified_scores;
+CREATE POLICY "Users can insert own seo_unified_scores" ON public.seo_unified_scores FOR INSERT WITH CHECK (auth.uid() = user_id);
+DROP POLICY IF EXISTS "Users can delete own seo_unified_scores" ON public.seo_unified_scores;
+CREATE POLICY "Users can delete own seo_unified_scores" ON public.seo_unified_scores FOR DELETE USING (auth.uid() = user_id);
+CREATE INDEX IF NOT EXISTS idx_seo_unified_scores_website_id ON public.seo_unified_scores(website_id);
+CREATE INDEX IF NOT EXISTS idx_seo_unified_scores_user_id ON public.seo_unified_scores(user_id);
+CREATE INDEX IF NOT EXISTS idx_seo_unified_scores_created_at ON public.seo_unified_scores(website_id, created_at DESC);
+
+
+
+
+
+
 
 
 

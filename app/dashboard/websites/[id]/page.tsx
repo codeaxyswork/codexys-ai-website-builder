@@ -84,39 +84,69 @@ export default async function WebsiteManagementPage({ params }: WebsiteManagemen
 
   return (
     <div className="min-h-screen bg-slate-50 text-slate-900 font-sans pb-16">
-      {/* Top SaaS Header */}
-      <header className="h-16 border-b border-slate-200 bg-white/90 backdrop-blur-md px-4 sm:px-8 flex items-center justify-between sticky top-0 z-20 shadow-2xs">
-        <div className="flex items-center gap-4">
+      {/* Top SaaS Header & Sub-Navigation */}
+      <header className="h-16 border-b border-slate-200/90 bg-white/95 backdrop-blur-md px-4 sm:px-8 flex items-center justify-between sticky top-0 z-30 shadow-xs">
+        <div className="flex items-center gap-3 sm:gap-4 overflow-hidden">
           <Link
             href="/dashboard"
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-slate-200 bg-slate-50 hover:bg-slate-100 text-xs font-semibold text-slate-700 transition-all"
+            className="inline-flex items-center gap-2 h-10 px-4 rounded-xl border border-slate-200/90 bg-slate-50 hover:bg-slate-100 text-xs sm:text-sm font-bold text-slate-700 transition-all shadow-2xs shrink-0"
           >
-            <ArrowLeft className="w-3.5 h-3.5" />
+            <ArrowLeft className="w-4 h-4 text-slate-500" />
             <span>All Websites</span>
           </Link>
-          <div className="h-4 w-px bg-slate-200" />
-          <div className="flex items-center gap-2">
-            <Globe className="w-4 h-4 text-purple-600" />
-            <h1 className="font-bold text-slate-900 text-sm truncate max-w-[200px] sm:max-w-md">
+
+          <div className="h-4 w-px bg-slate-200 shrink-0" />
+
+          <div className="flex items-center gap-2 overflow-hidden">
+            <div className="w-7 h-7 rounded-lg bg-purple-50 border border-purple-200 flex items-center justify-center shrink-0">
+              <Globe className="w-4 h-4 text-purple-600" />
+            </div>
+            <h1 className="font-bold text-slate-900 text-sm sm:text-base truncate max-w-[180px] sm:max-w-md">
               {website.title}
             </h1>
           </div>
         </div>
 
-        <div className="flex items-center gap-2">
+        {/* Quick Module Navigation & Primary CTA */}
+        <div className="flex items-center gap-2 sm:gap-3">
+          <nav className="hidden md:flex items-center gap-1 bg-slate-100/90 p-1 rounded-xl border border-slate-200/80 mr-2">
+            <span className="px-3.5 py-1.5 rounded-lg bg-white text-purple-700 font-extrabold text-xs shadow-2xs">
+              Overview
+            </span>
+            <Link
+              href={`/dashboard/websites/${website.id}/seo`}
+              className="px-3.5 py-1.5 rounded-lg text-slate-600 hover:text-slate-900 hover:bg-white/60 font-semibold text-xs transition-all"
+            >
+              SEO Control Center
+            </Link>
+            <Link
+              href={`/dashboard/websites/${website.id}/blog`}
+              className="px-3.5 py-1.5 rounded-lg text-slate-600 hover:text-slate-900 hover:bg-white/60 font-semibold text-xs transition-all"
+            >
+              Blog Engine
+            </Link>
+            <Link
+              href={`/dashboard/websites/${website.id}/domain`}
+              className="px-3.5 py-1.5 rounded-lg text-slate-600 hover:text-slate-900 hover:bg-white/60 font-semibold text-xs transition-all"
+            >
+              Domain
+            </Link>
+          </nav>
+
           <Link
             href={`/?id=${website.id}`}
-            className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-purple-600 hover:bg-purple-700 text-white text-xs font-bold transition-all shadow-sm active:scale-95"
+            className="inline-flex items-center justify-center gap-2 h-11 px-5 rounded-xl bg-purple-600 hover:bg-purple-700 text-white text-sm font-bold transition-all shadow-md shadow-purple-600/20 active:scale-95 shrink-0"
           >
-            <Wand2 className="w-3.5 h-3.5" />
-            <span>Refine with AI</span>
+            <Wand2 className="w-4 h-4" />
+            <span className="hidden sm:inline">Refine with AI</span>
+            <span className="sm:hidden">Refine</span>
           </Link>
         </div>
       </header>
 
-      {/* Main Container */}
-      <main className="max-w-6xl mx-auto px-4 sm:px-8 pt-8 space-y-8">
-        {/* Interactive Client Component Header & Status Banner */}
+      {/* Main Full-Screen Workspace Container */}
+      <main className="max-w-[1650px] mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        {/* Interactive Client Component Header & Status Workspace */}
         <WebsiteManagementClient website={website} indexPage={indexPage} seoData={seoData} />
       </main>
     </div>

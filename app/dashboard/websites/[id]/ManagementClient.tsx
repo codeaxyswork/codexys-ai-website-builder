@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
@@ -21,6 +21,11 @@ import {
   AlertTriangle,
   Eye,
   ShieldCheck,
+  ArrowRight,
+  Monitor,
+  Smartphone,
+  FileText,
+  Lock,
 } from "lucide-react";
 
 interface ManagementClientProps {
@@ -34,10 +39,17 @@ export function WebsiteManagementClient({ website, indexPage, seoData }: Managem
   const [publishedSlug, setPublishedSlug] = useState<string | null>(website.published_slug || null);
   const [isPublishing, setIsPublishing] = useState<boolean>(false);
   const [copied, setCopied] = useState<boolean>(false);
+  const [copiedId, setCopiedId] = useState<boolean>(false);
+  const [previewMode, setPreviewMode] = useState<"desktop" | "mobile">("desktop");
   const [showDeleteModal, setShowDeleteModal] = useState<boolean>(false);
   const [isDeleting, setIsDeleting] = useState<boolean>(false);
   const [deleteError, setDeleteError] = useState<string | null>(null);
+  const [origin, setOrigin] = useState<string>("");
   const router = useRouter();
+
+  useEffect(() => {
+    setOrigin(window.location.origin);
+  }, []);
 
   const handleTogglePublish = async () => {
     if (isPublishing) return;
@@ -69,6 +81,12 @@ export function WebsiteManagementClient({ website, indexPage, seoData }: Managem
     setTimeout(() => setCopied(false), 2000);
   };
 
+  const handleCopyId = (id: string) => {
+    navigator.clipboard.writeText(id);
+    setCopiedId(true);
+    setTimeout(() => setCopiedId(false), 2000);
+  };
+
   const handleDelete = async () => {
     if (isDeleting) return;
     setIsDeleting(true);
@@ -94,7 +112,7 @@ export function WebsiteManagementClient({ website, indexPage, seoData }: Managem
   };
 
   const publicUrl = publishedSlug
-    ? `${typeof window !== "undefined" ? window.location.origin : ""}/site/${publishedSlug}`
+    ? `${origin}/site/${publishedSlug}`
     : "";
 
   const customDomainUrl = website.custom_domain ? `https://${website.custom_domain}` : null;
@@ -106,16 +124,16 @@ export function WebsiteManagementClient({ website, indexPage, seoData }: Managem
 
   return (
     <div className="space-y-8">
-      {/* Top Banner Card */}
-      <div className="rounded-2xl border border-slate-200 bg-white p-6 sm:p-8 shadow-xs flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
-        <div className="space-y-2 max-w-xl">
+      {/* SECTION 1: Top Hero Identity & SaaS Command Banner */}
+      <div className="rounded-2xl border border-slate-200/90 bg-white p-6 sm:p-8 shadow-xs hover:shadow-md transition-shadow duration-200 flex flex-col xl:flex-row items-start xl:items-center justify-between gap-6">
+        <div className="space-y-3 max-w-3xl">
           <div className="flex items-center gap-2.5 flex-wrap">
-            <span className="px-2.5 py-0.5 rounded-full text-xs font-bold uppercase tracking-wider bg-purple-50 text-purple-700 border border-purple-200">
+            <span className="px-3 py-1 rounded-full text-xs font-extrabold uppercase tracking-wider bg-purple-50 text-purple-700 border border-purple-200">
               {websiteType}
             </span>
 
             <span
-              className={`px-2.5 py-0.5 rounded-full text-xs font-extrabold uppercase border ${
+              className={`px-3 py-1 rounded-full text-xs font-extrabold uppercase border ${
                 isPublished
                   ? "bg-emerald-50 border-emerald-200 text-emerald-700"
                   : "bg-amber-50 border-amber-200 text-amber-700"
@@ -125,27 +143,29 @@ export function WebsiteManagementClient({ website, indexPage, seoData }: Managem
             </span>
 
             {typeof seoScore === "number" && (
-              <span className="px-2.5 py-0.5 rounded-full text-xs font-bold bg-purple-50 text-purple-700 border border-purple-200">
-                SEO Score: {seoScore}/100
+              <span className="px-3 py-1 rounded-full text-xs font-bold bg-slate-100 text-slate-800 border border-slate-200">
+                SEO Score: <strong className="text-purple-600 font-mono">{seoScore}</strong>/100
               </span>
             )}
           </div>
 
-          <h2 className="text-2xl font-extrabold text-slate-900 tracking-tight">
+          <h2 className="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight leading-snug" title={website.title}>
             {website.title}
           </h2>
 
-          <p className="text-xs text-slate-500 flex items-center gap-1.5 pt-1">
-            <Clock className="w-3.5 h-3.5" />
+          <p className="text-sm font-medium text-slate-500 flex items-center gap-2 pt-0.5">
+            <Clock className="w-4 h-4 text-slate-400" />
             <span>Updated {new Date(website.updated_at).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}</span>
+            <span className="text-slate-300">•</span>
+            <span className="font-mono text-slate-400 text-xs">ID: {website.id.slice(0, 8)}...</span>
           </p>
         </div>
 
-        {/* Action Controls */}
-        <div className="flex items-center gap-2.5 flex-wrap w-full md:w-auto">
+        {/* Primary Command Action Group */}
+        <div className="flex items-center gap-3 flex-wrap w-full xl:w-auto shrink-0 pt-2 xl:pt-0">
           <Link
             href={`/?id=${website.id}`}
-            className="flex-1 md:flex-none py-2.5 px-4 rounded-xl font-bold text-xs text-white bg-purple-600 hover:bg-purple-700 active:scale-95 transition-all shadow-md shadow-purple-600/20 flex items-center justify-center gap-2"
+            className="flex-1 xl:flex-none h-11 sm:h-12 px-5 rounded-xl font-bold text-sm text-white bg-purple-600 hover:bg-purple-700 active:scale-[0.99] transition-all shadow-md shadow-purple-600/20 flex items-center justify-center gap-2"
           >
             <Wand2 className="w-4 h-4" />
             <span>Refine with AI</span>
@@ -154,7 +174,7 @@ export function WebsiteManagementClient({ website, indexPage, seoData }: Managem
           <button
             onClick={handleTogglePublish}
             disabled={isPublishing}
-            className={`flex-1 md:flex-none py-2.5 px-4 rounded-xl font-bold text-xs transition-all flex items-center justify-center gap-2 border shadow-xs ${
+            className={`flex-1 xl:flex-none h-11 sm:h-12 px-5 rounded-xl font-bold text-sm transition-all flex items-center justify-center gap-2 border shadow-xs ${
               isPublished
                 ? "bg-white hover:bg-slate-50 border-slate-200 text-slate-700"
                 : "bg-emerald-600 hover:bg-emerald-700 text-white border-emerald-600 shadow-emerald-600/20"
@@ -180,7 +200,7 @@ export function WebsiteManagementClient({ website, indexPage, seoData }: Managem
               href={activeLiveUrl}
               target="_blank"
               rel="noopener noreferrer"
-              className="py-2.5 px-3.5 rounded-xl border border-slate-200 bg-white hover:bg-purple-50 hover:border-purple-200 text-purple-700 text-xs font-semibold flex items-center justify-center gap-1.5 transition-all"
+              className="h-11 sm:h-12 px-4 rounded-xl border border-slate-200/90 bg-white hover:bg-purple-50 hover:border-purple-200 text-purple-700 text-sm font-bold flex items-center justify-center gap-2 transition-all shadow-xs"
             >
               <ExternalLink className="w-4 h-4" />
               <span>View Site</span>
@@ -190,40 +210,104 @@ export function WebsiteManagementClient({ website, indexPage, seoData }: Managem
           <button
             onClick={() => setShowDeleteModal(true)}
             title="Delete Website"
-            className="p-2.5 rounded-xl border border-slate-200 bg-white text-slate-400 hover:text-red-600 hover:bg-red-50 hover:border-red-200 transition-all"
+            className="h-11 sm:h-12 px-3.5 rounded-xl border border-slate-200/90 bg-white text-slate-400 hover:text-red-600 hover:bg-red-50 hover:border-red-200 transition-all flex items-center justify-center shadow-xs"
           >
             <Trash2 className="w-4 h-4" />
           </button>
         </div>
       </div>
 
-      {/* Grid Features Layout */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Left Column (2 cols): Overview & Live Preview */}
-        <div className="lg:col-span-2 space-y-6">
-          {/* Website Preview Box */}
-          <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-xs space-y-4">
-            <div className="flex items-center justify-between">
-              <h3 className="text-sm font-bold text-slate-900 uppercase tracking-wider flex items-center gap-2">
-                <Eye className="w-4 h-4 text-purple-600" />
-                <span>Website Preview</span>
-              </h3>
-              {isPublished && activeLiveUrl && (
-                <div className="flex items-center gap-2">
-                  <span className="text-xs text-slate-500 font-mono truncate max-w-[180px] sm:max-w-xs">{activeLiveUrl}</span>
+      {/* SECTION 2: Grid Layout — Main Sandbox Workspace & Management Sidebar Cards */}
+      <div className="grid grid-cols-1 xl:grid-cols-12 gap-8">
+        {/* Left Column (8 cols): Interactive Preview Sandbox & AI Builder Shortcut */}
+        <div className="xl:col-span-8 space-y-8">
+          {/* Website Preview Container Card */}
+          <div className="rounded-2xl border border-slate-200/90 bg-white p-6 sm:p-8 shadow-xs hover:shadow-md transition-shadow duration-200 space-y-5">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-100 pb-4">
+              <div className="flex items-center gap-3">
+                <div className="w-9 h-9 rounded-xl bg-purple-50 border border-purple-200 flex items-center justify-center text-purple-600">
+                  <Eye className="w-5 h-5" />
+                </div>
+                <div>
+                  <h3 className="text-lg font-bold text-slate-900 leading-tight">
+                    Website Live Sandbox Preview
+                  </h3>
+                  <p className="text-xs text-slate-500 font-medium">
+                    Real-time HTML & CSS render preview
+                  </p>
+                </div>
+              </div>
+
+              {/* Device Mode Switch & Address Bar Links */}
+              <div className="flex items-center gap-3 flex-wrap">
+                <div className="flex items-center gap-1 bg-slate-100 p-1 rounded-xl border border-slate-200">
                   <button
-                    onClick={() => handleCopyLink(activeLiveUrl)}
-                    className="p-1 rounded bg-slate-100 hover:bg-purple-100 text-purple-700 text-xs transition-colors"
-                    title="Copy Live URL"
+                    onClick={() => setPreviewMode("desktop")}
+                    className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 ${
+                      previewMode === "desktop"
+                        ? "bg-white text-purple-700 shadow-2xs"
+                        : "text-slate-600 hover:text-slate-900"
+                    }`}
                   >
-                    {copied ? <Check className="w-3.5 h-3.5 text-emerald-600" /> : <Copy className="w-3.5 h-3.5" />}
+                    <Monitor className="w-3.5 h-3.5" />
+                    <span>Desktop</span>
+                  </button>
+                  <button
+                    onClick={() => setPreviewMode("mobile")}
+                    className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 ${
+                      previewMode === "mobile"
+                        ? "bg-white text-purple-700 shadow-2xs"
+                        : "text-slate-600 hover:text-slate-900"
+                    }`}
+                  >
+                    <Smartphone className="w-3.5 h-3.5" />
+                    <span>Mobile</span>
                   </button>
                 </div>
-              )}
+
+                {isPublished && activeLiveUrl && (
+                  <button
+                    onClick={() => handleCopyLink(activeLiveUrl)}
+                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-slate-200 bg-slate-50 hover:bg-purple-50 hover:border-purple-200 text-purple-700 text-xs font-bold transition-all"
+                    title="Copy Live URL"
+                  >
+                    {copied ? (
+                      <>
+                        <Check className="w-3.5 h-3.5 text-emerald-600" />
+                        <span className="text-emerald-700">Copied!</span>
+                      </>
+                    ) : (
+                      <>
+                        <Copy className="w-3.5 h-3.5" />
+                        <span>Copy URL</span>
+                      </>
+                    )}
+                  </button>
+                )}
+              </div>
             </div>
 
-            {/* Sandbox Iframe Preview */}
-            <div className="w-full h-96 rounded-xl border border-slate-200 overflow-hidden bg-slate-100 relative">
+            {/* Browser Address Toolbar Mock */}
+            <div className="bg-slate-100/90 rounded-xl px-4 py-2 border border-slate-200/80 flex items-center justify-between gap-3 text-xs text-slate-600">
+              <div className="flex items-center gap-2 overflow-hidden max-w-full">
+                <Lock className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
+                <span className="font-mono text-slate-700 truncate font-medium">
+                  {activeLiveUrl || `https://${website.slug}.codeaxys.com`}
+                </span>
+              </div>
+              <span className="text-[11px] font-bold text-slate-400 shrink-0 uppercase tracking-wider">
+                {isPublished ? "Live SSL" : "Preview Mode"}
+              </span>
+            </div>
+
+            {/* Sandbox Iframe Wrapper */}
+            <div
+              className={`mx-auto rounded-xl border border-slate-200 overflow-hidden bg-white relative transition-all duration-300 shadow-inner ${
+                previewMode === "mobile"
+                  ? "w-full max-w-sm h-[580px]"
+                  : "w-full h-[540px] sm:h-[600px]"
+              }`}
+            >
               {indexPage ? (
                 <iframe
                   srcDoc={`<!DOCTYPE html><html><head><style>${indexPage.css_content || ""}</style></head><body>${indexPage.html_content || ""}<script>${indexPage.js_content || ""}</script></body></html>`}
@@ -231,78 +315,123 @@ export function WebsiteManagementClient({ website, indexPage, seoData }: Managem
                   className="w-full h-full border-none pointer-events-auto"
                 />
               ) : (
-                <div className="h-full flex items-center justify-center text-slate-400 text-xs">
-                  No preview available
+                <div className="h-full flex flex-col items-center justify-center text-slate-400 space-y-2">
+                  <Globe className="w-8 h-8 text-slate-300" />
+                  <p className="text-sm font-medium">No HTML preview generated yet</p>
                 </div>
               )}
             </div>
           </div>
 
-          {/* AI Refinement Banner */}
-          <div className="rounded-2xl border border-purple-200 bg-gradient-to-r from-purple-50/80 via-white to-purple-50/50 p-6 shadow-xs flex items-center justify-between gap-4">
-            <div className="space-y-1">
-              <h4 className="text-sm font-bold text-slate-900 flex items-center gap-2">
-                <Sparkles className="w-4 h-4 text-purple-600" />
-                <span>Refine & Edit with Natural Language</span>
-              </h4>
-              <p className="text-xs text-slate-500 leading-relaxed max-w-lg">
-                Describe desired changes like "Make the hero darker" or "Add testimonials grid". Codexys AI updates your design instantly.
+          {/* AI Refinement Banner Card */}
+          <div className="rounded-2xl border border-purple-200/90 bg-gradient-to-r from-purple-50/90 via-white to-purple-50/60 p-6 sm:p-8 shadow-xs hover:shadow-md transition-shadow duration-200 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6">
+            <div className="space-y-2 max-w-xl">
+              <div className="flex items-center gap-2">
+                <div className="w-8 h-8 rounded-lg bg-purple-100 text-purple-700 flex items-center justify-center">
+                  <Sparkles className="w-4 h-4 text-purple-600" />
+                </div>
+                <h4 className="text-lg font-bold text-slate-900">
+                  Refine & Edit with Natural Language
+                </h4>
+              </div>
+              <p className="text-sm font-medium text-slate-600 leading-relaxed">
+                Describe desired changes like "Make the hero section darker" or "Add a 3-column pricing grid". Codeaxys AI updates your design and page layout instantly.
               </p>
             </div>
             <Link
               href={`/?id=${website.id}`}
-              className="py-2.5 px-4 rounded-xl font-semibold text-xs text-white bg-purple-600 hover:bg-purple-700 transition-all shadow-sm shrink-0"
+              className="h-11 sm:h-12 px-6 rounded-xl font-bold text-sm text-white bg-purple-600 hover:bg-purple-700 active:scale-[0.99] transition-all shadow-md shadow-purple-600/20 shrink-0 flex items-center gap-2"
             >
-              Open AI Refiner
+              <Wand2 className="w-4 h-4" />
+              <span>Open AI Refiner</span>
             </Link>
           </div>
         </div>
 
-        {/* Right Column (1 col): Management Shortcuts */}
-        <div className="space-y-6">
-          {/* Custom Domain Card */}
-          <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-xs space-y-4">
+        {/* Right Column (4 cols): Dedicated Module Shortcuts & Technical Details */}
+        <div className="xl:col-span-4 space-y-6">
+          {/* SEO Control Center Card */}
+          <div className="rounded-2xl border border-slate-200/90 bg-white p-6 sm:p-7 shadow-xs hover:shadow-md hover:border-purple-300 transition-all duration-200 space-y-4">
             <div className="flex items-center justify-between">
-              <h3 className="text-sm font-bold text-slate-900 uppercase tracking-wider flex items-center gap-2">
-                <Globe className="w-4 h-4 text-purple-600" />
-                <span>Custom Domain</span>
-              </h3>
+              <div className="flex items-center gap-2.5">
+                <div className="w-8 h-8 rounded-lg bg-purple-50 border border-purple-200 flex items-center justify-center text-purple-600">
+                  <Search className="w-4 h-4" />
+                </div>
+                <h3 className="text-base font-bold text-slate-900">
+                  SEO Control Center
+                </h3>
+              </div>
+              {typeof seoScore === "number" ? (
+                <span className="text-xs font-black text-purple-700 bg-purple-50 px-2.5 py-1 rounded-full border border-purple-200 font-mono">
+                  {seoScore}/100
+                </span>
+              ) : (
+                <span className="text-xs font-semibold text-slate-500 bg-slate-100 px-2.5 py-0.5 rounded-full border border-slate-200">
+                  Pending
+                </span>
+              )}
+            </div>
+
+            <p className="text-sm font-medium text-slate-600 leading-relaxed line-clamp-2">
+              {seoData?.meta_description || "Manage meta titles, search descriptions, focus keywords, XML sitemap, and Google Search Console integration."}
+            </p>
+
+            <Link
+              href={`/dashboard/websites/${website.id}/seo`}
+              className="w-full h-10 px-4 rounded-xl border border-purple-200 bg-purple-50 hover:bg-purple-100 text-purple-700 font-bold text-xs flex items-center justify-between transition-all"
+            >
+              <span>Open SEO Optimizer</span>
+              <ArrowRight className="w-3.5 h-3.5" />
+            </Link>
+          </div>
+
+          {/* Custom Domain Card */}
+          <div className="rounded-2xl border border-slate-200/90 bg-white p-6 sm:p-7 shadow-xs hover:shadow-md transition-all duration-200 space-y-4">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2.5">
+                <div className="w-8 h-8 rounded-lg bg-purple-50 border border-purple-200 flex items-center justify-center text-purple-600">
+                  <Globe className="w-4 h-4" />
+                </div>
+                <h3 className="text-base font-bold text-slate-900">
+                  Custom Domain
+                </h3>
+              </div>
               <Link
                 href={`/dashboard/websites/${website.id}/domain`}
-                className="text-xs font-semibold text-purple-600 hover:text-purple-700 underline"
+                className="text-xs font-bold text-purple-600 hover:text-purple-700 transition-colors"
               >
-                Manage
+                Configure &rarr;
               </Link>
             </div>
 
             {website.custom_domain ? (
-              <div className="p-3.5 rounded-xl bg-purple-50/70 border border-purple-200 space-y-2">
+              <div className="p-4 rounded-xl bg-purple-50/70 border border-purple-200/90 space-y-2">
                 <div className="flex items-center justify-between">
-                  <span className="text-xs font-mono font-bold text-purple-900">{website.custom_domain}</span>
+                  <span className="text-xs font-mono font-bold text-purple-950">{website.custom_domain}</span>
                   {website.custom_domain_verified ? (
-                    <span className="flex items-center gap-1 text-[10px] font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200">
+                    <span className="flex items-center gap-1 text-[10px] font-extrabold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200">
                       <CheckCircle2 className="w-3 h-3" />
                       Active & SSL Verified
                     </span>
                   ) : (
-                    <span className="flex items-center gap-1 text-[10px] font-bold text-amber-700 bg-amber-50 px-2 py-0.5 rounded border border-amber-200">
+                    <span className="flex items-center gap-1 text-[10px] font-extrabold text-amber-700 bg-amber-50 px-2 py-0.5 rounded-full border border-amber-200">
                       <AlertCircle className="w-3 h-3" />
-                      Pending DNS Setup
+                      Pending DNS
                     </span>
                   )}
                 </div>
-                <p className="text-[11px] text-slate-500">
+                <p className="text-xs font-medium text-slate-600">
                   {website.custom_domain_verified
                     ? "Your custom domain is active and serving traffic."
-                    : "Configure CNAME and A records with your domain registrar."}
+                    : "Configure CNAME and A records with your registrar."}
                 </p>
               </div>
             ) : (
-              <div className="p-4 rounded-xl bg-slate-50 border border-slate-200 space-y-2 text-center">
-                <p className="text-xs text-slate-500">No custom domain connected yet.</p>
+              <div className="p-4 rounded-xl bg-slate-50 border border-slate-200/80 space-y-3 text-center">
+                <p className="text-xs font-medium text-slate-500">No custom domain connected yet.</p>
                 <Link
                   href={`/dashboard/websites/${website.id}/domain`}
-                  className="inline-block py-2 px-3 rounded-xl bg-purple-600 text-white font-semibold text-xs hover:bg-purple-700 transition-all shadow-xs"
+                  className="inline-flex h-9 px-4 rounded-xl bg-purple-600 text-white font-bold text-xs hover:bg-purple-700 transition-all shadow-xs items-center justify-center"
                 >
                   Connect Domain
                 </Link>
@@ -310,136 +439,108 @@ export function WebsiteManagementClient({ website, indexPage, seoData }: Managem
             )}
           </div>
 
-          {/* SEO Settings Card */}
-          <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-xs space-y-4">
-            <div className="flex items-center justify-between">
-              <h3 className="text-sm font-bold text-slate-900 uppercase tracking-wider flex items-center gap-2">
-                <Search className="w-4 h-4 text-purple-600" />
-                <span>SEO Settings</span>
-              </h3>
-              <Link
-                href={`/dashboard/websites/${website.id}/seo`}
-                className="text-xs font-semibold text-purple-600 hover:text-purple-700 underline"
-              >
-                Configure
-              </Link>
-            </div>
-
-            <div className="p-3.5 rounded-xl bg-slate-50 border border-slate-200 space-y-2">
-              <div className="flex items-center justify-between">
-                <span className="text-xs font-semibold text-slate-800">Search Metadata</span>
-                {typeof seoScore === "number" ? (
-                  <span className="text-[10px] font-extrabold text-purple-700 bg-purple-50 px-2 py-0.5 rounded border border-purple-200">
-                    Score: {seoScore}/100
-                  </span>
-                ) : (
-                  <span className="text-[10px] text-slate-500">Not Analyzed</span>
-                )}
-              </div>
-              <p className="text-[11px] text-slate-500 line-clamp-2">
-                {seoData?.meta_description || "Configure title, meta description, keywords, Open Graph, and JSON-LD schema."}
-              </p>
-              <Link
-                href={`/dashboard/websites/${website.id}/seo`}
-                className="inline-block pt-1 text-xs font-bold text-purple-600 hover:underline"
-              >
-                Open SEO Optimizer &rarr;
-              </Link>
-            </div>
-          </div>
-
           {/* Content & Blog Engine Card */}
-          <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-xs space-y-4">
+          <div className="rounded-2xl border border-purple-200/80 bg-purple-50/40 p-6 sm:p-7 shadow-xs hover:shadow-md transition-all duration-200 space-y-4">
             <div className="flex items-center justify-between">
-              <h3 className="text-sm font-bold text-slate-900 uppercase tracking-wider flex items-center gap-2">
-                <Globe className="w-4 h-4 text-purple-600" />
-                <span>Content & Blog Engine</span>
-              </h3>
-              <Link
-                href={`/dashboard/websites/${website.id}/blog`}
-                className="text-xs font-semibold text-purple-600 hover:text-purple-700 underline"
-              >
-                Manage
-              </Link>
+              <div className="flex items-center gap-2.5">
+                <div className="w-8 h-8 rounded-lg bg-purple-100 text-purple-700 flex items-center justify-center">
+                  <FileText className="w-4 h-4 text-purple-600" />
+                </div>
+                <h3 className="text-base font-bold text-purple-950">
+                  Content & Blog Engine
+                </h3>
+              </div>
             </div>
 
-            <div className="p-3.5 rounded-xl bg-purple-50/60 border border-purple-200 space-y-2">
-              <span className="text-xs font-semibold text-slate-900 block">SEO Article Engine</span>
-              <p className="text-[11px] text-slate-500 leading-relaxed">
-                Create, edit, and publish SEO-optimized blog posts generated with Codeaxys SEO AI.
-              </p>
-              <Link
-                href={`/dashboard/websites/${website.id}/blog`}
-                className="inline-block pt-1 text-xs font-bold text-purple-600 hover:underline"
-              >
-                Open Blog Manager &rarr;
-              </Link>
-            </div>
+            <p className="text-sm font-medium text-slate-600 leading-relaxed">
+              Create, edit, and publish SEO-optimized blog posts generated automatically with Codeaxys AI.
+            </p>
+
+            <Link
+              href={`/dashboard/websites/${website.id}/blog`}
+              className="w-full h-10 px-4 rounded-xl bg-purple-600 hover:bg-purple-700 text-white font-bold text-xs flex items-center justify-between transition-all shadow-xs"
+            >
+              <span>Open Blog Manager</span>
+              <ArrowRight className="w-3.5 h-3.5" />
+            </Link>
           </div>
 
-          {/* Technical Info Card */}
-          <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-xs space-y-3">
-            <h3 className="text-xs font-bold text-slate-800 uppercase tracking-wider flex items-center gap-2">
-              <Sliders className="w-3.5 h-3.5 text-purple-600" />
-              <span>Project Details</span>
-            </h3>
+          {/* Technical Specifications & Details Card */}
+          <div className="rounded-2xl border border-slate-200/90 bg-white p-6 sm:p-7 shadow-xs space-y-4">
+            <div className="flex items-center gap-2.5 border-b border-slate-100 pb-3">
+              <Sliders className="w-4 h-4 text-purple-600" />
+              <h3 className="text-sm font-bold text-slate-900 uppercase tracking-wider">
+                Project Specifications
+              </h3>
+            </div>
 
-            <div className="space-y-1.5 text-xs text-slate-600">
-              <div className="flex justify-between py-1.5 border-b border-slate-100">
-                <span>Slug:</span>
-                <span className="font-mono text-slate-900">{website.slug}</span>
+            <div className="space-y-2.5 text-xs font-medium text-slate-600">
+              <div className="flex justify-between items-center py-1 border-b border-slate-100">
+                <span className="text-slate-500">Slug:</span>
+                <span className="font-mono font-bold text-slate-900">{website.slug}</span>
               </div>
-              <div className="flex justify-between py-1.5 border-b border-slate-100">
-                <span>Created:</span>
-                <span>{new Date(website.created_at).toLocaleDateString()}</span>
+              <div className="flex justify-between items-center py-1 border-b border-slate-100">
+                <span className="text-slate-500">Created:</span>
+                <span className="font-semibold text-slate-800">
+                  {new Date(website.created_at).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}
+                </span>
               </div>
-              <div className="flex justify-between py-1.5">
-                <span>Website ID:</span>
-                <span className="font-mono text-[10px] text-slate-500 truncate max-w-[120px]">{website.id}</span>
+              <div className="flex justify-between items-center py-1">
+                <span className="text-slate-500">Website ID:</span>
+                <div className="flex items-center gap-1">
+                  <span className="font-mono text-[11px] text-slate-500">{website.id.slice(0, 12)}...</span>
+                  <button
+                    onClick={() => handleCopyId(website.id)}
+                    className="p-1 text-slate-400 hover:text-purple-600"
+                    title="Copy full website ID"
+                  >
+                    {copiedId ? <Check className="w-3 h-3 text-emerald-600" /> : <Copy className="w-3 h-3" />}
+                  </button>
+                </div>
               </div>
             </div>
           </div>
         </div>
       </div>
 
-      {/* Delete Confirmation Modal */}
+      {/* SECTION 3: Delete Confirmation Modal */}
       {showDeleteModal && (
-        <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-xs flex items-center justify-center p-4 z-50 animate-fadeIn">
-          <div className="bg-white border border-slate-200 rounded-2xl p-6 max-w-sm w-full shadow-2xl space-y-4">
-            <div className="flex items-start gap-3">
-              <div className="w-10 h-10 rounded-xl bg-red-50 border border-red-200 flex items-center justify-center shrink-0">
-                <AlertTriangle className="w-5 h-5 text-red-600" />
+        <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-xs flex items-center justify-center p-4 z-50 animate-fadeIn">
+          <div className="bg-white border border-slate-200 rounded-2xl p-6 sm:p-8 max-w-md w-full shadow-2xl space-y-6">
+            <div className="flex items-start gap-4">
+              <div className="w-11 h-11 rounded-xl bg-red-50 border border-red-200 flex items-center justify-center shrink-0 text-red-600">
+                <AlertTriangle className="w-6 h-6" />
               </div>
-              <div>
-                <h3 className="font-bold text-slate-900 text-sm">Delete Website?</h3>
-                <p className="text-xs text-slate-500 mt-1 leading-relaxed">
-                  Are you sure you want to delete <strong className="text-slate-800">{website.title}</strong>? This action cannot be undone.
+              <div className="space-y-1">
+                <h3 className="font-bold text-slate-900 text-lg">Delete Website?</h3>
+                <p className="text-sm font-medium text-slate-500 leading-relaxed">
+                  Are you sure you want to delete <strong className="text-slate-900">{website.title}</strong>? This action is permanent and cannot be undone.
                 </p>
               </div>
             </div>
 
             {deleteError && (
-              <p className="text-xs text-red-600 bg-red-50 p-2.5 rounded-lg border border-red-200">
+              <p className="text-xs font-semibold text-red-600 bg-red-50 p-3 rounded-xl border border-red-200">
                 {deleteError}
               </p>
             )}
 
-            <div className="flex items-center justify-end gap-2 pt-2">
+            <div className="flex items-center justify-end gap-3 pt-2">
               <button
                 onClick={() => setShowDeleteModal(false)}
                 disabled={isDeleting}
-                className="px-4 py-2 rounded-xl border border-slate-200 bg-slate-50 hover:bg-slate-100 text-xs font-semibold text-slate-700 transition-all"
+                className="h-11 px-5 rounded-xl border border-slate-200 bg-slate-50 hover:bg-slate-100 text-sm font-bold text-slate-700 transition-all"
               >
                 Cancel
               </button>
               <button
                 onClick={handleDelete}
                 disabled={isDeleting}
-                className="px-4 py-2 rounded-xl bg-red-600 hover:bg-red-700 text-white text-xs font-semibold transition-all flex items-center gap-1.5 disabled:opacity-50"
+                className="h-11 px-5 rounded-xl bg-red-600 hover:bg-red-700 text-white text-sm font-bold transition-all flex items-center gap-2 shadow-md shadow-red-600/20 disabled:opacity-50"
               >
                 {isDeleting ? (
                   <>
-                    <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                    <Loader2 className="w-4 h-4 animate-spin" />
                     <span>Deleting...</span>
                   </>
                 ) : (

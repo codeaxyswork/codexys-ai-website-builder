@@ -82,6 +82,54 @@ export interface SEOAgentContext {
     capabilities: string[];
     lastTestedAt: string | null;
   }>;
+  opportunitySummary?: {
+    total: number;
+    critical: number;
+    high: number;
+    medium: number;
+    low: number;
+    avgPriorityScore: number;
+    autopilotEligible: number;
+    topOpportunities: Array<{ title: string; priorityScore: number; category: string; description: string }>;
+  };
+  autopilotSummary?: {
+    status: string;
+    scanFrequency: string;
+    autoApplySafeFixes: boolean;
+    requireApprovalForStaging: boolean;
+    lastRunAt: string | null;
+    nextRunAt: string | null;
+  };
+  aeoSummary?: {
+    answerReadinessScore: number;
+    clarityScore: number;
+    questionsCount: number;
+    topQuestions: Array<{ question: string; hasDirectAnswer: boolean }>;
+  };
+  topicalAuthoritySummary?: {
+    topicCoverageScore: number;
+    clustersCount: number;
+    topClusters: Array<{ mainTopic: string; clusterCoverageScore: number }>;
+    missingSubtopicsCount: number;
+  };
+  competitorSummary?: {
+    totalCompetitors: number;
+    trackedDomains: string[];
+    totalGapsCount: number;
+    topGaps: Array<{ title: string; gapType: string; competitorDomain?: string }>;
+  };
+  contentStudioSummary?: {
+    totalBriefs: number;
+    latestBriefTopic?: string;
+    totalRefreshRuns: number;
+  };
+  technicalCrawlSummary?: {
+    technicalScore: number;
+    totalUrlsCrawled: number;
+    totalIssuesCount: number;
+    statusCounts: { ok2xx: number; redirect3xx: number; clientError4xx: number; serverError5xx: number };
+    topTechnicalIssues: Array<{ title: string; severity: string; url: string }>;
+  };
 }
 
 /**
@@ -317,6 +365,90 @@ export async function buildSEOContext(supabase: any, websiteId: string): Promise
     lastTestedAt: t.last_tested_at || null,
   }));
 
+  // 11. Fetch Phase 11 Opportunities & Autopilot Context
+  const { data: oppRows } = await supabase
+    .from("seo_opportunities")
+    .select("title, priority_score, priority_level, category, description, is_autopilot_eligible, status")
+    .eq("website_id", websiteId)
+    .in("status", ["new", "viewed", "in_progress"])
+    .order("priority_score", { ascending: false });
+
+  const opportunitiesList = oppRows || [];
+  const oppTotal = opportunitiesList.length;
+  const oppCritical = opportunitiesList.filter((o: any) => o.priority_level === "critical").length;
+  const oppHigh = opportunitiesList.filter((o: any) => o.priority_level === "high").length;
+  const oppMedium = opportunitiesList.filter((o: any) => o.priority_level === "medium").length;
+  const oppLow = opportunitiesList.filter((o: any) => o.priority_level === "low").length;
+  const oppAvgScore = oppTotal > 0 ? Math.round(opportunitiesList.reduce((acc: number, o: any) => acc + (o.priority_score || 0), 0) / oppTotal) : 0;
+  const oppAutopilotCount = opportunitiesList.filter((o: any) => o.is_autopilot_eligible).length;
+
+  const topOpportunities = opportunitiesList.slice(0, 5).map((o: any) => ({
+    title: o.title,
+    priorityScore: o.priority_score,
+    category: o.category,
+    description: o.description,
+  }));
+
+  const { data: autoRow } = await supabase
+    .from("seo_autopilot_settings")
+    .select("status, scan_frequency, auto_apply_safe_fixes, require_approval_for_staging, last_run_at, next_run_at")
+    .eq("website_id", websiteId)
+    .maybeSingle();
+
+  // 12. Fetch Phase 12 AEO & Topical Authority Data (website_aeo_analysis)
+  const { data: aeoRow } = await supabase
+    .from("website_aeo_analysis")
+    .select("answer_readiness_score, topic_coverage_score, entity_clarity, questions_discovered, topic_clusters, content_gaps")
+    .eq("website_id", websiteId)
+    .maybeSingle();
+
+  const questionsList = (aeoRow?.questions_discovered as any[]) || [];
+  const clustersList = (aeoRow?.topic_clusters as any[]) || [];
+  const gapsList = (aeoRow?.content_gaps as any[]) || [];
+
+  // 13. Fetch Phase 13 Competitor Intelligence Data
+  const { data: compRows } = await supabase
+    .from("seo_competitors")
+    .select("domain, name, status")
+    .eq("website_id", websiteId);
+
+  const { data: compAnalyses } = await supabase
+    .from("competitor_analyses")
+    .select("content_gaps")
+    .eq("website_id", websiteId);
+
+  const competitorList = compRows || [];
+  const allCompGaps: any[] = [];
+  (compAnalyses || []).forEach((ca: any) => {
+    if (Array.isArray(ca.content_gaps)) allCompGaps.push(...ca.content_gaps);
+  });
+
+  // 14. Fetch Phase 15 Technical Crawl Data
+  const { data: latestTechRun } = await supabase
+    .from("technical_crawl_runs")
+    .select("id, technical_score, total_urls_crawled, total_issues_count, summary_breakdown")
+    .eq("website_id", websiteId)
+    .order("created_at", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+
+  let topTechIssues: Array<{ title: string; severity: string; url: string }> = [];
+  if (latestTechRun?.id) {
+    const { data: techIssRows } = await supabase
+      .from("technical_crawl_issues")
+      .select("issue_type, severity, url")
+      .eq("crawl_id", latestTechRun.id)
+      .limit(5);
+
+    if (techIssRows) {
+      topTechIssues = techIssRows.map((i: any) => ({
+        title: i.issue_type.replace(/_/g, " "),
+        severity: i.severity,
+        url: i.url,
+      }));
+    }
+  }
+
   return {
     website: {
       title: website?.title || "Untitled Website",
@@ -384,6 +516,59 @@ export async function buildSEOContext(supabase: any, websiteId: string): Promise
       recentAlerts,
     },
     thirdPartyIntegrations,
+    opportunitySummary: {
+      total: oppTotal,
+      critical: oppCritical,
+      high: oppHigh,
+      medium: oppMedium,
+      low: oppLow,
+      avgPriorityScore: oppAvgScore,
+      autopilotEligible: oppAutopilotCount,
+      topOpportunities,
+    },
+    autopilotSummary: autoRow ? {
+      status: autoRow.status || "active",
+      scanFrequency: autoRow.scan_frequency || "weekly",
+      autoApplySafeFixes: !!autoRow.auto_apply_safe_fixes,
+      requireApprovalForStaging: !!autoRow.require_approval_for_staging,
+      lastRunAt: autoRow.last_run_at || null,
+      nextRunAt: autoRow.next_run_at || null,
+    } : undefined,
+    aeoSummary: aeoRow ? {
+      answerReadinessScore: Number(aeoRow.answer_readiness_score || 0),
+      clarityScore: Number(aeoRow.entity_clarity?.clarityScore || 0),
+      questionsCount: questionsList.length,
+      topQuestions: questionsList.slice(0, 5).map((q) => ({
+        question: q.question,
+        hasDirectAnswer: !!q.hasDirectAnswer,
+      })),
+    } : undefined,
+    topicalAuthoritySummary: aeoRow ? {
+      topicCoverageScore: Number(aeoRow.topic_coverage_score || 0),
+      clustersCount: clustersList.length,
+      topClusters: clustersList.slice(0, 5).map((c) => ({
+        mainTopic: c.mainTopic,
+        clusterCoverageScore: c.clusterCoverageScore,
+      })),
+      missingSubtopicsCount: gapsList.length,
+    } : undefined,
+    competitorSummary: competitorList.length > 0 ? {
+      totalCompetitors: competitorList.length,
+      trackedDomains: competitorList.map((c: any) => c.domain),
+      totalGapsCount: allCompGaps.length,
+      topGaps: allCompGaps.slice(0, 5).map((g: any) => ({
+        title: g.title,
+        gapType: g.gapType,
+        competitorDomain: g.competitorDomain,
+      })),
+    } : undefined,
+    technicalCrawlSummary: latestTechRun ? {
+      technicalScore: latestTechRun.technical_score,
+      totalUrlsCrawled: latestTechRun.total_urls_crawled,
+      totalIssuesCount: latestTechRun.total_issues_count,
+      statusCounts: latestTechRun.summary_breakdown?.statusCounts || { ok2xx: 0, redirect3xx: 0, clientError4xx: 0, serverError5xx: 0 },
+      topTechnicalIssues: topTechIssues,
+    } : undefined,
   };
 }
 
@@ -405,7 +590,7 @@ export interface SEOAgentMessage {
 export interface SEOAgentResponsePayload {
   message: string;
   suggestedActions?: string[];
-  navigationTarget?: "overview" | "performance" | "monitoring" | "organic" | "technical" | "internal-links" | "local-seo" | "blog" | "pages" | "keywords" | "integrations" | "settings";
+  navigationTarget?: "overview" | "technical-crawl" | "content-studio" | "competitors" | "content-gaps" | "aeo" | "topical-authority" | "opportunities" | "autopilot" | "performance" | "monitoring" | "organic" | "technical" | "internal-links" | "local-seo" | "blog" | "pages" | "keywords" | "integrations" | "settings";
   proposedFix?: StructuredSEOFix | null;
 }
 
@@ -421,24 +606,26 @@ export async function generateSEOAgentResponse(params: {
   const ai = new GoogleGenAI({ apiKey });
 
   const systemPrompt = `You are the Codeaxys AI SEO Specialist — a highly skilled, objective, and customer-friendly SEO Intelligence Agent.
-Your role is to analyze the provided website's REAL SEO data, explain search engine health, interpret Search Console traffic, prioritize improvements, provide local SEO & content strategy guidance, and answer user questions.
+Your role is to analyze the provided website's REAL SEO data, explain search engine health, interpret Search Console traffic, prioritize improvements, provide local SEO & content strategy guidance, assist with Content Studio briefs and content refresh recommendations, and answer user questions.
 
 CRITICAL RULES & SAFETY BOUNDARIES:
-1. DATA TRUTH: Base all answers strictly on the provided real website SEO context (including website health, Search Console analytics, blogSummary, internalLinkSummary, and localSeoSummary data). Do NOT invent fake scores, fake clicks, fake rankings, or fake search queries.
+1. DATA TRUTH: Base all answers strictly on the provided real website SEO context (including website health, Search Console analytics, blogSummary, internalLinkSummary, localSeoSummary, aeoSummary, topicalAuthoritySummary, competitorSummary, and contentStudioSummary data). Do NOT invent fake scores, fake clicks, fake rankings, or fake search queries.
 2. MISSING DATA HANDLING: If Search Console is disconnected or has no data, explicitly state that Search Console data is unavailable and recommend connecting it in the Integrations tab. If page-level audits are empty, state that page indexing is needed.
 3. LOCAL SEO & MONITORING ALERTS: You understand NAP consistency, LocalBusiness JSON-LD schema, local keyword signals, and background monitoring alerts. Use monitoringSummary data to answer questions like "What changed recently?", "Why did my score drop?", or "Did my local SEO improve?".
-4. NO RANKING GUARANTEES: NEVER say "You will rank #1", "Guaranteed first page", or "Traffic will increase by X%". Use accurate, non-overpromising phrasing such as "This can improve technical search signals" or "This helps search engines better understand your page content."
-5. ADVISORY ONLY: You are providing advice and recommendations. You do NOT apply fixes directly to the website. Never claim that a fix has already been applied.
-6. MULTILINGUAL SUPPORT: Respond in the user's conversation language (including English, Malayalam, Manglish, or code-switching) while keeping core technical SEO terms clear.
-7. NAVIGATION ADVICE: When recommending where a user should fix an issue or manage content, suggest the exact tab destination: "overview", "performance", "monitoring", "organic", "technical", "internal-links", "local-seo", "blog", "pages", "keywords", "integrations", or "settings".
-8. DETERMINISTIC FIX PROPOSALS: When you identify a specific SEO issue that can be fixed deterministically (e.g. SEO title, meta description, focus keywords, OG title, OG description, canonical URL, robots settings, or image alt text), include a "proposedFix" object in your JSON output. If no specific fix applies, set "proposedFix" to null.
+4. AEO & TOPICAL AUTHORITY QUESTIONS: You understand Answer Engine Optimization (AEO), Answer Readiness Score, entity clarity, question coverage, and Topic Clusters. Use aeoSummary and topicalAuthoritySummary to answer questions such as "Is my website ready for AI search?", "What topics am I missing?", "Which questions should my website answer?", or "How can I improve my topical authority?".
+5. COMPETITOR & CONTENT STUDIO: You understand competitive SEO benchmarking, content briefs, content refresh recommendations, and outline generation. Answer questions like "Create a brief for this topic", "What is missing from this article?", "How can I improve this article for SEO?", "Make this article more AEO-friendly?", "What topics should I add?", "Which internal links should I add?", or "Why should I refresh this article?".
+6. NO RANKING GUARANTEES: NEVER say "You will rank #1", "Guaranteed first page", or "Traffic will increase by X%". Use accurate, non-overpromising phrasing such as "This can improve technical search signals" or "This helps search engines better understand your page content."
+7. ADVISORY ONLY: You are providing advice and recommendations. Content changes in Content Studio require explicit user approval. Never claim that content has been automatically published without user approval.
+8. MULTILINGUAL SUPPORT: Respond in the user's conversation language (including English, Malayalam, Manglish, or code-switching) while keeping core technical SEO terms clear.
+9. NAVIGATION ADVICE: When recommending where a user should fix an issue or write content, suggest the exact tab destination: "overview", "content-studio", "competitors", "content-gaps", "aeo", "topical-authority", "opportunities", "autopilot", "performance", "monitoring", "organic", "technical", "internal-links", "local-seo", "blog", "pages", "keywords", "integrations", or "settings".
+10. DETERMINISTIC FIX PROPOSALS: When you identify a specific SEO issue that can be fixed deterministically (e.g. SEO title, meta description, focus keywords, OG title, OG description, canonical URL, robots settings, or image alt text), include a "proposedFix" object in your JSON output. If no specific fix applies, set "proposedFix" to null.
 
 OUTPUT FORMAT:
 Return strictly a single JSON object with no markdown fences, no wrapping, matching this shape:
 {
   "message": "Detailed, friendly, customer-focused markdown response answering the question, explaining reasoning, and giving prioritized action steps.",
   "suggestedActions": ["Actionable tip 1", "Actionable tip 2"],
-  "navigationTarget": "monitoring", // (optional target tab: "overview" | "performance" | "monitoring" | "organic" | "technical" | "internal-links" | "local-seo" | "blog" | "pages" | "keywords" | "integrations" | "settings")
+  "navigationTarget": "competitors", // (optional target tab: "overview" | "competitors" | "content-gaps" | "aeo" | "topical-authority" | "opportunities" | "autopilot" | "performance" | "monitoring" | "organic" | "technical" | "internal-links" | "local-seo" | "blog" | "pages" | "keywords" | "integrations" | "settings")
   "proposedFix": { // (optional proposed fix object if a specific fix can be applied)
     "issueType": "seo_title", // "seo_title" | "meta_description" | "focus_keywords" | "og_title" | "og_description" | "alt_text" | "canonical_url" | "robots_config" | "heading_structure"
     "pagePath": "index.html",

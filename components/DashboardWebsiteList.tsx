@@ -370,14 +370,24 @@ export function DashboardWebsiteList({ initialWebsites }: DashboardWebsiteListPr
               {/* BOTTOM ACTION AREA */}
               <div className="pt-2 flex flex-wrap items-center justify-between gap-2.5">
                 <div className="flex items-center gap-2 flex-wrap">
-                  {/* Primary Action: Refine */}
+                  {/* Primary Action: Manage Hub */}
+                  <Link
+                    href={`/dashboard/websites/${site.id}`}
+                    className="py-2 px-4 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold flex items-center gap-1.5 transition-all shadow-xs active:scale-95"
+                    title="Open Website Management Hub"
+                  >
+                    <Globe className="w-3.5 h-3.5" />
+                    <span>Manage Hub</span>
+                  </Link>
+
+                  {/* Refine Action */}
                   <Link
                     href={`/?id=${site.id}`}
-                    className="py-2 px-4 rounded-xl bg-purple-600 hover:bg-purple-700 text-white text-xs font-bold flex items-center gap-1.5 transition-all shadow-xs active:scale-95"
+                    className="py-2 px-3.5 rounded-xl bg-purple-600 hover:bg-purple-700 text-white text-xs font-bold flex items-center gap-1.5 transition-all shadow-xs active:scale-95"
                     title="Refine website with AI"
                   >
-                    <Edit3 className="w-4 h-4" />
-                    <span>Refine</span>
+                    <Edit3 className="w-3.5 h-3.5" />
+                    <span>Refine with AI</span>
                   </Link>
 
                   {/* SEO Action */}
