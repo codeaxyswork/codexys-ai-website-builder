@@ -14,9 +14,7 @@ import { GeneratedFile, WebsitePlan, GenerationResponse, UploadedImage } from "@
 
 export function HomeClient() {
   const router = useRouter();
-  const [prompt, setPrompt] = useState<string>(
-    "Create a premium luxury car showroom website called Velocity Motors."
-  );
+  const [prompt, setPrompt] = useState<string>("");
   const [files, setFiles] = useState<GeneratedFile[]>([]);
   const [plan, setPlan] = useState<WebsitePlan | null>(null);
   const [uploadedImages, setUploadedImages] = useState<UploadedImage[]>([]);

@@ -48,31 +48,45 @@ interface MessageItem {
 }
 
 const GENERAL_QUICK_STARTERS = [
-  { label: "🚀 Create My Website", prompt: "I want to create a website for my business." },
-  { label: "✍️ Help Me Write a Prompt", prompt: "Can you help me write a great prompt for my website?" },
-  { label: "💡 Show How Codeaxys Works", prompt: "How does Codeaxys AI Website Builder work?" },
-  { label: "🎨 What Can I Build?", prompt: "What types of websites can I build with Codeaxys?" },
-  { label: "💳 Pricing & Features", prompt: "What are the pricing tiers and features?" },
-  { label: "❓ I Have a Question", prompt: "I have a question about building a website." },
+  { label: "🚀 Create website for Velocity Motors", prompt: "I need a luxury automotive website for Velocity Motors with Home, Inventory, About and Contact pages." },
+  { label: "🇮🇳 oru luxury car showroom website venam", prompt: "oru luxury car showroom website venam" },
+  { label: "✍️ Help me build a website prompt", prompt: "Can you guide me step-by-step to create my website prompt?" },
+  { label: "🎨 Show luxury & dark style ideas", prompt: "What visual styles can you build for my company?" },
+  { label: "⏰ How does 3-day website preview work?", prompt: "How does the 3-day website preview work?" },
 ];
 
 const SEO_QUICK_STARTERS = [
-  { label: "🔍 What are my biggest SEO problems?", prompt: "What are my biggest SEO problems?" },
-  { label: "📊 Explain my SEO score", prompt: "Explain my SEO score." },
+  { label: "🌐 How is my website SEO?", prompt: "How is my website SEO?" },
+  { label: "🇮🇳 എന്റെ website SEO എങ്ങനെയുണ്ട്?", prompt: "എന്റെ website SEO എങ്ങനെയുണ്ട്?" },
+  { label: "🚀 ente SEO engane improve cheyyam?", prompt: "ente SEO engane improve cheyyam?" },
   { label: "🚨 What should I fix first?", prompt: "What should I fix first?" },
-  { label: "📈 How is my Google Search performance?", prompt: "How is my Google Search performance?" },
-  { label: "🔗 Find my internal linking problems", prompt: "Find my internal linking problems." },
-  { label: "📝 How can I improve my content SEO?", prompt: "How can I improve my content SEO?" },
+  { label: "📈 How is my Google performance?", prompt: "How is my Google performance?" },
+  { label: "🛠️ Any technical issues?", prompt: "Are there any technical issues?" },
+  { label: "🤖 How is my AEO & AI Search readiness?", prompt: "How ready is my website for AI Search?" },
+  { label: "📍 How is my Local SEO?", prompt: "How is my local SEO?" },
 ];
 
 const TAB_LABELS: Record<string, string> = {
   overview: "SEO Overview",
-  performance: "Performance",
+  "command-center": "SEO Command Center",
+  "technical-crawl": "Technical Crawl",
+  "content-studio": "Content Studio",
+  competitors: "Competitor Intelligence",
+  "content-gaps": "Content Gaps",
+  aeo: "AEO / AI Search",
+  "topical-authority": "Topical Authority",
+  opportunities: "Opportunity Engine",
+  autopilot: "SEO Autopilot",
+  performance: "Google Performance",
+  monitoring: "SEO Monitoring",
   organic: "Organic SEO",
   technical: "Technical SEO",
-  pages: "Pages",
+  "internal-links": "Internal Links",
+  "local-seo": "Local SEO",
+  blog: "Content & Blog",
+  pages: "Website Pages",
   keywords: "Keywords / Rankings",
-  integrations: "Integrations",
+  integrations: "SEO Integrations",
   settings: "SEO Settings",
 };
 
@@ -450,8 +464,9 @@ export function CodeaxysAIAssistant({
         setMessages((prev) => [...prev, assistantMsg]);
       } else {
         // mode === "general"
-        const historyPayload = messages
-          .filter((m) => m.id !== "msg_welcome")
+        const updatedMessages = [...messages, newUserMsg];
+        const historyPayload = updatedMessages
+          .filter((m) => m.id !== "msg_welcome" && m.id !== userMsgId)
           .map((m) => ({
             role: m.role === "user" ? ("user" as const) : ("model" as const),
             content: m.text,
@@ -489,6 +504,10 @@ export function CodeaxysAIAssistant({
         };
 
         setMessages((prev) => [...prev, assistantMsg]);
+
+        if (onUsePrompt && data.suggestedPrompt) {
+          onUsePrompt(data.suggestedPrompt);
+        }
       }
     } catch (err) {
       console.error("Assistant Chat Error:", err);
@@ -847,42 +866,35 @@ export function CodeaxysAIAssistant({
 
                     {/* GENERAL MODE: SUGGESTED PROMPT CARD */}
                     {mode === "general" && msg.suggestedPrompt && (
-                      <div className="mt-3 p-3 rounded-xl bg-purple-50/90 border border-purple-200 text-slate-900 space-y-2">
+                      <div className="mt-3 p-3.5 rounded-xl bg-purple-50/95 border border-purple-200/90 text-slate-900 space-y-2.5 shadow-2xs">
                         <div className="flex items-center justify-between text-purple-700 font-bold text-xs border-b border-purple-200/60 pb-1.5">
                           <span className="flex items-center gap-1.5">
                             <Sparkles className="w-3.5 h-3.5 text-purple-600" />
                             Generated Website Prompt
                           </span>
-                          <span className="text-[10px] bg-purple-200/80 text-purple-800 px-2 py-0.5 rounded font-mono">
-                            Ready to Use
+                          <span className="text-[10px] bg-emerald-100 text-emerald-800 border border-emerald-300 px-2 py-0.5 rounded-md font-bold flex items-center gap-1">
+                            <span>✦</span> Creation Ready
                           </span>
                         </div>
 
-                        <div className="bg-white p-2.5 rounded-lg border border-purple-200 text-xs font-sans text-slate-800 max-h-44 overflow-y-auto custom-scrollbar leading-relaxed">
+                        <div className="bg-white p-3 rounded-lg border border-purple-200/80 text-xs font-sans text-slate-800 max-h-44 overflow-y-auto custom-scrollbar leading-relaxed shadow-inner/5">
                           {msg.suggestedPrompt}
                         </div>
 
-                        <div className="flex items-center gap-2 pt-1">
-                          <button
-                            onClick={() => handleApplyPromptToGenerator(msg.suggestedPrompt!)}
-                            className="flex-1 py-1.5 px-3 rounded-lg bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white font-bold text-xs flex items-center justify-center gap-1.5 shadow-xs transition-all cursor-pointer"
-                          >
-                            <Wand2 className="w-3.5 h-3.5" />
-                            <span>Use Prompt</span>
-                          </button>
+                        <div className="flex items-center justify-end pt-0.5">
                           <button
                             onClick={() => handleCopyPrompt(msg.suggestedPrompt!, msg.id)}
-                            className="py-1.5 px-2.5 rounded-lg border border-purple-200 bg-white hover:bg-purple-100/60 text-purple-700 text-xs font-bold flex items-center gap-1 transition-all cursor-pointer"
+                            className="py-1.5 px-3 rounded-lg border border-purple-200 bg-white hover:bg-purple-100/60 text-purple-700 text-xs font-bold flex items-center gap-1.5 transition-all cursor-pointer shadow-2xs"
                           >
                             {copiedPromptId === msg.id ? (
                               <>
                                 <Check className="w-3.5 h-3.5 text-emerald-600" />
-                                <span className="text-emerald-700">Copied</span>
+                                <span className="text-emerald-700">Copied Prompt</span>
                               </>
                             ) : (
                               <>
                                 <Copy className="w-3.5 h-3.5 text-purple-600" />
-                                <span>Copy</span>
+                                <span>Copy Prompt</span>
                               </>
                             )}
                           </button>

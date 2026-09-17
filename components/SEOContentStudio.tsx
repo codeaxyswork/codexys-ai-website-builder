@@ -307,15 +307,15 @@ export function SEOContentStudio({ websiteId, initialTopic, initialOpportunityId
   return (
     <div className="space-y-6">
       {/* Top Banner & Header */}
-      <div className="bg-slate-900 border border-slate-800 rounded-xl p-6 shadow-xl relative overflow-hidden">
-        <div className="absolute -top-12 -right-12 w-64 h-64 bg-indigo-500/10 rounded-full blur-3xl pointer-events-none"></div>
+      <div className="bg-gradient-to-r from-purple-50/80 via-indigo-50/50 to-slate-50 border border-purple-100/80 rounded-xl p-6 shadow-sm relative overflow-hidden">
+        <div className="absolute -top-12 -right-12 w-64 h-64 bg-purple-200/20 rounded-full blur-3xl pointer-events-none"></div>
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 relative z-10">
           <div>
-            <div className="flex items-center gap-2 text-indigo-400 font-semibold text-sm mb-1">
+            <div className="flex items-center gap-2 text-purple-600 font-semibold text-sm mb-1">
               <Sparkles className="w-4 h-4" /> SEO Content Studio & Content Refresh
             </div>
-            <h2 className="text-2xl font-bold text-white">SEO Writing & Optimization Workspace</h2>
-            <p className="text-slate-400 text-sm mt-1">
+            <h2 className="text-2xl font-bold text-slate-900">SEO Writing & Optimization Workspace</h2>
+            <p className="text-slate-600 text-sm mt-1">
               Generate data-backed briefs, answer-first outlines, AEO articles, and refresh existing content with explicit before/after review.
             </p>
           </div>
@@ -323,7 +323,7 @@ export function SEOContentStudio({ websiteId, initialTopic, initialOpportunityId
             {articleTitle && (
               <button
                 onClick={() => setShowApplyModal(true)}
-                className="px-4 py-2 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white rounded-lg text-sm font-semibold shadow-lg transition flex items-center gap-2"
+                className="px-4 py-2 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white rounded-lg text-sm font-semibold shadow-xs transition flex items-center gap-2"
               >
                 <ShieldCheck className="w-4 h-4" /> Apply & Publish Content
               </button>
@@ -332,11 +332,11 @@ export function SEOContentStudio({ websiteId, initialTopic, initialOpportunityId
         </div>
 
         {/* Tab Navigation */}
-        <div className="flex items-center gap-2 mt-6 border-b border-slate-800 pb-2 overflow-x-auto">
+        <div className="flex items-center gap-2 mt-6 border-b border-slate-200 pb-2 overflow-x-auto">
           <button
             onClick={() => setActiveTab('brief')}
-            className={`px-4 py-2 rounded-lg text-sm font-medium transition flex items-center gap-2 ${
-              activeTab === 'brief' ? 'bg-indigo-600 text-white shadow-md' : 'text-slate-400 hover:text-white hover:bg-slate-800/60'
+            className={`px-4 py-2 rounded-lg text-sm font-semibold transition flex items-center gap-2 ${
+              activeTab === 'brief' ? 'bg-purple-600 text-white shadow-xs' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
             }`}
           >
             <BookOpen className="w-4 h-4" /> 1. Brief & Outline
@@ -346,8 +346,8 @@ export function SEOContentStudio({ websiteId, initialTopic, initialOpportunityId
               setActiveTab('editor');
               if (articleContent) runQualityCheck(articleContent, articleTitle);
             }}
-            className={`px-4 py-2 rounded-lg text-sm font-medium transition flex items-center gap-2 ${
-              activeTab === 'editor' ? 'bg-indigo-600 text-white shadow-md' : 'text-slate-400 hover:text-white hover:bg-slate-800/60'
+            className={`px-4 py-2 rounded-lg text-sm font-semibold transition flex items-center gap-2 ${
+              activeTab === 'editor' ? 'bg-purple-600 text-white shadow-xs' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
             }`}
           >
             <FileText className="w-4 h-4" /> 2. Content Editor & SEO
@@ -357,16 +357,16 @@ export function SEOContentStudio({ websiteId, initialTopic, initialOpportunityId
               setActiveTab('analysis');
               if (articleContent) runQualityCheck(articleContent, articleTitle);
             }}
-            className={`px-4 py-2 rounded-lg text-sm font-medium transition flex items-center gap-2 ${
-              activeTab === 'analysis' ? 'bg-indigo-600 text-white shadow-md' : 'text-slate-400 hover:text-white hover:bg-slate-800/60'
+            className={`px-4 py-2 rounded-lg text-sm font-semibold transition flex items-center gap-2 ${
+              activeTab === 'analysis' ? 'bg-purple-600 text-white shadow-xs' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
             }`}
           >
             <Target className="w-4 h-4" /> 3. Quality & AEO Analysis
           </button>
           <button
             onClick={() => setActiveTab('refresh')}
-            className={`px-4 py-2 rounded-lg text-sm font-medium transition flex items-center gap-2 ${
-              activeTab === 'refresh' ? 'bg-indigo-600 text-white shadow-md' : 'text-slate-400 hover:text-white hover:bg-slate-800/60'
+            className={`px-4 py-2 rounded-lg text-sm font-semibold transition flex items-center gap-2 ${
+              activeTab === 'refresh' ? 'bg-purple-600 text-white shadow-xs' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
             }`}
           >
             <RefreshCw className="w-4 h-4" /> 4. Content Refresh Audit
@@ -375,8 +375,8 @@ export function SEOContentStudio({ websiteId, initialTopic, initialOpportunityId
             onClick={() => {
               handleComputeDiff();
             }}
-            className={`px-4 py-2 rounded-lg text-sm font-medium transition flex items-center gap-2 ${
-              activeTab === 'diff' ? 'bg-indigo-600 text-white shadow-md' : 'text-slate-400 hover:text-white hover:bg-slate-800/60'
+            className={`px-4 py-2 rounded-lg text-sm font-semibold transition flex items-center gap-2 ${
+              activeTab === 'diff' ? 'bg-purple-600 text-white shadow-xs' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
             }`}
           >
             <FileDiff className="w-4 h-4" /> 5. Before vs After Review
@@ -386,13 +386,13 @@ export function SEOContentStudio({ websiteId, initialTopic, initialOpportunityId
 
       {/* Alert Messages */}
       {error && (
-        <div className="bg-red-500/10 border border-red-500/30 rounded-lg p-4 text-red-400 text-sm flex items-center gap-3">
-          <AlertTriangle className="w-5 h-5 flex-shrink-0" /> {error}
+        <div className="bg-rose-50 border border-rose-200 rounded-lg p-4 text-rose-700 text-sm flex items-center gap-3">
+          <AlertTriangle className="w-5 h-5 flex-shrink-0 text-rose-600" /> {error}
         </div>
       )}
       {successMsg && (
-        <div className="bg-emerald-500/10 border border-emerald-500/30 rounded-lg p-4 text-emerald-400 text-sm flex items-center gap-3">
-          <CheckCircle2 className="w-5 h-5 flex-shrink-0" /> {successMsg}
+        <div className="bg-emerald-50 border border-emerald-200 rounded-lg p-4 text-emerald-800 text-sm flex items-center gap-3">
+          <CheckCircle2 className="w-5 h-5 flex-shrink-0 text-emerald-600" /> {successMsg}
         </div>
       )}
 
@@ -400,47 +400,47 @@ export function SEOContentStudio({ websiteId, initialTopic, initialOpportunityId
       {activeTab === 'brief' && (
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
           {/* Brief Input Controls */}
-          <div className="lg:col-span-5 bg-slate-900 border border-slate-800 rounded-xl p-6 space-y-4">
-            <h3 className="text-lg font-bold text-white flex items-center gap-2">
-              <SlidersHorizontal className="w-5 h-5 text-indigo-400" /> Create Content Brief
+          <div className="lg:col-span-5 bg-white border border-slate-200 shadow-sm rounded-xl p-6 space-y-4">
+            <h3 className="text-lg font-bold text-slate-900 flex items-center gap-2">
+              <SlidersHorizontal className="w-5 h-5 text-purple-600" /> Create Content Brief
             </h3>
             <div>
-              <label className="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-1">Content Topic *</label>
+              <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1">Content Topic *</label>
               <input
                 type="text"
                 value={topic}
                 onChange={(e) => setTopic(e.target.value)}
                 placeholder="e.g. Luxury Car Maintenance Guide"
-                className="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:border-indigo-500"
+                className="w-full bg-white border border-slate-300 rounded-lg px-3 py-2 text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-purple-500/20 focus:border-purple-600 placeholder-slate-400"
               />
             </div>
             <div>
-              <label className="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-1">Primary Keyword</label>
+              <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1">Primary Keyword</label>
               <input
                 type="text"
                 value={primaryKeyword}
                 onChange={(e) => setPrimaryKeyword(e.target.value)}
                 placeholder="e.g. luxury car maintenance"
-                className="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:border-indigo-500"
+                className="w-full bg-white border border-slate-300 rounded-lg px-3 py-2 text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-purple-500/20 focus:border-purple-600 placeholder-slate-400"
               />
             </div>
             <div>
-              <label className="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-1">Secondary Keywords (comma separated)</label>
+              <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1">Secondary Keywords (comma separated)</label>
               <input
                 type="text"
                 value={secondaryKeywordsStr}
                 onChange={(e) => setSecondaryKeywordsStr(e.target.value)}
                 placeholder="e.g. engine care, oil change schedule, brake service"
-                className="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:border-indigo-500"
+                className="w-full bg-white border border-slate-300 rounded-lg px-3 py-2 text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-purple-500/20 focus:border-purple-600 placeholder-slate-400"
               />
             </div>
             <div className="grid grid-cols-2 gap-3">
               <div>
-                <label className="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-1">Search Intent</label>
+                <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1">Search Intent</label>
                 <select
                   value={searchIntent}
                   onChange={(e: any) => setSearchIntent(e.target.value)}
-                  className="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:border-indigo-500"
+                  className="w-full bg-white border border-slate-300 rounded-lg px-3 py-2 text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-purple-500/20 focus:border-purple-600"
                 >
                   <option value="informational">Informational</option>
                   <option value="commercial">Commercial</option>
@@ -449,12 +449,12 @@ export function SEOContentStudio({ websiteId, initialTopic, initialOpportunityId
                 </select>
               </div>
               <div>
-                <label className="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-1">Target Audience</label>
+                <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1">Target Audience</label>
                 <input
                   type="text"
                   value={targetAudience}
                   onChange={(e) => setTargetAudience(e.target.value)}
-                  className="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:border-indigo-500"
+                  className="w-full bg-white border border-slate-300 rounded-lg px-3 py-2 text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-purple-500/20 focus:border-purple-600"
                 />
               </div>
             </div>
@@ -463,7 +463,7 @@ export function SEOContentStudio({ websiteId, initialTopic, initialOpportunityId
               <button
                 onClick={handleGenerateBrief}
                 disabled={loading}
-                className="flex-1 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg px-4 py-2.5 text-sm font-semibold transition flex items-center justify-center gap-2 disabled:opacity-50"
+                className="flex-1 bg-purple-600 hover:bg-purple-700 text-white rounded-lg px-4 py-2.5 text-sm font-semibold transition shadow-xs flex items-center justify-center gap-2 disabled:opacity-50"
               >
                 {loading ? <RefreshCw className="w-4 h-4 animate-spin" /> : <BookOpen className="w-4 h-4" />} Generate Brief & Outline
               </button>
@@ -473,16 +473,16 @@ export function SEOContentStudio({ websiteId, initialTopic, initialOpportunityId
           {/* Brief & Outline Output Display */}
           <div className="lg:col-span-7 space-y-6">
             {brief ? (
-              <div className="bg-slate-900 border border-slate-800 rounded-xl p-6 space-y-6">
+              <div className="bg-white border border-slate-200 shadow-sm rounded-xl p-6 space-y-6">
                 <div>
-                  <h4 className="text-sm font-semibold text-indigo-400 uppercase tracking-wider">Source Recommendations</h4>
+                  <h4 className="text-sm font-bold text-purple-700 uppercase tracking-wider">Source Recommendations</h4>
                   <div className="mt-2 space-y-2">
                     {brief.source_recommendations.map((rec, i) => (
-                      <div key={i} className="bg-slate-800/60 border border-slate-700/50 rounded-lg p-3 text-xs flex items-start gap-2">
-                        <CheckCircle2 className="w-4 h-4 text-emerald-400 flex-shrink-0 mt-0.5" />
+                      <div key={i} className="bg-slate-50 border border-slate-200 rounded-lg p-3 text-xs flex items-start gap-2">
+                        <CheckCircle2 className="w-4 h-4 text-emerald-600 flex-shrink-0 mt-0.5" />
                         <div>
-                          <span className="font-semibold text-slate-200">{rec.label}:</span>{' '}
-                          <span className="text-slate-400">{rec.details}</span>
+                          <span className="font-semibold text-slate-800">{rec.label}:</span>{' '}
+                          <span className="text-slate-600">{rec.details}</span>
                         </div>
                       </div>
                     ))}
@@ -491,23 +491,23 @@ export function SEOContentStudio({ websiteId, initialTopic, initialOpportunityId
 
                 {outline && (
                   <div>
-                    <h4 className="text-sm font-semibold text-indigo-400 uppercase tracking-wider mb-2">AEO-Optimized Article Outline</h4>
-                    <div className="bg-slate-950 border border-slate-800 rounded-lg p-4 space-y-3 text-sm">
-                      <div className="font-bold text-white text-base">H1: {outline.h1}</div>
-                      <div className="text-slate-400 text-xs italic bg-slate-900 p-2 rounded border border-slate-800">
-                        <strong className="text-indigo-300">AEO Target:</strong> {outline.aeo_direct_answer_target}
+                    <h4 className="text-sm font-bold text-purple-700 uppercase tracking-wider mb-2">AEO-Optimized Article Outline</h4>
+                    <div className="bg-slate-50 border border-slate-200 rounded-lg p-4 space-y-3 text-sm">
+                      <div className="font-bold text-slate-900 text-base">H1: {outline.h1}</div>
+                      <div className="text-slate-700 text-xs italic bg-purple-50/60 p-2.5 rounded border border-purple-200/80">
+                        <strong className="text-purple-800">AEO Target:</strong> {outline.aeo_direct_answer_target}
                       </div>
 
                       <div className="space-y-3 pt-2">
                         {outline.sections.map((sec, idx) => (
-                          <div key={idx} className="border-l-2 border-indigo-500 pl-3 space-y-1">
-                            <div className="font-semibold text-indigo-200">
+                          <div key={idx} className="border-l-2 border-purple-600 pl-3 space-y-1">
+                            <div className="font-semibold text-slate-900">
                               {sec.heading_level}: {sec.title}
                             </div>
-                            <p className="text-xs text-slate-400">{sec.content_goal}</p>
+                            <p className="text-xs text-slate-600">{sec.content_goal}</p>
                             {sec.suggested_internal_link && (
-                              <div className="text-xs text-emerald-400 flex items-center gap-1">
-                                <ExternalLink className="w-3 h-3" /> Link to {sec.suggested_internal_link.path} ({sec.suggested_internal_link.anchor})
+                              <div className="text-xs text-emerald-700 font-medium flex items-center gap-1">
+                                <ExternalLink className="w-3.5 h-3.5" /> Link to {sec.suggested_internal_link.path} ({sec.suggested_internal_link.anchor})
                               </div>
                             )}
                           </div>
@@ -515,12 +515,12 @@ export function SEOContentStudio({ websiteId, initialTopic, initialOpportunityId
                       </div>
 
                       {outline.faq_opportunities.length > 0 && (
-                        <div className="pt-3 border-t border-slate-800">
-                          <strong className="text-xs text-amber-400 uppercase">FAQ Opportunities:</strong>
-                          <ul className="mt-1 space-y-1 text-xs text-slate-300">
+                        <div className="pt-3 border-t border-slate-200">
+                          <strong className="text-xs text-amber-700 uppercase">FAQ Opportunities:</strong>
+                          <ul className="mt-1 space-y-1 text-xs text-slate-700">
                             {outline.faq_opportunities.map((faq, fIdx) => (
                               <li key={fIdx} className="flex items-start gap-2">
-                                <span className="text-amber-400">•</span> {faq.question}
+                                <span className="text-amber-600">•</span> {faq.question}
                               </li>
                             ))}
                           </ul>
@@ -533,14 +533,14 @@ export function SEOContentStudio({ websiteId, initialTopic, initialOpportunityId
                 <button
                   onClick={handleGenerateDraft}
                   disabled={loading}
-                  className="w-full bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-500 hover:to-violet-500 text-white rounded-lg px-4 py-3 text-sm font-semibold shadow-lg transition flex items-center justify-center gap-2 disabled:opacity-50"
+                  className="w-full bg-purple-600 hover:bg-purple-700 text-white rounded-lg px-4 py-3 text-sm font-semibold shadow-xs transition flex items-center justify-center gap-2 disabled:opacity-50"
                 >
                   {loading ? <RefreshCw className="w-4 h-4 animate-spin" /> : <Sparkles className="w-4 h-4" />} Generate AI Draft (5 Credits)
                 </button>
               </div>
             ) : (
-              <div className="bg-slate-900 border border-slate-800 rounded-xl p-12 text-center text-slate-400">
-                <BookOpen className="w-12 h-12 text-slate-700 mx-auto mb-3" />
+              <div className="bg-white border border-slate-200 shadow-sm rounded-xl p-12 text-center text-slate-500">
+                <BookOpen className="w-12 h-12 text-slate-400 mx-auto mb-3" />
                 <p className="font-medium">Enter a topic and click "Generate Brief & Outline" to start.</p>
               </div>
             )}
@@ -551,49 +551,49 @@ export function SEOContentStudio({ websiteId, initialTopic, initialOpportunityId
       {/* TAB 2: CONTENT EDITOR & SEO METADATA */}
       {activeTab === 'editor' && (
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-          <div className="lg:col-span-8 bg-slate-900 border border-slate-800 rounded-xl p-6 space-y-4">
-            <div className="flex items-center justify-between border-b border-slate-800 pb-3">
-              <h3 className="text-lg font-bold text-white flex items-center gap-2">
-                <FileText className="w-5 h-5 text-indigo-400" /> Article Editor
+          <div className="lg:col-span-8 bg-white border border-slate-200 shadow-sm rounded-xl p-6 space-y-4">
+            <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+              <h3 className="text-lg font-bold text-slate-900 flex items-center gap-2">
+                <FileText className="w-5 h-5 text-purple-600" /> Article Editor
               </h3>
-              <div className="text-xs text-slate-400">
-                Word Count: <span className="text-white font-semibold">{(articleContent.replace(/<[^>]*>/g, ' ').match(/\s+/g) || []).length}</span>
+              <div className="text-xs text-slate-500">
+                Word Count: <span className="text-slate-900 font-bold">{(articleContent.replace(/<[^>]*>/g, ' ').match(/\s+/g) || []).length}</span>
               </div>
             </div>
 
             <div>
-              <label className="block text-xs font-semibold text-slate-300 uppercase mb-1">Title</label>
+              <label className="block text-xs font-semibold text-slate-700 uppercase mb-1">Title</label>
               <input
                 type="text"
                 value={articleTitle}
                 onChange={(e) => setArticleTitle(e.target.value)}
-                className="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-white font-bold text-lg focus:outline-none focus:border-indigo-500"
+                className="w-full bg-white border border-slate-300 rounded-lg px-3 py-2 text-slate-900 font-bold text-lg focus:outline-none focus:ring-2 focus:ring-purple-500/20 focus:border-purple-600"
               />
             </div>
 
             <div className="grid grid-cols-2 gap-3">
               <div>
-                <label className="block text-xs font-semibold text-slate-300 uppercase mb-1">URL Slug</label>
+                <label className="block text-xs font-semibold text-slate-700 uppercase mb-1">URL Slug</label>
                 <input
                   type="text"
                   value={articleSlug}
                   onChange={(e) => setArticleSlug(e.target.value)}
-                  className="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-slate-300 text-xs focus:outline-none focus:border-indigo-500"
+                  className="w-full bg-white border border-slate-300 rounded-lg px-3 py-2 text-slate-800 text-xs focus:outline-none focus:ring-2 focus:ring-purple-500/20 focus:border-purple-600"
                 />
               </div>
               <div>
-                <label className="block text-xs font-semibold text-slate-300 uppercase mb-1">Category</label>
+                <label className="block text-xs font-semibold text-slate-700 uppercase mb-1">Category</label>
                 <input
                   type="text"
                   value={category}
                   onChange={(e) => setCategory(e.target.value)}
-                  className="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-slate-300 text-xs focus:outline-none focus:border-indigo-500"
+                  className="w-full bg-white border border-slate-300 rounded-lg px-3 py-2 text-slate-800 text-xs focus:outline-none focus:ring-2 focus:ring-purple-500/20 focus:border-purple-600"
                 />
               </div>
             </div>
 
             <div>
-              <label className="block text-xs font-semibold text-slate-300 uppercase mb-1">HTML Content Workspace</label>
+              <label className="block text-xs font-semibold text-slate-700 uppercase mb-1">HTML Content Workspace</label>
               <textarea
                 value={articleContent}
                 onChange={(e) => {
@@ -601,21 +601,21 @@ export function SEOContentStudio({ websiteId, initialTopic, initialOpportunityId
                   runQualityCheck(e.target.value, articleTitle);
                 }}
                 rows={16}
-                className="w-full bg-slate-950 border border-slate-800 rounded-lg p-4 text-slate-200 text-sm font-mono leading-relaxed focus:outline-none focus:border-indigo-500"
+                className="w-full bg-slate-50 border border-slate-200 rounded-lg p-4 text-slate-900 text-sm font-mono leading-relaxed focus:outline-none focus:ring-2 focus:ring-purple-500/20 focus:border-purple-600"
               ></textarea>
             </div>
           </div>
 
           {/* SEO Metadata Side Panel */}
-          <div className="lg:col-span-4 bg-slate-900 border border-slate-800 rounded-xl p-6 space-y-4">
-            <h3 className="text-md font-bold text-white flex items-center gap-2 border-b border-slate-800 pb-3">
-              <Search className="w-4 h-4 text-indigo-400" /> SEO & Social Metadata
+          <div className="lg:col-span-4 bg-white border border-slate-200 shadow-sm rounded-xl p-6 space-y-4">
+            <h3 className="text-md font-bold text-slate-900 flex items-center gap-2 border-b border-slate-100 pb-3">
+              <Search className="w-4 h-4 text-purple-600" /> SEO & Social Metadata
             </h3>
 
             <div>
               <div className="flex justify-between text-xs mb-1">
-                <span className="text-slate-300 font-semibold">SEO Title</span>
-                <span className={seoTitle.length >= 40 && seoTitle.length <= 60 ? 'text-emerald-400' : 'text-amber-400'}>
+                <span className="text-slate-700 font-semibold">SEO Title</span>
+                <span className={seoTitle.length >= 40 && seoTitle.length <= 60 ? 'text-emerald-700 font-semibold' : 'text-amber-700 font-semibold'}>
                   {seoTitle.length}/60 chars
                 </span>
               </div>
@@ -623,14 +623,14 @@ export function SEOContentStudio({ websiteId, initialTopic, initialOpportunityId
                 type="text"
                 value={seoTitle}
                 onChange={(e) => setSeoTitle(e.target.value)}
-                className="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-white text-xs focus:outline-none focus:border-indigo-500"
+                className="w-full bg-white border border-slate-300 rounded-lg px-3 py-2 text-slate-900 text-xs focus:outline-none focus:ring-2 focus:ring-purple-500/20 focus:border-purple-600"
               />
             </div>
 
             <div>
               <div className="flex justify-between text-xs mb-1">
-                <span className="text-slate-300 font-semibold">Meta Description</span>
-                <span className={metaDescription.length >= 120 && metaDescription.length <= 160 ? 'text-emerald-400' : 'text-amber-400'}>
+                <span className="text-slate-700 font-semibold">Meta Description</span>
+                <span className={metaDescription.length >= 120 && metaDescription.length <= 160 ? 'text-emerald-700 font-semibold' : 'text-amber-700 font-semibold'}>
                   {metaDescription.length}/160 chars
                 </span>
               </div>
@@ -638,23 +638,23 @@ export function SEOContentStudio({ websiteId, initialTopic, initialOpportunityId
                 value={metaDescription}
                 onChange={(e) => setMetaDescription(e.target.value)}
                 rows={3}
-                className="w-full bg-slate-800 border border-slate-700 rounded-lg p-2 text-white text-xs focus:outline-none focus:border-indigo-500"
+                className="w-full bg-white border border-slate-300 rounded-lg p-2 text-slate-900 text-xs focus:outline-none focus:ring-2 focus:ring-purple-500/20 focus:border-purple-600"
               ></textarea>
             </div>
 
             <div>
-              <label className="block text-xs font-semibold text-slate-300 uppercase mb-1">Focus Keyword</label>
+              <label className="block text-xs font-semibold text-slate-700 uppercase mb-1">Focus Keyword</label>
               <input
                 type="text"
                 value={focusKeyword}
                 onChange={(e) => setFocusKeyword(e.target.value)}
-                className="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-white text-xs focus:outline-none focus:border-indigo-500"
+                className="w-full bg-white border border-slate-300 rounded-lg px-3 py-2 text-slate-900 text-xs focus:outline-none focus:ring-2 focus:ring-purple-500/20 focus:border-purple-600"
               />
             </div>
 
             <button
               onClick={() => setShowApplyModal(true)}
-              className="w-full bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg px-4 py-2.5 text-sm font-semibold transition flex items-center justify-center gap-2"
+              className="w-full bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg px-4 py-2.5 text-sm font-semibold transition shadow-xs flex items-center justify-center gap-2"
             >
               <ShieldCheck className="w-4 h-4" /> Save / Publish Changes
             </button>
@@ -664,68 +664,68 @@ export function SEOContentStudio({ websiteId, initialTopic, initialOpportunityId
 
       {/* TAB 3: QUALITY & AEO ANALYSIS */}
       {activeTab === 'analysis' && (
-        <div className="bg-slate-900 border border-slate-800 rounded-xl p-6 space-y-6">
+        <div className="bg-white border border-slate-200 shadow-sm rounded-xl p-6 space-y-6">
           {qualityAnalysis ? (
             <div>
-              <div className="flex items-center justify-between border-b border-slate-800 pb-4">
+              <div className="flex items-center justify-between border-b border-slate-100 pb-4">
                 <div>
-                  <h3 className="text-xl font-bold text-white">Content Quality & AEO Readiness Audit</h3>
-                  <p className="text-xs text-slate-400 mt-0.5">Deterministic 0-AI-credit evaluation</p>
+                  <h3 className="text-xl font-bold text-slate-900">Content Quality & AEO Readiness Audit</h3>
+                  <p className="text-xs text-slate-500 mt-0.5">Deterministic 0-AI-credit evaluation</p>
                 </div>
                 <div className="text-right">
-                  <span className="text-3xl font-extrabold text-indigo-400">{qualityAnalysis.overall_score}</span>
+                  <span className="text-3xl font-black text-purple-600">{qualityAnalysis.overall_score}</span>
                   <span className="text-slate-400 text-sm"> / 100</span>
                 </div>
               </div>
 
               {/* Breakdown Grid */}
               <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 mt-6">
-                <div className="bg-slate-800/60 border border-slate-700/50 rounded-lg p-3 text-center">
-                  <div className="text-xs text-slate-400">Readability</div>
-                  <div className="text-lg font-bold text-white mt-1">{qualityAnalysis.breakdown.readability_score}%</div>
+                <div className="bg-slate-50 border border-slate-200 rounded-lg p-3 text-center">
+                  <div className="text-xs text-slate-500 font-medium">Readability</div>
+                  <div className="text-lg font-bold text-slate-900 mt-1">{qualityAnalysis.breakdown.readability_score}%</div>
                 </div>
-                <div className="bg-slate-800/60 border border-slate-700/50 rounded-lg p-3 text-center">
-                  <div className="text-xs text-slate-400">Headings</div>
-                  <div className="text-lg font-bold text-white mt-1">{qualityAnalysis.breakdown.heading_structure_score}%</div>
+                <div className="bg-slate-50 border border-slate-200 rounded-lg p-3 text-center">
+                  <div className="text-xs text-slate-500 font-medium">Headings</div>
+                  <div className="text-lg font-bold text-slate-900 mt-1">{qualityAnalysis.breakdown.heading_structure_score}%</div>
                 </div>
-                <div className="bg-slate-800/60 border border-slate-700/50 rounded-lg p-3 text-center">
-                  <div className="text-xs text-slate-400">Question Coverage</div>
-                  <div className="text-lg font-bold text-white mt-1">{qualityAnalysis.breakdown.question_coverage_score}%</div>
+                <div className="bg-slate-50 border border-slate-200 rounded-lg p-3 text-center">
+                  <div className="text-xs text-slate-500 font-medium">Question Coverage</div>
+                  <div className="text-lg font-bold text-slate-900 mt-1">{qualityAnalysis.breakdown.question_coverage_score}%</div>
                 </div>
-                <div className="bg-slate-800/60 border border-slate-700/50 rounded-lg p-3 text-center">
-                  <div className="text-xs text-slate-400">Metadata</div>
-                  <div className="text-lg font-bold text-white mt-1">{qualityAnalysis.breakdown.metadata_score}%</div>
+                <div className="bg-slate-50 border border-slate-200 rounded-lg p-3 text-center">
+                  <div className="text-xs text-slate-500 font-medium">Metadata</div>
+                  <div className="text-lg font-bold text-slate-900 mt-1">{qualityAnalysis.breakdown.metadata_score}%</div>
                 </div>
-                <div className="bg-slate-800/60 border border-slate-700/50 rounded-lg p-3 text-center">
-                  <div className="text-xs text-slate-400">Internal Links</div>
-                  <div className="text-lg font-bold text-white mt-1">{qualityAnalysis.breakdown.internal_link_score}%</div>
+                <div className="bg-slate-50 border border-slate-200 rounded-lg p-3 text-center">
+                  <div className="text-xs text-slate-500 font-medium">Internal Links</div>
+                  <div className="text-lg font-bold text-slate-900 mt-1">{qualityAnalysis.breakdown.internal_link_score}%</div>
                 </div>
-                <div className="bg-slate-800/60 border border-slate-700/50 rounded-lg p-3 text-center">
-                  <div className="text-xs text-slate-400">AEO Readiness</div>
-                  <div className="text-lg font-bold text-emerald-400 mt-1">{qualityAnalysis.breakdown.aeo_readiness_score}%</div>
+                <div className="bg-slate-50 border border-slate-200 rounded-lg p-3 text-center">
+                  <div className="text-xs text-slate-500 font-medium">AEO Readiness</div>
+                  <div className="text-lg font-bold text-emerald-600 mt-1">{qualityAnalysis.breakdown.aeo_readiness_score}%</div>
                 </div>
               </div>
 
               {/* Audit Findings */}
               <div className="mt-6 space-y-3">
-                <h4 className="text-sm font-semibold text-slate-200">Audit Findings & Recommendations</h4>
+                <h4 className="text-sm font-bold text-slate-900">Audit Findings & Recommendations</h4>
                 {qualityAnalysis.findings.map((item, idx) => (
-                  <div key={idx} className="bg-slate-950 border border-slate-800 rounded-lg p-3 text-xs flex items-start gap-3">
-                    {item.type === 'success' && <CheckCircle2 className="w-4 h-4 text-emerald-400 flex-shrink-0 mt-0.5" />}
-                    {item.type === 'warning' && <AlertTriangle className="w-4 h-4 text-amber-400 flex-shrink-0 mt-0.5" />}
-                    {item.type === 'error' && <AlertTriangle className="w-4 h-4 text-red-400 flex-shrink-0 mt-0.5" />}
+                  <div key={idx} className="bg-slate-50 border border-slate-200 rounded-lg p-3 text-xs flex items-start gap-3">
+                    {item.type === 'success' && <CheckCircle2 className="w-4 h-4 text-emerald-600 flex-shrink-0 mt-0.5" />}
+                    {item.type === 'warning' && <AlertTriangle className="w-4 h-4 text-amber-600 flex-shrink-0 mt-0.5" />}
+                    {item.type === 'error' && <AlertTriangle className="w-4 h-4 text-rose-600 flex-shrink-0 mt-0.5" />}
                     <div>
-                      <div className="font-semibold text-slate-200">
+                      <div className="font-semibold text-slate-900">
                         [{item.category}] {item.message}
                       </div>
-                      {item.recommendation && <div className="text-slate-400 mt-1">{item.recommendation}</div>}
+                      {item.recommendation && <div className="text-slate-600 mt-1">{item.recommendation}</div>}
                     </div>
                   </div>
                 ))}
               </div>
             </div>
           ) : (
-            <div className="text-center py-12 text-slate-400">
+            <div className="text-center py-12 text-slate-500">
               Run quality check in the editor tab to view analysis.
             </div>
           )}
@@ -734,19 +734,19 @@ export function SEOContentStudio({ websiteId, initialTopic, initialOpportunityId
 
       {/* TAB 4: CONTENT REFRESH AUDIT */}
       {activeTab === 'refresh' && (
-        <div className="bg-slate-900 border border-slate-800 rounded-xl p-6 space-y-6">
-          <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 border-b border-slate-800 pb-4">
+        <div className="bg-white border border-slate-200 shadow-sm rounded-xl p-6 space-y-6">
+          <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 border-b border-slate-100 pb-4">
             <div>
-              <h3 className="text-lg font-bold text-white flex items-center gap-2">
-                <RefreshCw className="w-5 h-5 text-indigo-400" /> Content Refresh Audit Workflow
+              <h3 className="text-lg font-bold text-slate-900 flex items-center gap-2">
+                <RefreshCw className="w-5 h-5 text-purple-600" /> Content Refresh Audit Workflow
               </h3>
-              <p className="text-xs text-slate-400 mt-0.5">Select an existing blog post or page to audit for freshness and gaps.</p>
+              <p className="text-xs text-slate-500 mt-0.5">Select an existing blog post or page to audit for freshness and gaps.</p>
             </div>
             <div className="flex items-center gap-3 w-full md:w-auto">
               <select
                 value={selectedPostId}
                 onChange={(e) => setSelectedPostId(e.target.value)}
-                className="bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-white text-xs focus:outline-none focus:border-indigo-500"
+                className="bg-white border border-slate-300 rounded-lg px-3 py-2 text-slate-900 text-xs focus:outline-none focus:ring-2 focus:ring-purple-500/20 focus:border-purple-600"
               >
                 <option value="">Select Existing Blog Post...</option>
                 {blogPosts.map((p) => (
@@ -758,7 +758,7 @@ export function SEOContentStudio({ websiteId, initialTopic, initialOpportunityId
               <button
                 onClick={handleRunRefresh}
                 disabled={loading || !selectedPostId}
-                className="bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg px-4 py-2 text-xs font-semibold transition flex items-center gap-2 disabled:opacity-50"
+                className="bg-purple-600 hover:bg-purple-700 text-white rounded-lg px-4 py-2 text-xs font-semibold transition shadow-xs flex items-center gap-2 disabled:opacity-50"
               >
                 {loading ? <RefreshCw className="w-4 h-4 animate-spin" /> : <Search className="w-4 h-4" />} Audit Refresh
               </button>
@@ -768,43 +768,43 @@ export function SEOContentStudio({ websiteId, initialTopic, initialOpportunityId
           {refreshReport && (
             <div className="space-y-6">
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div className="bg-slate-800/60 border border-slate-700/50 rounded-lg p-4">
-                  <div className="text-xs text-slate-400">Quality Score</div>
-                  <div className="text-2xl font-bold text-white mt-1">{refreshReport.quality_score} / 100</div>
+                <div className="bg-slate-50 border border-slate-200 rounded-lg p-4">
+                  <div className="text-xs text-slate-500 font-medium">Quality Score</div>
+                  <div className="text-2xl font-bold text-slate-900 mt-1">{refreshReport.quality_score} / 100</div>
                 </div>
-                <div className="bg-slate-800/60 border border-slate-700/50 rounded-lg p-4">
-                  <div className="text-xs text-slate-400">Freshness Status</div>
-                  <div className="text-lg font-bold text-amber-400 capitalize mt-1">{refreshReport.metadata_freshness.replace('_', ' ')}</div>
+                <div className="bg-slate-50 border border-slate-200 rounded-lg p-4">
+                  <div className="text-xs text-slate-500 font-medium">Freshness Status</div>
+                  <div className="text-lg font-bold text-amber-600 capitalize mt-1">{refreshReport.metadata_freshness.replace('_', ' ')}</div>
                 </div>
-                <div className="bg-slate-800/60 border border-slate-700/50 rounded-lg p-4">
-                  <div className="text-xs text-slate-400">AEO Readiness</div>
-                  <div className="text-lg font-bold text-emerald-400 mt-1">{refreshReport.aeo_readiness_score}%</div>
+                <div className="bg-slate-50 border border-slate-200 rounded-lg p-4">
+                  <div className="text-xs text-slate-500 font-medium">AEO Readiness</div>
+                  <div className="text-lg font-bold text-emerald-600 mt-1">{refreshReport.aeo_readiness_score}%</div>
                 </div>
               </div>
 
               <div>
-                <h4 className="text-sm font-semibold text-slate-200 mb-3">Actionable Refresh Recommendations</h4>
+                <h4 className="text-sm font-bold text-slate-900 mb-3">Actionable Refresh Recommendations</h4>
                 <div className="space-y-3">
                   {refreshReport.recommendations.map((rec) => (
-                    <div key={rec.id} className="bg-slate-950 border border-slate-800 rounded-lg p-4 space-y-1 text-xs">
+                    <div key={rec.id} className="bg-slate-50 border border-slate-200 rounded-lg p-4 space-y-1 text-xs">
                       <div className="flex items-center justify-between">
-                        <span className="font-bold text-indigo-300 uppercase">{rec.category}</span>
+                        <span className="font-bold text-purple-700 uppercase">{rec.category}</span>
                         <span
                           className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase ${
-                            rec.severity === 'critical' ? 'bg-red-500/20 text-red-400' : 'bg-amber-500/20 text-amber-400'
+                            rec.severity === 'critical' ? 'bg-rose-100 text-rose-800' : 'bg-amber-100 text-amber-800'
                           }`}
                         >
                           {rec.severity}
                         </span>
                       </div>
-                      <div className="font-semibold text-white text-sm">{rec.what}</div>
-                      <div className="text-slate-400">
+                      <div className="font-bold text-slate-900 text-sm">{rec.what}</div>
+                      <div className="text-slate-600">
                         <strong>Why:</strong> {rec.why}
                       </div>
-                      <div className="text-slate-400">
+                      <div className="text-slate-600">
                         <strong>Where:</strong> {rec.where}
                       </div>
-                      <div className="text-emerald-400 pt-1">
+                      <div className="text-emerald-700 font-medium pt-1">
                         <strong>Action:</strong> {rec.suggested_action}
                       </div>
                     </div>
@@ -818,17 +818,17 @@ export function SEOContentStudio({ websiteId, initialTopic, initialOpportunityId
 
       {/* TAB 5: BEFORE VS AFTER REVIEW */}
       {activeTab === 'diff' && (
-        <div className="bg-slate-900 border border-slate-800 rounded-xl p-6 space-y-6">
-          <div className="flex items-center justify-between border-b border-slate-800 pb-4">
+        <div className="bg-white border border-slate-200 shadow-sm rounded-xl p-6 space-y-6">
+          <div className="flex items-center justify-between border-b border-slate-100 pb-4">
             <div>
-              <h3 className="text-lg font-bold text-white flex items-center gap-2">
-                <FileDiff className="w-5 h-5 text-indigo-400" /> Before vs After Content Diff Review
+              <h3 className="text-lg font-bold text-slate-900 flex items-center gap-2">
+                <FileDiff className="w-5 h-5 text-purple-600" /> Before vs After Content Diff Review
               </h3>
-              <p className="text-xs text-slate-400 mt-0.5">Review all proposed content & metadata changes before applying them.</p>
+              <p className="text-xs text-slate-500 mt-0.5">Review all proposed content & metadata changes before applying them.</p>
             </div>
             <button
               onClick={() => setShowApplyModal(true)}
-              className="bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg px-4 py-2 text-xs font-semibold transition flex items-center gap-2"
+              className="bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg px-4 py-2 text-xs font-semibold transition shadow-xs flex items-center gap-2"
             >
               <ShieldCheck className="w-4 h-4" /> Approve & Apply
             </button>
@@ -837,64 +837,64 @@ export function SEOContentStudio({ websiteId, initialTopic, initialOpportunityId
           {beforeAfterDiff ? (
             <div className="space-y-6">
               <div className="grid grid-cols-3 gap-4 text-center">
-                <div className="bg-slate-800/60 p-3 rounded-lg border border-slate-700/50">
-                  <div className="text-xs text-slate-400">Added Sections</div>
-                  <div className="text-xl font-bold text-emerald-400">{beforeAfterDiff.added_lines_count}</div>
+                <div className="bg-slate-50 p-3 rounded-lg border border-slate-200">
+                  <div className="text-xs text-slate-500 font-medium">Added Sections</div>
+                  <div className="text-xl font-bold text-emerald-600">{beforeAfterDiff.added_lines_count}</div>
                 </div>
-                <div className="bg-slate-800/60 p-3 rounded-lg border border-slate-700/50">
-                  <div className="text-xs text-slate-400">Modified Sections</div>
-                  <div className="text-xl font-bold text-amber-400">{beforeAfterDiff.modified_sections_count}</div>
+                <div className="bg-slate-50 p-3 rounded-lg border border-slate-200">
+                  <div className="text-xs text-slate-500 font-medium">Modified Sections</div>
+                  <div className="text-xl font-bold text-amber-600">{beforeAfterDiff.modified_sections_count}</div>
                 </div>
-                <div className="bg-slate-800/60 p-3 rounded-lg border border-slate-700/50">
-                  <div className="text-xs text-slate-400">Removed Sections</div>
-                  <div className="text-xl font-bold text-red-400">{beforeAfterDiff.removed_lines_count}</div>
+                <div className="bg-slate-50 p-3 rounded-lg border border-slate-200">
+                  <div className="text-xs text-slate-500 font-medium">Removed Sections</div>
+                  <div className="text-xl font-bold text-rose-600">{beforeAfterDiff.removed_lines_count}</div>
                 </div>
               </div>
 
               {/* Content Visual Diff */}
-              <div className="bg-slate-950 border border-slate-800 rounded-lg p-4 font-mono text-xs text-slate-300 max-h-96 overflow-y-auto">
+              <div className="bg-slate-50 border border-slate-200 rounded-lg p-4 font-mono text-xs text-slate-800 max-h-96 overflow-y-auto">
                 <div dangerouslySetInnerHTML={{ __html: beforeAfterDiff.content_diff_html }}></div>
               </div>
             </div>
           ) : (
-            <div className="text-center py-12 text-slate-400">Click "5. Before vs After Review" to generate diff comparison.</div>
+            <div className="text-center py-12 text-slate-500">Click "5. Before vs After Review" to generate diff comparison.</div>
           )}
         </div>
       )}
 
       {/* EXPLICIT USER APPROVAL MODAL */}
       {showApplyModal && (
-        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="bg-slate-900 border border-slate-800 rounded-xl p-6 max-w-lg w-full space-y-4 shadow-2xl">
-            <h3 className="text-lg font-bold text-white flex items-center gap-2">
-              <ShieldCheck className="w-5 h-5 text-emerald-400" /> Explicit User Approval Required
+        <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-xs z-50 flex items-center justify-center p-4">
+          <div className="bg-white border border-slate-200 rounded-xl p-6 max-w-lg w-full space-y-4 shadow-xl">
+            <h3 className="text-lg font-bold text-slate-900 flex items-center gap-2">
+              <ShieldCheck className="w-5 h-5 text-emerald-600" /> Explicit User Approval Required
             </h3>
-            <p className="text-xs text-slate-300 leading-relaxed">
-              Are you sure you want to apply these content and SEO changes to <strong className="text-white">{articleTitle}</strong>? This action will save a revision record and update the content.
+            <p className="text-xs text-slate-600 leading-relaxed">
+              Are you sure you want to apply these content and SEO changes to <strong className="text-slate-900">{articleTitle}</strong>? This action will save a revision record and update the content.
             </p>
 
             <div>
-              <label className="block text-xs font-semibold text-slate-300 mb-1">Reason / Change Summary</label>
+              <label className="block text-xs font-semibold text-slate-700 mb-1">Reason / Change Summary</label>
               <input
                 type="text"
                 value={changeSummary}
                 onChange={(e) => setChangeSummary(e.target.value)}
                 placeholder="e.g. Added AEO direct answer section and refreshed metadata"
-                className="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-white text-xs focus:outline-none focus:border-indigo-500"
+                className="w-full bg-white border border-slate-300 rounded-lg px-3 py-2 text-slate-900 text-xs focus:outline-none focus:ring-2 focus:ring-purple-500/20 focus:border-purple-600"
               />
             </div>
 
             <div className="flex justify-end gap-3 pt-2">
               <button
                 onClick={() => setShowApplyModal(false)}
-                className="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-lg text-xs font-semibold transition"
+                className="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg text-xs font-semibold transition"
               >
                 Cancel
               </button>
               <button
                 onClick={handleApplyChanges}
                 disabled={loading}
-                className="px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg text-xs font-semibold transition flex items-center gap-2 disabled:opacity-50"
+                className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-xs font-semibold transition shadow-xs flex items-center gap-2 disabled:opacity-50"
               >
                 {loading ? <RefreshCw className="w-4 h-4 animate-spin" /> : <CheckCircle2 className="w-4 h-4" />} Confirm & Apply
               </button>

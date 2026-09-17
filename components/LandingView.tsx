@@ -25,6 +25,7 @@ import {
   ChevronRight,
   FolderOpen,
   HelpCircle,
+  ChevronDown,
   FileCode,
   Layout,
   Layers,
@@ -37,6 +38,69 @@ import {
 } from "lucide-react";
 import { UploadedImage } from "@/lib/types";
 import { SUPPORTED_LANGUAGES, getLanguageConfig } from "@/lib/multilingual";
+import { HeroAIBackground } from "./HeroAIBackground";
+import { Footer } from "@/components/Footer";
+import { PLANS } from "@/lib/constants";
+
+const FAQ_ITEMS = [
+  {
+    question: "What is Codeaxys AI Website Builder?",
+    answer:
+      "Codeaxys is an AI powered website builder that helps you create, edit, and manage professional websites using simple instructions without needing to write code.",
+  },
+  {
+    question: "Do I need coding knowledge to use Codeaxys?",
+    answer:
+      "No. You can create and customize your website using AI and visual editing tools without technical coding knowledge.",
+  },
+  {
+    question: "What is included in every plan?",
+    answer:
+      "Every plan includes AI website generation, website editing, unlimited page creation, responsive design tools, global styling controls, and the complete SEO Intelligence Suite.",
+  },
+  {
+    question: "How many websites can I create?",
+    answer:
+      "The number of websites depends on your plan. Starter includes 1 website, Pro includes 3, Business includes 6, and Agency includes 15 websites.",
+  },
+  {
+    question: "Can I create multiple pages for my website?",
+    answer: "Yes. All plans include unlimited page creation.",
+  },
+  {
+    question: "Can I connect my own domain?",
+    answer: "Yes. You can connect and publish your website using your own custom domain.",
+  },
+  {
+    question: "Is SEO included in all plans?",
+    answer: "Yes. The complete SEO Intelligence Suite is included with all plans.",
+  },
+  {
+    question: "Can I edit my website after it is generated?",
+    answer:
+      "Yes. You can continue editing, refining, and customizing your website after AI generation.",
+  },
+  {
+    question: "Can I upgrade my plan later?",
+    answer:
+      "Yes. You can upgrade your subscription as your website and business requirements grow.",
+  },
+  {
+    question: "What are AI Credits used for?",
+    answer:
+      "AI Credits are used for AI powered operations such as website generation and other AI assisted actions within the platform.",
+  },
+  {
+    question: "Can I use Codeaxys for business websites?",
+    answer:
+      "Yes. Codeaxys can be used to create websites for businesses, agencies, startups, ecommerce businesses, professionals, and many other industries.",
+  },
+  {
+    question: "Do I need separate tools for SEO?",
+    answer:
+      "No. Codeaxys includes its SEO Intelligence Suite directly within the platform, so you can manage your website SEO from the same system.",
+  },
+];
 
 interface LandingViewProps {
   prompt: string;
@@ -46,7 +110,7 @@ interface LandingViewProps {
   isGenerating: boolean;
   error: string | null;
   uploadedImages: UploadedImage[];
-  onAddImages: (files: FileList | null) => void;
+  onAddImages: (files: FileList) => void;
   onRemoveImage: (id: string) => void;
 }
 
@@ -65,6 +129,7 @@ export function LandingView({
 }: LandingViewProps) {
   const [isListening, setIsListening] = useState(false);
   const [selectedLang, setSelectedLang] = useState<string>("auto");
+  const [openFaqIndex, setOpenFaqIndex] = useState<number | null>(0);
   const isListeningRef = useRef(false);
   const recognitionRef = useRef<any>(null);
   const initialPromptRef = useRef(prompt);
@@ -267,14 +332,12 @@ export function LandingView({
       {/* SECTION 1: HERO SECTION */}
       <section id="hero-generator" className="relative pt-8 sm:pt-12 pb-16 px-4 sm:px-8 flex flex-col items-center justify-center bg-white border-b border-slate-200/80 overflow-hidden">
         {/* Subtle Futuristic Animated Background System */}
-        <div className="absolute inset-0 pointer-events-none overflow-hidden -z-10">
+        <div className="absolute inset-0 pointer-events-none overflow-hidden z-0">
+          {/* Futuristic Lightweight AI Animated Canvas */}
+          <HeroAIBackground />
+
           {/* Faint Technical Dot Grid Pattern with Mask Fade */}
           <div className="absolute inset-0 bg-[radial-gradient(#9333ea_1px,transparent_1px)] [background-size:28px_28px] opacity-[0.14] [mask-image:radial-gradient(ellipse_60%_50%_at_50%_40%,#000_70%,transparent_100%)]" />
-
-          {/* Floating Ambient Light Glow Orbs */}
-          <div className="absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[700px] h-[400px] bg-gradient-to-tr from-purple-200/35 via-indigo-100/45 to-cyan-100/30 rounded-full blur-3xl animate-float-slow-1" />
-          <div className="absolute top-1/3 left-1/3 -translate-x-1/2 w-[450px] h-[320px] bg-purple-300/20 rounded-full blur-3xl animate-float-slow-2" />
-          <div className="absolute top-1/2 right-1/4 w-[400px] h-[300px] bg-indigo-200/25 rounded-full blur-3xl animate-float-slow-1" />
 
           {/* Quiet AI Node Pulse Dots Overlaid on Grid Intersections */}
           <div className="absolute top-[22%] left-[18%] sm:left-[28%] w-2 h-2 rounded-full bg-purple-600 animate-ai-pulse-1 shadow-sm shadow-purple-500" />
@@ -283,13 +346,7 @@ export function LandingView({
           <div className="absolute top-[58%] right-[20%] sm:right-[30%] w-2 h-2 rounded-full bg-purple-500 animate-ai-pulse-1 shadow-sm shadow-purple-400" />
         </div>
 
-        <div className="max-w-4xl w-full flex flex-col items-center text-center space-y-6">
-          {/* AI Badge */}
-          <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-purple-50 border border-purple-200/90 text-purple-700 text-xs font-bold tracking-wide shadow-2xs">
-            <Sparkles className="w-3.5 h-3.5 text-purple-600" />
-            <span>✦ AI-Powered Website Builder</span>
-          </div>
-
+        <div className="relative z-10 max-w-4xl w-full flex flex-col items-center text-center space-y-6">
           {/* Headline & Subtitle */}
           <div className="space-y-3 max-w-3xl">
             <h1 className="text-3xl sm:text-5xl lg:text-6xl font-black tracking-tight text-slate-900 leading-[1.15]">
@@ -299,7 +356,7 @@ export function LandingView({
               </span>
             </h1>
             <p className="text-slate-600 text-sm sm:text-lg font-normal leading-relaxed max-w-2xl mx-auto">
-              Turn your idea into a complete, responsive website with AI. Generate, edit, refine and publish — all from one powerful workspace.
+              Turn your ideas into powerful, responsive websites with AI. Create, edit, refine, optimize with AI powered SEO, and publish — all from one intelligent workspace.
             </p>
           </div>
 
@@ -375,15 +432,18 @@ export function LandingView({
                 </div>
 
                 {/* Textarea Prompt Focus Input Area */}
-                <div className="relative">
+                <div className="relative space-y-1.5">
                   <textarea
                     value={prompt}
                     onChange={(e) => setPrompt(e.target.value)}
-                    placeholder="Describe the website you want to create in detail... (e.g. 'Build a luxury dental clinic website with appointment booking, services grid, and patient reviews')"
+                    placeholder="Describe your website idea or paste a prompt here..."
                     rows={4}
                     disabled={isGenerating}
                     className="w-full bg-white border border-slate-200 focus:border-purple-600 focus:ring-4 focus:ring-purple-500/10 rounded-2xl p-4.5 sm:p-5 text-slate-900 placeholder-slate-400 outline-none resize-none transition-all text-sm sm:text-base font-sans leading-relaxed shadow-inner/5"
                   />
+                  <p className="text-xs text-slate-500 font-medium px-1">
+                    <span className="font-semibold text-purple-600">Need help?</span> Talk to our Codeaxys AI Agent and let it help you create the right prompt for your website.
+                  </p>
                 </div>
 
                 {/* Uploaded Images Thumbnail Chips */}
@@ -945,20 +1005,20 @@ export function LandingView({
           {/* Header */}
           <div className="text-center space-y-4 max-w-3xl mx-auto">
             <span className="inline-flex items-center gap-1.5 text-xs font-bold text-purple-700 uppercase tracking-widest bg-purple-100/80 px-4 py-1.5 rounded-full border border-purple-200/80 shadow-xs">
-              <Search className="w-3.5 h-3.5 text-purple-600" /> Search & Growth Suite
+              <Search className="w-3.5 h-3.5 text-purple-600" /> BUILT-IN SEO OPTIMIZATION
             </span>
             <h2 className="text-3xl sm:text-5xl font-black text-slate-900 tracking-tight leading-tight">
-              Everything you need to help your <br className="hidden sm:inline" />
+              SEO intelligence built into <br className="hidden sm:inline" />
               <span className="bg-gradient-to-r from-purple-600 via-indigo-600 to-purple-800 bg-clip-text text-transparent">
-                website get discovered.
+                every website
               </span>
             </h2>
             <p className="text-slate-600 text-sm sm:text-base font-medium leading-relaxed max-w-2xl mx-auto">
-              Show up on Google, track visitor growth, and connect your favorite analytics tools — automatically optimized and ready out of the box.
+              Understand your website, find what needs attention, and improve your search visibility with SEO tools built directly into Codeaxys.
             </p>
           </div>
 
-          {/* 4-Step Process Bar: Build -> Optimize -> Connect -> Track */}
+          {/* 4-Step Process Bar */}
           <div className="bg-white/80 backdrop-blur-md p-4 sm:p-5 rounded-2xl border border-slate-200/90 shadow-md max-w-4xl mx-auto grid grid-cols-2 lg:grid-cols-4 gap-3 text-center">
             <div className="flex items-center justify-center gap-2 p-2.5 rounded-xl bg-purple-50/70 border border-purple-100 text-xs font-bold text-slate-800">
               <span className="w-5 h-5 rounded-full bg-purple-600 text-white text-[10px] flex items-center justify-center font-black">1</span>
@@ -966,15 +1026,15 @@ export function LandingView({
             </div>
             <div className="flex items-center justify-center gap-2 p-2.5 rounded-xl bg-indigo-50/70 border border-indigo-100 text-xs font-bold text-slate-800">
               <span className="w-5 h-5 rounded-full bg-indigo-600 text-white text-[10px] flex items-center justify-center font-black">2</span>
-              <span>Auto-Optimize</span>
+              <span>Analyze SEO</span>
             </div>
             <div className="flex items-center justify-center gap-2 p-2.5 rounded-xl bg-blue-50/70 border border-blue-100 text-xs font-bold text-slate-800">
               <span className="w-5 h-5 rounded-full bg-blue-600 text-white text-[10px] flex items-center justify-center font-black">3</span>
-              <span>Connect Tools</span>
+              <span>Optimize & Connect</span>
             </div>
             <div className="flex items-center justify-center gap-2 p-2.5 rounded-xl bg-emerald-50/70 border border-emerald-100 text-xs font-bold text-slate-800">
               <span className="w-5 h-5 rounded-full bg-emerald-600 text-white text-[10px] flex items-center justify-center font-black">4</span>
-              <span>Track Growth</span>
+              <span>Track & Grow</span>
             </div>
           </div>
 
@@ -988,11 +1048,11 @@ export function LandingView({
                 <div className="w-3 h-3 rounded-full bg-red-500/80" />
                 <div className="w-3 h-3 rounded-full bg-amber-500/80" />
                 <div className="w-3 h-3 rounded-full bg-emerald-500/80" />
-                <span className="text-xs font-bold text-slate-300 ml-2 font-mono">codexys.ai/dashboard/seo-growth</span>
+                <span className="text-xs font-bold text-slate-300 ml-2 font-mono">codeaxys.ai/dashboard/seo</span>
               </div>
               <div className="flex items-center gap-2">
                 <span className="inline-flex items-center gap-1.5 text-xs font-bold text-emerald-400 bg-emerald-950/80 px-3 py-1 rounded-full border border-emerald-800/60 font-sans">
-                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-ping" /> Search Engine Sync Active
+                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-ping" /> SEO Intelligence Active
                 </span>
               </div>
             </div>
@@ -1003,30 +1063,30 @@ export function LandingView({
               <div className="md:col-span-7 bg-slate-900/90 p-6 rounded-2xl border border-slate-800 space-y-5 flex flex-col justify-between">
                 <div className="flex items-center justify-between">
                   <div>
-                    <span className="text-[10px] font-bold text-purple-400 uppercase tracking-widest block font-mono">Search Overview</span>
-                    <h4 className="text-base sm:text-lg font-bold text-white">Website Visibility & Speed</h4>
+                    <span className="text-[10px] font-bold text-purple-400 uppercase tracking-widest block font-mono">SEO OVERVIEW</span>
+                    <h4 className="text-base sm:text-lg font-bold text-white">Website SEO Health</h4>
                   </div>
                   <span className="text-xs font-bold text-emerald-400 bg-emerald-950 px-2.5 py-1 rounded-lg border border-emerald-800">
-                    +142% Google Traffic
+                    SEO Health Improving
                   </span>
                 </div>
 
                 {/* Performance stats chips */}
                 <div className="grid grid-cols-3 gap-3">
                   <div className="bg-slate-950 p-3 rounded-xl border border-slate-800">
-                    <span className="text-[10px] text-slate-400 font-medium block">Speed Score</span>
-                    <span className="text-base sm:text-lg font-black text-emerald-400">98/100</span>
-                    <span className="text-[9px] text-emerald-500 font-bold block">Fast Loading</span>
+                    <span className="text-[10px] text-slate-400 font-medium block">SEO Health</span>
+                    <span className="text-base sm:text-lg font-black text-emerald-400">80/100</span>
+                    <span className="text-[9px] text-emerald-500 font-bold block">Unified SEO Score</span>
                   </div>
                   <div className="bg-slate-950 p-3 rounded-xl border border-slate-800">
-                    <span className="text-[10px] text-slate-400 font-medium block">Search Index</span>
-                    <span className="text-base sm:text-lg font-black text-purple-400">Indexed</span>
-                    <span className="text-[9px] text-purple-300 font-bold block">Sitemap Ready</span>
+                    <span className="text-[10px] text-slate-400 font-medium block">Search Visibility</span>
+                    <span className="text-base sm:text-lg font-black text-purple-400">Connected</span>
+                    <span className="text-[9px] text-purple-300 font-bold block">Search Console</span>
                   </div>
                   <div className="bg-slate-950 p-3 rounded-xl border border-slate-800">
-                    <span className="text-[10px] text-slate-400 font-medium block">SEO Score</span>
-                    <span className="text-base sm:text-lg font-black text-blue-400">100%</span>
-                    <span className="text-[9px] text-blue-300 font-bold block">Optimized</span>
+                    <span className="text-[10px] text-slate-400 font-medium block">SEO Opportunities</span>
+                    <span className="text-base sm:text-lg font-black text-blue-400">12</span>
+                    <span className="text-[9px] text-blue-300 font-bold block">Actions Available</span>
                   </div>
                 </div>
 
@@ -1034,43 +1094,43 @@ export function LandingView({
                 <div className="bg-slate-950 p-4 rounded-xl border border-slate-800 text-left space-y-1.5 shadow-inner">
                   <div className="flex items-center justify-between text-[10px] text-slate-400 font-mono">
                     <span className="flex items-center gap-1"><Search className="w-3 h-3 text-blue-400" /> Google Search Preview</span>
-                    <span className="text-emerald-400 font-bold font-sans">Auto-Generated</span>
+                    <span className="text-emerald-400 font-bold font-sans">Optimized</span>
                   </div>
                   <div className="text-[11px] text-emerald-400 font-mono truncate">https://yourwebsite.com</div>
                   <h5 className="text-xs sm:text-sm font-bold text-blue-400 hover:underline cursor-pointer">
-                    Your Business Name | Best Services & Solutions
+                    Your Business Website | Professional Services
                   </h5>
                   <p className="text-[11px] text-slate-300 leading-snug">
-                    Discover top-rated services, instant bookings, and professional solutions tailored for your business needs...
+                    Explore your services, content, and business information with a clear search friendly website experience.
                   </p>
                 </div>
               </div>
 
-              {/* Right Widget: Social Preview & Key Capabilities (5 cols) */}
+              {/* Right Widget: AI SEO Insights (5 cols) */}
               <div className="md:col-span-5 bg-slate-900/90 p-6 rounded-2xl border border-slate-800 space-y-4 flex flex-col justify-between">
                 <div>
                   <div className="flex items-center justify-between text-indigo-400 font-bold text-xs mb-2">
                     <span className="flex items-center gap-1.5">
-                      <Globe className="w-3.5 h-3.5 text-indigo-400" /> Social Media Sharing
+                      <Sparkles className="w-3.5 h-3.5 text-indigo-400" /> AI SEO INSIGHTS
                     </span>
                     <span className="bg-indigo-500/20 text-indigo-300 text-[10px] px-2 py-0.5 rounded border border-indigo-500/30 font-sans">
-                      Social Card
+                      Active Recommendations
                     </span>
                   </div>
-                  <h4 className="text-base font-bold text-white">Social Sharing Preview</h4>
+                  <h4 className="text-base font-bold text-white">Actionable SEO recommendations</h4>
                   <p className="text-xs text-slate-400 mt-1 leading-relaxed">
-                    Your website automatically looks stunning when shared on WhatsApp, LinkedIn, Twitter, or Facebook.
+                    Review important opportunities, improve key pages, and keep your website’s SEO health moving in the right direction.
                   </p>
                 </div>
 
-                {/* Mini Social Card Preview */}
+                {/* Mini Insights Card Preview */}
                 <div className="bg-slate-950 p-3.5 rounded-xl border border-slate-800 space-y-2">
                   <div className="h-24 rounded-lg bg-gradient-to-r from-purple-900/60 via-indigo-900/60 to-purple-950/80 border border-purple-800/40 flex flex-col items-center justify-center text-center p-3 text-xs font-bold text-purple-200 space-y-1">
                     <Sparkles className="w-5 h-5 text-purple-400" />
-                    <span>Your Business Website</span>
+                    <span>Actionable Recommendations</span>
                   </div>
-                  <div className="text-[11px] font-bold text-white truncate">Your Business — Professional Services</div>
-                  <div className="text-[10px] text-slate-400 truncate">yourwebsite.com</div>
+                  <div className="text-[11px] font-bold text-white truncate">Optimized Metadata & Structure</div>
+                  <div className="text-[10px] text-slate-400 truncate">12 Improvements Available</div>
                 </div>
               </div>
             </div>
@@ -1080,10 +1140,10 @@ export function LandingView({
           <div className="bg-white p-8 sm:p-10 rounded-3xl border border-slate-200/90 shadow-xl shadow-purple-900/5 space-y-8">
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-100 pb-6">
               <div className="space-y-1">
-                <span className="text-xs font-bold text-purple-700 uppercase tracking-wider block">Integrations & Analytics</span>
+                <span className="text-xs font-bold text-purple-700 uppercase tracking-wider block">INTEGRATIONS & ANALYTICS</span>
                 <h3 className="text-2xl sm:text-3xl font-black text-slate-900">Connect the tools you already use.</h3>
                 <p className="text-slate-600 text-xs sm:text-sm font-medium">
-                  Track your website performance, discover SEO opportunities, and understand how people find your website.
+                  Bring your search and website data together to understand performance, uncover opportunities, and make informed SEO decisions.
                 </p>
               </div>
               <span className="inline-flex items-center gap-1.5 text-xs font-bold text-emerald-700 bg-emerald-50 px-3.5 py-1.5 rounded-full border border-emerald-200 shrink-0">
@@ -1101,28 +1161,28 @@ export function LandingView({
                   </div>
                   <h4 className="text-sm font-bold text-slate-900">Google Search Console</h4>
                   <p className="text-xs text-slate-600 leading-relaxed font-medium">
-                    Monitor Google search rankings, index status, and search traffic keywords.
+                    Connect your search data to understand queries, impressions, clicks, rankings, and indexing performance.
                   </p>
                 </div>
                 <div className="pt-2 flex items-center justify-between text-[11px] font-bold text-blue-700">
-                  <span>Ready to connect</span>
+                  <span>Search performance</span>
                   <span className="text-blue-500 group-hover:translate-x-1 transition-transform">→</span>
                 </div>
               </div>
 
-              {/* Integration 2: Google Analytics (GA4) */}
+              {/* Integration 2: Google Analytics */}
               <div className="p-5 rounded-2xl bg-slate-50 border border-slate-200/80 hover:border-purple-300 transition-all space-y-3 flex flex-col justify-between group">
                 <div className="space-y-2">
                   <div className="w-10 h-10 rounded-xl bg-amber-50 border border-amber-200 text-amber-600 flex items-center justify-center font-bold text-sm">
                     <BarChart3 className="w-5 h-5 text-amber-600" />
                   </div>
-                  <h4 className="text-sm font-bold text-slate-900">Google Analytics (GA4)</h4>
+                  <h4 className="text-sm font-bold text-slate-900">Google Analytics</h4>
                   <p className="text-xs text-slate-600 leading-relaxed font-medium">
-                    Understand visitor behavior, track traffic sources, and measure conversions.
+                    Understand how visitors reach your website, what they do on your pages, and where your traffic comes from.
                   </p>
                 </div>
                 <div className="pt-2 flex items-center justify-between text-[11px] font-bold text-amber-700">
-                  <span>Instant tracking</span>
+                  <span>Traffic insights</span>
                   <span className="text-amber-500 group-hover:translate-x-1 transition-transform">→</span>
                 </div>
               </div>
@@ -1135,11 +1195,11 @@ export function LandingView({
                   </div>
                   <h4 className="text-sm font-bold text-slate-900">Ahrefs Integration</h4>
                   <p className="text-xs text-slate-600 leading-relaxed font-medium">
-                    Audit website health, monitor backlink growth, and find high-ranking keywords.
+                    Connect your SEO data to explore keywords, backlinks, competitors, and search opportunities.
                   </p>
                 </div>
                 <div className="pt-2 flex items-center justify-between text-[11px] font-bold text-indigo-700">
-                  <span>Keyword sync</span>
+                  <span>SEO intelligence</span>
                   <span className="text-indigo-500 group-hover:translate-x-1 transition-transform">→</span>
                 </div>
               </div>
@@ -1152,11 +1212,11 @@ export function LandingView({
                   </div>
                   <h4 className="text-sm font-bold text-slate-900">Semrush Integration</h4>
                   <p className="text-xs text-slate-600 leading-relaxed font-medium">
-                    Analyze competitor strategies, track search visibility, and optimize content.
+                    Bring competitor, keyword, ranking, and search visibility data into your SEO workflow.
                   </p>
                 </div>
                 <div className="pt-2 flex items-center justify-between text-[11px] font-bold text-orange-700">
-                  <span>Rank tracker</span>
+                  <span>Search insights</span>
                   <span className="text-orange-500 group-hover:translate-x-1 transition-transform">→</span>
                 </div>
               </div>
@@ -1165,88 +1225,88 @@ export function LandingView({
 
           {/* 7 User-Friendly Core Features Bento Grid */}
           <div className="space-y-6">
-            <div className="text-center space-y-2 max-w-xl mx-auto">
-              <h3 className="text-xl sm:text-2xl font-black text-slate-900">Built-in optimization out of the box</h3>
+            <div className="text-center space-y-2 max-w-2xl mx-auto">
+              <h3 className="text-xl sm:text-2xl font-black text-slate-900">SEO intelligence built into every website</h3>
               <p className="text-xs sm:text-sm text-slate-600 font-medium">
-                No plugins required — every website comes pre-configured for search engines and social platforms.
+                Understand your website, find what needs attention, and improve your search visibility with SEO tools built directly into Codeaxys.
               </p>
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-              {/* Feature 1 */}
+              {/* Card 1 */}
               <div className="bg-white p-5 rounded-2xl border border-slate-200/90 shadow-sm space-y-2 hover:border-purple-300 transition-all">
                 <div className="w-8 h-8 rounded-lg bg-purple-50 border border-purple-100 text-purple-600 flex items-center justify-center">
                   <Layout className="w-4 h-4" />
                 </div>
-                <h4 className="text-xs font-extrabold text-slate-900">SEO-Friendly Structure</h4>
+                <h4 className="text-xs font-extrabold text-slate-900">SEO Command Center</h4>
                 <p className="text-[11px] text-slate-600 leading-relaxed font-medium">
-                  Clean layout designed for search engine crawlers to read and index effortlessly.
+                  See your website’s SEO health, important issues, opportunities, and progress from one central view.
                 </p>
               </div>
 
-              {/* Feature 2 */}
+              {/* Card 2 */}
               <div className="bg-white p-5 rounded-2xl border border-slate-200/90 shadow-sm space-y-2 hover:border-purple-300 transition-all">
                 <div className="w-8 h-8 rounded-lg bg-indigo-50 border border-indigo-100 text-indigo-600 flex items-center justify-center">
                   <Sparkles className="w-4 h-4" />
                 </div>
-                <h4 className="text-xs font-extrabold text-slate-900">Auto Titles & Descriptions</h4>
+                <h4 className="text-xs font-extrabold text-slate-900">Technical SEO & Crawl Intelligence</h4>
                 <p className="text-[11px] text-slate-600 leading-relaxed font-medium">
-                  AI automatically generates page titles and descriptions to boost your click rates.
+                  Find technical issues, crawl problems, indexing signals, and other areas that may need attention.
                 </p>
               </div>
 
-              {/* Feature 3 */}
+              {/* Card 3 */}
               <div className="bg-white p-5 rounded-2xl border border-slate-200/90 shadow-sm space-y-2 hover:border-purple-300 transition-all">
                 <div className="w-8 h-8 rounded-lg bg-blue-50 border border-blue-100 text-blue-600 flex items-center justify-center">
                   <Search className="w-4 h-4" />
                 </div>
-                <h4 className="text-xs font-extrabold text-slate-900">Google Search Preview</h4>
+                <h4 className="text-xs font-extrabold text-slate-900">AI SEO Optimization</h4>
                 <p className="text-[11px] text-slate-600 leading-relaxed font-medium">
-                  See exactly how your website will look in Google search results before publishing.
+                  Get practical AI assisted recommendations for titles, descriptions, headings, keywords, and other SEO improvements.
                 </p>
               </div>
 
-              {/* Feature 4 */}
+              {/* Card 4 */}
               <div className="bg-white p-5 rounded-2xl border border-slate-200/90 shadow-sm space-y-2 hover:border-purple-300 transition-all">
                 <div className="w-8 h-8 rounded-lg bg-emerald-50 border border-emerald-100 text-emerald-600 flex items-center justify-center">
                   <FileCode className="w-4 h-4" />
                 </div>
-                <h4 className="text-xs font-extrabold text-slate-900">Automatic Sitemap</h4>
+                <h4 className="text-xs font-extrabold text-slate-900">AEO & AI Search</h4>
                 <p className="text-[11px] text-slate-600 leading-relaxed font-medium">
-                  Generated sitemaps help Google discover and index all your new pages instantly.
+                  Prepare your website for answer engines and AI powered search with structured content and topical relevance.
                 </p>
               </div>
 
-              {/* Feature 5 */}
+              {/* Card 5 */}
               <div className="bg-white p-5 rounded-2xl border border-slate-200/90 shadow-sm space-y-2 hover:border-purple-300 transition-all">
                 <div className="w-8 h-8 rounded-lg bg-purple-50 border border-purple-100 text-purple-600 flex items-center justify-center">
                   <Globe className="w-4 h-4" />
                 </div>
-                <h4 className="text-xs font-extrabold text-slate-900">Social Media Preview</h4>
+                <h4 className="text-xs font-extrabold text-slate-900">Content & Competitor Intelligence</h4>
                 <p className="text-[11px] text-slate-600 leading-relaxed font-medium">
-                  Pre-configured social cards for rich link previews on WhatsApp, Twitter, and LinkedIn.
+                  Find content gaps, competitor insights, and new opportunities that can help strengthen your search presence.
                 </p>
               </div>
 
-              {/* Feature 6 */}
+              {/* Card 6 */}
               <div className="bg-white p-5 rounded-2xl border border-slate-200/90 shadow-sm space-y-2 hover:border-purple-300 transition-all">
                 <div className="w-8 h-8 rounded-lg bg-amber-50 border border-amber-100 text-amber-600 flex items-center justify-center">
                   <BarChart3 className="w-4 h-4" />
                 </div>
-                <h4 className="text-xs font-extrabold text-slate-900">Analytics & Tracking</h4>
+                <h4 className="text-xs font-extrabold text-slate-900">Internal Linking & Local SEO</h4>
                 <p className="text-[11px] text-slate-600 leading-relaxed font-medium">
-                  Built-in tracking to monitor visitor count, page views, and top traffic sources.
+                  Improve connections between your pages and strengthen your visibility for relevant local searches.
                 </p>
               </div>
 
-              {/* Feature 7 */}
+              {/* Card 7 */}
               <div className="bg-white p-5 rounded-2xl border border-slate-200/90 shadow-sm space-y-2 hover:border-purple-300 transition-all sm:col-span-2 lg:col-span-2">
                 <div className="w-8 h-8 rounded-lg bg-cyan-50 border border-cyan-100 text-cyan-600 flex items-center justify-center">
                   <Zap className="w-4 h-4" />
                 </div>
-                <h4 className="text-xs font-extrabold text-slate-900">Website Speed & Performance Optimization</h4>
+                <h4 className="text-xs font-extrabold text-slate-900">SEO Performance & Monitoring</h4>
                 <p className="text-[11px] text-slate-600 leading-relaxed font-medium">
-                  Ultra-fast page load times ensure higher Google ranking and a smooth experience for visitors.
+                  Keep track of SEO health, search performance, important changes, and new opportunities over time.
                 </p>
               </div>
             </div>
@@ -1304,7 +1364,7 @@ export function LandingView({
 
       {/* SECTION 8: PRICING PREVIEW */}
       <section id="pricing" className="py-24 px-6 sm:px-12 bg-white border-b border-slate-200/80">
-        <div className="max-w-6xl mx-auto space-y-16">
+        <div className="max-w-7xl mx-auto space-y-16">
           <div className="text-center space-y-3">
             <span className="text-xs font-bold text-purple-700 uppercase tracking-widest bg-purple-100/70 px-3.5 py-1 rounded-full border border-purple-200">
               Flexible Tiers
@@ -1313,106 +1373,146 @@ export function LandingView({
               Simple, transparent pricing.
             </h2>
             <p className="text-slate-600 text-sm sm:text-base max-w-xl mx-auto font-medium">
-              Start building for free with 50 credits, upgrade as your business grows.
+              Choose the plan that fits your business needs. Every plan includes full access to our AI Website Builder and Full SEO Intelligence Suite.
             </p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-5xl mx-auto">
-            {/* Free Plan */}
-            <div className="bg-slate-50 p-8 rounded-3xl border border-slate-200 shadow-sm flex flex-col justify-between">
-              <div className="space-y-4">
-                <span className="text-xs font-extrabold uppercase tracking-wider text-slate-500">Free</span>
-                <div className="flex items-baseline gap-1">
-                  <span className="text-4xl font-black text-slate-900">₹0</span>
-                  <span className="text-xs text-slate-500 font-semibold">/ month</span>
-                </div>
-                <ul className="space-y-2.5 pt-4 text-xs font-semibold text-slate-700">
-                  <li className="flex items-center gap-2">
-                    <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" /> 50 AI Credits
-                  </li>
-                  <li className="flex items-center gap-2">
-                    <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" /> 1 Website Limit
-                  </li>
-                  <li className="flex items-center gap-2">
-                    <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" /> 100 MB Storage
-                  </li>
-                </ul>
-              </div>
-              <button
-                onClick={scrollToGenerator}
-                className="w-full mt-8 py-3 bg-white hover:bg-slate-100 text-slate-800 border border-slate-200 text-xs font-bold rounded-xl transition-all cursor-pointer text-center"
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 items-stretch">
+            {[PLANS.starter, PLANS.pro, PLANS.business, PLANS.agency].filter(Boolean).map((plan) => (
+              <div
+                key={plan.id}
+                className={`relative bg-white border rounded-3xl p-6 flex flex-col justify-between transition-all ${
+                  plan.popular
+                    ? "border-2 border-purple-600 shadow-2xl ring-2 ring-purple-500/20"
+                    : "border-slate-200 shadow-sm hover:shadow-md"
+                }`}
               >
-                Get Started Free
-              </button>
-            </div>
+                {plan.popular && (
+                  <span className="absolute -top-3.5 left-1/2 -translate-x-1/2 bg-purple-600 text-white text-[10px] font-black px-3.5 py-1 rounded-full uppercase tracking-wider shadow-sm">
+                    Most Popular
+                  </span>
+                )}
+                <div className="space-y-4">
+                  <span className={`text-xs font-black uppercase tracking-wider ${plan.popular ? "text-purple-700" : "text-slate-500"}`}>
+                    {plan.name}
+                  </span>
+                  <div className="flex items-baseline gap-1">
+                    <span className="text-3xl sm:text-4xl font-black text-slate-900">
+                      ₹{plan.price.toLocaleString("en-IN")}
+                    </span>
+                    <span className="text-xs text-slate-500 font-semibold">/ month</span>
+                  </div>
 
-            {/* Pro Plan - Most Popular */}
-            <div className="bg-white p-8 rounded-3xl border-2 border-purple-600 shadow-2xl relative flex flex-col justify-between">
-              <span className="absolute -top-3.5 left-1/2 -translate-x-1/2 bg-purple-600 text-white text-[10px] font-black px-3.5 py-1 rounded-full uppercase tracking-wider shadow-sm">
-                Most Popular
-              </span>
-              <div className="space-y-4">
-                <span className="text-xs font-black uppercase tracking-wider text-purple-700">Pro</span>
-                <div className="flex items-baseline gap-1">
-                  <span className="text-4xl font-black text-slate-900">₹999</span>
-                  <span className="text-xs text-slate-500 font-semibold">/ month</span>
+                  <ul className="space-y-2.5 pt-4 border-t border-slate-100 text-xs font-semibold text-slate-700">
+                    <li className="flex items-center gap-2">
+                      <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+                      <span>{plan.maxWebsites} {plan.maxWebsites === 1 ? "Website" : "Websites"}</span>
+                    </li>
+                    <li className="flex items-center gap-2">
+                      <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+                      <span>{plan.monthlyCredits.toLocaleString()} AI Credits</span>
+                    </li>
+                    <li className="flex items-center gap-2">
+                      <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+                      <span>{plan.storageLimitFormatted} Storage</span>
+                    </li>
+                    <li className="flex items-center gap-2">
+                      <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+                      <span>Full SEO Suite Included</span>
+                    </li>
+                  </ul>
                 </div>
-                <ul className="space-y-2.5 pt-4 text-xs font-semibold text-slate-700">
-                  <li className="flex items-center gap-2">
-                    <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" /> 500 AI Credits
-                  </li>
-                  <li className="flex items-center gap-2">
-                    <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" /> 10 Websites
-                  </li>
-                  <li className="flex items-center gap-2">
-                    <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" /> 5 GB Storage
-                  </li>
-                  <li className="flex items-center gap-2">
-                    <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" /> AI SEO Engine
-                  </li>
-                  <li className="flex items-center gap-2">
-                    <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" /> Custom Domain Support
-                  </li>
-                </ul>
-              </div>
-              <Link
-                href="/pricing"
-                className="w-full mt-8 py-3.5 bg-purple-600 hover:bg-purple-700 text-white text-xs font-bold rounded-xl transition-all shadow-md shadow-purple-600/20 text-center block"
-              >
-                Upgrade to Pro
-              </Link>
-            </div>
 
-            {/* Agency Plan */}
-            <div className="bg-slate-50 p-8 rounded-3xl border border-slate-200 shadow-sm flex flex-col justify-between">
-              <div className="space-y-4">
-                <span className="text-xs font-extrabold uppercase tracking-wider text-slate-500">Agency</span>
-                <div className="flex items-baseline gap-1">
-                  <span className="text-4xl font-black text-slate-900">₹2,999</span>
-                  <span className="text-xs text-slate-500 font-semibold">/ month</span>
-                </div>
-                <ul className="space-y-2.5 pt-4 text-xs font-semibold text-slate-700">
-                  <li className="flex items-center gap-2">
-                    <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" /> 2,000 AI Credits
-                  </li>
-                  <li className="flex items-center gap-2">
-                    <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" /> 50 Websites
-                  </li>
-                  <li className="flex items-center gap-2">
-                    <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" /> 20 GB Storage
-                  </li>
-                  <li className="flex items-center gap-2">
-                    <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" /> Advanced Integrations
-                  </li>
-                </ul>
+                <Link
+                  href="/pricing"
+                  className={`w-full mt-8 py-3 rounded-xl font-bold text-xs transition-all text-center block ${
+                    plan.popular
+                      ? "bg-purple-600 hover:bg-purple-700 text-white shadow-md shadow-purple-600/20"
+                      : "bg-slate-900 hover:bg-slate-800 text-white"
+                  }`}
+                >
+                  Get Started →
+                </Link>
               </div>
-              <Link
-                href="/pricing"
-                className="w-full mt-8 py-3 bg-white hover:bg-slate-100 text-slate-800 border border-slate-200 text-xs font-bold rounded-xl transition-all text-center block"
-              >
-                View Full Pricing →
-              </Link>
-            </div>
+            ))}
+          </div>
+
+          {/* View All Included Features Button */}
+          <div className="pt-6 text-center">
+            <Link
+              href="/pricing#all-plans-include"
+              className="inline-flex items-center gap-2 px-7 py-3.5 rounded-2xl bg-purple-50 hover:bg-purple-100 border border-purple-200/90 text-purple-800 font-extrabold text-xs sm:text-sm transition-all shadow-2xs hover:shadow-md active:scale-95 group cursor-pointer"
+            >
+              <Sparkles className="w-4 h-4 text-purple-600 group-hover:rotate-12 transition-transform" />
+              <span>View All Included Features →</span>
+            </Link>
+          </div>
+        </div>
+      </section>
+
+      {/* SECTION: FREQUENTLY ASKED QUESTIONS */}
+      <section id="faq" className="py-24 px-6 sm:px-12 bg-slate-50 border-b border-slate-200/80">
+        <div className="max-w-4xl mx-auto space-y-12">
+          {/* Header */}
+          <div className="text-center space-y-3">
+            <span className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-purple-100/80 border border-purple-200 text-purple-900 text-xs font-bold uppercase tracking-wider shadow-2xs">
+              <HelpCircle className="w-3.5 h-3.5 text-purple-600" />
+              Got Questions? We&apos;ve Got Answers
+            </span>
+            <h2 className="text-3xl sm:text-5xl font-black text-slate-900 tracking-tight">
+              Frequently Asked Questions
+            </h2>
+            <p className="text-sm sm:text-base text-slate-600 max-w-xl mx-auto font-medium">
+              Everything you need to know about Codeaxys plans, website builder features, custom domains, and SEO intelligence.
+            </p>
+          </div>
+
+          {/* Accordion list with smooth CSS grid transition */}
+          <div className="space-y-4">
+            {FAQ_ITEMS.map((faq, index) => {
+              const isOpen = openFaqIndex === index;
+              return (
+                <div
+                  key={index}
+                  className={`bg-white border rounded-2xl transition-all duration-300 overflow-hidden ${
+                    isOpen
+                      ? "border-purple-300 shadow-md ring-1 ring-purple-100"
+                      : "border-slate-200/80 shadow-xs hover:border-slate-300"
+                  }`}
+                >
+                  <button
+                    type="button"
+                    onClick={() => setOpenFaqIndex(isOpen ? null : index)}
+                    className="w-full px-6 py-5 flex items-center justify-between text-left gap-4 font-bold text-slate-900 text-base sm:text-lg focus:outline-none group cursor-pointer"
+                    aria-expanded={isOpen}
+                  >
+                    <span className="flex items-center gap-3">
+                      <span className="w-6 h-6 rounded-full bg-purple-50 text-purple-700 text-xs font-black flex items-center justify-center shrink-0 border border-purple-200">
+                        {index + 1}
+                      </span>
+                      <span>{faq.question}</span>
+                    </span>
+                    <ChevronDown
+                      className={`w-5 h-5 text-purple-600 shrink-0 transition-transform duration-300 ${
+                        isOpen ? "rotate-180" : "rotate-0"
+                      }`}
+                    />
+                  </button>
+
+                  <div
+                    className={`grid transition-[grid-template-rows,opacity] duration-300 ease-in-out ${
+                      isOpen ? "grid-rows-[1fr] opacity-100" : "grid-rows-[0fr] opacity-0"
+                    }`}
+                  >
+                    <div className="overflow-hidden">
+                      <div className="px-6 pb-6 pt-2 text-sm sm:text-base text-slate-600 leading-relaxed font-normal border-t border-slate-100/80">
+                        {faq.answer}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
           </div>
         </div>
       </section>
@@ -1476,89 +1576,7 @@ export function LandingView({
       </section>
 
       {/* SECTION 10: FOOTER */}
-      <footer className="bg-slate-950 text-slate-400 py-16 px-6 sm:px-12 border-t border-slate-800">
-        <div className="max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-4 gap-10">
-          <div className="space-y-4">
-            <img
-              src="/logo.png"
-              alt="Codexys Logo"
-              className="h-7 w-auto object-contain brightness-200"
-            />
-            <p className="text-xs text-slate-400 leading-relaxed font-medium">
-              Codexys AI Website Builder SaaS. Generate, edit, refine, and publish full web applications with AI.
-            </p>
-          </div>
-
-          <div>
-            <h4 className="text-xs font-bold text-white uppercase tracking-wider mb-4">Product</h4>
-            <ul className="space-y-2 text-xs font-medium">
-              <li>
-                <button onClick={() => scrollToGenerator()} className="hover:text-white transition-colors cursor-pointer">
-                  AI Generator
-                </button>
-              </li>
-              <li>
-                <a href="#how-it-works" className="hover:text-white transition-colors">
-                  How It Works
-                </a>
-              </li>
-              <li>
-                <a href="#features" className="hover:text-white transition-colors">
-                  Features
-                </a>
-              </li>
-              <li>
-                <Link href="/pricing" className="hover:text-white transition-colors">
-                  Pricing
-                </Link>
-              </li>
-            </ul>
-          </div>
-
-          <div>
-            <h4 className="text-xs font-bold text-white uppercase tracking-wider mb-4">Resources</h4>
-            <ul className="space-y-2 text-xs font-medium">
-              <li>
-                <a href="mailto:support@codexys.site" className="hover:text-white transition-colors">
-                  Support Email
-                </a>
-              </li>
-              <li>
-                <span className="text-slate-500">API Documentation</span>
-              </li>
-              <li>
-                <span className="text-slate-500">System Status</span>
-              </li>
-            </ul>
-          </div>
-
-          <div>
-            <h4 className="text-xs font-bold text-white uppercase tracking-wider mb-4">Account</h4>
-            <ul className="space-y-2 text-xs font-medium">
-              <li>
-                <Link href="/login" className="hover:text-white transition-colors">
-                  Sign In
-                </Link>
-              </li>
-              <li>
-                <Link href="/dashboard" className="hover:text-white transition-colors">
-                  Customer Dashboard
-                </Link>
-              </li>
-              <li>
-                <Link href="/admin" className="hover:text-white transition-colors">
-                  Admin Panel
-                </Link>
-              </li>
-            </ul>
-          </div>
-        </div>
-
-        <div className="max-w-6xl mx-auto mt-12 pt-6 border-t border-slate-800 flex flex-col sm:flex-row items-center justify-between text-xs text-slate-500 gap-4">
-          <p>© {new Date().getFullYear()} Codexys AI. All rights reserved.</p>
-          <p>Powered by Gemini 3.6 Flash Engine</p>
-        </div>
-      </footer>
+      <Footer />
     </div>
   );
 }

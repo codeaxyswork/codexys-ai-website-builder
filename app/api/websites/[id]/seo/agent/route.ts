@@ -74,14 +74,19 @@ export async function POST(
       );
     }
 
-    // 5. Assemble Bounded SEO Context
-    const seoContext = await buildSEOContext(supabase, websiteId);
+    // 5. Detect Customer Intent
+    const { detectSEOIntent } = await import("@/lib/seo-agent-intent");
+    const detectedIntent = detectSEOIntent(prompt, history);
 
-    // 6. Execute Gemini SEO Agent query
+    // 6. Assemble Intent-Filtered SEO Context
+    const seoContext = await buildSEOContext(supabase, websiteId, detectedIntent);
+
+    // 7. Execute Gemini SEO Agent query
     const agentResponse = await generateSEOAgentResponse({
       userPrompt: prompt,
       seoContext,
       conversationHistory: history,
+      detectedIntent,
     });
 
     // 7. Deduct credits ONLY after successful AI execution

@@ -95,7 +95,7 @@ export function Header({
 
           <div className="hidden sm:flex items-center gap-2">
             <h1 className="font-bold text-slate-900 text-sm tracking-tight">
-              AI Website Builder
+              Agentic Website Builder
             </h1>
             <span className="px-2 py-0.5 text-[10px] font-extrabold tracking-wider uppercase rounded-md bg-purple-50 text-purple-700 border border-purple-200">
               PRO

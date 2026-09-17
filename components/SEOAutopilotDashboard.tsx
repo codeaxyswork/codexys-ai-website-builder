@@ -284,25 +284,25 @@ export default function SEOAutopilotDashboard({ websiteId }: SEOAutopilotDashboa
         </div>
 
         {/* Safety & System Guardrails Info Card */}
-        <div className="bg-slate-900 text-white rounded-2xl p-6 shadow-sm space-y-4">
-          <div className="flex items-center gap-2 text-purple-400 font-bold text-sm uppercase tracking-wider">
-            <ShieldCheck className="w-5 h-5" />
+        <div className="bg-gradient-to-br from-purple-50/80 to-indigo-50/60 border border-purple-100 rounded-2xl p-6 shadow-sm space-y-4">
+          <div className="flex items-center gap-2 text-purple-700 font-bold text-sm uppercase tracking-wider">
+            <ShieldCheck className="w-5 h-5 text-purple-600" />
             Safety Guardrails
           </div>
-          <p className="text-xs text-slate-300 font-medium leading-relaxed">
+          <p className="text-xs text-slate-700 font-medium leading-relaxed">
             Codeaxys Autopilot operates with strict safety boundaries to protect site integrity and layout:
           </p>
-          <ul className="space-y-2.5 text-xs text-slate-300 font-medium">
+          <ul className="space-y-2.5 text-xs text-slate-700 font-medium">
             <li className="flex items-start gap-2">
-              <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0 mt-0.5" />
+              <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" />
               <span>Zero destructive page deletions or URL slug changes without user approval.</span>
             </li>
             <li className="flex items-start gap-2">
-              <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0 mt-0.5" />
+              <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" />
               <span>Fixes are logged with before/after state history for instant one-click rollback.</span>
             </li>
             <li className="flex items-start gap-2">
-              <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0 mt-0.5" />
+              <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" />
               <span>Deterministic zero-credit scanning engine keeps AI credit consumption controlled.</span>
             </li>
           </ul>

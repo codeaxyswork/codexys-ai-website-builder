@@ -20,7 +20,10 @@ import {
   Sparkles,
   RefreshCw,
   HardDrive,
+  Target,
+  LayoutDashboard,
 } from "lucide-react";
+import { getWebsiteTrialStatus } from "@/lib/website-trial";
 
 export interface WebsiteItem {
   id: string;
@@ -47,9 +50,10 @@ export interface WebsiteItem {
 
 interface DashboardWebsiteListProps {
   initialWebsites: WebsiteItem[];
+  userPlan?: string;
 }
 
-export function DashboardWebsiteList({ initialWebsites }: DashboardWebsiteListProps) {
+export function DashboardWebsiteList({ initialWebsites, userPlan = "free" }: DashboardWebsiteListProps) {
   const [websites, setWebsites] = useState<WebsiteItem[]>(initialWebsites);
   const [deleteTargetId, setDeleteTargetId] = useState<string | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
@@ -193,171 +197,304 @@ export function DashboardWebsiteList({ initialWebsites }: DashboardWebsiteListPr
           const websiteType = plan?.websiteType || "Custom Website";
           const layoutStrategy = plan?.layoutStrategy || site.prompt || "Responsive Standalone SaaS Website";
           const seoScore = site.website_seo?.seo_score;
+          const trialInfo = getWebsiteTrialStatus(site.created_at, userPlan, site.is_published);
 
           return (
             <div
               key={site.id}
-              className="w-full rounded-2xl border border-slate-200 bg-white p-6 shadow-xs hover:shadow-md transition-all flex flex-col gap-5 group relative overflow-hidden"
+              className="w-full rounded-2xl border border-slate-200 bg-white p-6 sm:p-8 shadow-md hover:shadow-lg transition-all flex flex-col gap-6 relative overflow-hidden group"
             >
-              {/* TOP ROW: Icon + Category + Status Badges */}
-              <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-100 pb-4">
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-xl bg-purple-50 border border-purple-200 flex items-center justify-center shrink-0 shadow-2xs">
-                    <Globe className="w-5 h-5 text-purple-600" />
+              {/* 1. TOP HEADER: Website Icon, Identity, Title, Badges & Monospace URL */}
+              <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-100 pb-5">
+                <div className="flex items-start gap-4">
+                  <div className="w-12 h-12 rounded-2xl bg-purple-50 border border-purple-200 flex items-center justify-center shrink-0 shadow-2xs mt-0.5">
+                    <Globe className="w-6 h-6 text-purple-600" />
                   </div>
-                  <div className="flex flex-col">
-                    <div className="flex items-center gap-2">
+                  <div className="space-y-1">
+                    <div className="flex items-center gap-2 flex-wrap">
                       <span className="px-2.5 py-0.5 rounded-md bg-purple-50 border border-purple-200 text-purple-700 text-[10px] font-bold uppercase tracking-wider">
                         {websiteType}
                       </span>
-                      {plan?.colorPalette && Array.isArray(plan.colorPalette) && (
-                        <div className="hidden sm:flex items-center gap-1">
-                          {plan.colorPalette.slice(0, 4).map((col: any, idx: number) => (
-                            <span
-                              key={idx}
-                              className="w-3 h-3 rounded-full border border-slate-200 shrink-0"
-                              style={{ backgroundColor: col.hex }}
-                              title={`${col.name}: ${col.hex}`}
-                            />
-                          ))}
-                        </div>
+                      <span
+                        className={`px-2.5 py-0.5 rounded-full text-[10px] font-extrabold uppercase border ${
+                          site.is_published
+                            ? "bg-emerald-50 border-emerald-200 text-emerald-700"
+                            : "bg-amber-50 border-amber-200 text-amber-700"
+                        }`}
+                      >
+                        {site.is_published ? "Published" : "Draft"}
+                      </span>
+                      <span
+                        className={`px-2.5 py-0.5 rounded-full text-[10px] font-extrabold uppercase border ${
+                          trialInfo.badgeColor === "emerald"
+                            ? "bg-emerald-50 border-emerald-200 text-emerald-700"
+                            : trialInfo.badgeColor === "amber"
+                            ? "bg-amber-50 border-amber-200 text-amber-800"
+                            : "bg-purple-50 border-purple-200 text-purple-700"
+                        }`}
+                      >
+                        {trialInfo.badgeLabel}
+                      </span>
+                      {typeof seoScore === "number" ? (
+                        <span className="px-2.5 py-0.5 rounded-full text-[10px] font-extrabold bg-purple-50 text-purple-700 border border-purple-200 flex items-center gap-1">
+                          <span>SEO:</span>
+                          <span className="text-purple-800 font-black">{seoScore}/100</span>
+                        </span>
+                      ) : (
+                        <span className="px-2.5 py-0.5 rounded-full text-[10px] font-medium bg-slate-100 text-slate-500 border border-slate-200">
+                          SEO Not Analyzed
+                        </span>
                       )}
                     </div>
+                    <h2 className="text-2xl font-black text-slate-900 tracking-tight group-hover:text-purple-600 transition-colors">
+                      {site.title}
+                    </h2>
+                    <p className="text-xs sm:text-sm text-slate-600 line-clamp-2 leading-relaxed max-w-2xl">
+                      {layoutStrategy}
+                    </p>
                   </div>
                 </div>
 
-                <div className="flex items-center gap-2">
-                  {typeof seoScore === "number" ? (
-                    <span className="px-2.5 py-1 rounded-full text-[11px] font-extrabold bg-purple-50 text-purple-700 border border-purple-200 flex items-center gap-1">
-                      <span>SEO:</span>
-                      <span className="text-purple-800 font-black">{seoScore}/100</span>
+                {/* URL Box */}
+                {site.is_published && (
+                  <div className="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl bg-slate-50 border border-slate-200 text-xs font-mono text-purple-700 shrink-0 max-w-full overflow-hidden self-start md:self-center">
+                    <span className="truncate max-w-xs font-semibold" title={site.custom_domain || `/site/${site.published_slug}`}>
+                      {site.custom_domain ? `🌐 ${site.custom_domain}` : `/site/${site.published_slug}`}
                     </span>
-                  ) : (
-                    <span className="px-2.5 py-1 rounded-full text-[11px] font-medium bg-slate-100 text-slate-500 border border-slate-200">
-                      SEO Not Analyzed
-                    </span>
-                  )}
+                    <button
+                      onClick={() => {
+                        const linkToCopy = site.custom_domain
+                          ? `https://${site.custom_domain}`
+                          : `${window.location.origin}/site/${site.published_slug}`;
+                        navigator.clipboard.writeText(linkToCopy);
+                        setCopiedId(site.id);
+                        setTimeout(() => setCopiedId(null), 2000);
+                      }}
+                      className="text-slate-400 hover:text-purple-700 transition-colors shrink-0 p-1 rounded-md hover:bg-slate-200/60 cursor-pointer"
+                      title="Copy Public Link"
+                    >
+                      {copiedId === site.id ? (
+                        <Check className="w-3.5 h-3.5 text-emerald-600" />
+                      ) : (
+                        <Copy className="w-3.5 h-3.5" />
+                      )}
+                    </button>
+                  </div>
+                )}
+              </div>
 
-                  <span
-                    className={`px-3 py-1 rounded-full text-[11px] font-extrabold uppercase border ${
-                      site.is_published
-                        ? "bg-emerald-50 border-emerald-200 text-emerald-700"
-                        : "bg-amber-50 border-amber-200 text-amber-700"
-                    }`}
-                  >
-                    {site.is_published ? "Published" : "Draft"}
+              {/* 2. PRIMARY WEBSITE CONTROL CENTER PANELS GRID */}
+              <div className="bg-slate-50/60 border border-slate-200/90 rounded-2xl p-5 space-y-4">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <span className="w-2 h-2 rounded-full bg-purple-600 animate-pulse"></span>
+                    <h3 className="text-xs font-black uppercase tracking-wider text-slate-700">
+                      Website Control Center
+                    </h3>
+                  </div>
+                  <span className="text-[11px] font-bold text-purple-700 bg-purple-50 px-2.5 py-0.5 rounded-full border border-purple-100">
+                    Primary Workspace Capabilities
                   </span>
                 </div>
-              </div>
 
-              {/* SECOND AREA: Title, Description, and Custom Domain / URL Preview */}
-              <div className="space-y-2">
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-                  <h3 className="font-extrabold text-slate-900 text-lg sm:text-xl tracking-tight group-hover:text-purple-600 transition-colors">
-                    {site.title}
-                  </h3>
-
-                  {site.is_published && (
-                    <div className="inline-flex items-center gap-2 px-3 py-1 rounded-lg bg-slate-50 border border-slate-200 text-xs font-mono text-purple-700 shrink-0 max-w-full overflow-hidden">
-                      <span className="truncate" title={site.custom_domain || `/site/${site.published_slug}`}>
-                        {site.custom_domain ? `🌐 ${site.custom_domain}` : `/site/${site.published_slug}`}
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                  {/* 1. Website Dashboard Workspace */}
+                  <Link
+                    href={`/dashboard/websites/${site.id}`}
+                    className="group/panel bg-white hover:bg-slate-50 border border-slate-200 hover:border-slate-300 rounded-xl p-4 shadow-2xs hover:shadow-md transition-all duration-200 flex flex-col justify-between gap-3 cursor-pointer"
+                  >
+                    <div className="flex items-center justify-between">
+                      <div className="w-9 h-9 rounded-lg bg-slate-900 text-white flex items-center justify-center">
+                        <LayoutDashboard className="w-4.5 h-4.5 text-purple-400" />
+                      </div>
+                      <span className="text-[10px] font-extrabold uppercase px-2 py-0.5 rounded bg-slate-100 text-slate-700">
+                        Main Hub
                       </span>
-                      <button
-                        onClick={() => {
-                          const linkToCopy = site.custom_domain
-                            ? `https://${site.custom_domain}`
-                            : `${window.location.origin}/site/${site.published_slug}`;
-                          navigator.clipboard.writeText(linkToCopy);
-                          setCopiedId(site.id);
-                          setTimeout(() => setCopiedId(null), 2000);
-                        }}
-                        className="text-slate-400 hover:text-purple-700 transition-colors shrink-0"
-                        title="Copy Public Link"
-                      >
-                        {copiedId === site.id ? (
-                          <Check className="w-3.5 h-3.5 text-emerald-600" />
-                        ) : (
-                          <Copy className="w-3.5 h-3.5" />
-                        )}
-                      </button>
                     </div>
-                  )}
-                </div>
 
-                <p className="text-xs sm:text-sm text-slate-600 line-clamp-2 leading-relaxed">
-                  {layoutStrategy}
-                </p>
+                    <div>
+                      <h4 className="font-extrabold text-slate-900 text-sm group-hover/panel:text-purple-700 transition-colors">
+                        Website Dashboard
+                      </h4>
+                      <p className="text-[11px] text-slate-500 mt-0.5 leading-tight">
+                        Full website management & analytics workspace
+                      </p>
+                    </div>
+
+                    <div className="pt-2 border-t border-slate-100 flex items-center justify-between text-xs font-bold text-slate-800 group-hover/panel:text-purple-700">
+                      <span>Open Workspace</span>
+                      <span>&rarr;</span>
+                    </div>
+                  </Link>
+
+                  {/* 2. Refine with AI */}
+                  <Link
+                    href={`/?id=${site.id}`}
+                    className="group/panel bg-white hover:bg-purple-50/70 border border-purple-200/90 hover:border-purple-300 rounded-xl p-4 shadow-2xs hover:shadow-md transition-all duration-200 flex flex-col justify-between gap-3 cursor-pointer"
+                  >
+                    <div className="flex items-center justify-between">
+                      <div className="w-9 h-9 rounded-lg bg-purple-600 text-white flex items-center justify-center">
+                        <Sparkles className="w-4.5 h-4.5" />
+                      </div>
+                      <span className="text-[10px] font-extrabold uppercase px-2 py-0.5 rounded bg-purple-50 text-purple-700">
+                        AI Generator
+                      </span>
+                    </div>
+
+                    <div>
+                      <h4 className="font-extrabold text-slate-900 text-sm group-hover/panel:text-purple-700 transition-colors">
+                        Refine with AI
+                      </h4>
+                      <p className="text-[11px] text-slate-500 mt-0.5 leading-tight">
+                        Instant natural language design & page editing
+                      </p>
+                    </div>
+
+                    <div className="pt-2 border-t border-purple-100 flex items-center justify-between text-xs font-bold text-purple-700 group-hover/panel:text-purple-900">
+                      <span>Edit with AI</span>
+                      <span>&rarr;</span>
+                    </div>
+                  </Link>
+
+                  {/* 3. SEO (KILLER FEATURE CARD) */}
+                  <Link
+                    href={`/dashboard/websites/${site.id}/seo`}
+                    className="group/panel bg-white hover:bg-purple-50/50 border border-slate-200 hover:border-purple-300 rounded-xl p-4 shadow-2xs hover:shadow-md transition-all duration-200 flex flex-col justify-between gap-3 cursor-pointer"
+                  >
+                    <div className="flex items-center justify-between">
+                      <div className="w-9 h-9 rounded-lg bg-purple-600 text-white flex items-center justify-center shadow-2xs">
+                        <Target className="w-4.5 h-4.5" />
+                      </div>
+                      {typeof seoScore === "number" ? (
+                        <span className="px-2.5 py-0.5 rounded-full text-[11px] font-extrabold bg-purple-50 text-purple-700 border border-purple-200 shadow-2xs">
+                          SEO {seoScore}/100
+                        </span>
+                      ) : (
+                        <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-amber-50 text-amber-800 border border-amber-200">
+                          Not Analyzed
+                        </span>
+                      )}
+                    </div>
+
+                    <div>
+                      <div className="flex items-center gap-1.5">
+                        <h4 className="font-extrabold text-slate-900 text-sm group-hover/panel:text-purple-700 transition-colors">
+                          SEO Optimization
+                        </h4>
+                        <span className="text-[9px] font-bold uppercase px-1.5 py-0.5 bg-purple-100 text-purple-800 rounded">
+                          Killer
+                        </span>
+                      </div>
+                      <p className="text-[11px] text-slate-500 mt-0.5 leading-tight">
+                        Command Center, rankings & organic performance
+                      </p>
+                    </div>
+
+                    <div className="pt-2 border-t border-slate-100 flex items-center justify-between text-xs font-bold text-purple-700 group-hover/panel:text-purple-800">
+                      <span>Open SEO</span>
+                      <span>&rarr;</span>
+                    </div>
+                  </Link>
+
+                  {/* 4. Connect Domain / Manage Domain */}
+                  <Link
+                    href={`/dashboard/websites/${site.id}/domain`}
+                    className="group/panel bg-white hover:bg-indigo-50/70 border border-indigo-200/90 hover:border-indigo-300 rounded-xl p-4 shadow-2xs hover:shadow-md transition-all duration-200 flex flex-col justify-between gap-3 cursor-pointer"
+                  >
+                    <div className="flex items-center justify-between">
+                      <div className="w-9 h-9 rounded-lg bg-indigo-600 text-white flex items-center justify-center">
+                        <Globe className="w-4.5 h-4.5" />
+                      </div>
+                      <span className="text-[10px] font-extrabold uppercase px-2 py-0.5 rounded bg-indigo-50 text-indigo-700">
+                        {site.custom_domain ? "Connected" : "Custom Host"}
+                      </span>
+                    </div>
+
+                    <div>
+                      <h4 className="font-extrabold text-slate-900 text-sm group-hover/panel:text-indigo-900 transition-colors">
+                        {site.custom_domain ? "Manage Domain" : "Connect Domain"}
+                      </h4>
+                      <p className="text-[11px] text-slate-500 mt-0.5 leading-tight truncate">
+                        {site.custom_domain ? site.custom_domain : "Connect custom domain & SSL"}
+                      </p>
+                    </div>
+
+                    <div className="pt-2 border-t border-indigo-100 flex items-center justify-between text-xs font-bold text-indigo-700 group-hover/panel:text-indigo-900">
+                      <span>{site.custom_domain ? "Manage Domain &rarr;" : "Connect Domain &rarr;"}</span>
+                    </div>
+                  </Link>
+                </div>
               </div>
 
-              {/* THIRD AREA: Compact Metadata Row inside ONE unified card */}
-              <div className="bg-slate-50/80 border border-slate-200/80 rounded-xl p-3.5 sm:p-4 grid grid-cols-2 sm:grid-cols-5 gap-3 items-center text-xs">
+              {/* 3. METRICS / INFORMATION ROW */}
+              <div className="bg-slate-50/80 border border-slate-200/80 rounded-xl p-3.5 sm:p-4 grid grid-cols-2 sm:grid-cols-5 gap-3 items-center text-xs shadow-2xs">
                 {/* Pages */}
-                <div className="flex items-center gap-2">
-                  <div className="w-7 h-7 rounded-lg bg-white border border-slate-200 flex items-center justify-center shrink-0 text-slate-600">
-                    <FileText className="w-3.5 h-3.5 text-purple-600" />
+                <div className="flex items-center gap-2.5">
+                  <div className="w-8 h-8 rounded-lg bg-white border border-slate-200 flex items-center justify-center shrink-0 text-purple-600">
+                    <FileText className="w-4 h-4" />
                   </div>
                   <div>
-                    <span className="text-[10px] uppercase font-bold text-slate-400 block leading-none">
+                    <span className="text-[10px] uppercase font-bold text-slate-400 block leading-none mb-0.5">
                       Pages
                     </span>
-                    <span className="font-bold text-slate-800 text-xs">
+                    <span className="font-bold text-slate-900 text-xs">
                       {site.pagesCount ?? 1}
                     </span>
                   </div>
                 </div>
 
                 {/* AI Usage */}
-                <div className="flex items-center gap-2">
-                  <div className="w-7 h-7 rounded-lg bg-white border border-slate-200 flex items-center justify-center shrink-0 text-slate-600">
-                    <Sparkles className="w-3.5 h-3.5 text-amber-500" />
+                <div className="flex items-center gap-2.5">
+                  <div className="w-8 h-8 rounded-lg bg-white border border-slate-200 flex items-center justify-center shrink-0 text-amber-500">
+                    <Sparkles className="w-4 h-4" />
                   </div>
                   <div>
-                    <span className="text-[10px] uppercase font-bold text-slate-400 block leading-none">
+                    <span className="text-[10px] uppercase font-bold text-slate-400 block leading-none mb-0.5">
                       AI Usage
                     </span>
-                    <span className="font-bold text-slate-800 text-xs">
+                    <span className="font-bold text-slate-900 text-xs">
                       {site.aiCreditsUsed ?? 0} credits
                     </span>
                   </div>
                 </div>
 
-                {/* Refinement Count */}
-                <div className="flex items-center gap-2">
-                  <div className="w-7 h-7 rounded-lg bg-white border border-slate-200 flex items-center justify-center shrink-0 text-slate-600">
-                    <RefreshCw className="w-3.5 h-3.5 text-indigo-600" />
+                {/* Refinement */}
+                <div className="flex items-center gap-2.5">
+                  <div className="w-8 h-8 rounded-lg bg-white border border-slate-200 flex items-center justify-center shrink-0 text-indigo-600">
+                    <RefreshCw className="w-4 h-4" />
                   </div>
                   <div>
-                    <span className="text-[10px] uppercase font-bold text-slate-400 block leading-none">
+                    <span className="text-[10px] uppercase font-bold text-slate-400 block leading-none mb-0.5">
                       Refinement
                     </span>
-                    <span className="font-bold text-slate-800 text-xs">
+                    <span className="font-bold text-slate-900 text-xs">
                       {site.refinementCount ?? 0}
                     </span>
                   </div>
                 </div>
 
                 {/* Media Storage */}
-                <div className="flex items-center gap-2">
-                  <div className="w-7 h-7 rounded-lg bg-white border border-slate-200 flex items-center justify-center shrink-0 text-slate-600">
-                    <HardDrive className="w-3.5 h-3.5 text-emerald-600" />
+                <div className="flex items-center gap-2.5">
+                  <div className="w-8 h-8 rounded-lg bg-white border border-slate-200 flex items-center justify-center shrink-0 text-emerald-600">
+                    <HardDrive className="w-4 h-4" />
                   </div>
                   <div>
-                    <span className="text-[10px] uppercase font-bold text-slate-400 block leading-none">
+                    <span className="text-[10px] uppercase font-bold text-slate-400 block leading-none mb-0.5">
                       Media Storage
                     </span>
-                    <span className="font-bold text-slate-800 text-xs">
+                    <span className="font-bold text-slate-900 text-xs">
                       {formatMediaStorage(site.storageBytes)}
                     </span>
                   </div>
                 </div>
 
                 {/* Last Updated */}
-                <div className="flex items-center gap-2 col-span-2 sm:col-span-1">
-                  <div className="w-7 h-7 rounded-lg bg-white border border-slate-200 flex items-center justify-center shrink-0 text-slate-600">
-                    <Clock className="w-3.5 h-3.5 text-slate-500" />
+                <div className="flex items-center gap-2.5 col-span-2 sm:col-span-1">
+                  <div className="w-8 h-8 rounded-lg bg-white border border-slate-200 flex items-center justify-center shrink-0 text-slate-500">
+                    <Clock className="w-4 h-4" />
                   </div>
                   <div>
-                    <span className="text-[10px] uppercase font-bold text-slate-400 block leading-none">
+                    <span className="text-[10px] uppercase font-bold text-slate-400 block leading-none mb-0.5">
                       Last Updated
                     </span>
                     <span className="font-semibold text-slate-700 text-xs">
@@ -367,58 +504,23 @@ export function DashboardWebsiteList({ initialWebsites }: DashboardWebsiteListPr
                 </div>
               </div>
 
-              {/* BOTTOM ACTION AREA */}
-              <div className="pt-2 flex flex-wrap items-center justify-between gap-2.5">
+              {/* 4. SECONDARY & UTILITY ACTIONS BAR */}
+              <div className="pt-2 flex flex-wrap items-center justify-between gap-3 border-t border-slate-100 text-xs">
+                <span className="text-slate-400 font-bold uppercase text-[10px]">
+                  Other Website Actions
+                </span>
+
                 <div className="flex items-center gap-2 flex-wrap">
-                  {/* Primary Action: Manage Hub */}
-                  <Link
-                    href={`/dashboard/websites/${site.id}`}
-                    className="py-2 px-4 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold flex items-center gap-1.5 transition-all shadow-xs active:scale-95"
-                    title="Open Website Management Hub"
-                  >
-                    <Globe className="w-3.5 h-3.5" />
-                    <span>Manage Hub</span>
-                  </Link>
-
-                  {/* Refine Action */}
-                  <Link
-                    href={`/?id=${site.id}`}
-                    className="py-2 px-3.5 rounded-xl bg-purple-600 hover:bg-purple-700 text-white text-xs font-bold flex items-center gap-1.5 transition-all shadow-xs active:scale-95"
-                    title="Refine website with AI"
-                  >
-                    <Edit3 className="w-3.5 h-3.5" />
-                    <span>Refine with AI</span>
-                  </Link>
-
-                  {/* SEO Action */}
-                  <Link
-                    href={`/dashboard/websites/${site.id}/seo`}
-                    className="py-2 px-3.5 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 text-xs font-semibold flex items-center gap-1 transition-all"
-                  >
-                    <span>SEO</span>
-                  </Link>
-
-                  {/* Domain Action */}
-                  <Link
-                    href={`/dashboard/websites/${site.id}/domain`}
-                    className="py-2 px-3.5 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 text-xs font-semibold flex items-center gap-1 transition-all"
-                    title="Domain & Host Settings"
-                  >
-                    <span>Domain</span>
-                  </Link>
-                </div>
-
-                <div className="flex items-center gap-2">
                   {site.is_published && site.published_slug && (
                     <a
                       href={`/site/${site.published_slug}`}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="py-2 px-3 rounded-xl border border-slate-200 bg-white text-purple-600 hover:bg-purple-50 hover:border-purple-200 text-xs font-semibold flex items-center gap-1 transition-all"
-                      title="View Live Website"
+                      className="py-2 px-3.5 rounded-xl border border-slate-200 bg-white text-purple-700 hover:bg-purple-50 hover:border-purple-200 text-xs font-semibold flex items-center gap-1.5 transition-all shadow-2xs cursor-pointer"
+                      title="View Live Published Website"
                     >
-                      <ExternalLink className="w-3.5 h-3.5" />
-                      <span className="hidden sm:inline">Live Site</span>
+                      <ExternalLink className="w-3.5 h-3.5 text-purple-600" />
+                      <span>Live Site</span>
                     </a>
                   )}
 
@@ -426,7 +528,7 @@ export function DashboardWebsiteList({ initialWebsites }: DashboardWebsiteListPr
                     onClick={() => handleTogglePublish(site)}
                     disabled={actionLoadingId === site.id}
                     title={site.is_published ? "Unpublish Website" : "Publish Website"}
-                    className="py-2 px-3 rounded-xl border border-slate-200 bg-white text-slate-700 hover:text-purple-700 hover:bg-slate-50 text-xs font-semibold flex items-center gap-1.5 transition-all disabled:opacity-50"
+                    className="py-2 px-3.5 rounded-xl border border-slate-200 bg-white text-slate-700 hover:text-purple-700 hover:bg-slate-50 text-xs font-semibold flex items-center gap-1.5 transition-all disabled:opacity-50 cursor-pointer shadow-2xs"
                   >
                     {actionLoadingId === site.id ? (
                       <Loader2 className="w-3.5 h-3.5 animate-spin text-purple-600" />
@@ -443,12 +545,15 @@ export function DashboardWebsiteList({ initialWebsites }: DashboardWebsiteListPr
                     )}
                   </button>
 
+                  <div className="h-4 w-px bg-slate-200 mx-1 hidden sm:block" />
+
                   <button
                     onClick={() => setDeleteTargetId(site.id)}
                     title="Delete Website"
-                    className="p-2 rounded-xl border border-slate-200 bg-white text-slate-400 hover:text-red-600 hover:bg-red-50 hover:border-red-200 transition-all shrink-0"
+                    className="py-2 px-3.5 rounded-xl border border-slate-200 bg-white text-slate-500 hover:text-red-600 hover:bg-red-50 hover:border-red-200 text-xs font-semibold transition-all shrink-0 cursor-pointer shadow-2xs flex items-center gap-1.5"
                   >
-                    <Trash2 className="w-4 h-4" />
+                    <Trash2 className="w-3.5 h-3.5" />
+                    <span>Delete</span>
                   </button>
                 </div>
               </div>

@@ -151,7 +151,7 @@ export default function SignupPage() {
           </div>
           <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-purple-50 border border-purple-200/80 text-purple-700 text-xs font-medium">
             <Sparkles className="w-3.5 h-3.5 text-purple-600" />
-            <span>AI Website Builder</span>
+            <span>Agentic Website Builder</span>
           </div>
         </Link>
 

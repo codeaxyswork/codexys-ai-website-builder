@@ -1,5 +1,6 @@
 import { GoogleGenAI } from "@google/genai";
 import { getGeminiConfig } from "./gemini";
+import { DetectedSEOIntent, detectSEOIntent } from "./seo-agent-intent";
 
 export interface SEOAgentContext {
   website: {
@@ -134,9 +135,22 @@ export interface SEOAgentContext {
 
 /**
  * Builds a bounded, website-specific SEO context payload from existing database records.
- * Limits query sizes to ensure context remains lightweight and scalable.
+ * Uses intent routing to selectively load deep module data while keeping payload lightweight.
  */
-export async function buildSEOContext(supabase: any, websiteId: string): Promise<SEOAgentContext> {
+export async function buildSEOContext(
+  supabase: any,
+  websiteId: string,
+  detectedIntent?: DetectedSEOIntent
+): Promise<SEOAgentContext> {
+  const activeIntents = detectedIntent
+    ? [detectedIntent.primaryIntent, ...detectedIntent.secondaryIntents]
+    : [];
+  const shouldFetchAll =
+    activeIntents.length === 0 ||
+    activeIntents.includes("OVERALL_SEO") ||
+    activeIntents.includes("SEO_IMPROVEMENT") ||
+    activeIntents.includes("SEO_SCORE");
+
   // 1. Fetch Website Metadata
   const { data: website } = await supabase
     .from("websites")
@@ -148,7 +162,7 @@ export async function buildSEOContext(supabase: any, websiteId: string): Promise
     ? `https://${process.env.NEXT_PUBLIC_APP_DOMAIN || "localhost:3000"}/site/${website.published_slug}`
     : null;
 
-  // 2. Fetch website_seo
+  // 2. Fetch website_seo Core Baseline
   const { data: seoRow } = await supabase
     .from("website_seo")
     .select("seo_score, analysis_status, last_analyzed_at, is_dirty, seo_analysis")
@@ -235,56 +249,68 @@ export async function buildSEOContext(supabase: any, websiteId: string): Promise
     createdAt: h.created_at,
   }));
 
-  // 5. Fetch GSC Integration & Performance Context
-  const { data: integration } = await supabase
-    .from("seo_integrations")
-    .select("status, selected_property_url")
-    .eq("website_id", websiteId)
-    .eq("provider", "google_search_console")
-    .maybeSingle();
+  // 5. Fetch GSC Context if relevant
+  const shouldFetchGsc =
+    shouldFetchAll ||
+    activeIntents.some((i) =>
+      ["GOOGLE_PERFORMANCE", "GOOGLE_RANKINGS", "GSC", "KEYWORD_PERFORMANCE", "PAGE_PERFORMANCE"].includes(i)
+    );
 
-  const isGscConnected = integration?.status === "connected" && !!integration?.selected_property_url;
+  let isGscConnected = false;
+  let gscPropertyUrl: string | null = null;
   let gscTotals: { clicks: number; impressions: number; ctr: number; position: number } | null = null;
   let topQueries: Array<{ query: string; clicks: number; impressions: number; position: number }> = [];
 
-  if (isGscConnected) {
-    const { data: analyticsRows } = await supabase
-      .from("gsc_search_analytics")
-      .select("query, clicks, impressions, ctr, position")
+  if (shouldFetchGsc) {
+    const { data: integration } = await supabase
+      .from("seo_integrations")
+      .select("status, selected_property_url")
       .eq("website_id", websiteId)
-      .order("clicks", { ascending: false })
-      .limit(10);
+      .eq("provider", "google_search_console")
+      .maybeSingle();
 
-    if (analyticsRows && analyticsRows.length > 0) {
-      let totalClicks = 0;
-      let totalImpressions = 0;
-      let sumCtr = 0;
-      let sumPosition = 0;
+    isGscConnected = integration?.status === "connected" && !!integration?.selected_property_url;
+    gscPropertyUrl = integration?.selected_property_url || null;
 
-      analyticsRows.forEach((r: any) => {
-        totalClicks += r.clicks || 0;
-        totalImpressions += r.impressions || 0;
-        sumCtr += r.ctr || 0;
-        sumPosition += r.position || 0;
-      });
+    if (isGscConnected) {
+      const { data: analyticsRows } = await supabase
+        .from("gsc_search_analytics")
+        .select("query, clicks, impressions, ctr, position")
+        .eq("website_id", websiteId)
+        .order("clicks", { ascending: false })
+        .limit(10);
 
-      gscTotals = {
-        clicks: totalClicks,
-        impressions: totalImpressions,
-        ctr: analyticsRows.length > 0 ? Number((sumCtr / analyticsRows.length).toFixed(2)) : 0,
-        position: analyticsRows.length > 0 ? Number((sumPosition / analyticsRows.length).toFixed(1)) : 0,
-      };
+      if (analyticsRows && analyticsRows.length > 0) {
+        let totalClicks = 0;
+        let totalImpressions = 0;
+        let sumCtr = 0;
+        let sumPosition = 0;
 
-      topQueries = analyticsRows.map((r: any) => ({
-        query: r.query,
-        clicks: r.clicks || 0,
-        impressions: r.impressions || 0,
-        position: r.position ? Number(r.position.toFixed(1)) : 0,
-      }));
+        analyticsRows.forEach((r: any) => {
+          totalClicks += r.clicks || 0;
+          totalImpressions += r.impressions || 0;
+          sumCtr += r.ctr || 0;
+          sumPosition += r.position || 0;
+        });
+
+        gscTotals = {
+          clicks: totalClicks,
+          impressions: totalImpressions,
+          ctr: analyticsRows.length > 0 ? Number((sumCtr / analyticsRows.length).toFixed(2)) : 0,
+          position: analyticsRows.length > 0 ? Number((sumPosition / analyticsRows.length).toFixed(1)) : 0,
+        };
+
+        topQueries = analyticsRows.map((r: any) => ({
+          query: r.query,
+          clicks: r.clicks || 0,
+          impressions: r.impressions || 0,
+          position: r.position ? Number(r.position.toFixed(1)) : 0,
+        }));
+      }
     }
   }
 
-  // 6. Fetch Blog Summary (blog_posts)
+  // 6. Fetch Blog Summary
   const { data: blogRows } = await supabase
     .from("blog_posts")
     .select("title, slug, status, created_at")
@@ -301,7 +327,7 @@ export async function buildSEOContext(supabase: any, websiteId: string): Promise
     status: b.status,
   }));
 
-  // 7. Fetch Internal Links Summary (website_internal_links)
+  // 7. Fetch Internal Links Summary
   const { data: linkRow } = await supabase
     .from("website_internal_links")
     .select("internal_link_score, summary, opportunities")
@@ -317,7 +343,7 @@ export async function buildSEOContext(supabase: any, websiteId: string): Promise
     reason: o.reason,
   }));
 
-  // 8. Fetch Local SEO Summary (website_local_seo)
+  // 8. Fetch Local SEO Summary
   const { data: localRow } = await supabase
     .from("website_local_seo")
     .select("business_name, business_type, city, phone, local_seo_score, analysis_result, gbp_profile_url")
@@ -327,7 +353,7 @@ export async function buildSEOContext(supabase: any, websiteId: string): Promise
   const localRes = localRow?.analysis_result || {};
   const localIssues = localRes.issues || [];
 
-  // 9. Fetch Monitoring Summary & Recent Events (website_monitoring_schedules & seo_monitoring_events)
+  // 9. Fetch Monitoring Summary & Alerts
   const { data: schedRow } = await supabase
     .from("website_monitoring_schedules")
     .select("enabled, frequency, last_run_at, next_run_at, failure_count")
@@ -352,7 +378,7 @@ export async function buildSEOContext(supabase: any, websiteId: string): Promise
     createdAt: e.created_at,
   }));
 
-  // 10. Fetch Third-Party SEO Integrations (website_third_party_seo_integrations)
+  // 10. Fetch Third-Party SEO Integrations
   const { data: thirdPartyRows } = await supabase
     .from("website_third_party_seo_integrations")
     .select("provider, status, capabilities, last_tested_at")
@@ -365,7 +391,7 @@ export async function buildSEOContext(supabase: any, websiteId: string): Promise
     lastTestedAt: t.last_tested_at || null,
   }));
 
-  // 11. Fetch Phase 11 Opportunities & Autopilot Context
+  // 11. Fetch Opportunities & Autopilot Context
   const { data: oppRows } = await supabase
     .from("seo_opportunities")
     .select("title, priority_score, priority_level, category, description, is_autopilot_eligible, status")
@@ -395,7 +421,7 @@ export async function buildSEOContext(supabase: any, websiteId: string): Promise
     .eq("website_id", websiteId)
     .maybeSingle();
 
-  // 12. Fetch Phase 12 AEO & Topical Authority Data (website_aeo_analysis)
+  // 12. Fetch AEO & Topical Authority Data
   const { data: aeoRow } = await supabase
     .from("website_aeo_analysis")
     .select("answer_readiness_score, topic_coverage_score, entity_clarity, questions_discovered, topic_clusters, content_gaps")
@@ -406,7 +432,7 @@ export async function buildSEOContext(supabase: any, websiteId: string): Promise
   const clustersList = (aeoRow?.topic_clusters as any[]) || [];
   const gapsList = (aeoRow?.content_gaps as any[]) || [];
 
-  // 13. Fetch Phase 13 Competitor Intelligence Data
+  // 13. Fetch Competitor Intelligence Data
   const { data: compRows } = await supabase
     .from("seo_competitors")
     .select("domain, name, status")
@@ -423,7 +449,7 @@ export async function buildSEOContext(supabase: any, websiteId: string): Promise
     if (Array.isArray(ca.content_gaps)) allCompGaps.push(...ca.content_gaps);
   });
 
-  // 14. Fetch Phase 15 Technical Crawl Data
+  // 14. Fetch Technical Crawl Data
   const { data: latestTechRun } = await supabase
     .from("technical_crawl_runs")
     .select("id, technical_score, total_urls_crawled, total_issues_count, summary_breakdown")
@@ -478,7 +504,7 @@ export async function buildSEOContext(supabase: any, websiteId: string): Promise
     history,
     gsc: {
       connected: isGscConnected,
-      propertyUrl: integration?.selected_property_url || null,
+      propertyUrl: gscPropertyUrl,
       totals: gscTotals,
       topQueries,
     },
@@ -526,54 +552,74 @@ export async function buildSEOContext(supabase: any, websiteId: string): Promise
       autopilotEligible: oppAutopilotCount,
       topOpportunities,
     },
-    autopilotSummary: autoRow ? {
-      status: autoRow.status || "active",
-      scanFrequency: autoRow.scan_frequency || "weekly",
-      autoApplySafeFixes: !!autoRow.auto_apply_safe_fixes,
-      requireApprovalForStaging: !!autoRow.require_approval_for_staging,
-      lastRunAt: autoRow.last_run_at || null,
-      nextRunAt: autoRow.next_run_at || null,
-    } : undefined,
-    aeoSummary: aeoRow ? {
-      answerReadinessScore: Number(aeoRow.answer_readiness_score || 0),
-      clarityScore: Number(aeoRow.entity_clarity?.clarityScore || 0),
-      questionsCount: questionsList.length,
-      topQuestions: questionsList.slice(0, 5).map((q) => ({
-        question: q.question,
-        hasDirectAnswer: !!q.hasDirectAnswer,
-      })),
-    } : undefined,
-    topicalAuthoritySummary: aeoRow ? {
-      topicCoverageScore: Number(aeoRow.topic_coverage_score || 0),
-      clustersCount: clustersList.length,
-      topClusters: clustersList.slice(0, 5).map((c) => ({
-        mainTopic: c.mainTopic,
-        clusterCoverageScore: c.clusterCoverageScore,
-      })),
-      missingSubtopicsCount: gapsList.length,
-    } : undefined,
-    competitorSummary: competitorList.length > 0 ? {
-      totalCompetitors: competitorList.length,
-      trackedDomains: competitorList.map((c: any) => c.domain),
-      totalGapsCount: allCompGaps.length,
-      topGaps: allCompGaps.slice(0, 5).map((g: any) => ({
-        title: g.title,
-        gapType: g.gapType,
-        competitorDomain: g.competitorDomain,
-      })),
-    } : undefined,
-    technicalCrawlSummary: latestTechRun ? {
-      technicalScore: latestTechRun.technical_score,
-      totalUrlsCrawled: latestTechRun.total_urls_crawled,
-      totalIssuesCount: latestTechRun.total_issues_count,
-      statusCounts: latestTechRun.summary_breakdown?.statusCounts || { ok2xx: 0, redirect3xx: 0, clientError4xx: 0, serverError5xx: 0 },
-      topTechnicalIssues: topTechIssues,
-    } : undefined,
+    autopilotSummary: autoRow
+      ? {
+          status: autoRow.status || "active",
+          scanFrequency: autoRow.scan_frequency || "weekly",
+          autoApplySafeFixes: !!autoRow.auto_apply_safe_fixes,
+          requireApprovalForStaging: !!autoRow.require_approval_for_staging,
+          lastRunAt: autoRow.last_run_at || null,
+          nextRunAt: autoRow.next_run_at || null,
+        }
+      : undefined,
+    aeoSummary: aeoRow
+      ? {
+          answerReadinessScore: Number(aeoRow.answer_readiness_score || 0),
+          clarityScore: Number(aeoRow.entity_clarity?.clarityScore || 0),
+          questionsCount: questionsList.length,
+          topQuestions: questionsList.slice(0, 5).map((q) => ({
+            question: q.question,
+            hasDirectAnswer: !!q.hasDirectAnswer,
+          })),
+        }
+      : undefined,
+    topicalAuthoritySummary: aeoRow
+      ? {
+          topicCoverageScore: Number(aeoRow.topic_coverage_score || 0),
+          clustersCount: clustersList.length,
+          topClusters: clustersList.slice(0, 5).map((c) => ({
+            mainTopic: c.mainTopic,
+            clusterCoverageScore: c.clusterCoverageScore,
+          })),
+          missingSubtopicsCount: gapsList.length,
+        }
+      : undefined,
+    competitorSummary:
+      competitorList.length > 0
+        ? {
+            totalCompetitors: competitorList.length,
+            trackedDomains: competitorList.map((c: any) => c.domain),
+            totalGapsCount: allCompGaps.length,
+            topGaps: allCompGaps.slice(0, 5).map((g: any) => ({
+              title: g.title,
+              gapType: g.gapType,
+              competitorDomain: g.competitorDomain,
+            })),
+          }
+        : undefined,
+    technicalCrawlSummary: latestTechRun
+      ? {
+          technicalScore: latestTechRun.technical_score,
+          totalUrlsCrawled: latestTechRun.total_urls_crawled,
+          totalIssuesCount: latestTechRun.total_issues_count,
+          statusCounts: latestTechRun.summary_breakdown?.statusCounts || { ok2xx: 0, redirect3xx: 0, clientError4xx: 0, serverError5xx: 0 },
+          topTechnicalIssues: topTechIssues,
+        }
+      : undefined,
   };
 }
 
 export interface StructuredSEOFix {
-  issueType: "seo_title" | "meta_description" | "focus_keywords" | "og_title" | "og_description" | "alt_text" | "canonical_url" | "robots_config" | "heading_structure";
+  issueType:
+    | "seo_title"
+    | "meta_description"
+    | "focus_keywords"
+    | "og_title"
+    | "og_description"
+    | "alt_text"
+    | "canonical_url"
+    | "robots_config"
+    | "heading_structure";
   pagePath?: string;
   currentValue?: string;
   recommendedValue: string;
@@ -590,7 +636,27 @@ export interface SEOAgentMessage {
 export interface SEOAgentResponsePayload {
   message: string;
   suggestedActions?: string[];
-  navigationTarget?: "overview" | "technical-crawl" | "content-studio" | "competitors" | "content-gaps" | "aeo" | "topical-authority" | "opportunities" | "autopilot" | "performance" | "monitoring" | "organic" | "technical" | "internal-links" | "local-seo" | "blog" | "pages" | "keywords" | "integrations" | "settings";
+  navigationTarget?:
+    | "overview"
+    | "technical-crawl"
+    | "content-studio"
+    | "competitors"
+    | "content-gaps"
+    | "aeo"
+    | "topical-authority"
+    | "opportunities"
+    | "autopilot"
+    | "performance"
+    | "monitoring"
+    | "organic"
+    | "technical"
+    | "internal-links"
+    | "local-seo"
+    | "blog"
+    | "pages"
+    | "keywords"
+    | "integrations"
+    | "settings";
   proposedFix?: StructuredSEOFix | null;
 }
 
@@ -601,39 +667,52 @@ export async function generateSEOAgentResponse(params: {
   userPrompt: string;
   seoContext: SEOAgentContext;
   conversationHistory?: SEOAgentMessage[];
+  detectedIntent?: DetectedSEOIntent;
 }): Promise<SEOAgentResponsePayload> {
   const { apiKey, model } = getGeminiConfig();
   const ai = new GoogleGenAI({ apiKey });
 
-  const systemPrompt = `You are the Codeaxys AI SEO Specialist — a highly skilled, objective, and customer-friendly SEO Intelligence Agent.
-Your role is to analyze the provided website's REAL SEO data, explain search engine health, interpret Search Console traffic, prioritize improvements, provide local SEO & content strategy guidance, assist with Content Studio briefs and content refresh recommendations, and answer user questions.
+  const intent = params.detectedIntent || detectSEOIntent(params.userPrompt, params.conversationHistory);
 
-CRITICAL RULES & SAFETY BOUNDARIES:
-1. DATA TRUTH: Base all answers strictly on the provided real website SEO context (including website health, Search Console analytics, blogSummary, internalLinkSummary, localSeoSummary, aeoSummary, topicalAuthoritySummary, competitorSummary, and contentStudioSummary data). Do NOT invent fake scores, fake clicks, fake rankings, or fake search queries.
-2. MISSING DATA HANDLING: If Search Console is disconnected or has no data, explicitly state that Search Console data is unavailable and recommend connecting it in the Integrations tab. If page-level audits are empty, state that page indexing is needed.
-3. LOCAL SEO & MONITORING ALERTS: You understand NAP consistency, LocalBusiness JSON-LD schema, local keyword signals, and background monitoring alerts. Use monitoringSummary data to answer questions like "What changed recently?", "Why did my score drop?", or "Did my local SEO improve?".
-4. AEO & TOPICAL AUTHORITY QUESTIONS: You understand Answer Engine Optimization (AEO), Answer Readiness Score, entity clarity, question coverage, and Topic Clusters. Use aeoSummary and topicalAuthoritySummary to answer questions such as "Is my website ready for AI search?", "What topics am I missing?", "Which questions should my website answer?", or "How can I improve my topical authority?".
-5. COMPETITOR & CONTENT STUDIO: You understand competitive SEO benchmarking, content briefs, content refresh recommendations, and outline generation. Answer questions like "Create a brief for this topic", "What is missing from this article?", "How can I improve this article for SEO?", "Make this article more AEO-friendly?", "What topics should I add?", "Which internal links should I add?", or "Why should I refresh this article?".
-6. NO RANKING GUARANTEES: NEVER say "You will rank #1", "Guaranteed first page", or "Traffic will increase by X%". Use accurate, non-overpromising phrasing such as "This can improve technical search signals" or "This helps search engines better understand your page content."
-7. ADVISORY ONLY: You are providing advice and recommendations. Content changes in Content Studio require explicit user approval. Never claim that content has been automatically published without user approval.
-8. MULTILINGUAL SUPPORT: Respond in the user's conversation language (including English, Malayalam, Manglish, or code-switching) while keeping core technical SEO terms clear.
-9. NAVIGATION ADVICE: When recommending where a user should fix an issue or write content, suggest the exact tab destination: "overview", "content-studio", "competitors", "content-gaps", "aeo", "topical-authority", "opportunities", "autopilot", "performance", "monitoring", "organic", "technical", "internal-links", "local-seo", "blog", "pages", "keywords", "integrations", or "settings".
-10. DETERMINISTIC FIX PROPOSALS: When you identify a specific SEO issue that can be fixed deterministically (e.g. SEO title, meta description, focus keywords, OG title, OG description, canonical URL, robots settings, or image alt text), include a "proposedFix" object in your JSON output. If no specific fix applies, set "proposedFix" to null.
+  const systemPrompt = `You are the Codeaxys AI SEO Specialist — a world-class, objective, customer-friendly SEO Intelligence Specialist.
+Your role is to orchestrate the entire website SEO system (Phase 1 - Phase 16 modules) and answer customer questions naturally in their conversation language (English, Malayalam, Manglish, or code-switching).
+
+CRITICAL ARCHITECTURE RULES & SAFETY BOUNDARIES:
+1. DATA TRUTH: Base all answers strictly on the provided REAL website SEO context. Do NOT invent fake scores, fake clicks, fake rankings, or fake search queries.
+2. METRIC CLARITY:
+   - "Core SEO Score": On-page technical analysis score (out of 100).
+   - "Unified SEO Health Score": Multi-dimensional health score combining technical, content, GSC, local, and link metrics.
+   - "Google Average Position": Ranking metric from Google Search Console.
+   Never confuse or blend these distinct metrics.
+3. GOOGLE RANKING SAFETY: NEVER say "You will rank #1", "Guaranteed page 1", or "Traffic will definitely double". Explain that search improvements enhance technical signals and discoverability, but search engine algorithms dictate exact positions.
+4. GSC RECONNECT STATE HANDLING: If Google Search Console is not connected or token has expired, state: "Your Google Search Console connection needs to be reconnected before I can retrieve current Google Search data." and recommend navigating to the "integrations" tab.
+5. LOCAL SEO & MONITORING ALERTS: Use monitoringSummary and localSeoSummary to explain recent score changes,NAP consistency, JSON-LD schema, or background monitoring events.
+6. AEO & TOPICAL AUTHORITY: Use aeoSummary and topicalAuthoritySummary to answer AI Search readiness (ChatGPT/Perplexity/Gemini), entity clarity, and missing subtopics.
+7. COMPETITOR & CONTENT STUDIO: Use competitorSummary and contentStudioSummary to answer competitor comparison questions and explain topic coverage differences evidence-based ("Based on analyzed pages...").
+8. MULTILINGUAL SUPPORT: Respond in the user's natural language:
+   - If user speaks Malayalam: Reply in warm, clear Malayalam.
+   - If user speaks Manglish ("ente website engane und?"): Reply naturally in Manglish.
+   - If user speaks English: Reply in professional English.
+9. PRONOUN & REFERENCE RESOLUTION: When user asks short follow-ups ("fix that", "show me that", "what about that issue?"), resolve "that/it" using recent conversation history context.
+10. NAVIGATION TARGETS: Suggest exact tab route when referring user to a specific area:
+    "overview" | "technical-crawl" | "content-studio" | "competitors" | "content-gaps" | "aeo" | "topical-authority" | "opportunities" | "autopilot" | "performance" | "monitoring" | "organic" | "technical" | "internal-links" | "local-seo" | "blog" | "pages" | "keywords" | "integrations" | "settings"
+11. DETERMINISTIC FIX PROPOSALS: If a safe fix applies (e.g. SEO title, meta description, OG tags, canonical URL, robots settings, image alt text), include a "proposedFix" object in your JSON output. Require user approval.
+12. AMBIGUOUS QUESTION CLARIFICATION: If the user asks a very broad or ambiguous question (e.g. "Improve my website" or "Fix my site") without specifying a topic, ask a friendly clarification question offering options (e.g., "Would you like to focus on Google search performance, technical SEO, content strategy, local SEO, or overall health?"). But if the user asked a clear question (e.g., "How is my SEO?", "What should I fix first?"), analyze and answer directly without asking unnecessary questions.
 
 OUTPUT FORMAT:
 Return strictly a single JSON object with no markdown fences, no wrapping, matching this shape:
 {
-  "message": "Detailed, friendly, customer-focused markdown response answering the question, explaining reasoning, and giving prioritized action steps.",
+  "message": "Detailed, friendly, customer-focused markdown response.",
   "suggestedActions": ["Actionable tip 1", "Actionable tip 2"],
-  "navigationTarget": "competitors", // (optional target tab: "overview" | "competitors" | "content-gaps" | "aeo" | "topical-authority" | "opportunities" | "autopilot" | "performance" | "monitoring" | "organic" | "technical" | "internal-links" | "local-seo" | "blog" | "pages" | "keywords" | "integrations" | "settings")
-  "proposedFix": { // (optional proposed fix object if a specific fix can be applied)
-    "issueType": "seo_title", // "seo_title" | "meta_description" | "focus_keywords" | "og_title" | "og_description" | "alt_text" | "canonical_url" | "robots_config" | "heading_structure"
+  "navigationTarget": "technical-crawl", // (optional target tab)
+  "proposedFix": { // (optional proposed fix object)
+    "issueType": "seo_title",
     "pagePath": "index.html",
-    "currentValue": "Current title or copy",
-    "recommendedValue": "Recommended title or copy",
-    "reason": "This improves search engine understanding of homepage focus keywords.",
-    "severity": "critical", // "critical" | "warning" | "opportunity"
-    "instruction": "Update SEO title to recommended value"
+    "currentValue": "Current title",
+    "recommendedValue": "Recommended title",
+    "reason": "Why this fix is recommended",
+    "severity": "critical",
+    "instruction": "Update SEO title"
   }
 }`;
 
@@ -643,6 +722,12 @@ Return strictly a single JSON object with no markdown fences, no wrapping, match
     .join("\n\n");
 
   const promptText = `
+=== DETECTED INTENT ===
+Primary Intent: ${intent.primaryIntent}
+Secondary Intents: ${intent.secondaryIntents.join(", ") || "None"}
+Detected Language: ${intent.detectedLanguage}
+${intent.resolvedContextTopic ? `Resolved Context Topic: ${intent.resolvedContextTopic}` : ""}
+
 === LIVE WEBSITE SEO CONTEXT ===
 ${JSON.stringify(params.seoContext, null, 2)}
 
@@ -659,9 +744,7 @@ ${params.userPrompt}
     try {
       const response = await ai.models.generateContent({
         model: targetModel,
-        contents: [
-          { role: "user", parts: [{ text: `${systemPrompt}\n\n${promptText}` }] },
-        ],
+        contents: [{ role: "user", parts: [{ text: `${systemPrompt}\n\n${promptText}` }] }],
         config: {
           responseMimeType: "application/json",
         },
@@ -674,7 +757,7 @@ ${params.userPrompt}
       return {
         message: parsed.message || rawText || "I have analyzed your website SEO context.",
         suggestedActions: Array.isArray(parsed.suggestedActions) ? parsed.suggestedActions : [],
-        navigationTarget: parsed.navigationTarget || undefined,
+        navigationTarget: parsed.navigationTarget || (intent.targetTabRoute as any) || undefined,
         proposedFix: parsed.proposedFix || null,
       };
     } catch (err: any) {

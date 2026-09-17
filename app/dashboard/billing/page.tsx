@@ -216,21 +216,70 @@ export default function BillingDashboardPage() {
             {/* Subscription Action Buttons */}
             <div className="flex items-center gap-3 pt-4 border-t border-slate-100 flex-wrap">
               {plan.id === "free" ? (
-                <button
-                  type="button"
-                  onClick={() => handleOpenCheckout("pro")}
-                  className="flex-1 py-2.5 px-4 bg-purple-600 hover:bg-purple-700 text-white font-bold text-xs rounded-lg shadow-sm transition-all"
-                >
-                  Upgrade to Pro (₹999)
-                </button>
+                <>
+                  <button
+                    type="button"
+                    onClick={() => handleOpenCheckout("starter")}
+                    className="flex-1 py-2.5 px-4 bg-purple-600 hover:bg-purple-700 text-white font-bold text-xs rounded-lg shadow-sm transition-all"
+                  >
+                    Upgrade to Starter (₹299)
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => handleOpenCheckout("pro")}
+                    className="flex-1 py-2.5 px-4 bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs rounded-lg shadow-sm transition-all"
+                  >
+                    Upgrade to Pro (₹599)
+                  </button>
+                </>
+              ) : plan.id === "starter" ? (
+                <>
+                  <button
+                    type="button"
+                    onClick={() => handleOpenCheckout("pro")}
+                    className="flex-1 py-2.5 px-4 bg-purple-600 hover:bg-purple-700 text-white font-bold text-xs rounded-lg shadow-sm transition-all"
+                  >
+                    Upgrade to Pro (₹599)
+                  </button>
+                  {!subscription?.cancel_at_period_end && (
+                    <button
+                      type="button"
+                      onClick={handleCancelSubscription}
+                      disabled={isCanceling}
+                      className="py-2.5 px-4 bg-slate-100 hover:bg-rose-50 hover:text-rose-600 text-slate-600 font-semibold text-xs rounded-lg transition-all"
+                    >
+                      {isCanceling ? "Canceling..." : "Cancel Subscription"}
+                    </button>
+                  )}
+                </>
               ) : plan.id === "pro" ? (
+                <>
+                  <button
+                    type="button"
+                    onClick={() => handleOpenCheckout("business")}
+                    className="flex-1 py-2.5 px-4 bg-purple-600 hover:bg-purple-700 text-white font-bold text-xs rounded-lg shadow-sm transition-all"
+                  >
+                    Upgrade to Business (₹999)
+                  </button>
+                  {!subscription?.cancel_at_period_end && (
+                    <button
+                      type="button"
+                      onClick={handleCancelSubscription}
+                      disabled={isCanceling}
+                      className="py-2.5 px-4 bg-slate-100 hover:bg-rose-50 hover:text-rose-600 text-slate-600 font-semibold text-xs rounded-lg transition-all"
+                    >
+                      {isCanceling ? "Canceling..." : "Cancel Subscription"}
+                    </button>
+                  )}
+                </>
+              ) : plan.id === "business" ? (
                 <>
                   <button
                     type="button"
                     onClick={() => handleOpenCheckout("agency")}
                     className="flex-1 py-2.5 px-4 bg-purple-600 hover:bg-purple-700 text-white font-bold text-xs rounded-lg shadow-sm transition-all"
                   >
-                    Upgrade to Agency (₹2,999)
+                    Upgrade to Agency (₹1,999)
                   </button>
                   {!subscription?.cancel_at_period_end && (
                     <button
@@ -245,13 +294,12 @@ export default function BillingDashboardPage() {
                 </>
               ) : (
                 <>
-                  <button
-                    type="button"
-                    onClick={() => handleOpenCheckout("pro")}
+                  <Link
+                    href="/pricing"
                     className="py-2.5 px-4 bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold text-xs rounded-lg transition-all"
                   >
-                    Change to Pro
-                  </button>
+                    View All Plans
+                  </Link>
                   {!subscription?.cancel_at_period_end && (
                     <button
                       type="button"

@@ -249,22 +249,28 @@ export default function SEODashboardPage({ params }: SEODashboardPageProps) {
   };
 
   const handleSelectGscProperty = async (propertyUrl: string) => {
-    setGscSyncError(null);
-    const res = await fetch(`/api/websites/${websiteId}/seo/gsc/select-property`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ property_url: propertyUrl }),
-    });
+    try {
+      setGscSyncError(null);
+      const res = await fetch(`/api/websites/${websiteId}/seo/gsc/select-property`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ property_url: propertyUrl }),
+      });
 
-    if (!res.ok) {
-      const errJson = await res.json().catch(() => ({}));
-      throw new Error(errJson.error || "Failed to select property.");
+      if (!res.ok) {
+        const errJson = await res.json().catch(() => ({}));
+        setGscSyncError(errJson.error || "Failed to select property.");
+        return;
+      }
+
+      // Refresh integrations list & GSC performance
+      await fetchInitialData();
+      // Auto-trigger sync after selecting property
+      await handleSyncGsc();
+    } catch (err: any) {
+      console.error("Select property error:", err);
+      setGscSyncError(err?.message || "Failed to select property.");
     }
-
-    // Refresh integrations list & GSC performance
-    await fetchInitialData();
-    // Auto-trigger sync after selecting property
-    handleSyncGsc();
   };
 
   const handleSyncGsc = async () => {
@@ -278,14 +284,15 @@ export default function SEODashboardPage({ params }: SEODashboardPageProps) {
 
       if (!res.ok) {
         const errJson = await res.json().catch(() => ({}));
-        throw new Error(errJson.error || "Search Console sync failed.");
+        setGscSyncError(errJson.error || "Search Console sync failed.");
+        return;
       }
 
       await fetchGscPerformance();
     } catch (err: any) {
       console.error("GSC Sync Error:", err);
-      setGscSyncError(err.message || "Failed to sync Search Console data.");
-    } fontally: {
+      setGscSyncError(err?.message || "Failed to sync Search Console data.");
+    } finally {
       setIsSyncingGsc(false);
     }
   };
@@ -625,12 +632,9 @@ export default function SEODashboardPage({ params }: SEODashboardPageProps) {
           
           {/* LEFT: SEO CONTROL CENTER SIDEBAR (DESKTOP) */}
           <aside className="hidden lg:block w-72 shrink-0 bg-white border border-slate-200/90 rounded-2xl p-4 shadow-sm shadow-slate-200/50 sticky top-24">
-            <div className="px-3 py-2.5 border-b border-slate-100 mb-3 flex items-center justify-between">
-              <span className="text-xs font-black uppercase tracking-wider text-slate-400">
+            <div className="px-3 py-2.5 border-b border-slate-100 mb-3">
+              <span className="text-xs font-black uppercase tracking-wider text-slate-400 whitespace-nowrap block">
                 SEO Tools Navigation
-              </span>
-              <span className="text-[11px] font-extrabold px-2.5 py-0.5 bg-purple-50 text-purple-700 rounded-full border border-purple-100">
-                12 Tools
               </span>
             </div>
 

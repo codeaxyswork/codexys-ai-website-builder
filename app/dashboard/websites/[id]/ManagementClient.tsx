@@ -28,6 +28,8 @@ import {
   Lock,
 } from "lucide-react";
 
+import { getWebsiteTrialStatus } from "@/lib/website-trial";
+
 interface ManagementClientProps {
   website: any;
   indexPage: any;
@@ -121,6 +123,7 @@ export function WebsiteManagementClient({ website, indexPage, seoData }: Managem
   const plan = website.design_plan || {};
   const websiteType = plan.websiteType || "Custom AI Website";
   const seoScore = seoData?.seo_score;
+  const trialInfo = getWebsiteTrialStatus(website.created_at, "free", isPublished);
 
   return (
     <div className="space-y-8">
@@ -142,6 +145,18 @@ export function WebsiteManagementClient({ website, indexPage, seoData }: Managem
               {isPublished ? "Published Live" : "Draft (Unpublished)"}
             </span>
 
+            <span
+              className={`px-3 py-1 rounded-full text-xs font-extrabold uppercase border ${
+                trialInfo.badgeColor === "emerald"
+                  ? "bg-emerald-50 border-emerald-200 text-emerald-700"
+                  : trialInfo.badgeColor === "amber"
+                  ? "bg-amber-50 border-amber-200 text-amber-800"
+                  : "bg-purple-50 border-purple-200 text-purple-700"
+              }`}
+            >
+              {trialInfo.badgeLabel}
+            </span>
+
             {typeof seoScore === "number" && (
               <span className="px-3 py-1 rounded-full text-xs font-bold bg-slate-100 text-slate-800 border border-slate-200">
                 SEO Score: <strong className="text-purple-600 font-mono">{seoScore}</strong>/100
@@ -159,6 +174,21 @@ export function WebsiteManagementClient({ website, indexPage, seoData }: Managem
             <span className="text-slate-300">•</span>
             <span className="font-mono text-slate-400 text-xs">ID: {website.id.slice(0, 8)}...</span>
           </p>
+
+          {trialInfo.isExpired && (
+            <div className="bg-amber-50 border border-amber-200 rounded-xl p-3 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 text-xs text-amber-900 font-medium mt-2">
+              <div className="flex items-center gap-2">
+                <Clock className="w-4 h-4 text-amber-600 shrink-0" />
+                <span>{trialInfo.message}</span>
+              </div>
+              <Link
+                href="/pricing"
+                className="px-3 py-1.5 bg-amber-700 hover:bg-amber-800 text-white rounded-lg text-xs font-bold transition-all shrink-0 shadow-2xs"
+              >
+                Upgrade to Pro →
+              </Link>
+            </div>
+          )}
         </div>
 
         {/* Primary Command Action Group */}

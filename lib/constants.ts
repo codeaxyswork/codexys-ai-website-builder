@@ -42,6 +42,67 @@ export interface PlanConfig {
 }
 
 export const PLANS: Record<string, PlanConfig> = {
+  starter: {
+    id: "starter",
+    name: "Starter",
+    price: 299,
+    currency: "INR",
+    monthlyCredits: 100,
+    maxWebsites: 1,
+    storageLimitBytes: 2147483648, // 2 GB
+    storageLimitFormatted: "2 GB",
+    features: [
+      "1 Website",
+      "100 AI Credits / Month",
+      "2 GB Storage Quota",
+    ],
+  },
+  pro: {
+    id: "pro",
+    name: "Pro",
+    price: 599,
+    currency: "INR",
+    monthlyCredits: 200,
+    maxWebsites: 3,
+    storageLimitBytes: 10737418240, // 10 GB
+    storageLimitFormatted: "10 GB",
+    popular: true,
+    features: [
+      "3 Websites",
+      "200 AI Credits / Month",
+      "10 GB Storage Quota",
+    ],
+  },
+  business: {
+    id: "business",
+    name: "Business",
+    price: 999,
+    currency: "INR",
+    monthlyCredits: 400,
+    maxWebsites: 6,
+    storageLimitBytes: 32212254720, // 30 GB
+    storageLimitFormatted: "30 GB",
+    features: [
+      "6 Websites",
+      "400 AI Credits / Month",
+      "30 GB Storage Quota",
+    ],
+  },
+  agency: {
+    id: "agency",
+    name: "Agency",
+    price: 1999,
+    currency: "INR",
+    monthlyCredits: 800,
+    maxWebsites: 15,
+    storageLimitBytes: 107374182400, // 100 GB
+    storageLimitFormatted: "100 GB",
+    features: [
+      "15 Websites",
+      "800 AI Credits / Month",
+      "100 GB Storage Quota",
+    ],
+  },
   free: {
     id: "free",
     name: "Free",
@@ -52,58 +113,11 @@ export const PLANS: Record<string, PlanConfig> = {
     storageLimitBytes: 104857600, // 100 MB
     storageLimitFormatted: "100 MB",
     features: [
-      "50 AI Credits",
-      "1 Website Limit",
+      "1 Website",
+      "50 AI Credits / Month",
       "100 MB Storage Quota",
-      "Basic SEO Management",
-      "XML Sitemap & Robots.txt",
-      "Live Public Website Route",
-      "No Custom Domain",
-      "No AI SEO Generator",
-    ],
-  },
-  pro: {
-    id: "pro",
-    name: "Pro",
-    price: 999,
-    currency: "INR",
-    monthlyCredits: 500,
-    maxWebsites: 10,
-    storageLimitBytes: 5368709120, // 5 GB
-    storageLimitFormatted: "5 GB",
-    popular: true,
-    features: [
-      "500 AI Credits / month",
-      "10 Websites Limit",
-      "5 GB Storage Quota",
-      "Advanced SEO & AI SEO Suggestions",
-      "Structured JSON-LD Schema Markup",
-      "Google Analytics (GA4) & GTM Support",
-      "Custom Domain Connection (yourbrand.com)",
-      "Priority AI Generation Pipeline",
-    ],
-  },
-  agency: {
-    id: "agency",
-    name: "Agency",
-    price: 2999,
-    currency: "INR",
-    monthlyCredits: 2000,
-    maxWebsites: 50,
-    storageLimitBytes: 21474836480, // 20 GB
-    storageLimitFormatted: "20 GB",
-    features: [
-      "2,000 AI Credits / month",
-      "50 Client Websites Limit",
-      "20 GB Storage Quota",
-      "Everything in Pro Plan",
-      "Advanced SEO Platform Integrations",
-      "SEMrush Architecture Ready",
-      "Ahrefs Architecture Ready",
-      "Search Console Architecture Ready",
-      "Multiple Client Website Management",
-      "Dedicated Agency Architecture",
     ],
   },
 };
+
 
