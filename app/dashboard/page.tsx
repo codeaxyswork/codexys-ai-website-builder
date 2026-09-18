@@ -22,36 +22,40 @@ export default async function DashboardPage() {
     redirect("/login");
   }
 
-  // Fetch user profile
-  const { data: profile } = await supabase
-    .from("profiles")
-    .select("*")
-    .eq("id", user.id)
-    .maybeSingle();
+  // Fetch user profile, websites list, and user usage metrics concurrently in parallel
+  const [profileRes, websitesRes, usageResult] = await Promise.all([
+    supabase
+      .from("profiles")
+      .select("*")
+      .eq("id", user.id)
+      .maybeSingle(),
+    supabase
+      .from("websites")
+      .select(`
+        id,
+        title,
+        slug,
+        prompt,
+        design_plan,
+        is_published,
+        published_slug,
+        custom_domain,
+        custom_domain_verified,
+        custom_domain_status,
+        published_at,
+        created_at,
+        updated_at,
+        website_seo (
+          seo_score
+        )
+      `)
+      .eq("user_id", user.id)
+      .order("updated_at", { ascending: false }),
+    getUserUsage(user.id),
+  ]);
 
-  // Fetch user's saved websites with publishing, domain, and SEO fields
-  const { data: dbWebsites } = await supabase
-    .from("websites")
-    .select(`
-      id,
-      title,
-      slug,
-      prompt,
-      design_plan,
-      is_published,
-      published_slug,
-      custom_domain,
-      custom_domain_verified,
-      custom_domain_status,
-      published_at,
-      created_at,
-      updated_at,
-      website_seo (
-        seo_score
-      )
-    `)
-    .eq("user_id", user.id)
-    .order("updated_at", { ascending: false });
+  const profile = profileRes.data;
+  const dbWebsites = websitesRes.data;
 
   // Fetch website-specific aggregated metrics (AI Credits, Refinements, Pages count, Media storage)
   const websiteIds = (dbWebsites || []).map((w: any) => w.id);
@@ -98,8 +102,7 @@ export default async function DashboardPage() {
     });
   }
 
-  // Fetch usage metrics (credits, plan, storage, limits)
-  const usageData = (await getUserUsage(user.id)) || {
+  const usageData = usageResult || {
     plan: { id: "free", name: "Free", allow_custom_domain: false, allow_advanced_seo: false },
     credits: { balance: 50, monthlyUsed: 0, lifetimeUsed: 0, limit: 50, monthlyOperations: 0 },
     websites: { used: dbWebsites?.length || 0, limit: 1 },

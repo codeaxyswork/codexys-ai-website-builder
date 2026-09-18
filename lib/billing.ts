@@ -1,6 +1,8 @@
 import { createClient } from "@/utils/supabase/server";
 import { CREDIT_COSTS, ERROR_CODES } from "./constants";
 
+import { getCache, setCache, invalidateUserCache, CACHE_KEYS, CACHE_TTLS } from "./cache";
+
 export interface UserUsageData {
   plan: {
     id: string;
@@ -27,14 +29,50 @@ export interface UserUsageData {
 
 export async function getUserUsage(userId: string): Promise<UserUsageData | null> {
   try {
+    const cacheKey = CACHE_KEYS.userUsage(userId);
+    const { data: cachedUsage } = await getCache<UserUsageData>(cacheKey);
+    if (cachedUsage) {
+      return cachedUsage;
+    }
+
     const supabase = await createClient();
 
-    // 1. Fetch Subscription & Plan
-    const { data: sub } = await supabase
-      .from("subscriptions")
-      .select("plan_id, status, plans(*)")
-      .eq("user_id", userId)
-      .maybeSingle();
+    const startOfMonth = new Date();
+    startOfMonth.setDate(1);
+    startOfMonth.setHours(0, 0, 0, 0);
+
+    // Fetch Subscription, Credits, Monthly Operations, Website Count, and Assets concurrently
+    const [subRes, creditRes, monthlyOpsRes, websiteRes, assetsRes] = await Promise.all([
+      supabase
+        .from("subscriptions")
+        .select("plan_id, status, plans(*)")
+        .eq("user_id", userId)
+        .maybeSingle(),
+      supabase
+        .from("user_credits")
+        .select("*")
+        .eq("user_id", userId)
+        .maybeSingle(),
+      supabase
+        .from("ai_credit_transactions")
+        .select("id", { count: "exact", head: true })
+        .eq("user_id", userId)
+        .gte("created_at", startOfMonth.toISOString()),
+      supabase
+        .from("websites")
+        .select("id", { count: "exact", head: true })
+        .eq("user_id", userId),
+      supabase
+        .from("media_assets")
+        .select("file_size_bytes")
+        .eq("user_id", userId),
+    ]);
+
+    const sub = subRes.data;
+    let creditRec = creditRes.data;
+    const monthlyOpsCount = monthlyOpsRes.count;
+    const websiteCount = websiteRes.count;
+    const assets = assetsRes.data || [];
 
     let plan = (sub?.plans as any) || {
       id: "free",
@@ -46,13 +84,6 @@ export async function getUserUsage(userId: string): Promise<UserUsageData | null
       allow_advanced_seo: false,
     };
 
-    // 2. Fetch User Credits
-    let { data: creditRec } = await supabase
-      .from("user_credits")
-      .select("*")
-      .eq("user_id", userId)
-      .maybeSingle();
-
     if (!creditRec) {
       // Auto-initialize credits for user if record is missing
       const { data: newCredit } = await supabase
@@ -63,35 +94,12 @@ export async function getUserUsage(userId: string): Promise<UserUsageData | null
       creditRec = newCredit || { balance: 50, monthly_used: 0, lifetime_used: 0 };
     }
 
-    // 2b. Fetch monthly AI operations count from ai_credit_transactions
-    const startOfMonth = new Date();
-    startOfMonth.setDate(1);
-    startOfMonth.setHours(0, 0, 0, 0);
-
-    const { count: monthlyOpsCount } = await supabase
-      .from("ai_credit_transactions")
-      .select("id", { count: "exact", head: true })
-      .eq("user_id", userId)
-      .gte("created_at", startOfMonth.toISOString());
-
-    // 3. Fetch Websites Count
-    const { count: websiteCount } = await supabase
-      .from("websites")
-      .select("id", { count: "exact", head: true })
-      .eq("user_id", userId);
-
-    // 4. Fetch Storage Usage Bytes
-    const { data: assets } = await supabase
-      .from("media_assets")
-      .select("file_size_bytes")
-      .eq("user_id", userId);
-
-    const totalStorageBytes = (assets || []).reduce(
+    const totalStorageBytes = assets.reduce(
       (sum, asset) => sum + (Number(asset.file_size_bytes) || 0),
       0
     );
 
-    return {
+    const result: UserUsageData = {
       plan: {
         id: plan.id,
         name: plan.name,
@@ -114,6 +122,11 @@ export async function getUserUsage(userId: string): Promise<UserUsageData | null
         limitBytes: Number(plan.storage_limit_bytes) || 104857600,
       },
     };
+
+    // Cache computed user usage
+    await setCache(cacheKey, result, CACHE_TTLS.USER_USAGE);
+
+    return result;
   } catch (err) {
     console.error("getUserUsage Error:", err);
     return null;
@@ -165,6 +178,11 @@ export async function deductCreditsWithClient(
     console.error("Deduct Credits RPC Error:", error);
     return false;
   }
+
+  if (success ?? true) {
+    await invalidateUserCache(userId);
+  }
+
   return success ?? true;
 }
 

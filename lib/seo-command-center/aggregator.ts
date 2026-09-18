@@ -83,21 +83,6 @@ export async function aggregateCommandCenterData(
     opportunityHealthScore,
   });
 
-  // Save historical unified score record in database
-  try {
-    await supabase.from('seo_unified_scores').insert({
-      website_id: websiteId,
-      user_id: userId,
-      unified_score: unifiedResult.unifiedScore,
-      confidence_level: unifiedResult.confidenceLevel,
-      category_scores: unifiedResult.categories,
-      data_availability: {
-        availableWeightSum: unifiedResult.availableWeightSum,
-        totalWeightSum: unifiedResult.totalWeightSum,
-      },
-    });
-  } catch (_e) {}
-
   // 3. Assemble Data Freshness
   const getFreshness = (timestamp?: string | null): DataFreshnessItem['status'] => {
     if (!timestamp) return 'not_analyzed';

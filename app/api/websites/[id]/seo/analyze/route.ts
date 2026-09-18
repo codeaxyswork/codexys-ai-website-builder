@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/utils/supabase/server";
 import { executeSEOAnalysis } from "@/lib/seo-job-processor";
+import { invalidateWebsiteCache } from "@/lib/cache";
 
 export async function POST(
   request: Request,
@@ -35,6 +36,9 @@ export async function POST(
 
     // Execute multi-page Cheerio SEO analysis (0 credits, deterministic)
     const result = await executeSEOAnalysis(supabase, websiteId, user.id, "manual");
+
+    // Invalidate cached website SEO metrics and Command Center
+    await invalidateWebsiteCache(websiteId);
 
     // Return backward-compatible structure + multi-page details
     const indexPage = result.pages.find((p) => p.path === "index.html") || result.pages[0];

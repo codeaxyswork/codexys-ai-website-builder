@@ -156,16 +156,23 @@ export default function SEODashboardPage({ params }: SEODashboardPageProps) {
   const fetchInitialData = async () => {
     try {
       setLoading(true);
-      // 1. Fetch website details
-      const siteRes = await fetch(`/api/websites`);
+      setLoadingPerformance(true);
+
+      // Execute all independent API fetches concurrently in parallel
+      const [siteRes, usageRes, seoRes, gscRes] = await Promise.all([
+        fetch(`/api/websites/${websiteId}`),
+        fetch(`/api/user/usage`),
+        fetch(`/api/websites/${websiteId}/seo`),
+        fetch(`/api/websites/${websiteId}/seo/gsc/performance`),
+      ]);
+
+      // 1. Handle Targeted Website Data
       if (siteRes.ok) {
         const siteData = await siteRes.json();
-        const found = (siteData.websites || []).find((w: any) => w.id === websiteId);
-        if (found) setWebsite(found);
+        if (siteData.website) setWebsite(siteData.website);
       }
 
-      // 2. Fetch User Usage / Plan
-      const usageRes = await fetch(`/api/user/usage`);
+      // 2. Handle User Usage / Plan
       if (usageRes.ok) {
         const usageData = await usageRes.json();
         if (usageData?.plan?.id) {
@@ -176,8 +183,7 @@ export default function SEODashboardPage({ params }: SEODashboardPageProps) {
         }
       }
 
-      // 3. Fetch SEO Settings & Integrations
-      const seoRes = await fetch(`/api/websites/${websiteId}/seo`);
+      // 3. Handle SEO Settings & Integrations
       if (seoRes.ok) {
         const seoData = await seoRes.json();
         if (seoData.seo) {
@@ -219,12 +225,16 @@ export default function SEODashboardPage({ params }: SEODashboardPageProps) {
         }
       }
 
-      // 4. Fetch GSC Performance
-      await fetchGscPerformance();
+      // 4. Handle GSC Performance Data
+      if (gscRes.ok) {
+        const gscData = await gscRes.json();
+        setGscPerformance(gscData);
+      }
     } catch (err: any) {
       console.error("Failed to load SEO Dashboard:", err);
     } finally {
       setLoading(false);
+      setLoadingPerformance(false);
     }
   };
 

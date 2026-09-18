@@ -6,6 +6,7 @@ import {
   loadGscCredentials,
   saveGscCredentials,
 } from "@/lib/gsc-client";
+import { invalidateWebsiteCache } from "@/lib/cache";
 
 export async function POST(
   request: Request,
@@ -204,6 +205,9 @@ export async function POST(
       })
       .eq("website_id", websiteId)
       .eq("provider", "google_search_console");
+
+    // Invalidate Redis caches for GSC performance and Command Center
+    await invalidateWebsiteCache(websiteId);
 
     return NextResponse.json({
       message: "Search Console data synchronized successfully.",

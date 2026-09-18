@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/utils/supabase/server";
+import { getCache, setCache, CACHE_KEYS, CACHE_TTLS, getCacheHeader } from "@/lib/cache";
 
 export async function GET(
   request: Request,
@@ -29,6 +30,14 @@ export async function GET(
       return NextResponse.json({ error: "Website not found or access denied." }, { status: 404 });
     }
 
+    // Check Redis Cache
+    const cacheKey = CACHE_KEYS.gscPerformance(websiteId);
+    const { data: cachedPerformance, status } = await getCache<any>(cacheKey);
+
+    if (cachedPerformance) {
+      return NextResponse.json(cachedPerformance, { headers: getCacheHeader("HIT") });
+    }
+
     // Check GSC integration status
     const { data: integration } = await supabase
       .from("seo_integrations")
@@ -38,7 +47,7 @@ export async function GET(
       .single();
 
     if (!integration || integration.status !== "connected" || !integration.configuration?.selected_property) {
-      return NextResponse.json({
+      const disconnectedResult = {
         connected: false,
         status: integration?.status || "disconnected",
         gsc_property: integration?.configuration?.selected_property || null,
@@ -48,7 +57,8 @@ export async function GET(
         daily_trends: [],
         queries: [],
         pages: [],
-      });
+      };
+      return NextResponse.json(disconnectedResult, { headers: getCacheHeader(status === "BYPASS" ? "BYPASS" : "MISS") });
     }
 
     const config = integration.configuration;
@@ -118,7 +128,7 @@ export async function GET(
       }))
       .sort((a, b) => b.clicks - a.clicks);
 
-    return NextResponse.json({
+    const result = {
       connected: true,
       status: "connected",
       gsc_property: selectedProperty,
@@ -133,7 +143,12 @@ export async function GET(
       daily_trends: dailyTrends,
       queries: formattedQueries,
       pages: formattedPages,
-    });
+    };
+
+    // Store in Redis Cache
+    await setCache(cacheKey, result, CACHE_TTLS.GSC_PERFORMANCE);
+
+    return NextResponse.json(result, { headers: getCacheHeader(status === "BYPASS" ? "BYPASS" : "MISS") });
   } catch (err: any) {
     console.error("GET Performance Analytics Error:", err);
     return NextResponse.json(

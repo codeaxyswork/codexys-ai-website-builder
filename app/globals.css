@@ -104,14 +104,25 @@ body {
   }
 }
 
+@keyframes dot-grid-pulse {
+  0%, 100% {
+    opacity: 0.08;
+  }
+  50% {
+    opacity: 0.22;
+  }
+}
+
+.animate-dot-grid-pulse {
+  animation: dot-grid-pulse 6s ease-in-out infinite;
+}
+
 @keyframes ai-dot-pulse {
   0%, 100% {
     opacity: 0.15;
-    transform: scale(1);
   }
   50% {
-    opacity: 0.75;
-    transform: scale(1.35);
+    opacity: 0.80;
   }
 }
 
@@ -124,15 +135,19 @@ body {
 }
 
 .animate-ai-pulse-1 {
-  animation: ai-dot-pulse 4.5s ease-in-out infinite;
+  animation: ai-dot-pulse 3.0s ease-in-out infinite;
 }
 
 .animate-ai-pulse-2 {
-  animation: ai-dot-pulse 6.5s ease-in-out infinite 1.5s;
+  animation: ai-dot-pulse 4.2s ease-in-out infinite 1.0s;
 }
 
 .animate-ai-pulse-3 {
-  animation: ai-dot-pulse 5.5s ease-in-out infinite 3s;
+  animation: ai-dot-pulse 3.6s ease-in-out infinite 2.1s;
+}
+
+.animate-ai-pulse-4 {
+  animation: ai-dot-pulse 4.8s ease-in-out infinite 0.7s;
 }
 
 @media (prefers-reduced-motion: reduce) {

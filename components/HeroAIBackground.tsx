@@ -15,6 +15,7 @@ export function HeroAIBackground() {
     let width = 0;
     let height = 0;
 
+    // Mouse tracking with smooth lerp interpolation
     const mouse = {
       x: -1000,
       y: -1000,
@@ -25,13 +26,23 @@ export function HeroAIBackground() {
     const handleMouseMove = (e: MouseEvent) => {
       if (!canvas) return;
       const rect = canvas.getBoundingClientRect();
-      mouse.targetX = e.clientX - rect.left;
-      mouse.targetY = e.clientY - rect.top;
+      const tx = e.clientX - rect.left;
+      const ty = e.clientY - rect.top;
+
+      // Snap mouse position on first enter to prevent trailing from offscreen
+      if (mouse.targetX < -500) {
+        mouse.x = tx;
+        mouse.y = ty;
+      }
+      mouse.targetX = tx;
+      mouse.targetY = ty;
     };
 
     const handleMouseLeave = () => {
       mouse.targetX = -1000;
       mouse.targetY = -1000;
+      mouse.x = -1000;
+      mouse.y = -1000;
     };
 
     const handleResize = () => {
@@ -50,95 +61,72 @@ export function HeroAIBackground() {
     window.addEventListener("mousemove", handleMouseMove);
     window.addEventListener("mouseleave", handleMouseLeave);
 
-    // 22 Very Light, Delicate & Soft Futuristic Motes
-    const particleCount = 22;
-
-    interface Particle {
-      x: number;
-      y: number;
-      vx: number;
-      vy: number;
-      radius: number;
-      color: string;
-      glowColor: string;
-      alpha: number;
-      baseAlpha: number;
-      pulseSpeed: number;
-      phase: number;
-    }
-
-    const palette = [
-      { core: "rgba(168, 85, 247, ", glow: "rgba(168, 85, 247, " }, // Soft Violet
-      { core: "rgba(99, 102, 241, ", glow: "rgba(99, 102, 241, " },  // Soft Indigo
-      { core: "rgba(6, 182, 212, ", glow: "rgba(6, 182, 212, " },   // Soft Cyan
-      { core: "rgba(192, 38, 211, ", glow: "rgba(192, 38, 211, " }, // Soft Fuchsia
-    ];
-
-    const particles: Particle[] = Array.from({ length: particleCount }, () => {
-      const p = palette[Math.floor(Math.random() * palette.length)];
-      const baseAlpha = 0.16 + Math.random() * 0.18;
-      return {
-        x: Math.random() * width,
-        y: Math.random() * height,
-        vx: (Math.random() - 0.5) * 0.25,
-        vy: -0.08 - Math.random() * 0.18, // Ultra-slow peaceful flow
-        radius: 1.0 + Math.random() * 0.8,
-        color: p.core,
-        glowColor: p.glow,
-        alpha: baseAlpha,
-        baseAlpha,
-        pulseSpeed: 0.008 + Math.random() * 0.015,
-        phase: Math.random() * Math.PI * 2,
-      };
-    });
+    const gridSpacing = 20; // Fixed 20px grid spacing
+    const spotlightRadius = 150; // Exact 150px circular spotlight area
+    const baseOpacity = 0.25; // Base subtle opacity outside spotlight
 
     const render = () => {
       ctx.clearRect(0, 0, width, height);
 
-      // Smooth mouse lerp
-      mouse.x += (mouse.targetX - mouse.x) * 0.05;
-      mouse.y += (mouse.targetY - mouse.y) * 0.05;
+      // Fast, responsive & silky mouse tracking
+      if (mouse.x > -500 && mouse.targetX > -500) {
+        mouse.x += (mouse.targetX - mouse.x) * 0.22;
+        mouse.y += (mouse.targetY - mouse.y) * 0.22;
+      }
 
-      // Update & Render Flowing Light Particles
-      particles.forEach((p) => {
-        // Continuous slow upward & drifting movement
-        p.x += p.vx;
-        p.y += p.vy;
+      const cols = Math.ceil(width / gridSpacing);
+      const rows = Math.ceil(height / gridSpacing);
 
-        // Subtle interactive mouse curvature
-        if (mouse.x > 0) {
-          const dx = p.x - mouse.x;
-          const dy = p.y - mouse.y;
-          const dist = Math.sqrt(dx * dx + dy * dy);
-          if (dist < 120 && dist > 0) {
-            const force = (1 - dist / 120) * 0.25;
-            p.x += (dx / dist) * force;
-            p.y += (dy / dist) * force;
+      // Render fixed grid dots with 150px smooth spotlight effect
+      for (let r = 0; r < rows; r++) {
+        for (let c = 0; c < cols; c++) {
+          const x = c * gridSpacing + 10;
+          const y = r * gridSpacing + 10;
+
+          // Mask fade matching hero central ellipse
+          const maskCenterX = width / 2;
+          const maskCenterY = height * 0.4;
+          const maskDx = (x - maskCenterX) / (width * 0.65);
+          const maskDy = (y - maskCenterY) / (height * 0.55);
+          const maskDist = Math.sqrt(maskDx * maskDx + maskDy * maskDy);
+          if (maskDist > 1.0) continue; // Fade beyond bounds
+
+          const edgeFade = Math.max(0, 1 - Math.pow(maskDist, 2));
+          const currentBaseAlpha = baseOpacity * edgeFade;
+
+          let alpha = currentBaseAlpha;
+          let falloff = 0;
+
+          // 150px radial spotlight calculation - 100% FULLY OPAQUE VIVID PURPLE DOTS under mouse
+          if (mouse.x > -500 && mouse.y > -500) {
+            const dx = x - mouse.x;
+            const dy = y - mouse.y;
+            const dist = Math.sqrt(dx * dx + dy * dy);
+
+            if (dist < spotlightRadius) {
+              const normDist = dist / spotlightRadius;
+              // Smooth cosine falloff from center (1.0) to 150px edge (0.0)
+              falloff = 0.5 * (Math.cos(normDist * Math.PI) + 1);
+
+              // Smoothly increase opacity up to 100% solid purple (1.0) under cursor
+              const spotlightAlpha = currentBaseAlpha + falloff * (1.0 - currentBaseAlpha);
+              alpha = Math.max(alpha, spotlightAlpha);
+            }
           }
+
+          if (alpha <= 0.01) continue;
+
+          // Keep dots crisp vivid purple (147, 51, 234) so they NEVER turn white or wash out
+          // Radius smoothly expands from 1.0px -> 1.4px under spotlight for maximum visual clarity
+          const rRadius = 1.0 + falloff * 0.4;
+
+          // Draw fixed grid dot
+          ctx.beginPath();
+          ctx.arc(x, y, rRadius, 0, Math.PI * 2);
+          ctx.fillStyle = `rgba(147, 51, 234, ${alpha})`;
+          ctx.fill();
         }
-
-        // Smooth boundary wrapping
-        if (p.x < -10) p.x = width + 10;
-        if (p.x > width + 10) p.x = -10;
-        if (p.y < -10) p.y = height + 10;
-        if (p.y > height + 10) p.y = -10;
-
-        // Soft breathing alpha pulse
-        p.phase += p.pulseSpeed;
-        p.alpha = Math.max(0.10, Math.min(0.38, p.baseAlpha + Math.sin(p.phase) * 0.12));
-
-        // Soft outer glow halo
-        ctx.beginPath();
-        ctx.arc(p.x, p.y, p.radius * 3, 0, Math.PI * 2);
-        ctx.fillStyle = `${p.glowColor}${p.alpha * 0.35})`;
-        ctx.fill();
-
-        // Very light particle core
-        ctx.beginPath();
-        ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
-        ctx.fillStyle = `${p.color}${p.alpha})`;
-        ctx.fill();
-      });
+      }
 
       animationFrameId = requestAnimationFrame(render);
     };

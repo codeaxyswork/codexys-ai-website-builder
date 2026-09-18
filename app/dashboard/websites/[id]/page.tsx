@@ -38,47 +38,49 @@ export default async function WebsiteManagementPage({ params }: WebsiteManagemen
     redirect("/login");
   }
 
-  // Fetch website details owned by authenticated user
-  const { data: website } = await supabase
-    .from("websites")
-    .select(`
-      id,
-      user_id,
-      title,
-      slug,
-      prompt,
-      design_plan,
-      is_published,
-      published_slug,
-      custom_domain,
-      custom_domain_verified,
-      custom_domain_status,
-      published_at,
-      created_at,
-      updated_at
-    `)
-    .eq("id", id)
-    .eq("user_id", user.id)
-    .single();
+  // Fetch website details, SEO settings, and live preview page in parallel
+  const [websiteRes, seoRes, pageRes] = await Promise.all([
+    supabase
+      .from("websites")
+      .select(`
+        id,
+        user_id,
+        title,
+        slug,
+        prompt,
+        design_plan,
+        is_published,
+        published_slug,
+        custom_domain,
+        custom_domain_verified,
+        custom_domain_status,
+        published_at,
+        created_at,
+        updated_at
+      `)
+      .eq("id", id)
+      .eq("user_id", user.id)
+      .single(),
+    supabase
+      .from("website_seo")
+      .select("seo_score, seo_title, meta_description, focus_keywords")
+      .eq("website_id", id)
+      .maybeSingle(),
+    supabase
+      .from("website_pages")
+      .select("html_content, css_content, js_content")
+      .eq("website_id", id)
+      .eq("path", "index.html")
+      .maybeSingle(),
+  ]);
 
+  const website = websiteRes.data;
   if (!website) {
     notFound();
   }
 
-  // Fetch website SEO settings separately to prevent PostgREST column mismatch errors
-  const { data: seoData } = await supabase
-    .from("website_seo")
-    .select("seo_score, seo_title, meta_description, focus_keywords")
-    .eq("website_id", website.id)
-    .maybeSingle();
-
-  // Fetch website page content for live preview snippet
-  const { data: indexPage } = await supabase
-    .from("website_pages")
-    .select("html_content, css_content, js_content")
-    .eq("website_id", website.id)
-    .eq("path", "index.html")
-    .maybeSingle();
+  const seoData = seoRes.data;
+  const indexPage = pageRes.data;
 
   const plan = website.design_plan || {};
 

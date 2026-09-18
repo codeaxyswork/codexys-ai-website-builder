@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/utils/supabase/server";
 import { executeSEOAnalysis } from "@/lib/seo-job-processor";
+import { getCache, setCache, invalidateWebsiteCache, CACHE_KEYS, CACHE_TTLS, getCacheHeader } from "@/lib/cache";
 
 export async function GET(
   request: Request,
@@ -31,6 +32,14 @@ export async function GET(
         { error: "Website not found or access denied." },
         { status: 404 }
       );
+    }
+
+    // Check Redis Cache
+    const cacheKey = CACHE_KEYS.seoSettings(websiteId);
+    const { data: cachedSeo, status } = await getCache<any>(cacheKey);
+
+    if (cachedSeo) {
+      return NextResponse.json(cachedSeo, { headers: getCacheHeader("HIT") });
     }
 
     // Fetch SEO settings
@@ -86,12 +95,17 @@ export async function GET(
       .order("created_at", { ascending: false })
       .limit(5);
 
-    return NextResponse.json({
+    const payload = {
       seo: seoData,
       pages_seo: pagesSeo || [],
       integrations: integrations || [],
       history: historyRows || [],
-    });
+    };
+
+    // Store in Redis Cache
+    await setCache(cacheKey, payload, CACHE_TTLS.SEO_SETTINGS);
+
+    return NextResponse.json(payload, { headers: getCacheHeader(status === "BYPASS" ? "BYPASS" : "MISS") });
   } catch (err: any) {
     console.error("GET SEO API Error:", err);
     return NextResponse.json(
@@ -170,6 +184,9 @@ export async function PUT(
 
     // Execute multi-page Cheerio analysis to recalculate scores & page-level state
     const analysisResult = await executeSEOAnalysis(supabase, websiteId, user.id, "manual");
+
+    // Invalidate cached website SEO data and Command Center payload
+    await invalidateWebsiteCache(websiteId);
 
     return NextResponse.json({
       seo: updatedSeo,

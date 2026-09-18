@@ -132,6 +132,10 @@ export async function POST(
       );
     }
 
+    // Invalidate Redis caches for GSC performance and Command Center
+    const { invalidateWebsiteCache } = await import("@/lib/cache");
+    await invalidateWebsiteCache(websiteId);
+
     return NextResponse.json({
       message: isDomainMatch
         ? "Search Console property verified and connected."

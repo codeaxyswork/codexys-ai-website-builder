@@ -331,19 +331,9 @@ export function LandingView({
     <div className="w-full bg-slate-50 text-slate-900 font-sans">
       {/* SECTION 1: HERO SECTION */}
       <section id="hero-generator" className="relative pt-8 sm:pt-12 pb-16 px-4 sm:px-8 flex flex-col items-center justify-center bg-white border-b border-slate-200/80 overflow-hidden">
-        {/* Subtle Futuristic Animated Background System */}
+        {/* Subtle Technical Dot Grid Pattern with Mouse Spotlight Brightness Effect */}
         <div className="absolute inset-0 pointer-events-none overflow-hidden z-0">
-          {/* Futuristic Lightweight AI Animated Canvas */}
           <HeroAIBackground />
-
-          {/* Faint Technical Dot Grid Pattern with Mask Fade */}
-          <div className="absolute inset-0 bg-[radial-gradient(#9333ea_1px,transparent_1px)] [background-size:28px_28px] opacity-[0.14] [mask-image:radial-gradient(ellipse_60%_50%_at_50%_40%,#000_70%,transparent_100%)]" />
-
-          {/* Quiet AI Node Pulse Dots Overlaid on Grid Intersections */}
-          <div className="absolute top-[22%] left-[18%] sm:left-[28%] w-2 h-2 rounded-full bg-purple-600 animate-ai-pulse-1 shadow-sm shadow-purple-500" />
-          <div className="absolute top-[35%] right-[15%] sm:right-[26%] w-2 h-2 rounded-full bg-indigo-600 animate-ai-pulse-2 shadow-sm shadow-indigo-500" />
-          <div className="absolute top-[62%] left-[22%] sm:left-[32%] w-1.5 h-1.5 rounded-full bg-cyan-500 animate-ai-pulse-3 shadow-sm shadow-cyan-400" />
-          <div className="absolute top-[58%] right-[20%] sm:right-[30%] w-2 h-2 rounded-full bg-purple-500 animate-ai-pulse-1 shadow-sm shadow-purple-400" />
         </div>
 
         <div className="relative z-10 max-w-4xl w-full flex flex-col items-center text-center space-y-6">
@@ -361,7 +351,7 @@ export function LandingView({
           </div>
 
           {/* AI Generator Interactive Elevated Card */}
-          <div className="relative w-full max-w-4xl group text-left rounded-[28px] p-[2.5px] bg-purple-200/60 overflow-hidden shadow-2xl shadow-purple-950/20">
+          <div className="relative w-full max-w-4xl group text-left rounded-[28px] p-[1px] bg-purple-200/60 overflow-hidden shadow-2xl shadow-purple-950/20">
             {/* Vivid Travelling Purple/Violet Light Beam Edge around Entire Outer Box */}
             <div
               className="absolute inset-[-200%] animate-border-beam pointer-events-none"
@@ -371,7 +361,7 @@ export function LandingView({
             />
 
             {/* Elevated Product Card Container (Clean White Inside) */}
-            <div className="relative w-full bg-white rounded-[26px] p-5 sm:p-7 shadow-xs">
+            <div className="relative w-full bg-white rounded-[27px] p-5 sm:p-7 shadow-xs">
               <div className="flex flex-col gap-4">
                 {/* Voice Language & Mic Top Controls Bar */}
                 <div className="flex flex-wrap items-center justify-between gap-3 pb-3 border-b border-slate-100 bg-slate-50/70 p-2.5 sm:p-3 rounded-2xl border border-slate-200/60">
