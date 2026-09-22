@@ -152,6 +152,16 @@ export default async function DashboardPage() {
         </div>
 
         <div className="flex items-center gap-2.5">
+          {(profile?.role === "admin" || profile?.role === "super_admin") && (
+            <Link
+              href="/admin"
+              className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl border border-amber-200/80 bg-amber-50/80 hover:bg-amber-100/80 text-xs font-semibold text-amber-800 transition-all shadow-2xs"
+            >
+              <ShieldCheck className="w-3.5 h-3.5 text-amber-600" />
+              <span className="hidden sm:inline">Admin Console</span>
+            </Link>
+          )}
+
           <Link
             href="/media"
             className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl border border-slate-200/80 bg-white hover:bg-slate-50 text-xs font-semibold text-slate-700 transition-all shadow-2xs"

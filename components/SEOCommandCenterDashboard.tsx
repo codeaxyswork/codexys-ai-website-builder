@@ -94,37 +94,39 @@ export function SEOCommandCenterDashboard({ websiteId, onNavigateTab }: SEOComma
 
   return (
     <div className="space-y-6">
-      {/* Hero Banner with Unified SEO Health Score */}
+      {/* Hero Banner with Primary Metric: AI Search Readiness */}
       <div className="bg-gradient-to-r from-purple-50/80 via-indigo-50/50 to-slate-50 border border-purple-100/80 rounded-xl p-6 shadow-sm relative overflow-hidden">
         <div className="absolute -top-16 -right-16 w-80 h-80 bg-purple-200/20 rounded-full blur-3xl pointer-events-none"></div>
 
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-stretch relative z-10">
-          {/* Left: Unified Score Gauge */}
+          {/* Left: Primary AI Search Readiness Score Gauge */}
           <div className="lg:col-span-5 bg-white border border-slate-200 shadow-sm rounded-xl p-6 text-center h-full flex flex-col justify-center space-y-4">
             <div className="text-xs font-bold uppercase tracking-wider text-slate-500 flex items-center justify-center gap-1.5">
-              <ShieldCheck className="w-4 h-4 text-purple-600" />
-              <span>Unified SEO Health Score</span>
+              <Sparkles className="w-4 h-4 text-purple-600" />
+              <span>AI Search Readiness</span>
               <div className="relative group/tooltip inline-block cursor-help">
                 <HelpCircle className="w-3.5 h-3.5 text-slate-400 hover:text-purple-600 transition-colors" />
-                <div className="opacity-0 group-hover/tooltip:opacity-100 transition-opacity absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-64 bg-slate-900 text-white text-[11px] font-normal normal-case rounded-lg p-2.5 shadow-xl z-30 pointer-events-none text-center">
-                  An overall SEO health indicator calculated from the SEO data currently available for this website.
+                <div className="opacity-0 group-hover/tooltip:opacity-100 transition-opacity absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-72 bg-slate-900 text-white text-[11px] font-normal normal-case rounded-lg p-2.5 shadow-xl z-30 pointer-events-none text-center">
+                  AI Search Readiness combines your existing SEO (35%), AEO (25%), GEO (20%), and AIO (20%) signals to measure how well your website communicates its business, content, answers, entities, and topics to modern search systems.
                 </div>
               </div>
             </div>
 
             <div className="py-1">
-              <span className="text-6xl font-black text-slate-900 tracking-tight">{unifiedScoreResult.unifiedScore}</span>
+              <span className="text-6xl font-black text-slate-900 tracking-tight">
+                {data.aiSearchReadiness?.score ?? unifiedScoreResult.unifiedScore}
+              </span>
               <span className="text-slate-400 text-lg"> / 100</span>
             </div>
 
-            <p className="text-xs font-medium text-slate-700">
-              Combines available SEO signals across your website.
+            <p className="text-xs font-medium text-slate-700 max-w-sm mx-auto leading-relaxed">
+              AI Search Readiness measures how clearly your website is structured, understood, and prepared for modern search and AI discovery.
             </p>
 
             <div className="flex flex-col items-center gap-2 pt-1">
               <div className="flex items-center justify-center gap-2 flex-wrap">
                 <span className={`px-2.5 py-1 rounded-full text-xs font-bold uppercase border ${scoreColor}`}>
-                  {unifiedScoreResult.unifiedScore >= 80 ? 'Optimal Health' : unifiedScoreResult.unifiedScore >= 60 ? 'Needs Optimization' : 'Critical Attention'}
+                  { (data.aiSearchReadiness?.score ?? unifiedScoreResult.unifiedScore) >= 80 ? 'Optimal Readiness' : (data.aiSearchReadiness?.score ?? unifiedScoreResult.unifiedScore) >= 60 ? 'Needs Optimization' : 'Attention Required' }
                 </span>
                 <span
                   className={`px-2.5 py-1 rounded-full text-xs font-semibold ${
@@ -139,20 +141,31 @@ export function SEOCommandCenterDashboard({ websiteId, onNavigateTab }: SEOComma
                 </span>
               </div>
 
-              <p className="text-[11px] text-slate-500 font-medium max-w-xs leading-tight">
-                {unifiedScoreResult.confidenceLevel === 'limited'
-                  ? 'Some important SEO data sources have not been analyzed or connected yet.'
-                  : unifiedScoreResult.confidenceLevel === 'medium'
-                  ? 'Several SEO data sources are connected, but some remain unanalyzed.'
-                  : 'Comprehensive SEO data sources are connected and analyzed.'}
-              </p>
+              {/* Sub-Score Weight Breakdown Bar */}
+              <div className="grid grid-cols-4 gap-1.5 w-full pt-2 text-[11px] text-center">
+                <div className="bg-slate-50 border border-slate-200 rounded p-1.5">
+                  <div className="text-slate-500 font-medium text-[10px]">SEO (35%)</div>
+                  <div className="font-bold text-slate-900">{data.aiSearchReadiness?.seo ?? unifiedScoreResult.unifiedScore}</div>
+                </div>
+                <div className="bg-slate-50 border border-slate-200 rounded p-1.5">
+                  <div className="text-slate-500 font-medium text-[10px]">AEO (25%)</div>
+                  <div className="font-bold text-emerald-700">{data.aiSearchReadiness?.aeo ?? data.aioSummary?.answerReadinessScore ?? 0}</div>
+                </div>
+                <div className="bg-slate-50 border border-slate-200 rounded p-1.5">
+                  <div className="text-slate-500 font-medium text-[10px]">GEO (20%)</div>
+                  <div className="font-bold text-purple-700">{data.aiSearchReadiness?.geo ?? data.geoSummary?.geoScore ?? 0}</div>
+                </div>
+                <div className="bg-slate-50 border border-slate-200 rounded p-1.5">
+                  <div className="text-slate-500 font-medium text-[10px]">AIO (20%)</div>
+                  <div className="font-bold text-cyan-700">{data.aiSearchReadiness?.aio ?? data.aioSummary?.aioScore ?? 0}</div>
+                </div>
+              </div>
             </div>
 
-            <div className="pt-2 border-t border-slate-100 text-[11px] text-slate-500 space-y-0.5">
-              <p className="font-semibold text-slate-700">
-                {availableDataPct}% of weighted SEO data is currently available.
+            <div className="pt-2 border-t border-slate-100 text-[10px] text-slate-500 leading-tight">
+              <p className="italic text-slate-400">
+                This is a technical readiness measurement. It does not predict or guarantee third-party ChatGPT, Perplexity, Gemini, or search rankings.
               </p>
-              <p className="italic text-slate-400">Based only on currently available data.</p>
             </div>
           </div>
 
@@ -160,7 +173,7 @@ export function SEOCommandCenterDashboard({ websiteId, onNavigateTab }: SEOComma
           <div className="lg:col-span-7 space-y-3">
             <h3 className="text-sm font-bold text-slate-900 uppercase tracking-wider flex items-center justify-between">
               <span>Category Score Breakdown</span>
-              <span className="text-xs text-slate-500 font-normal">Click category to inspect explanation</span>
+              <span className="text-xs text-slate-500 font-normal">Click category to inspect module</span>
             </h3>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
@@ -170,14 +183,13 @@ export function SEOCommandCenterDashboard({ websiteId, onNavigateTab }: SEOComma
                 const tooltipText = isCoreSeo
                   ? 'Your existing core on-page SEO analysis score.'
                   : `Score calculation for ${cat.name}.`;
-                const helperText = isCoreSeo
-                  ? 'Your existing SEO analysis score based on core on-page SEO signals.'
-                  : null;
 
                 return (
                   <div
                     key={cat.id}
-                    onClick={() => setSelectedExplanation(cat)}
+                    onClick={() => {
+                      setSelectedExplanation(cat);
+                    }}
                     className="bg-white hover:bg-purple-50/40 border border-slate-200 shadow-2xs rounded-lg p-3 text-xs transition cursor-pointer space-y-1.5"
                   >
                     <div className="flex items-center justify-between font-semibold">
@@ -194,12 +206,6 @@ export function SEOCommandCenterDashboard({ websiteId, onNavigateTab }: SEOComma
                         {cat.status === 'AVAILABLE' ? `${cat.score} / 100` : 'N/A'}
                       </span>
                     </div>
-
-                    {helperText && (
-                      <p className="text-[10px] text-slate-500 leading-tight">
-                        {helperText}
-                      </p>
-                    )}
 
                     <div className="w-full bg-slate-100 rounded-full h-2 overflow-hidden">
                       <div
@@ -228,17 +234,20 @@ export function SEOCommandCenterDashboard({ websiteId, onNavigateTab }: SEOComma
         </div>
       </div>
 
-      {/* SCORE DIFFERENCE EXPLANATION BOX */}
+      {/* AI SEARCH READINESS EXPLANATION BOX */}
       <div className="bg-purple-50/60 border border-purple-100 rounded-xl p-4 sm:p-5 shadow-2xs flex flex-col md:flex-row items-start gap-3.5">
         <div className="p-2.5 bg-purple-100 text-purple-700 rounded-lg shrink-0 mt-0.5">
           <HelpCircle className="w-5 h-5" />
         </div>
         <div className="space-y-1 text-xs">
           <h4 className="font-bold text-slate-900 text-sm">
-            Why is this different from my SEO Score?
+            What is AI Search Readiness?
           </h4>
           <p className="text-slate-600 leading-relaxed">
-            Your <strong>Core SEO Score</strong> measures your website's core on-page SEO signals. The <strong>Unified SEO Health Score</strong> combines available SEO signals from multiple SEO areas. If some data sources are unavailable, the Unified Score is calculated using the available data only.
+            <strong>AI Search Readiness</strong> combines your existing <strong>SEO (35%)</strong>, <strong>AEO (25%)</strong>, <strong>GEO (20%)</strong>, and <strong>AIO (20%)</strong> signals to measure how clearly your website communicates its business entity, factual answers, structured data, and topics to modern search engines and AI discovery systems.
+          </p>
+          <p className="text-slate-500 text-[11px] italic pt-1">
+            Note: This is a technical readiness measurement. It is not a ranking prediction, does not guarantee search indexing, and does not guarantee recommendations or citations by third-party LLM systems.
           </p>
         </div>
       </div>
@@ -276,6 +285,183 @@ export function SEOCommandCenterDashboard({ websiteId, onNavigateTab }: SEOComma
           <div className="text-lg font-bold text-indigo-600 mt-1">{thirdPartySummary.connectedProviders.length} Linked</div>
         </div>
       </div>
+
+      {/* GEO Readiness & Entity Relationship Card */}
+      {data.geoSummary && (
+        <div className="bg-white border border-slate-200 shadow-sm rounded-xl p-6 space-y-4">
+          <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+            <h3 className="text-base font-bold text-slate-900 flex items-center gap-2">
+              <Bot className="w-5 h-5 text-purple-600" /> Generative Engine Optimization (GEO) Readiness
+            </h3>
+            <span className="px-3 py-1 bg-purple-50 text-purple-700 border border-purple-200 rounded-full text-xs font-bold">
+              GEO Score: {data.geoSummary.geoScore}/100
+            </span>
+          </div>
+
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-xs">
+            <div className="bg-slate-50 border border-slate-200 rounded-lg p-3">
+              <div className="text-slate-500 font-medium">Entity Clarity (30%)</div>
+              <div className="text-lg font-bold text-slate-900 mt-1">{data.geoSummary.entityClarityScore}/100</div>
+            </div>
+            <div className="bg-slate-50 border border-slate-200 rounded-lg p-3">
+              <div className="text-slate-500 font-medium">Factual Consistency (25%)</div>
+              <div className="text-lg font-bold text-emerald-600 mt-1">{data.geoSummary.factualConsistencyScore}/100</div>
+            </div>
+            <div className="bg-slate-50 border border-slate-200 rounded-lg p-3">
+              <div className="text-slate-500 font-medium">Structured Data Depth (25%)</div>
+              <div className="text-lg font-bold text-indigo-600 mt-1">{data.geoSummary.structuredDataDepthScore}/100</div>
+            </div>
+            <div className="bg-slate-50 border border-slate-200 rounded-lg p-3">
+              <div className="text-slate-500 font-medium">Citation Readiness (20%)</div>
+              <div className="text-lg font-bold text-purple-600 mt-1">{data.geoSummary.citationReadinessScore}/100</div>
+            </div>
+          </div>
+
+          {/* Entity Relationship Status Checklist */}
+          <div className="bg-slate-50 border border-slate-200 rounded-lg p-4 text-xs space-y-2">
+            <div className="font-semibold text-slate-800 flex items-center justify-between">
+              <span>Entity Relationship Status Graph</span>
+              <span className="text-[11px] text-purple-600 font-medium">{data.geoSummary.relationshipStatus}</span>
+            </div>
+            <div className="flex items-center gap-3 flex-wrap pt-1">
+              {['Business', 'Brand', 'Website', 'Services', 'Location'].map((label) => {
+                const node = data.geoSummary?.entityNodes?.find(
+                  (n) => n.type.toLowerCase() === label.toLowerCase() || n.name.toLowerCase().includes(label.toLowerCase())
+                );
+                const isPresent = node ? node.present : label === 'Business' || label === 'Website';
+                return (
+                  <div key={label} className="flex items-center gap-1.5 px-2.5 py-1 bg-white border border-slate-200 rounded-md shadow-2xs text-slate-700 font-medium text-[11px]">
+                    <span className={isPresent ? 'text-emerald-600 font-bold' : 'text-slate-400 font-bold'}>
+                      {isPresent ? '✓' : '—'}
+                    </span>
+                    <span>{label}</span>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+
+          <div className="text-xs text-slate-600 pt-2 border-t border-slate-100 flex items-center justify-between">
+            <span className="font-semibold text-slate-700">
+              Entity Relationship Graph: {data.geoSummary.relationshipStatus}
+            </span>
+            <button
+              onClick={() => onNavigateTab("aeo")}
+              className="text-purple-600 hover:text-purple-700 font-bold flex items-center gap-1 cursor-pointer"
+            >
+              Inspect GEO & AEO <ChevronRight className="w-3.5 h-3.5" />
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* AIO Readiness & Questions Your Website Should Answer Card */}
+      {data.aioSummary && (
+        <div className="bg-white border border-slate-200 shadow-sm rounded-xl p-6 space-y-4">
+          <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+            <h3 className="text-base font-bold text-slate-900 flex items-center gap-2">
+              <Cpu className="w-5 h-5 text-cyan-600" /> Answer Intelligence Optimization (AIO) Readiness
+            </h3>
+            <span className="px-3 py-1 bg-cyan-50 text-cyan-700 border border-cyan-200 rounded-full text-xs font-bold">
+              AIO Score: {data.aioSummary.aioScore}/100
+            </span>
+          </div>
+
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-xs">
+            <div className="bg-slate-50 border border-slate-200 rounded-lg p-3">
+              <div className="text-slate-500 font-medium">Answer Readiness (35%)</div>
+              <div className="text-lg font-bold text-slate-900 mt-1">{data.aioSummary.answerReadinessScore}/100</div>
+            </div>
+            <div className="bg-slate-50 border border-slate-200 rounded-lg p-3">
+              <div className="text-slate-500 font-medium">Topic Depth (30%)</div>
+              <div className="text-lg font-bold text-emerald-600 mt-1">{data.aioSummary.topicDepthScore}/100</div>
+            </div>
+            <div className="bg-slate-50 border border-slate-200 rounded-lg p-3">
+              <div className="text-slate-500 font-medium">Content Structure (20%)</div>
+              <div className="text-lg font-bold text-indigo-600 mt-1">{data.aioSummary.contentStructureScore}/100</div>
+            </div>
+            <div className="bg-slate-50 border border-slate-200 rounded-lg p-3">
+              <div className="text-slate-500 font-medium">Question Coverage (15%)</div>
+              <div className="text-lg font-bold text-purple-600 mt-1">{data.aioSummary.questionCoverageScore}/100</div>
+            </div>
+          </div>
+
+          {/* Questions Your Website Should Answer Section */}
+          <div className="bg-slate-50 border border-slate-200 rounded-lg p-4 text-xs space-y-3">
+            <div className="font-semibold text-slate-800 flex items-center justify-between">
+              <span>Questions Your Website Should Answer</span>
+              <span className="text-[11px] text-slate-500 font-normal">
+                {data.aioSummary.answeredQuestionsCount} Answered / {data.aioSummary.unansweredQuestionsCount} Unanswered
+              </span>
+            </div>
+
+            {data.aioSummary.priorityQuestions && data.aioSummary.priorityQuestions.length > 0 ? (
+              <div className="space-y-2">
+                {data.aioSummary.priorityQuestions.slice(0, 4).map((qItem, idx) => (
+                  <div key={idx} className="bg-white border border-slate-200 rounded p-2.5 flex items-center justify-between text-xs">
+                    <span className="text-slate-800 font-medium truncate max-w-md">{qItem.question}</span>
+                    <div className="flex items-center gap-2 shrink-0">
+                      <span
+                        className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase ${
+                          qItem.status === 'answered'
+                            ? 'bg-emerald-100 text-emerald-800 border border-emerald-200'
+                            : qItem.status === 'partial'
+                            ? 'bg-amber-100 text-amber-800 border border-amber-200'
+                            : 'bg-rose-100 text-rose-800 border border-rose-200'
+                        }`}
+                      >
+                        {qItem.status}
+                      </span>
+                      <span className="text-[10px] text-slate-400 font-mono">[{qItem.source}]</span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <p className="text-[11px] text-slate-500 italic">No specific priority unanswered questions identified.</p>
+            )}
+          </div>
+
+          <div className="text-xs text-slate-600 pt-2 border-t border-slate-100 flex items-center justify-between">
+            <span className="text-[11px] text-slate-500 font-medium italic">
+              Answer Intelligence Optimization evaluates structured, fact-rich answer extraction readiness for search engines and AI systems.
+            </span>
+            <button
+              onClick={() => onNavigateTab("aeo")}
+              className="text-cyan-600 hover:text-cyan-700 font-bold flex items-center gap-1 cursor-pointer shrink-0"
+            >
+              Inspect AIO Details <ChevronRight className="w-3.5 h-3.5" />
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* AI-readable website manifest Card (Only visible when website is published) */}
+      {data.websiteInfo?.isPublished && (
+        <div className="bg-white border border-slate-200 shadow-sm rounded-xl p-5 space-y-3">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <FileText className="w-5 h-5 text-indigo-600" />
+              <h3 className="text-sm font-bold text-slate-900">AI-readable website manifest</h3>
+            </div>
+            <a
+              href={
+                data.websiteInfo.customDomain
+                  ? `https://${data.websiteInfo.customDomain}/llms.txt`
+                  : `/site/${data.websiteInfo.publishedSlug}/llms.txt`
+              }
+              target="_blank"
+              rel="noopener noreferrer"
+              className="px-3.5 py-1.5 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 border border-indigo-200 rounded-lg text-xs font-semibold transition flex items-center gap-1.5 cursor-pointer"
+            >
+              View manifest <ArrowUpRight className="w-3.5 h-3.5" />
+            </a>
+          </div>
+          <p className="text-xs text-slate-600 leading-relaxed">
+            Your website has an automatically generated machine-readable summary containing important public business and content information.
+          </p>
+        </div>
+      )}
 
       {/* SEO Data Freshness Indicators */}
       <div className="bg-white border border-slate-200 shadow-sm rounded-xl p-6 space-y-3">

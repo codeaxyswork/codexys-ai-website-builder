@@ -20,7 +20,7 @@ export async function aggregateCommandCenterData(
     historyScoresRes,
     blogRes,
   ] = await Promise.all([
-    supabase.from('websites').select('id, title, published_slug, prompt').eq('id', websiteId).eq('user_id', userId).single(),
+    supabase.from('websites').select('id, title, published_slug, custom_domain, is_published, prompt').eq('id', websiteId).eq('user_id', userId).single(),
     supabase.from('website_seo').select('seo_score, last_analyzed_at, focus_keywords').eq('website_id', websiteId).maybeSingle(),
     supabase.from('technical_crawl_runs').select('technical_score, created_at').eq('website_id', websiteId).order('created_at', { ascending: false }).limit(1).maybeSingle(),
     supabase.from('website_aeo_analysis').select('answer_readiness_score, topic_coverage_score, last_analyzed_at').eq('website_id', websiteId).maybeSingle(),
@@ -98,14 +98,24 @@ export async function aggregateCommandCenterData(
     local_seo: { label: 'Local SEO', status: getFreshness(localRow?.updated_at), lastAnalyzedAt: localRow?.updated_at || null, sourceModule: 'Local Engine' },
   };
 
-  // 4. Priority Actions from Opportunity Engine
-  const priorityActions = openOpps.slice(0, 5).map((o: any) => ({
+  // 4. Priority Actions from Opportunity Engine (Deduplicated at Presentation Layer)
+  const uniqueOppKeys = new Set<string>();
+  const deduplicatedOpps: any[] = [];
+  openOpps.forEach((o: any) => {
+    const key = `${o.category || 'general'}:${o.action_payload?.path || o.affected_page || '/'}:${(o.title || '').toLowerCase().trim()}`;
+    if (!uniqueOppKeys.has(key)) {
+      uniqueOppKeys.add(key);
+      deduplicatedOpps.push(o);
+    }
+  });
+
+  const priorityActions = deduplicatedOpps.slice(0, 5).map((o: any) => ({
     id: o.id,
     title: o.title,
     category: o.category || 'general',
     priority: o.priority || 'medium',
     priorityScore: o.priority_score || 50,
-    affectedPage: o.action_payload?.path || o.action_payload?.url || '/',
+    affectedPage: o.action_payload?.path || o.affected_page || '/',
     reason: o.description || 'Action required to improve SEO health.',
     recommendedAction: o.action_payload?.recommended_action || 'Inspect and apply fix in the module.',
   }));
@@ -148,7 +158,60 @@ export async function aggregateCommandCenterData(
 
   const thirdPartyProviders = integrations.filter((i: any) => i.status === 'connected').map((i: any) => i.provider);
 
+  let geoSummary: CommandCenterPayload['geoSummary'] = undefined;
+  try {
+    const { runGEOAnalysis } = await import('../seo-geo/engine');
+    const geoResult = await runGEOAnalysis(supabase, websiteId, userId);
+    if (geoResult) {
+      geoSummary = {
+        geoScore: geoResult.score,
+        entityClarityScore: geoResult.entityClarity.score,
+        structuredDataDepthScore: geoResult.structuredDataDepth.score,
+        factualConsistencyScore: geoResult.factualConsistency.score,
+        citationReadinessScore: geoResult.citationReadiness.score,
+        relationshipStatus: `${geoResult.relationships.nodes.length} Entity Relationships Verified`,
+        entityNodes: (geoResult.relationships.nodes || []).map((n: any) => ({
+          type: n.type,
+          name: n.name,
+          present: n.name !== 'Unspecified' && n.name !== 'Missing',
+          relationship: n.relationship,
+        })),
+        topRecommendations: geoResult.recommendations,
+      };
+    }
+  } catch (err) {
+    // Gracefully fallback if GEO analysis fails
+  }
+
+  let aioSummary: CommandCenterPayload['aioSummary'] = undefined;
+  let aiSearchReadiness: CommandCenterPayload['aiSearchReadiness'] = undefined;
+  try {
+    const { runAIOAnalysisEngine } = await import('../seo-aio/engine');
+    const aioPayload = await runAIOAnalysisEngine(supabase, websiteId, userId);
+    if (aioPayload) {
+      aioSummary = {
+        aioScore: aioPayload.aio.score,
+        answerReadinessScore: aioPayload.aio.answerReadiness.score,
+        topicDepthScore: aioPayload.aio.topicDepth.score,
+        contentStructureScore: aioPayload.aio.contentStructure.score,
+        questionCoverageScore: aioPayload.aio.questionCoverage.coverageScore,
+        answeredQuestionsCount: aioPayload.aio.questionCoverage.answered,
+        unansweredQuestionsCount: aioPayload.aio.questionCoverage.unanswered,
+        priorityQuestions: aioPayload.aio.questionCoverage.priorityQuestions || [],
+        topRecommendations: aioPayload.aio.recommendations,
+      };
+      aiSearchReadiness = aioPayload.aiSearchReadiness;
+    }
+  } catch (err) {
+    // Gracefully fallback if AIO analysis fails
+  }
+
   return {
+    websiteInfo: {
+      isPublished: !!website?.is_published,
+      publishedSlug: website?.published_slug || null,
+      customDomain: website?.custom_domain || null,
+    },
     unifiedScoreResult: unifiedResult,
     dataFreshness,
     healthSummary: {
@@ -183,5 +246,8 @@ export async function aggregateCommandCenterData(
       connectedProviders: thirdPartyProviders,
       availableSources: isGscConnected ? ['Google Search Console', ...thirdPartyProviders] : thirdPartyProviders,
     },
+    geoSummary,
+    aioSummary,
+    aiSearchReadiness,
   };
 }

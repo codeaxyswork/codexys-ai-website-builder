@@ -9,23 +9,46 @@ export async function GET(
     const { slug, filename } = await params;
     const lowerFile = filename.toLowerCase().trim();
 
-    // Only handle google*.html verification files
-    if (!lowerFile.startsWith("google") || !lowerFile.endsWith(".html")) {
+    const isLlmsTxt = lowerFile === "llms.txt" || lowerFile === "llms";
+    const isGoogleVerification = lowerFile.startsWith("google") && lowerFile.endsWith(".html");
+
+    if (!isLlmsTxt && !isGoogleVerification) {
       return new Response("Not Found", { status: 404 });
     }
 
     const cleanSlug = slug.toLowerCase().trim().replace(/\/+$/, "");
+    const rootDomainSlug = cleanSlug.startsWith("www.") ? cleanSlug.slice(4) : cleanSlug;
     const supabase = await createClient();
 
     const { data: website } = await supabase
       .from("websites")
-      .select("id")
-      .or(`published_slug.eq.${cleanSlug},slug.eq.${cleanSlug}`)
+      .select("id, published_slug, custom_domain, is_published")
+      .or(`published_slug.eq.${cleanSlug},slug.eq.${cleanSlug},custom_domain.eq.${cleanSlug},custom_domain.eq.${rootDomainSlug}`)
       .eq("is_published", true)
       .single();
 
-    if (!website) {
+    if (!website || !website.is_published) {
       return new Response("Not Found", { status: 404 });
+    }
+
+    if (isLlmsTxt) {
+      const { generateAIWebsiteManifest } = await import("@/lib/seo-manifest");
+      const host = request.headers.get("host") || "localhost:3000";
+      const protocol = request.headers.get("x-forwarded-proto") || "https";
+      const baseUrl = website.custom_domain ? `${protocol}://${website.custom_domain}` : `${protocol}://${host}/site/${website.published_slug}`;
+
+      const manifestText = await generateAIWebsiteManifest(supabase, website.id, { baseUrl });
+      if (!manifestText) {
+        return new Response("Not Found", { status: 404 });
+      }
+
+      return new Response(manifestText, {
+        status: 200,
+        headers: {
+          "Content-Type": "text/plain; charset=utf-8",
+          "Cache-Control": "public, max-age=3600, s-maxage=86400",
+        },
+      });
     }
 
     const { data: seo } = await supabase

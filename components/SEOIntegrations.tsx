@@ -53,6 +53,14 @@ export function SEOIntegrations({
   const [isTesting, setIsTesting] = useState(false);
   const [statusMessage, setStatusMessage] = useState<{ type: "success" | "error"; text: string } | null>(null);
 
+  // Google Ads State
+  const [googleAdsConnected, setGoogleAdsConnected] = useState(false);
+  const [googleAdsCustomers, setGoogleAdsCustomers] = useState<{ id: string; descriptiveName?: string }[]>([]);
+  const [selectedAdsCustomerId, setSelectedAdsCustomerId] = useState<string | null>(null);
+  const [adsDevTokenStatus, setAdsDevTokenStatus] = useState<string>("configured");
+  const [loadingGoogleAds, setLoadingGoogleAds] = useState(false);
+  const [isSelectingAdsCustomer, setIsSelectingAdsCustomer] = useState(false);
+
   // Request Integration Form State
   const [requestForm, setRequestForm] = useState({ toolName: "", toolWebsite: "", apiDocsUrl: "", message: "" });
   const [isSubmittingRequest, setIsSubmittingRequest] = useState(false);
@@ -60,8 +68,74 @@ export function SEOIntegrations({
   useEffect(() => {
     if (websiteId) {
       fetchThirdPartyIntegrations();
+      fetchGoogleAdsStatus();
     }
   }, [websiteId]);
+
+  const fetchGoogleAdsStatus = async () => {
+    if (!websiteId) return;
+    try {
+      setLoadingGoogleAds(true);
+      const res = await fetch(`/api/websites/${websiteId}/seo/google-ads/customers`);
+      if (res.ok) {
+        const data = await res.json();
+        setGoogleAdsConnected(Boolean(data.connected));
+        setSelectedAdsCustomerId(data.selectedCustomerId || null);
+        setGoogleAdsCustomers(data.customers || []);
+        if (data.developerTokenStatus) {
+          setAdsDevTokenStatus(data.developerTokenStatus);
+        }
+      } else {
+        setGoogleAdsConnected(false);
+      }
+    } catch (err) {
+      console.error("Fetch Google Ads status error:", err);
+      setGoogleAdsConnected(false);
+    } finally {
+      setLoadingGoogleAds(false);
+    }
+  };
+
+  const handleConnectGoogleAds = () => {
+    if (!websiteId) return;
+    window.location.href = `/api/seo/google-ads/connect?website_id=${websiteId}&redirect=1`;
+  };
+
+  const handleSelectGoogleAdsAccount = async (customerId: string) => {
+    if (!websiteId || !customerId) return;
+    try {
+      setIsSelectingAdsCustomer(true);
+      const res = await fetch(`/api/websites/${websiteId}/seo/google-ads/select-account`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ customerId }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        throw new Error(data.error || "Failed to select account.");
+      }
+      setSelectedAdsCustomerId(data.selectedCustomerId || customerId);
+    } catch (err: any) {
+      console.error("Select Ads account error:", err);
+      alert(err.message || "Failed to select Google Ads account.");
+    } finally {
+      setIsSelectingAdsCustomer(false);
+    }
+  };
+
+  const handleDisconnectGoogleAds = async () => {
+    if (!websiteId) return;
+    if (!confirm("Are you sure you want to disconnect Google Ads?")) return;
+    try {
+      await onSaveIntegration("google_ads", "disconnected", {});
+      setGoogleAdsConnected(false);
+      setSelectedAdsCustomerId(null);
+      setGoogleAdsCustomers([]);
+    } catch (err) {
+      console.error("Disconnect Google Ads error:", err);
+    }
+  };
+
 
   const fetchThirdPartyIntegrations = async () => {
     if (!websiteId) return;
@@ -357,6 +431,83 @@ export function SEOIntegrations({
                 className="py-2 px-4 bg-purple-600 hover:bg-purple-700 text-white text-xs font-semibold rounded-lg transition-all"
               >
                 Connect Search Console
+              </button>
+            )}
+          </div>
+        </div>
+      </div>
+
+      {/* 2.5 GOOGLE ADS & KEYWORD PLANNER INTEGRATION */}
+      <div className="bg-white border border-slate-200 rounded-2xl p-6 shadow-xs">
+        <h3 className="text-lg font-bold text-slate-900 border-b border-slate-100 pb-3 mb-5 flex items-center gap-2">
+          <svg className="w-5 h-5 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M11 3.055A9.001 9.001 0 1020.945 13H11V3.055z" />
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M20.488 9H15V3.512A9.025 9.025 0 0120.488 9z" />
+          </svg>
+          Google Ads & Keyword Planner Integration
+        </h3>
+
+        <div className="p-5 bg-white border border-slate-200 rounded-xl shadow-xs flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+          <div className="space-y-1">
+            <div className="flex items-center gap-3">
+              <span className="font-bold text-slate-900 text-sm">Google Ads Account</span>
+              {googleAdsConnected ? (
+                <span className="text-[11px] font-semibold px-2.5 py-0.5 bg-emerald-50 text-emerald-700 border border-emerald-200 rounded-full">
+                  Connected ✓
+                </span>
+              ) : (
+                <span className="text-[11px] font-semibold px-2.5 py-0.5 bg-slate-100 text-slate-600 rounded-full">
+                  Disconnected
+                </span>
+              )}
+            </div>
+            <p className="text-xs text-slate-500 max-w-xl">
+              Connect Google Ads via OAuth to authorize customer-specific Keyword Planner intelligence, search volume, CPC bid ranges, and competition indices.
+            </p>
+
+            {googleAdsConnected && googleAdsCustomers.length > 0 && (
+              <div className="pt-2 flex items-center gap-3">
+                <label className="text-xs font-bold text-slate-700">Customer Account:</label>
+                <select
+                  value={selectedAdsCustomerId || ""}
+                  onChange={(e) => handleSelectGoogleAdsAccount(e.target.value)}
+                  disabled={isSelectingAdsCustomer}
+                  className="px-3 py-1 bg-slate-50 border border-slate-300 rounded text-xs text-slate-900 font-mono focus:ring-2 focus:ring-purple-500"
+                >
+                  <option value="" disabled>-- Select Ads Customer Account --</option>
+                  {googleAdsCustomers.map((acc) => (
+                    <option key={acc.id} value={acc.id}>
+                      {acc.descriptiveName || `Account (${acc.id})`}
+                    </option>
+                  ))}
+                </select>
+                {isSelectingAdsCustomer && <span className="text-xs text-purple-600 font-medium">Saving...</span>}
+              </div>
+            )}
+
+            {adsDevTokenStatus === "missing" && (
+              <div className="mt-2 text-[11px] text-amber-700 bg-amber-50 border border-amber-200 px-2.5 py-1 rounded">
+                ⚠️ Server developer token configuration missing (<code className="font-mono">GOOGLE_ADS_DEVELOPER_TOKEN</code>).
+              </div>
+            )}
+          </div>
+
+          <div>
+            {googleAdsConnected ? (
+              <button
+                type="button"
+                onClick={handleDisconnectGoogleAds}
+                className="py-2 px-4 bg-rose-50 hover:bg-rose-100 text-rose-700 text-xs font-semibold rounded-lg transition-all"
+              >
+                Disconnect Google Ads
+              </button>
+            ) : (
+              <button
+                type="button"
+                onClick={handleConnectGoogleAds}
+                className="py-2 px-4 bg-purple-600 hover:bg-purple-700 text-white text-xs font-semibold rounded-lg transition-all"
+              >
+                Connect Google Ads
               </button>
             )}
           </div>

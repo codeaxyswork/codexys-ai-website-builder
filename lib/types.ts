@@ -71,3 +71,62 @@ export const LANGUAGE_OPTIONS = [
   { code: "tr-TR", label: "Turkish (Türkçe)" },
 ];
 
+export interface GoogleAdsCredentials {
+  access_token: string | null;
+  refresh_token: string | null;
+  token_expires_at: number;
+  scope: string | null;
+  google_ads_customer_id: string | null;
+}
+
+export interface GoogleAdsCustomerAccount {
+  id: string;
+  resourceName: string;
+  descriptiveName?: string;
+  currencyCode?: string;
+  timeZone?: string;
+  isManagerAccount?: boolean;
+}
+
+export interface KeywordPlannerRequest {
+  keywords?: string[];
+  pageUrl?: string;
+  locationId?: string;
+  languageId?: string;
+  includeAdultKeywords?: boolean;
+}
+
+export interface MonthlySearchMetricItem {
+  year: number;
+  month: string;
+  monthlySearches: number;
+}
+
+export interface NormalizedKeywordItem {
+  keyword: string;
+  avgMonthlySearches: number;
+  competition: "HIGH" | "MEDIUM" | "LOW" | "UNSPECIFIED";
+  competitionIndex: number;
+  lowTopOfPageBidMicros: number;
+  highTopOfPageBidMicros: number;
+  lowTopOfPageBidFormatted: string;
+  highTopOfPageBidFormatted: string;
+  monthlySearchMetrics: MonthlySearchMetricItem[];
+  source: "google_ads_api" | "gsc_query" | "combined";
+  fetchedAt: string;
+}
+
+export interface KeywordIntelligenceResponse {
+  connected: boolean;
+  selectedCustomerId: string | null;
+  seedType: "keyword" | "url" | "keyword_url";
+  seedValue: string;
+  totalKeywords: number;
+  keywords: NormalizedKeywordItem[];
+  developerTokenStatus: "configured" | "missing" | "pending_approval";
+  fetchedAt: string;
+  cached: boolean;
+  error?: string;
+}
+
+

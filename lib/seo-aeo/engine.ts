@@ -1,6 +1,7 @@
 import { calculateAnswerReadinessScore } from "./scorer";
 import { AEOBreakdown, DiscoveredQuestion, EntityClarity, WebsiteAEOAnalysis } from "./types";
 import { calculateOpportunityPriority } from "../seo-opportunities/prioritizer";
+import { auditFactualConsistency, calculateCitationReadiness } from "../seo-geo/factual-consistency";
 
 export async function runAEOAnalysis(
   supabase: any,
@@ -250,6 +251,53 @@ export async function runAEOAnalysis(
     });
   }
 
+  // Sequence 3 Phase 1: Factual Consistency & Citation Readiness
+  const factualAudit = auditFactualConsistency(
+    {
+      businessName: localSeo?.business_name || website?.title,
+      city: localSeo?.city,
+      phone: localSeo?.phone,
+    },
+    pageList.map((p: any) => ({ path: p.path || "/", html_content: p.html_content || "" }))
+  );
+
+  const indexHtml = pageList.find((p: any) => p.path === "index.html")?.html_content || "";
+  const citationReadiness = calculateCitationReadiness({
+    businessName: localSeo?.business_name || website?.title,
+    city: localSeo?.city,
+    canonicalUrl: seoRow?.canonical_url,
+    schemaMarkup: seoRow?.schema_markup,
+    htmlContent: indexHtml,
+    factualScore: factualAudit.score,
+  });
+
+  for (const conflict of factualAudit.conflicts) {
+    const { priorityScore, priority } = calculateOpportunityPriority({
+      impact: "high",
+      severity: conflict.severity,
+      effort: "low",
+    });
+    aeoOpps.push({
+      website_id: websiteId,
+      user_id: userId,
+      type: "aeo",
+      category: "factual_consistency",
+      title: `Factual Conflict: ${conflict.field} mismatch on ${conflict.pagePath}`,
+      description: conflict.description,
+      affected_page: conflict.pagePath,
+      severity: conflict.severity,
+      impact: "high",
+      effort: "low",
+      priority,
+      priority_score: priorityScore,
+      source: "geo_engine",
+      recommended_action: "Ensure uniform business details across all site pages.",
+      action_type: "fix_content",
+      action_payload: conflict as any,
+      status: "new",
+    });
+  }
+
   // Persist discovered AEO opportunities into seo_opportunities table
   for (const opp of aeoOpps) {
     await supabase.from("seo_opportunities").upsert(opp, {
@@ -263,8 +311,16 @@ export async function runAEOAnalysis(
     user_id: userId,
     answer_readiness_score: answerReadiness.totalScore,
     topic_coverage_score: 0, // Will be updated by topical-authority module
-    aeo_breakdown: breakdown,
-    entity_clarity: entityClarity,
+    aeo_breakdown: {
+      ...breakdown,
+      factualConsistency: factualAudit.score,
+      citationReadiness: citationReadiness.score,
+    } as any,
+    entity_clarity: {
+      ...entityClarity,
+      citationReadinessLevel: citationReadiness.level,
+      factualConflictsCount: factualAudit.conflicts.length,
+    } as any,
     questions_discovered: questionsDiscovered,
     topic_clusters: [],
     content_gaps: [],

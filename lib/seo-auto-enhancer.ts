@@ -4,6 +4,8 @@ import { injectSEOIntoHTML } from "./seo-injector";
 import { enqueueSEOJob, executeSEOAnalysis } from "./seo-job-processor";
 import { runAEOAnalysis } from "./seo-aeo/engine";
 import { runTopicalAuthorityAnalysis } from "./seo-aeo/topical-authority";
+import { runGEOAnalysis } from "./seo-geo/engine";
+import { runAIOAnalysisEngine } from "./seo-aio/engine";
 
 export interface ExtractedBusinessContext {
   businessName: string;
@@ -316,6 +318,8 @@ export async function autoEnhanceGeneratedWebsiteSeo(
       .then(() => executeSEOAnalysis(supabase, websiteId, userId, "initial_generation"))
       .then(() => runAEOAnalysis(supabase, websiteId, userId))
       .then(() => runTopicalAuthorityAnalysis(supabase, websiteId, userId))
+      .then(() => runGEOAnalysis(supabase, websiteId, userId))
+      .then(() => runAIOAnalysisEngine(supabase, websiteId, userId))
       .catch((err) => console.warn("Background SEO auto-enhancement analysis warning:", err?.message || err));
   } catch (err: any) {
     // Failsafe: Ensure initial website generation never crashes due to SEO enhancement

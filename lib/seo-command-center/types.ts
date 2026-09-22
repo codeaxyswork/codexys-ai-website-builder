@@ -39,6 +39,11 @@ export interface SEOActivityEvent {
 }
 
 export interface CommandCenterPayload {
+  websiteInfo?: {
+    isPublished: boolean;
+    publishedSlug: string | null;
+    customDomain: string | null;
+  };
   unifiedScoreResult: UnifiedScoreResult;
   dataFreshness: Record<string, DataFreshnessItem>;
   healthSummary: {
@@ -91,5 +96,35 @@ export interface CommandCenterPayload {
   thirdPartySummary: {
     connectedProviders: string[];
     availableSources: string[];
+  };
+  geoSummary?: {
+    geoScore: number;
+    entityClarityScore: number;
+    structuredDataDepthScore: number;
+    factualConsistencyScore: number;
+    citationReadinessScore: number;
+    relationshipStatus: string;
+    entityNodes: Array<{ type: string; name: string; present: boolean; relationship: string }>;
+    topRecommendations: string[];
+  };
+  aioSummary?: {
+    aioScore: number;
+    answerReadinessScore: number;
+    topicDepthScore: number;
+    contentStructureScore: number;
+    questionCoverageScore: number;
+    answeredQuestionsCount: number;
+    unansweredQuestionsCount: number;
+    priorityQuestions: Array<{ question: string; status: 'answered' | 'partial' | 'unanswered'; source: string }>;
+    topRecommendations: string[];
+  };
+  aiSearchReadiness?: {
+    score: number;
+    seo: number;
+    aeo: number;
+    geo: number;
+    aio: number;
+    level: string;
+    recommendations: string[];
   };
 }

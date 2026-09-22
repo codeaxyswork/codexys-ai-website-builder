@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { requireAdmin } from "@/lib/admin-auth";
-import { createClient } from "@/utils/supabase/server";
+import { createAdminClient } from "@/utils/supabase/server";
 
 export async function GET() {
   try {
@@ -9,18 +9,28 @@ export async function GET() {
       return NextResponse.json({ error: "Unauthorized access denied." }, { status: 403 });
     }
 
-    const supabase = await createClient();
+    const supabaseAdmin = createAdminClient();
 
-    const { data: websites, error } = await supabase
-      .from("websites")
-      .select("id, title, slug, prompt, is_published, published_slug, created_at, updated_at, user_id, profiles(full_name)")
-      .order("created_at", { ascending: false });
+    const [websitesRes, profilesRes] = await Promise.all([
+      supabaseAdmin
+        .from("websites")
+        .select("id, title, slug, prompt, is_published, published_slug, created_at, updated_at, user_id")
+        .order("created_at", { ascending: false }),
+      supabaseAdmin
+        .from("profiles")
+        .select("id, full_name"),
+    ]);
 
-    if (error) {
-      return NextResponse.json({ error: error.message }, { status: 500 });
+    if (websitesRes.error) {
+      return NextResponse.json({ error: websitesRes.error.message }, { status: 500 });
     }
 
-    const formattedWebsites = (websites || []).map((w: any) => ({
+    const profileMap = new Map<string, string>();
+    (profilesRes.data || []).forEach((p: any) => {
+      profileMap.set(p.id, p.full_name || "User");
+    });
+
+    const formattedWebsites = (websitesRes.data || []).map((w: any) => ({
       id: w.id,
       title: w.title,
       slug: w.slug,
@@ -30,7 +40,7 @@ export async function GET() {
       created_at: w.created_at,
       updated_at: w.updated_at,
       user_id: w.user_id,
-      owner_name: w.profiles?.full_name || "User",
+      owner_name: profileMap.get(w.user_id) || "User",
     }));
 
     return NextResponse.json({ websites: formattedWebsites });

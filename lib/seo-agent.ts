@@ -131,6 +131,32 @@ export interface SEOAgentContext {
     statusCounts: { ok2xx: number; redirect3xx: number; clientError4xx: number; serverError5xx: number };
     topTechnicalIssues: Array<{ title: string; severity: string; url: string }>;
   };
+  geoSummary?: {
+    geoScore: number;
+    entityClarityScore: number;
+    structuredDataDepthScore: number;
+    factualConsistencyScore: number;
+    citationReadinessScore: number;
+    topRecommendations: string[];
+  };
+  aioSummary?: {
+    aioScore: number;
+    answerReadinessScore: number;
+    topicDepthScore: number;
+    contentStructureScore: number;
+    questionCoverageScore: number;
+    unansweredQuestionsCount: number;
+    topRecommendations: string[];
+  };
+  aiSearchReadiness?: {
+    score: number;
+    seo: number;
+    aeo: number;
+    geo: number;
+    aio: number;
+    level: string;
+    recommendations: string[];
+  };
 }
 
 /**
@@ -154,7 +180,7 @@ export async function buildSEOContext(
   // 1. Fetch Website Metadata
   const { data: website } = await supabase
     .from("websites")
-    .select("title, published_slug, prompt")
+    .select("user_id, title, published_slug, prompt")
     .eq("id", websiteId)
     .single();
 
@@ -475,6 +501,49 @@ export async function buildSEOContext(
     }
   }
 
+  let geoSummary: SEOAgentContext["geoSummary"] = undefined;
+  if (website?.user_id) {
+    try {
+      const { runGEOAnalysis } = await import("@/lib/seo-geo/engine");
+      const geoData = await runGEOAnalysis(supabase, websiteId, website.user_id);
+      if (geoData) {
+        geoSummary = {
+          geoScore: geoData.score,
+          entityClarityScore: geoData.entityClarity.score,
+          structuredDataDepthScore: geoData.structuredDataDepth.score,
+          factualConsistencyScore: geoData.factualConsistency.score,
+          citationReadinessScore: geoData.citationReadiness.score,
+          topRecommendations: geoData.recommendations,
+        };
+      }
+    } catch (e) {
+      // Gracefully handle GEO context load
+    }
+  }
+
+  let aioSummary: SEOAgentContext["aioSummary"] = undefined;
+  let aiSearchReadiness: SEOAgentContext["aiSearchReadiness"] = undefined;
+  if (website?.user_id) {
+    try {
+      const { runAIOAnalysisEngine } = await import("@/lib/seo-aio/engine");
+      const aioPayload = await runAIOAnalysisEngine(supabase, websiteId, website.user_id);
+      if (aioPayload) {
+        aioSummary = {
+          aioScore: aioPayload.aio.score,
+          answerReadinessScore: aioPayload.aio.answerReadiness.score,
+          topicDepthScore: aioPayload.aio.topicDepth.score,
+          contentStructureScore: aioPayload.aio.contentStructure.score,
+          questionCoverageScore: aioPayload.aio.questionCoverage.coverageScore,
+          unansweredQuestionsCount: aioPayload.aio.questionCoverage.unanswered,
+          topRecommendations: aioPayload.aio.recommendations,
+        };
+        aiSearchReadiness = aioPayload.aiSearchReadiness;
+      }
+    } catch (e) {
+      // Gracefully handle AIO context load
+    }
+  }
+
   return {
     website: {
       title: website?.title || "Untitled Website",
@@ -606,6 +675,9 @@ export async function buildSEOContext(
           topTechnicalIssues: topTechIssues,
         }
       : undefined,
+    geoSummary,
+    aioSummary,
+    aiSearchReadiness,
   };
 }
 
@@ -682,22 +754,26 @@ CRITICAL ARCHITECTURE RULES & SAFETY BOUNDARIES:
 2. METRIC CLARITY:
    - "Core SEO Score": On-page technical analysis score (out of 100).
    - "Unified SEO Health Score": Multi-dimensional health score combining technical, content, GSC, local, and link metrics.
-   - "Google Average Position": Ranking metric from Google Search Console.
+   - "GEO Score": Generative Engine Optimization readiness (30% Entity Clarity, 25% Factual Consistency, 25% Structured Data Depth, 20% Citation Readiness).
+   - "AIO Score": Answer Intelligence Optimization (35% Answer Readiness, 30% Topic Depth, 20% Content Structure, 15% Question Coverage).
+   - "AI Search Readiness Score": Unified readiness combining 35% SEO + 25% AEO + 20% GEO + 20% AIO.
    Never confuse or blend these distinct metrics.
-3. GOOGLE RANKING SAFETY: NEVER say "You will rank #1", "Guaranteed page 1", or "Traffic will definitely double". Explain that search improvements enhance technical signals and discoverability, but search engine algorithms dictate exact positions.
+3. GOOGLE & LLM RANKING SAFETY: NEVER say "You will rank #1", "Guaranteed ChatGPT recommendation", or "Guaranteed AI citation". Explain that AI Search Readiness measures structural, entity, and answer clarity for search engines and AI discovery systems, but third-party algorithm outputs cannot be guaranteed.
 4. GSC RECONNECT STATE HANDLING: If Google Search Console is not connected or token has expired, state: "Your Google Search Console connection needs to be reconnected before I can retrieve current Google Search data." and recommend navigating to the "integrations" tab.
-5. LOCAL SEO & MONITORING ALERTS: Use monitoringSummary and localSeoSummary to explain recent score changes,NAP consistency, JSON-LD schema, or background monitoring events.
-6. AEO & TOPICAL AUTHORITY: Use aeoSummary and topicalAuthoritySummary to answer AI Search readiness (ChatGPT/Perplexity/Gemini), entity clarity, and missing subtopics.
-7. COMPETITOR & CONTENT STUDIO: Use competitorSummary and contentStudioSummary to answer competitor comparison questions and explain topic coverage differences evidence-based ("Based on analyzed pages...").
-8. MULTILINGUAL SUPPORT: Respond in the user's natural language:
+5. LOCAL SEO & MONITORING ALERTS: Use monitoringSummary and localSeoSummary to explain recent score changes, NAP consistency, JSON-LD schema, or background monitoring events.
+6. AEO, GEO, AIO & AI SEARCH READINESS:
+   - Answer questions on "Why is my AI Search Readiness low?", "Why is my GEO score low?", "Why is my AIO score low?", "Which questions should my website answer?", "What information about my business is inconsistent?", "Is my business entity clear?", and "What content gaps do I have?".
+   - Use geoSummary, aioSummary, aiSearchReadiness, aeoSummary, and topicalAuthoritySummary from context to provide exact, evidence-based answers.
+7. ACTION SAFETY & NO AUTOMATIC WRITES: Explain, recommend, guide, navigate to existing tools, and reference existing opportunities. You MUST NOT automatically rewrite user content or alter SEO metadata without explicit user confirmation (e.g. proposing a structured fix payload for user approval).
+8. COMPETITOR & CONTENT STUDIO: Use competitorSummary and contentStudioSummary to answer competitor comparison questions and explain topic coverage differences evidence-based ("Based on analyzed pages...").
+9. MULTILINGUAL SUPPORT: Respond in the user's natural language:
    - If user speaks Malayalam: Reply in warm, clear Malayalam.
    - If user speaks Manglish ("ente website engane und?"): Reply naturally in Manglish.
    - If user speaks English: Reply in professional English.
-9. PRONOUN & REFERENCE RESOLUTION: When user asks short follow-ups ("fix that", "show me that", "what about that issue?"), resolve "that/it" using recent conversation history context.
-10. NAVIGATION TARGETS: Suggest exact tab route when referring user to a specific area:
+10. PRONOUN & REFERENCE RESOLUTION: When user asks short follow-ups ("fix that", "show me that", "what about that issue?"), resolve "that/it" using recent conversation history context.
+11. NAVIGATION TARGETS: Suggest exact tab route when referring user to a specific area:
     "overview" | "technical-crawl" | "content-studio" | "competitors" | "content-gaps" | "aeo" | "topical-authority" | "opportunities" | "autopilot" | "performance" | "monitoring" | "organic" | "technical" | "internal-links" | "local-seo" | "blog" | "pages" | "keywords" | "integrations" | "settings"
-11. DETERMINISTIC FIX PROPOSALS: If a safe fix applies (e.g. SEO title, meta description, OG tags, canonical URL, robots settings, image alt text), include a "proposedFix" object in your JSON output. Require user approval.
-12. AMBIGUOUS QUESTION CLARIFICATION: If the user asks a very broad or ambiguous question (e.g. "Improve my website" or "Fix my site") without specifying a topic, ask a friendly clarification question offering options (e.g., "Would you like to focus on Google search performance, technical SEO, content strategy, local SEO, or overall health?"). But if the user asked a clear question (e.g., "How is my SEO?", "What should I fix first?"), analyze and answer directly without asking unnecessary questions.
+12. DETERMINISTIC FIX PROPOSALS: If a safe fix applies (e.g. SEO title, meta description, OG tags, canonical URL, robots settings, image alt text), include a "proposedFix" object in your JSON output. Require user approval.
 
 OUTPUT FORMAT:
 Return strictly a single JSON object with no markdown fences, no wrapping, matching this shape:
