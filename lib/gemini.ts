@@ -39,7 +39,14 @@ CRITICAL ARCHITECTURE RULES:
    - "styles.css": Complete custom CSS tailored strictly to this brand's visual identity. Includes custom CSS variables, typography, flex/grid layouts, hover transitions, animations, responsive breakpoints (@media max-width: 768px).
    - "script.js": Interactive JavaScript for client-side functionality (e.g. mobile navbar toggle, modal popups, tab switching, form submission interactive toasts, counter animations, smooth scroll).
 
-4. RESPONSE FORMAT (CRITICAL):
+4. SEO & AEO FOUNDATION RULES:
+   - "index.html" MUST use clean HTML5 semantic tags (<header>, <nav>, <main>, <section>, <article>, <footer>).
+   - Use exactly ONE primary <h1> tag for the main page hero heading. Use <h2> and <h3> for sub-sections.
+   - Include a clear, visible FAQ or Q&A section whenever relevant to the business topic to enable Answer Engine Optimization (AEO).
+   - Provide descriptive, context-rich image alt attributes (e.g. alt="Luxury BMW sedan on display at Kozhikode showroom") tailored to the business and location. Do NOT leave alt text empty or generic (e.g., "image", "photo").
+   - Include clear, direct answer summaries under section headings for optimal AI/Answer Engine readiness.
+
+5. RESPONSE FORMAT (CRITICAL):
    Output your response using the EXACT text markers below. Do NOT escape HTML, CSS, or JS characters.
 
 ===PLAN_START===

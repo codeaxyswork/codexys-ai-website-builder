@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest, NextResponse, after } from "next/server";
 import { generateWebsite } from "@/lib/gemini";
 import { createClient } from "@/utils/supabase/server";
 import { checkWebsiteLimit, checkCreditBalance, deductCredits } from "@/lib/billing";
@@ -7,6 +7,7 @@ import { checkRateLimit } from "@/lib/rate-limit";
 import { CREDIT_COSTS, ERROR_CODES } from "@/lib/constants";
 import { GeneratedFile, WebsitePlan } from "@/lib/types";
 import { deriveWebsiteTitle } from "@/lib/website-title-helper";
+import { autoEnhanceGeneratedWebsiteSeo } from "@/lib/seo-auto-enhancer";
 
 export async function POST(req: NextRequest) {
   try {
@@ -105,6 +106,25 @@ export async function POST(req: NextRequest) {
         "initial_generation",
         savedWebsiteId
       );
+
+      // Non-blocking post-response SEO auto-enhancement using Next.js after()
+      if (savedWebsiteId) {
+        const finalId = savedWebsiteId;
+        after(async () => {
+          try {
+            await autoEnhanceGeneratedWebsiteSeo(
+              supabase,
+              user.id,
+              finalId,
+              prompt.trim(),
+              result.plan,
+              result.files
+            );
+          } catch (seoErr: any) {
+            console.error("Post-response SEO auto-enhancement error:", seoErr?.message || seoErr);
+          }
+        });
+      }
     }
 
     return NextResponse.json(
