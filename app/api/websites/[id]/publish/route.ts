@@ -93,10 +93,28 @@ export async function POST(
       return NextResponse.json({ error: updateError.message }, { status: 500 });
     }
 
+    const appDomain = (
+      process.env.NEXT_PUBLIC_APP_DOMAIN ||
+      process.env.APP_DOMAIN ||
+      "codeaxys.com"
+    ).trim().toLowerCase().replace(/^https?:\/\//i, "").replace(/\/.*$/, "");
+
+    const cleanAppDomain = (appDomain && !appDomain.includes("localhost")) ? appDomain : "codeaxys.com";
+
+    const customDom = (website.custom_domain || website.domain || "").trim();
+    let productionUrl = "";
+    if (customDom && !customDom.includes("localhost") && !customDom.includes("website.com")) {
+      productionUrl = customDom.startsWith("http") ? customDom : `https://${customDom}`;
+    } else {
+      productionUrl = `https://${uniqueSlug}.${cleanAppDomain}`;
+    }
+
     return NextResponse.json({
       success: true,
+      published: true,
       slug: uniqueSlug,
-      publicUrl: `/site/${uniqueSlug}`,
+      url: productionUrl,
+      publicUrl: productionUrl,
     });
   } catch (err: any) {
     console.error("Publish Website API Error:", err);

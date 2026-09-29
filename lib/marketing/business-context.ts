@@ -145,13 +145,8 @@ export async function buildMarketingBusinessContext(
   }
 
   // 3. Derive Published URL
-  const appDomain = process.env.NEXT_PUBLIC_APP_DOMAIN || "localhost:3000";
-  let publishedUrl: string | null = null;
-  if (websiteRow.is_published && websiteRow.published_slug) {
-    publishedUrl = websiteRow.domain
-      ? (websiteRow.domain.startsWith("http") ? websiteRow.domain : `https://${websiteRow.domain}`)
-      : `https://${appDomain}/site/${websiteRow.published_slug}`;
-  }
+  const { getProductionWebsiteUrl } = require("./meta-publisher");
+  const publishedUrl = getProductionWebsiteUrl(websiteRow);
 
   // 4. HTML Parsing across pages for Services, Products, Pricing, Offers, CTAs, Forms, Images
   const pagesList = Array.isArray(pageRowsList) ? pageRowsList : [];

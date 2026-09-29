@@ -45,39 +45,68 @@ export async function updateSession(request: NextRequest) {
 
     const pathname = request.nextUrl.pathname;
 
-    // Domain Host Routing Check (Controlled by DOMAIN_ROUTING_ENABLED feature flag)
-    const isRoutingEnabled = process.env.DOMAIN_ROUTING_ENABLED === "true";
-    if (isRoutingEnabled) {
-      const host = request.headers.get("host");
-      const appDomain = (
-        process.env.APP_DOMAIN ||
-        process.env.NEXT_PUBLIC_APP_DOMAIN ||
-        process.env.NEXT_PUBLIC_VERCEL_PROJECT_PRODUCTION_URL ||
-        process.env.NEXT_PUBLIC_VERCEL_URL ||
-        "localhost"
-      ).toLowerCase().trim();
-      const cleanHost = host ? host.split(":")[0].toLowerCase().trim() : "";
+    // Domain Host Routing Check
+    const rawAppDomain = (
+      process.env.APP_DOMAIN ||
+      process.env.NEXT_PUBLIC_APP_DOMAIN ||
+      process.env.NEXT_PUBLIC_VERCEL_PROJECT_PRODUCTION_URL ||
+      "codeaxys.com"
+    ).toLowerCase().trim().replace(/^https?:\/\//i, "").replace(/\/.*$/, "");
 
-      // Ignore static assets, SaaS routes, and API routes
-      const isSaaSPath =
-        pathname.startsWith("/_next") ||
-        pathname.startsWith("/api") ||
-        pathname.startsWith("/auth") ||
-        pathname.startsWith("/dashboard") ||
-        pathname.startsWith("/login") ||
-        pathname.startsWith("/signup") ||
-        pathname.startsWith("/site") ||
-        pathname.startsWith("/sitemap") ||
-        pathname.startsWith("/robots") ||
-        pathname.startsWith("/privacy-policy") ||
-        pathname.startsWith("/pricing") ||
-        pathname.startsWith("/media") ||
-        pathname === "/";
+    const baseDomain = (rawAppDomain && !rawAppDomain.includes("localhost")) ? rawAppDomain : "codeaxys.com";
 
-      if (cleanHost && cleanHost !== appDomain && cleanHost !== "localhost" && cleanHost !== "127.0.0.1" && !isSaaSPath) {
-        // Internal rewrite for custom domain host
+    const host = request.headers.get("host");
+    const cleanHost = host ? host.split(":")[0].toLowerCase().trim() : "";
+
+    // Ignore static assets, system routes, and API routes
+    const isSaaSPath =
+      pathname.startsWith("/_next") ||
+      pathname.startsWith("/api") ||
+      pathname.startsWith("/auth") ||
+      pathname.startsWith("/dashboard") ||
+      pathname.startsWith("/login") ||
+      pathname.startsWith("/signup") ||
+      pathname.startsWith("/site") ||
+      pathname.startsWith("/sitemap") ||
+      pathname.startsWith("/robots") ||
+      pathname.startsWith("/privacy-policy") ||
+      pathname.startsWith("/pricing") ||
+      pathname.startsWith("/media") ||
+      pathname.startsWith("/admin") ||
+      pathname.startsWith("/maintenance");
+
+    // Local Testing Hook: allow simulating subdomain resolution via header or query parameter
+    const testSubdomain = request.headers.get("x-test-subdomain") || request.nextUrl.searchParams.get("__test_subdomain");
+
+    if (testSubdomain && !isSaaSPath) {
+      const cleanTestSlug = testSubdomain.toLowerCase().trim();
+      const url = request.nextUrl.clone();
+      const targetSubpath = pathname === "/" ? "" : pathname;
+      url.pathname = `/site/${cleanTestSlug}${targetSubpath}`;
+      return NextResponse.rewrite(url);
+    }
+
+    if (cleanHost && !isSaaSPath) {
+      const isMainDomain =
+        cleanHost === baseDomain ||
+        cleanHost === `www.${baseDomain}` ||
+        cleanHost === "localhost" ||
+        cleanHost === "127.0.0.1";
+
+      if (!isMainDomain) {
+        let targetSlug = cleanHost;
+
+        // Platform Subdomain Check: e.g. mncc.codeaxys.com -> extract "mncc"
+        if (cleanHost.endsWith(`.${baseDomain}`)) {
+          const sub = cleanHost.slice(0, -(baseDomain.length + 1)).trim();
+          if (sub && sub !== "www" && sub !== "app" && sub !== "api") {
+            targetSlug = sub;
+          }
+        }
+
         const url = request.nextUrl.clone();
-        url.pathname = `/site/${cleanHost}`;
+        const targetSubpath = pathname === "/" ? "" : pathname;
+        url.pathname = `/site/${targetSlug}${targetSubpath}`;
         return NextResponse.rewrite(url);
       }
     }

@@ -349,7 +349,7 @@ export function getProductionWebsiteUrl(website?: {
     ).trim().toLowerCase().replace(/^https?:\/\//i, "").replace(/\/.*$/, "");
 
     const cleanAppDomain = (rawAppDomain && !rawAppDomain.includes("localhost")) ? rawAppDomain : "codeaxys.com";
-    return `https://${cleanAppDomain}/site/${slug}`;
+    return `https://${slug}.${cleanAppDomain}`;
   }
 
   return null;

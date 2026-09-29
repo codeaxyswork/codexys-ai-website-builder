@@ -46,7 +46,7 @@ export async function GET(
       .single();
     const tWebEnd = performance.now();
 
-    if (websiteErr || !website) {
+    if (websiteErr || !website || !website.is_published) {
       return new Response(render404HTML("Website Not Found"), {
         status: 404,
         headers: { "Content-Type": "text/html; charset=utf-8" },
