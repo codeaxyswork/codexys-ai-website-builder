@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import crypto from "crypto";
 import { createClient } from "@/utils/supabase/server";
 import { createAdminClient, getWebsiteMetaAssets } from "@/lib/marketing/meta-client";
-import { ApprovalSnapshot } from "@/lib/marketing/meta-publisher";
+import { ApprovalSnapshot, getProductionWebsiteUrl, validateProductionUrl } from "@/lib/marketing/meta-publisher";
 import { validateCampaignSpec, getFallbackDraft } from "@/lib/marketing/campaign-planner";
 
 export async function POST(
@@ -22,10 +22,10 @@ export async function POST(
     const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
     const dbClient = serviceKey && serviceKey !== "[SENSITIVE]" ? createAdminClient() : supabase;
 
-    // 2. Validate website ownership
+    // 2. Validate website ownership & fetch publication metadata
     const { data: website, error: siteError } = await dbClient
       .from("websites")
-      .select("id, title, custom_domain, user_id")
+      .select("id, title, custom_domain, domain, is_published, published_slug, user_id")
       .eq("id", websiteId)
       .eq("user_id", user.id)
       .single();
@@ -128,7 +128,28 @@ export async function POST(
     const adAccount = metaAssets.selectedAdAccount;
     const page = metaAssets.selectedPage;
 
-    // 6. Validate budget & landing page
+    // 6. Validate budget & resolve authoritative production landing page URL
+    const prodBaseUrl = getProductionWebsiteUrl(website);
+    if (!prodBaseUrl) {
+      return NextResponse.json({
+        error: "This website is not published or does not have a valid production URL. Publish or connect the client's website before creating the Meta campaign.",
+      }, { status: 400 });
+    }
+
+    const targetPath = (customLandingPagePath || strat.landingPageRecommendation?.path || "/contact").replace(/^\//, "");
+    let resolvedLandingPageUrl = customLandingPageUrl;
+    if (!resolvedLandingPageUrl || resolvedLandingPageUrl.includes("website.com") || resolvedLandingPageUrl.includes("localhost")) {
+      resolvedLandingPageUrl = `${prodBaseUrl.replace(/\/$/, "")}/${targetPath}`;
+    }
+
+    try {
+      resolvedLandingPageUrl = validateProductionUrl(resolvedLandingPageUrl);
+    } catch (err: any) {
+      return NextResponse.json({
+        error: err?.message || "This website is not published or does not have a valid production URL. Publish or connect the client's website before creating the Meta campaign.",
+      }, { status: 400 });
+    }
+
     const baseBudget = strat.budgetRecommendation || {
       dailyBudgetAmount: 1000,
       recommendedDurationDays: 7,
@@ -139,11 +160,6 @@ export async function POST(
     const computedDaily = customDailyBudget !== null ? customDailyBudget : (Number(baseBudget.dailyBudgetAmount) || 1000);
     const computedDuration = customDuration !== null ? customDuration : (Number(baseBudget.recommendedDurationDays) || 7);
     const computedTotal = customTotalBudget !== null ? customTotalBudget : (computedDaily * computedDuration);
-
-    const landingPage = strat.landingPageRecommendation || {
-      path: "/contact",
-      url: `https://${website.custom_domain || "website.com"}/contact`,
-    };
 
     const approvedAt = new Date().toISOString();
     const hashString = `${realDraftId}:${websiteId}:${user.id}:${approvedAt}:${JSON.stringify(selectedAdCopy)}:${computedTotal}`;
@@ -185,8 +201,8 @@ export async function POST(
         sourceType: imageSource ? "media_asset" : "none",
       },
       landingPage: {
-        path: customLandingPagePath || landingPage.path || "/contact",
-        url: customLandingPageUrl || landingPage.url || `https://${website.custom_domain || "website.com"}/contact`,
+        path: `/${targetPath}`,
+        url: resolvedLandingPageUrl,
       },
       leadDestination: customLeadDestination || strat.leadDestinationRecommendation?.details || "Meta On-Facebook Instant Lead Form",
       platform: "Meta",

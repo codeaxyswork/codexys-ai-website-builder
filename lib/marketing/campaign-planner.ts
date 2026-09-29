@@ -258,7 +258,7 @@ export function buildCampaignSpecFromStrategy(
     headline_variations: headlines.length > 0 ? headlines : [`Book Consultation - ${bizName}`],
     description_variations: descriptions.length > 0 ? descriptions : ["Book your consultation today."],
     cta,
-    destination_url: strategy.landingPageRecommendation?.url || context.website.publishedUrl || "https://localhost:3000",
+    destination_url: strategy.landingPageRecommendation?.url || context.website.publishedUrl || "",
     creative_references: {
       visual_concept: strategy.creativeBrief?.visualConcept || `Visual highlighting ${bizName} services.`,
       recommended_images: strategy.creativeBrief?.recommendedImages || [],
@@ -423,11 +423,10 @@ export async function generateCampaignPlan(
 
   // 2. Evaluate Landing Page Scoring
   const { page: recommendedPage, rationale: pageRationale } = scoreLandingPage(context.pages);
-  const pageUrl = recommendedPage
-    ? context.website.publishedUrl
-      ? `${context.website.publishedUrl.replace(/\/$/, "")}/${recommendedPage.path.replace(/^\//, "")}`
-      : `https://${context.website.domain || "localhost:3000"}/${recommendedPage.path}`
-    : context.website.publishedUrl || "https://localhost:3000";
+  const targetPath = (recommendedPage?.path || "/").replace(/^\//, "");
+  const pageUrl = context.website.publishedUrl
+    ? `${context.website.publishedUrl.replace(/\/$/, "")}/${targetPath}`
+    : "";
 
   // 3. Evaluate Lead Destination Recommendation
   const leadDest = recommendLeadDestination(context, recommendedPage);

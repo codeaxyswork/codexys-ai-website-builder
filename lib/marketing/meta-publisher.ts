@@ -316,6 +316,91 @@ export function normalizeMetaCtaType(ctaInput?: string | null): string {
 }
 
 /**
+ * Centralized resolver for authoritative public production website URL.
+ * Priority:
+ *   a. Valid website.custom_domain or website.domain
+ *   b. If website.is_published === true and published_slug exists:
+ *      https://codeaxys.com/site/{published_slug}
+ *   c. Otherwise returns null.
+ */
+export function getProductionWebsiteUrl(website?: {
+  is_published?: boolean | null;
+  published_slug?: string | null;
+  custom_domain?: string | null;
+  domain?: string | null;
+} | null): string | null {
+  if (!website) return null;
+
+  const custom = (website.custom_domain || website.domain || "").trim().toLowerCase();
+  if (custom && !custom.includes("localhost") && !custom.includes("website.com") && !custom.includes("example.com")) {
+    const cleanDomain = custom.replace(/^https?:\/\//i, "").replace(/\/.*$/, "").trim();
+    if (cleanDomain) {
+      return `https://${cleanDomain}`;
+    }
+  }
+
+  const slug = (website.published_slug || "").trim().toLowerCase();
+  if (website.is_published && slug) {
+    const rawAppDomain = (
+      process.env.APP_DOMAIN ||
+      process.env.NEXT_PUBLIC_APP_DOMAIN ||
+      process.env.NEXT_PUBLIC_VERCEL_PROJECT_PRODUCTION_URL ||
+      "codeaxys.com"
+    ).trim().toLowerCase().replace(/^https?:\/\//i, "").replace(/\/.*$/, "");
+
+    const cleanAppDomain = (rawAppDomain && !rawAppDomain.includes("localhost")) ? rawAppDomain : "codeaxys.com";
+    return `https://${cleanAppDomain}/site/${slug}`;
+  }
+
+  return null;
+}
+
+/**
+ * Validates that a destination URL is a valid, non-placeholder, absolute HTTPS production URL.
+ * Throws a user-friendly error if invalid or unavailable.
+ */
+export function validateProductionUrl(urlInput?: string | null): string {
+  const fallbackError = "This website is not published or does not have a valid production URL. Publish or connect the client's website before creating the Meta campaign.";
+
+  if (!urlInput || typeof urlInput !== "string") {
+    throw new Error(fallbackError);
+  }
+
+  const clean = urlInput.trim();
+  if (!clean || !clean.startsWith("https://")) {
+    throw new Error(fallbackError);
+  }
+
+  const lower = clean.toLowerCase();
+  const invalidPatterns = [
+    "localhost",
+    "127.0.0.1",
+    "website.com",
+    "example.com",
+    "test.com",
+    "dummy.com",
+    "placeholder.com",
+  ];
+
+  for (const pattern of invalidPatterns) {
+    if (lower.includes(pattern)) {
+      throw new Error(fallbackError);
+    }
+  }
+
+  try {
+    const parsed = new URL(clean);
+    if (parsed.protocol !== "https:" || !parsed.hostname || parsed.hostname.split(".").length < 2) {
+      throw new Error(fallbackError);
+    }
+  } catch {
+    throw new Error(fallbackError);
+  }
+
+  return clean;
+}
+
+/**
  * Step 4: Create Meta Ad Creative
  */
 export async function createMetaAdCreative(
@@ -327,14 +412,17 @@ export async function createMetaAdCreative(
   const actId = normalizeAdAccountId(adAccountId);
   const url = `${getGraphBaseUrl()}/${actId}/adcreatives`;
 
+  // Strict HTTPS Production URL Guard (Enforces same validated URL for both link & CTA value link)
+  const validProductionUrl = validateProductionUrl(snapshot.landingPage?.url);
+
   const linkData: any = {
-    link: snapshot.landingPage.url,
+    link: validProductionUrl,
     message: snapshot.selectedAdCopy.primaryText,
     name: snapshot.selectedAdCopy.headline,
     description: snapshot.selectedAdCopy.description,
     call_to_action: {
       type: normalizeMetaCtaType(snapshot.selectedAdCopy.cta),
-      value: { link: snapshot.landingPage.url },
+      value: { link: validProductionUrl },
     },
   };
 
@@ -476,6 +564,11 @@ export async function executeMetaCampaignPublish(
   let adId = record.meta_ad_id;
 
   try {
+    // Pre-flight Production URL Guard: Ensure valid HTTPS production destination URL before executing any Meta API calls
+    if (!mockMode) {
+      validateProductionUrl(snapshot.landingPage?.url);
+    }
+
     // STEP 1: Campaign Creation
     if (!campaignId) {
       trace.push({ step: "creating_campaign", timestamp: new Date().toISOString() });
