@@ -4,12 +4,13 @@ import React, { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { createClient, getAuthRedirectUrl } from "@/utils/supabase/client";
-import { Wand2, Sparkles, ArrowRight, Loader2, AlertCircle, Lock, Mail } from "lucide-react";
+import { Wand2, Sparkles, ArrowRight, Loader2, AlertCircle, Lock, Mail, CheckCircle2 } from "lucide-react";
 
 export default function LoginPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
+  const [message, setMessage] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [googleLoading, setGoogleLoading] = useState(false);
   const router = useRouter();
@@ -18,8 +19,12 @@ export default function LoginPage() {
     if (typeof window !== "undefined") {
       const params = new URLSearchParams(window.location.search);
       const err = params.get("error");
+      const msg = params.get("message");
       if (err) {
         setError(decodeURIComponent(err));
+      }
+      if (msg) {
+        setMessage(decodeURIComponent(msg));
       }
     }
 
@@ -132,6 +137,14 @@ export default function LoginPage() {
             <h1 className="text-2xl font-extrabold text-slate-900 tracking-tight">Welcome back</h1>
             <p className="text-slate-600 text-xs mt-1">Sign in to manage your AI generated websites</p>
           </div>
+
+          {/* Success Message Banner */}
+          {message && (
+            <div className="mb-5 p-3.5 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs flex items-start gap-2.5">
+              <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" />
+              <p className="leading-relaxed font-medium">{message}</p>
+            </div>
+          )}
 
           {/* Error Banner */}
           {error && (

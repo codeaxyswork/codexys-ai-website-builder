@@ -549,7 +549,7 @@ export async function runAIOAnalysisEngine(
   const context = {
     businessName: localRow?.business_name || website.title,
     isLocalBusiness: Boolean(localRow?.city),
-    services: seoRow?.focus_keywords ? seoRow.focus_keywords.split(",").map((s: string) => s.trim()) : [],
+    services: seoRow?.focus_keywords ? (Array.isArray(seoRow.focus_keywords) ? seoRow.focus_keywords : typeof seoRow.focus_keywords === "string" ? seoRow.focus_keywords.split(",").map((s: string) => s.trim()) : []) : [],
   };
 
   // 4. Calculate AIO Score

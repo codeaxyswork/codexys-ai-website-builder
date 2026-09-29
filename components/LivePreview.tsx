@@ -12,6 +12,7 @@ import {
   Eye,
 } from "lucide-react";
 import { GeneratedFile } from "@/lib/types";
+import { assemblePreviewDoc } from "@/lib/preview-helper";
 
 interface LivePreviewProps {
   files: GeneratedFile[];
@@ -30,31 +31,7 @@ export function LivePreview({ files, isGenerating }: LivePreviewProps) {
 
   // Assemble full standalone HTML for iframe srcDoc
   const assembledSrcDoc = useMemo(() => {
-    if (!htmlFile) return "";
-
-    let doc = htmlFile;
-
-    // Inject CSS into head if styles.css tag is linked
-    if (cssFile) {
-      const styleTag = `<style>\n/* AI GENERATED STYLES */\n${cssFile}\n</style>`;
-      if (doc.includes("</head>")) {
-        doc = doc.replace("</head>", `${styleTag}\n</head>`);
-      } else {
-        doc = `${styleTag}\n${doc}`;
-      }
-    }
-
-    // Inject JS into body before </body>
-    if (jsFile) {
-      const scriptTag = `<script>\n// AI GENERATED INTERACTIVITY\ntry {\n${jsFile}\n} catch (e) { console.error('JS Error:', e); }\n</script>`;
-      if (doc.includes("</body>")) {
-        doc = doc.replace("</body>", `${scriptTag}\n</body>`);
-      } else {
-        doc = `${doc}\n${scriptTag}`;
-      }
-    }
-
-    return doc;
+    return assemblePreviewDoc(htmlFile, cssFile, jsFile);
   }, [htmlFile, cssFile, jsFile]);
 
   const handleOpenNewTab = () => {
@@ -162,7 +139,7 @@ export function LivePreview({ files, isGenerating }: LivePreviewProps) {
               ref={iframeRef}
               srcDoc={assembledSrcDoc}
               title="Live Website Preview"
-              sandbox="allow-scripts"
+              sandbox="allow-scripts allow-same-origin"
               className="w-full h-full border-none bg-white"
             />
           </div>

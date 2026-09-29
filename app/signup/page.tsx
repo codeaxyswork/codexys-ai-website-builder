@@ -97,6 +97,10 @@ export default function SignupPage() {
         router.push("/dashboard");
         router.refresh();
       } else {
+        setFullName("");
+        setEmail("");
+        setPassword("");
+        setConfirmPassword("");
         setSuccessMsg(
           "Account created successfully! Please check your email to confirm your registration, or sign in now."
         );

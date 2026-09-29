@@ -2,10 +2,11 @@ import React from "react";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { createClient } from "@/utils/supabase/server";
-import { Wand2, ShieldCheck, ArrowRight, LayoutDashboard, Image as ImageIcon } from "lucide-react";
+import { ShieldCheck, LayoutDashboard, Image as ImageIcon } from "lucide-react";
 import { LogoutButton } from "@/components/LogoutButton";
 import { DashboardWebsiteList, WebsiteItem } from "@/components/DashboardWebsiteList";
 import { DashboardUsageCards } from "@/components/DashboardUsageCards";
+import { WebsiteWorkspace } from "@/components/WebsiteWorkspace";
 import { getUserUsage } from "@/lib/billing";
 
 export const dynamic = "force-dynamic";
@@ -178,14 +179,6 @@ export default async function DashboardPage() {
             <span className="hidden sm:inline">Billing & Plan</span>
           </Link>
 
-          <Link
-            href="/"
-            className="flex items-center gap-2 px-4 py-2 rounded-xl bg-purple-600 hover:bg-purple-700 text-white text-xs font-bold shadow-xs transition-all active:scale-95"
-          >
-            <Wand2 className="w-3.5 h-3.5" />
-            <span>New AI Website</span>
-          </Link>
-
           <LogoutButton />
         </div>
       </header>
@@ -210,16 +203,11 @@ export default async function DashboardPage() {
                 Manage your websites, track AI credits, monitor search rankings, and deploy custom domains from your unified SaaS hub.
               </p>
             </div>
-
-            <Link
-              href="/"
-              className="px-5 py-3 rounded-xl font-bold text-xs text-white bg-purple-600 hover:bg-purple-500 transition-all shadow-lg shadow-purple-600/30 flex items-center gap-2 shrink-0 active:scale-95"
-            >
-              <span>Create New Website</span>
-              <ArrowRight className="w-4 h-4" />
-            </Link>
           </div>
         </div>
+
+        {/* WEBSITE WORKSPACE (Unified Action Hub) */}
+        <WebsiteWorkspace firstWebsiteId={websites[0]?.id} />
 
         {/* AI Credits, Storage, Website Limits & Plan Cards */}
         <DashboardUsageCards usage={usageData} />

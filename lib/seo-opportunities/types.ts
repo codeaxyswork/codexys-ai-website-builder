@@ -6,7 +6,10 @@ export type OpportunityType =
   | "local_seo"
   | "blog_content"
   | "monitoring"
-  | "third_party";
+  | "third_party"
+  | "geo"
+  | "aio"
+  | "content_decay";
 
 export type OpportunitySeverity = "critical" | "high" | "medium" | "low";
 export type OpportunityImpact = "high" | "medium" | "low";

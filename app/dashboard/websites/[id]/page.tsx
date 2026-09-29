@@ -1,7 +1,7 @@
 import React from "react";
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
-import { createClient } from "@/utils/supabase/server";
+import { createClient, createAdminClient } from "@/utils/supabase/server";
 import {
   Globe,
   Wand2,
@@ -70,7 +70,7 @@ export default async function WebsiteManagementPage({ params }: WebsiteManagemen
       .from("website_pages")
       .select("html_content, css_content, js_content")
       .eq("website_id", id)
-      .eq("path", "index.html")
+      .limit(1)
       .maybeSingle(),
   ]);
 
@@ -80,7 +80,18 @@ export default async function WebsiteManagementPage({ params }: WebsiteManagemen
   }
 
   const seoData = seoRes.data;
-  const indexPage = pageRes.data;
+  let indexPage = pageRes.data;
+
+  if (!indexPage) {
+    const adminDb = createAdminClient();
+    const fallbackPageRes = await adminDb
+      .from("website_pages")
+      .select("html_content, css_content, js_content")
+      .eq("website_id", id)
+      .limit(1)
+      .maybeSingle();
+    indexPage = fallbackPageRes.data;
+  }
 
   const plan = website.design_plan || {};
 
@@ -136,12 +147,12 @@ export default async function WebsiteManagementPage({ params }: WebsiteManagemen
           </nav>
 
           <Link
-            href={`/?id=${website.id}`}
+            href={plan?.websiteType === "migrated" || plan?.migration ? `/dashboard/websites/${website.id}/editor` : `/?id=${website.id}`}
             className="inline-flex items-center justify-center gap-2 h-11 px-5 rounded-xl bg-purple-600 hover:bg-purple-700 text-white text-sm font-bold transition-all shadow-md shadow-purple-600/20 active:scale-95 shrink-0"
           >
             <Wand2 className="w-4 h-4" />
-            <span className="hidden sm:inline">Refine with AI</span>
-            <span className="sm:hidden">Refine</span>
+            <span className="hidden sm:inline">{plan?.websiteType === "migrated" || plan?.migration ? "Open Editor" : "Refine with AI"}</span>
+            <span className="sm:hidden">{plan?.websiteType === "migrated" || plan?.migration ? "Editor" : "Refine"}</span>
           </Link>
         </div>
       </header>

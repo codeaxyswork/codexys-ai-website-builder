@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createClient } from "@/utils/supabase/server";
+import { createClient, createAdminClient } from "@/utils/supabase/server";
 
 export async function DELETE(
   request: NextRequest,
@@ -17,8 +17,10 @@ export async function DELETE(
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
+    const adminClient = createAdminClient();
+
     // 1. Verify media asset ownership
-    const { data: asset, error: fetchError } = await supabase
+    const { data: asset, error: fetchError } = await adminClient
       .from("media_assets")
       .select("*")
       .eq("id", id)
@@ -44,7 +46,7 @@ export async function DELETE(
     }
 
     // 3. Delete database record
-    const { error: dbDeleteError } = await supabase
+    const { error: dbDeleteError } = await adminClient
       .from("media_assets")
       .delete()
       .eq("id", id)

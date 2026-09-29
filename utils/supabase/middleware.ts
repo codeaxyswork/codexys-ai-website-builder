@@ -69,6 +69,9 @@ export async function updateSession(request: NextRequest) {
         pathname.startsWith("/site") ||
         pathname.startsWith("/sitemap") ||
         pathname.startsWith("/robots") ||
+        pathname.startsWith("/privacy-policy") ||
+        pathname.startsWith("/pricing") ||
+        pathname.startsWith("/media") ||
         pathname === "/";
 
       if (cleanHost && cleanHost !== appDomain && cleanHost !== "localhost" && cleanHost !== "127.0.0.1" && !isSaaSPath) {
@@ -108,6 +111,7 @@ export async function updateSession(request: NextRequest) {
       pathname.startsWith("/login") ||
       pathname.startsWith("/signup") ||
       pathname.startsWith("/auth") ||
+      pathname.startsWith("/privacy-policy") ||
       pathname.startsWith("/_next");
 
     if (!isExcludedFromMaintenance) {

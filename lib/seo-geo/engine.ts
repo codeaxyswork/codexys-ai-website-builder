@@ -475,7 +475,7 @@ export async function runGEOAnalysis(
     city: localRow?.city || null,
     phone: localRow?.phone || null,
     email: null,
-    services: seoRow?.focus_keywords ? seoRow.focus_keywords.split(",").map((s: string) => s.trim()) : [],
+    services: seoRow?.focus_keywords ? (Array.isArray(seoRow.focus_keywords) ? seoRow.focus_keywords : typeof seoRow.focus_keywords === "string" ? seoRow.focus_keywords.split(",").map((s: string) => s.trim()) : []) : [],
     description: seoRow?.meta_description || website.prompt,
     canonicalUrl: seoRow?.canonical_url || `http://localhost:3000/site/${website.published_slug || website.slug}`,
     schemaMarkup: seoRow?.schema_markup,

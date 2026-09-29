@@ -127,7 +127,11 @@ export async function runOpportunityScan(
     }
 
     // Missing Focus Keywords
-    if (!seoData.focus_keywords || seoData.focus_keywords.trim().length === 0) {
+    const hasFocusKeywords = Array.isArray(seoData.focus_keywords)
+      ? seoData.focus_keywords.length > 0
+      : Boolean(seoData.focus_keywords && typeof seoData.focus_keywords === "string" && seoData.focus_keywords.trim().length > 0);
+
+    if (!hasFocusKeywords) {
       const { priorityScore, priority } = calculateOpportunityPriority({
         impact: "medium",
         severity: "medium",
@@ -259,6 +263,53 @@ export async function runOpportunityScan(
           recommended_action: "Optimize SERP title tag and meta description to increase click-through rate.",
           action_type: "ai_fix_meta",
           action_payload: { query: row.query, page: row.page },
+          status: "new",
+        });
+      }
+    }
+  }
+
+  // -------------------------------------------------------------
+  // SCANNER MODULE 2.1: CONTENT DECAY DETECTION
+  // -------------------------------------------------------------
+  if (pages && Array.isArray(pages)) {
+    const sixtyDaysAgo = new Date();
+    sixtyDaysAgo.setDate(sixtyDaysAgo.getDate() - 60);
+
+    for (const page of pages) {
+      const pageUpdatedAt = (page as any).updated_at ? new Date((page as any).updated_at) : null;
+      const isStale = !pageUpdatedAt || pageUpdatedAt < sixtyDaysAgo;
+
+      // Match with GSC performance if available
+      const pageGsc = gscData?.find((g: any) => g.page === page.path);
+      const hasLowCtr = pageGsc ? pageGsc.ctr < 0.015 : false;
+
+      if (isStale || hasLowCtr) {
+        const { priorityScore, priority } = calculateOpportunityPriority({
+          impact: "high",
+          severity: "medium",
+          effort: "medium",
+          gscImpressions: pageGsc?.impressions || 50,
+        });
+
+        discovered.push({
+          website_id: websiteId,
+          user_id: userId,
+          type: "content_decay",
+          category: "content_decay_detected",
+          title: `Content Decay Warning: ${page.path}`,
+          description: `Page ${page.path} shows signs of content decay (not updated in >60 days or dropping search engagement).`,
+          affected_page: page.path,
+          affected_keyword: page.focus_keywords?.[0] || null,
+          severity: "medium",
+          impact: "high",
+          effort: "medium",
+          priority,
+          priority_score: priorityScore,
+          source: "audit",
+          recommended_action: "Refresh page body content, update statistics, and insert new direct Q&A sections to restore ranking freshness.",
+          action_type: "ai_expand_content",
+          action_payload: { pagePath: page.path, type: "content_decay" },
           status: "new",
         });
       }
@@ -517,6 +568,205 @@ export async function runOpportunityScan(
         });
       }
     }
+  }
+
+  // -------------------------------------------------------------
+  // SCANNER MODULE 8: GEO (GENERATIVE ENGINE OPTIMIZATION) GAPS
+  // -------------------------------------------------------------
+  try {
+    const { runGEOAnalysis } = await import("@/lib/seo-geo/engine");
+    const geoResult = await runGEOAnalysis(supabase, websiteId, userId);
+    if (geoResult) {
+      if (geoResult.entityClarity.score < 70) {
+        const { priorityScore, priority } = calculateOpportunityPriority({
+          impact: "high",
+          severity: "high",
+          effort: "low",
+        });
+        discovered.push({
+          website_id: websiteId,
+          user_id: userId,
+          type: "geo",
+          category: "geo_missing_entity_identity",
+          title: "Incomplete Entity Identity",
+          description: "Business name, location, or core service details are incomplete, hindering AI search understanding.",
+          affected_page: "index.html",
+          affected_keyword: null,
+          severity: "high",
+          impact: "high",
+          effort: "low",
+          priority,
+          priority_score: priorityScore,
+          source: "geo",
+          recommended_action: "Update business name, city, and phone details in site settings.",
+          action_type: "update_local_profile",
+          action_payload: { field: "entity_identity" },
+          status: "new",
+        });
+      }
+
+      if (geoResult.structuredDataDepth.score < 60) {
+        const { priorityScore, priority } = calculateOpportunityPriority({
+          impact: "medium",
+          severity: "medium",
+          effort: "low",
+        });
+        discovered.push({
+          website_id: websiteId,
+          user_id: userId,
+          type: "geo",
+          category: "geo_incomplete_structured_graph",
+          title: "Incomplete Structured Entity Graph",
+          description: "Schema.org structured data graph is missing WebSite, Organization, or LocalBusiness node references.",
+          affected_page: "index.html",
+          affected_keyword: null,
+          severity: "medium",
+          impact: "medium",
+          effort: "low",
+          priority,
+          priority_score: priorityScore,
+          source: "geo",
+          recommended_action: "Generate and inject full Organization and LocalBusiness schema markup into site header.",
+          action_type: "update_local_schema",
+          action_payload: { schemaType: "Organization" },
+          status: "new",
+        });
+      }
+
+      if (geoResult.citationReadiness.score < 65) {
+        const { priorityScore, priority } = calculateOpportunityPriority({
+          impact: "high",
+          severity: "medium",
+          effort: "low",
+        });
+        discovered.push({
+          website_id: websiteId,
+          user_id: userId,
+          type: "geo",
+          category: "geo_citation_readiness_gap",
+          title: "Low Citation Readiness & Fact Consistency",
+          description: "Entity facts across HTML content and Schema markup lack consistency needed for high AI citation readiness.",
+          affected_page: "index.html",
+          affected_keyword: null,
+          severity: "medium",
+          impact: "high",
+          effort: "low",
+          priority,
+          priority_score: priorityScore,
+          source: "geo",
+          recommended_action: "Align NAP (Name, Address, Phone) details across all landing pages and Schema markup.",
+          action_type: "update_local_profile",
+          action_payload: { field: "citation_readiness" },
+          status: "new",
+        });
+      }
+    }
+  } catch (geoErr) {
+    // Gracefully handle missing GEO data or errors
+  }
+
+  // -------------------------------------------------------------
+  // SCANNER MODULE 9: AIO (ANSWER INTELLIGENCE OPTIMIZATION) GAPS
+  // -------------------------------------------------------------
+  try {
+    const { runAIOAnalysisEngine } = await import("@/lib/seo-aio/engine");
+    const aioPayload = await runAIOAnalysisEngine(supabase, websiteId, userId);
+    if (aioPayload?.aio) {
+      const aio = aioPayload.aio;
+
+      if (aio.answerReadiness.score < 70) {
+        const { priorityScore, priority } = calculateOpportunityPriority({
+          impact: "high",
+          severity: "high",
+          effort: "low",
+        });
+        discovered.push({
+          website_id: websiteId,
+          user_id: userId,
+          type: "aio",
+          category: "aio_missing_direct_answers",
+          title: "Missing Direct Answer Snippets",
+          description: "Primary landing pages lack direct Q&A answer blocks under subheadings for AI search extractability.",
+          affected_page: "index.html",
+          affected_keyword: null,
+          severity: "high",
+          impact: "high",
+          effort: "low",
+          priority,
+          priority_score: priorityScore,
+          source: "aio",
+          recommended_action: "Add concise 2-sentence direct answer paragraphs directly below primary subheadings.",
+          action_type: "ai_expand_content",
+          action_payload: { section: "direct_answers" },
+          status: "new",
+        });
+      }
+
+      if (aio.questionCoverage.unanswered > 0) {
+        const unansweredCount = aio.questionCoverage.unanswered;
+        const topUnanswered = aio.questionCoverage.priorityQuestions?.find(
+          (q) => q.status === "unanswered"
+        );
+
+        const { priorityScore, priority } = calculateOpportunityPriority({
+          impact: "high",
+          severity: "high",
+          effort: "medium",
+        });
+        discovered.push({
+          website_id: websiteId,
+          user_id: userId,
+          type: "aio",
+          category: "aio_unanswered_questions",
+          title: `${unansweredCount} Unanswered High-Priority Question(s)`,
+          description: `Discovered ${unansweredCount} target customer question(s) without direct answers on the website${
+            topUnanswered ? ` (e.g., "${topUnanswered.question}")` : ""
+          }.`,
+          affected_page: "index.html",
+          affected_keyword: topUnanswered?.question || null,
+          severity: "high",
+          impact: "high",
+          effort: "medium",
+          priority,
+          priority_score: priorityScore,
+          source: "aio",
+          recommended_action: "Add a structured FAQ section addressing unanswered target questions.",
+          action_type: "ai_expand_content",
+          action_payload: { section: "faq", targetQuestion: topUnanswered?.question },
+          status: "new",
+        });
+      }
+
+      if (aio.contentStructure.score < 60) {
+        const { priorityScore, priority } = calculateOpportunityPriority({
+          impact: "medium",
+          severity: "medium",
+          effort: "low",
+        });
+        discovered.push({
+          website_id: websiteId,
+          user_id: userId,
+          type: "aio",
+          category: "aio_weak_content_structure",
+          title: "Weak AI Search Content Structure",
+          description: "HTML pages are missing semantic tags or clean heading hierarchy required for AI snippet parsing.",
+          affected_page: "index.html",
+          affected_keyword: null,
+          severity: "medium",
+          impact: "medium",
+          effort: "low",
+          priority,
+          priority_score: priorityScore,
+          source: "aio",
+          recommended_action: "Structure content using semantic HTML tags and hierarchical H1/H2 headings.",
+          action_type: "ai_fix_meta",
+          action_payload: { field: "content_structure" },
+          status: "new",
+        });
+      }
+    }
+  } catch (aioErr) {
+    // Gracefully handle missing AIO data or errors
   }
 
   // -------------------------------------------------------------

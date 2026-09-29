@@ -151,39 +151,25 @@ export async function checkCreditBalance(
   requiredCredits: number
 ): Promise<{ allowed: boolean; balance: number; required: number }> {
   const usage = await getUserUsage(userId);
-  if (!usage) return { allowed: true, balance: 50, required: requiredCredits };
+  const currentBalance = usage?.credits.balance ?? 50;
 
+  // TEMPORARY UNLIMITED AI USAGE MODE: Always allow AI operations regardless of user_credits balance.
   return {
-    allowed: usage.credits.balance >= requiredCredits,
-    balance: usage.credits.balance,
+    allowed: true,
+    balance: currentBalance,
     required: requiredCredits,
   };
 }
 
 export async function deductCreditsWithClient(
-  supabase: any,
-  userId: string,
-  credits: number,
-  actionType: string,
-  websiteId?: string
+  _supabase: any,
+  _userId: string,
+  _credits: number,
+  _actionType: string,
+  _websiteId?: string
 ): Promise<boolean> {
-  const { data: success, error } = await supabase.rpc("deduct_user_credits", {
-    p_user_id: userId,
-    p_credits: credits,
-    p_action_type: actionType,
-    p_website_id: websiteId || null,
-  });
-
-  if (error) {
-    console.error("Deduct Credits RPC Error:", error);
-    return false;
-  }
-
-  if (success ?? true) {
-    await invalidateUserCache(userId);
-  }
-
-  return success ?? true;
+  // TEMPORARY UNLIMITED AI USAGE MODE: Bypass credit deduction to keep credit balances intact during testing.
+  return true;
 }
 
 export async function deductCredits(
@@ -197,6 +183,6 @@ export async function deductCredits(
     return await deductCreditsWithClient(supabase, userId, credits, actionType, websiteId);
   } catch (err) {
     console.error("deductCredits Error:", err);
-    return false;
+    return true;
   }
 }

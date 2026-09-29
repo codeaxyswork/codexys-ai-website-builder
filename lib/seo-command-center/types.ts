@@ -1,3 +1,5 @@
+import { StructuredSEOFix } from '@/lib/seo-agent';
+
 export type AvailabilityStatus = 'AVAILABLE' | 'PARTIALLY_AVAILABLE' | 'NOT_AVAILABLE';
 export type ConfidenceLevel = 'high' | 'medium' | 'limited';
 export type FreshnessState = 'fresh' | 'needs_refresh' | 'not_analyzed' | 'not_connected';
@@ -58,6 +60,7 @@ export interface CommandCenterPayload {
   };
   priorityActions: Array<{
     id: string;
+    opportunityId: string;
     title: string;
     category: string;
     priority: 'critical' | 'high' | 'medium' | 'low';
@@ -65,6 +68,11 @@ export interface CommandCenterPayload {
     affectedPage?: string;
     reason: string;
     recommendedAction: string;
+    actionType?: string | null;
+    actionPayload?: Record<string, any> | null;
+    hasSupportedFix: boolean;
+    requiresApproval: boolean;
+    proposedFix?: StructuredSEOFix | null;
   }>;
   historicalTrend: Array<{
     date: string;

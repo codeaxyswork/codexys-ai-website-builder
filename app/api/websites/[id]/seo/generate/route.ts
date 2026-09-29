@@ -49,14 +49,8 @@ export async function POST(
       );
     }
 
-    // Deduct 5 credits for AI SEO suggestion generation
+    // TEMPORARY UNLIMITED AI USAGE MODE: Credit balance check bypassed
     const CREDIT_COST = 5;
-    if (usage && usage.credits.balance < CREDIT_COST) {
-      return NextResponse.json(
-        { error: `Insufficient AI credits. Required: ${CREDIT_COST}, Balance: ${usage.credits.balance}` },
-        { status: 402 }
-      );
-    }
 
     // Fetch website page html
     const { data: indexPage } = await supabase

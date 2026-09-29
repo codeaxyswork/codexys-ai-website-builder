@@ -21,18 +21,9 @@ export async function POST(
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    // 2. Check Credit Balance (5 Credits per AI Blog Post Generation)
+    // TEMPORARY UNLIMITED AI USAGE MODE: Credit balance check bypassed
     const CREDIT_COST = 5;
     const usage = await getUserUsage(user.id);
-    if (!usage || usage.credits.balance < CREDIT_COST) {
-      return NextResponse.json(
-        {
-          error: `Insufficient AI credits. Required: ${CREDIT_COST}, Balance: ${usage?.credits.balance || 0}`,
-          code: "INSUFFICIENT_CREDITS",
-        },
-        { status: 402 }
-      );
-    }
 
     // 3. Verify Website Ownership & Fetch SEO Context
     const { data: website, error: webErr } = await supabase
@@ -146,7 +137,7 @@ REQUESTED BLOG TOPIC: "${topic}"
         focus_keyword: parsedDraft.focus_keyword || topic,
       },
       creditsDeducted: CREDIT_COST,
-      remainingCredits: Math.max(0, (usage.credits.balance || CREDIT_COST) - CREDIT_COST),
+      remainingCredits: Math.max(0, (usage?.credits?.balance || CREDIT_COST) - CREDIT_COST),
     });
   } catch (err: any) {
     console.error("POST AI Blog Generation Error:", err);

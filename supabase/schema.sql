@@ -314,6 +314,9 @@ CREATE POLICY "Users can view own media_assets" ON public.media_assets FOR SELEC
 DROP POLICY IF EXISTS "Users can insert own media_assets" ON public.media_assets;
 CREATE POLICY "Users can insert own media_assets" ON public.media_assets FOR INSERT WITH CHECK (auth.uid() = user_id);
 
+DROP POLICY IF EXISTS "Users can update own media_assets" ON public.media_assets;
+CREATE POLICY "Users can update own media_assets" ON public.media_assets FOR UPDATE USING (auth.uid() = user_id) WITH CHECK (auth.uid() = user_id);
+
 DROP POLICY IF EXISTS "Users can delete own media_assets" ON public.media_assets;
 CREATE POLICY "Users can delete own media_assets" ON public.media_assets FOR DELETE USING (auth.uid() = user_id);
 

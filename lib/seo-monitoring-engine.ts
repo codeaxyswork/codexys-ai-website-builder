@@ -162,6 +162,78 @@ export async function createMonitoringAlert(
 }
 
 /**
+ * Records a meaningful score change into the `seo_autopilot_activity` audit table.
+ * Deduplicates repeated records for identical changes in a 24-hour window.
+ */
+export async function recordAutopilotScoreActivity(
+  supabase: any,
+  websiteId: string,
+  userId: string,
+  metric: "seo" | "aeo" | "geo" | "aio" | "ai_search_readiness",
+  metricName: string,
+  previousScore: number | null,
+  newScore: number | null
+): Promise<boolean> {
+  if (previousScore === null || newScore === null || previousScore === newScore) {
+    return false;
+  }
+
+  const scoreDiff = newScore - previousScore;
+  const absDiff = Math.abs(scoreDiff);
+
+  // Deterministic threshold: score change of 3 points or more is meaningful
+  if (absDiff < 3) return false;
+
+  const direction = scoreDiff > 0 ? "improved" : "declined";
+  const event_type = `score_${metric}_${direction}`;
+  const twentyFourHoursAgo = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
+
+  // Deduplication check: verify no recent autopilot activity of same event_type for this website in last 24h
+  const { data: recentActivity } = await supabase
+    .from("seo_autopilot_activity")
+    .select("id, metadata")
+    .eq("website_id", websiteId)
+    .eq("event_type", event_type)
+    .gte("created_at", twentyFourHoursAgo);
+
+  if (recentActivity && recentActivity.length > 0) {
+    const isExactDup = recentActivity.some(
+      (a: any) =>
+        a.metadata?.previousScore === previousScore &&
+        a.metadata?.newScore === newScore
+    );
+    if (isExactDup) return false;
+  }
+
+  const title = `${metricName} ${direction === "improved" ? "Increased" : "Decreased"} by ${absDiff} Points`;
+  const details = `${metricName} changed from ${previousScore} → ${newScore}. Source: Scheduled Monitoring Audit.`;
+
+  const { error } = await supabase.from("seo_autopilot_activity").insert({
+    website_id: websiteId,
+    user_id: userId,
+    event_type,
+    title,
+    details,
+    metadata: {
+      metric,
+      metricName,
+      previousScore,
+      newScore,
+      scoreDiff,
+      direction,
+      source: "monitoring",
+    },
+  });
+
+  if (error) {
+    console.error(`Failed to record ${metric} autopilot activity:`, error);
+    return false;
+  }
+
+  return true;
+}
+
+/**
  * Executes a full multi-category deterministic SEO monitoring audit for a website.
  * Costs 0 AI credits.
  */
@@ -176,6 +248,28 @@ export async function runMonitoringAuditForWebsite(
     .select("*")
     .eq("website_id", websiteId)
     .maybeSingle();
+
+  const { data: oldAeoRow } = await supabase
+    .from("website_aeo_analysis")
+    .select("answer_readiness_score, topic_coverage_score")
+    .eq("website_id", websiteId)
+    .maybeSingle();
+
+  let oldGeoScore: number | null = null;
+  try {
+    const { runGEOAnalysis } = await import("./seo-geo/engine");
+    const oldGeoRes = await runGEOAnalysis(supabase, websiteId, userId);
+    oldGeoScore = oldGeoRes?.score ?? null;
+  } catch (e) {}
+
+  let oldAioScore: number | null = null;
+  let oldAiReadinessScore: number | null = null;
+  try {
+    const { runAIOAnalysisEngine } = await import("./seo-aio/engine");
+    const oldAioRes = await runAIOAnalysisEngine(supabase, websiteId, userId);
+    oldAioScore = oldAioRes?.aio?.score ?? null;
+    oldAiReadinessScore = oldAioRes?.aiSearchReadiness?.score ?? null;
+  } catch (e) {}
 
   const { data: oldPageSeos } = await supabase
     .from("website_page_seo")
@@ -498,12 +592,65 @@ export async function runMonitoringAuditForWebsite(
     }
   }
 
+  // 5. Autopilot Activity Logging for Score Changes across all 5 metrics
+  let newGeoScore: number | null = null;
+  try {
+    const { runGEOAnalysis } = await import("./seo-geo/engine");
+    const newGeoRes = await runGEOAnalysis(supabase, websiteId, userId);
+    newGeoScore = newGeoRes?.score ?? null;
+  } catch (e) {}
+
+  let newAioScore: number | null = null;
+  let newAeoScore: number | null = null;
+  let newAiReadinessScore: number | null = null;
+  try {
+    const { runAIOAnalysisEngine } = await import("./seo-aio/engine");
+    const newAioRes = await runAIOAnalysisEngine(supabase, websiteId, userId);
+    newAioScore = newAioRes?.aio?.score ?? null;
+    newAeoScore = newAioRes?.aio?.answerReadiness?.score ?? null;
+    newAiReadinessScore = newAioRes?.aiSearchReadiness?.score ?? null;
+  } catch (e) {}
+
+  const activitiesRecorded: string[] = [];
+
+  // A. Core SEO Score
+  if (oldScore !== null && newScore !== null) {
+    const recorded = await recordAutopilotScoreActivity(supabase, websiteId, userId, "seo", "Core SEO Score", oldScore, newScore);
+    if (recorded) activitiesRecorded.push("seo");
+  }
+
+  // B. AEO Score
+  const oldAeoScore = oldAeoRow?.answer_readiness_score ? Number(oldAeoRow.answer_readiness_score) : null;
+  if (oldAeoScore !== null && newAeoScore !== null) {
+    const recorded = await recordAutopilotScoreActivity(supabase, websiteId, userId, "aeo", "AEO Score", oldAeoScore, newAeoScore);
+    if (recorded) activitiesRecorded.push("aeo");
+  }
+
+  // C. GEO Score
+  if (oldGeoScore !== null && newGeoScore !== null) {
+    const recorded = await recordAutopilotScoreActivity(supabase, websiteId, userId, "geo", "GEO Score", oldGeoScore, newGeoScore);
+    if (recorded) activitiesRecorded.push("geo");
+  }
+
+  // D. AIO Score
+  if (oldAioScore !== null && newAioScore !== null) {
+    const recorded = await recordAutopilotScoreActivity(supabase, websiteId, userId, "aio", "AIO Score", oldAioScore, newAioScore);
+    if (recorded) activitiesRecorded.push("aio");
+  }
+
+  // E. AI Search Readiness Score
+  if (oldAiReadinessScore !== null && newAiReadinessScore !== null) {
+    const recorded = await recordAutopilotScoreActivity(supabase, websiteId, userId, "ai_search_readiness", "AI Search Readiness Score", oldAiReadinessScore, newAiReadinessScore);
+    if (recorded) activitiesRecorded.push("ai_search_readiness");
+  }
+
   return {
     websiteId,
     coreSeoScore: coreSeoResult.seo_score,
     internalLinkScore: internalLinkResult.internal_link_score,
     localSeoScore: localSeoResult.local_seo_score,
     alertsGenerated,
+    activitiesRecorded,
   };
 }
 

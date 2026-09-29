@@ -55,10 +55,15 @@ export function Footer() {
         </div>
 
         <div>
-          <h4 className="text-xs font-bold text-white uppercase tracking-wider mb-4">Resources</h4>
+          <h4 className="text-xs font-bold text-white uppercase tracking-wider mb-4">Resources & Legal</h4>
           <ul className="space-y-2 text-xs font-medium">
             <li>
-              <a href="mailto:support@codexys.site" className="hover:text-white transition-colors">
+              <Link href="/privacy-policy" className="hover:text-white transition-colors font-semibold text-purple-400">
+                Privacy Policy
+              </Link>
+            </li>
+            <li>
+              <a href="mailto:admin@codeaxys.com" className="hover:text-white transition-colors">
                 Support Email
               </a>
             </li>

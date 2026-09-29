@@ -3,8 +3,28 @@ import { GenerationResponse, GeneratedFile, WebsitePlan, UploadedImage } from ".
 import { buildMultilingualSystemDirective } from "./multilingual";
 
 export function getGeminiConfig() {
-  const apiKey = process.env.GEMINI_API_KEY;
-  const model = process.env.GEMINI_MODEL || "gemini-3.6-flash";
+  let apiKey = process.env.GEMINI_API_KEY;
+  let model = process.env.GEMINI_MODEL || "gemini-3.8-flash";
+
+  if ((!apiKey || apiKey.trim() === "" || apiKey === "YOUR_GEMINI_API_KEY") && typeof window === "undefined") {
+    try {
+      const req = eval("require");
+      const fs = req("fs");
+      const path = req("path");
+      const envPath = path.join(process.cwd(), ".env.local");
+      if (fs.existsSync(envPath)) {
+        const content = fs.readFileSync(envPath, "utf8");
+        const match = content.match(/^GEMINI_API_KEY\s*=\s*(.*)$/m);
+        if (match && match[1]) {
+          apiKey = match[1].trim();
+        }
+        const modelMatch = content.match(/^GEMINI_MODEL\s*=\s*(.*)$/m);
+        if (modelMatch && modelMatch[1]) {
+          model = modelMatch[1].trim();
+        }
+      }
+    } catch (e) {}
+  }
 
   const isDetected = Boolean(apiKey && apiKey.trim() !== "" && apiKey !== "YOUR_GEMINI_API_KEY");
   console.log(`GEMINI API KEY DETECTED: ${isDetected ? "YES" : "NO"}`);

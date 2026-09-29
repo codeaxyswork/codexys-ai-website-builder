@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createClient } from "@/utils/supabase/server";
+import { createClient, createAdminClient } from "@/utils/supabase/server";
 import { FILE_LIMITS, ERROR_CODES } from "@/lib/constants";
 import { getUserUsage } from "@/lib/billing";
 
@@ -14,6 +14,8 @@ export async function POST(req: NextRequest) {
     if (!user) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
+
+    const adminClient = createAdminClient();
 
     const formData = await req.formData();
     const file = formData.get("file") as File | null;
@@ -63,29 +65,55 @@ export async function POST(req: NextRequest) {
       }
     }
 
-    // 4. Generate Storage Path & Upload to Supabase Storage bucket 'website-assets'
-    const sanitizeName = file.name.replace(/[^a-zA-Z0-9.-]/g, "_");
-    const storagePath = `${user.id}/${websiteId || "general"}/${Date.now()}_${sanitizeName}`;
+    // 4. Generate unique storage path and buffer
+    const bytes = await file.arrayBuffer();
+    const buffer = Buffer.from(bytes);
+    const fileExt = file.name.split(".").pop() || "png";
+    const sanitizedFileName = file.name.replace(/[^a-zA-Z0-9.-]/g, "_");
+    const storagePath = websiteId
+      ? `${websiteId}/${Date.now()}_${sanitizedFileName}`
+      : `${user.id}/${Date.now()}_${sanitizedFileName}`;
 
-    const buffer = Buffer.from(await file.arrayBuffer());
+    // Ensure bucket 'website-assets' exists before uploading
+    try {
+      const { data: buckets } = await adminClient.storage.listBuckets();
+      const bucketExists = buckets?.some((b: any) => b.name === "website-assets" || b.id === "website-assets");
+      if (!bucketExists) {
+        await adminClient.storage.createBucket("website-assets", { public: true });
+      }
+    } catch (err) {
+      console.warn("Storage bucket auto-creation warning:", err);
+    }
 
-    const { error: uploadError } = await supabase.storage
+    const { error: uploadError } = await adminClient.storage
       .from("website-assets")
       .upload(storagePath, buffer, {
         contentType: file.type,
         upsert: true,
       });
 
-    let publicUrl = "";
-    if (!uploadError) {
-      const { data: publicData } = supabase.storage
-        .from("website-assets")
-        .getPublicUrl(storagePath);
-      publicUrl = publicData?.publicUrl || "";
+    if (uploadError) {
+      console.error("Supabase Storage upload error:", uploadError);
+      return NextResponse.json(
+        { error: uploadError.message || "Failed to upload file to storage." },
+        { status: 500 }
+      );
+    }
+
+    const { data: publicData } = adminClient.storage
+      .from("website-assets")
+      .getPublicUrl(storagePath);
+    const publicUrl = publicData?.publicUrl || "";
+
+    if (!publicUrl || !publicUrl.startsWith("http")) {
+      return NextResponse.json(
+        { error: "Failed to generate public URL for uploaded media." },
+        { status: 500 }
+      );
     }
 
     // 5. Insert metadata row into public.media_assets table
-    const { data: assetRow, error: dbError } = await supabase
+    const { data: assetRow, error: dbError } = await adminClient
       .from("media_assets")
       .insert({
         user_id: user.id,
@@ -101,16 +129,20 @@ export async function POST(req: NextRequest) {
 
     if (dbError) {
       console.error("Media Asset DB Insert Error:", dbError);
+      return NextResponse.json(
+        { error: dbError.message || "Failed to save media metadata." },
+        { status: 500 }
+      );
     }
 
     return NextResponse.json({
       success: true,
       asset: {
-        id: assetRow?.id || `asset_${Date.now()}`,
-        file_name: file.name,
-        file_size_bytes: file.size,
-        mime_type: file.type,
-        public_url: publicUrl,
+        id: assetRow.id,
+        file_name: assetRow.file_name || file.name,
+        file_size_bytes: assetRow.file_size_bytes || file.size,
+        mime_type: assetRow.mime_type || file.type,
+        public_url: assetRow.public_url || publicUrl,
       },
     });
   } catch (err: any) {

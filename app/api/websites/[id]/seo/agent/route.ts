@@ -50,17 +50,8 @@ export async function POST(
       );
     }
 
-    // 4. Check Available Credits (5 credits per SEO Agent query)
+    // TEMPORARY UNLIMITED AI USAGE MODE: Credit balance check bypassed
     const CREDIT_COST = 5;
-    if (!usage || usage.credits.balance < CREDIT_COST) {
-      return NextResponse.json(
-        {
-          error: `Insufficient AI credits. Required: ${CREDIT_COST}, Balance: ${usage?.credits.balance || 0}`,
-          code: "INSUFFICIENT_CREDITS",
-        },
-        { status: 402 }
-      );
-    }
 
     // Parse Request Body
     const body = await request.json();
@@ -72,6 +63,70 @@ export async function POST(
         { error: "Prompt question is required." },
         { status: 400 }
       );
+    }
+
+    // PHASE A: UNIFIED GEMINI INTENT & ROUTING CORE
+    const { analyzeUnifiedConversationIntent } = await import("@/lib/ai/unified-conversation-core");
+    const unifiedResult = await analyzeUnifiedConversationIntent({
+      userPrompt: prompt,
+      history,
+      activeMode: "seo",
+      timeoutMs: 4000,
+    }).catch(() => null);
+
+    if (unifiedResult && unifiedResult.success) {
+      // 1. Cross-Agent Guidance for Marketing Requests (e.g. "Run Facebook ads")
+      if (unifiedResult.domain === "marketing") {
+        return NextResponse.json({
+          response: {
+            message: unifiedResult.responseMessage ||
+              `You're asking about paid ad campaigns, lead generation, or marketing spend analytics!\n\n` +
+              `Our **Marketing Agent** handles Meta (Facebook & Instagram) and Google ad strategies, lead tracking, and campaign optimization. You can switch to the Marketing tab right from your dashboard!`,
+            suggestedActions: ["Open Marketing Agent", "View Ad Analytics"],
+            navigationTarget: "marketing",
+          },
+          creditsDeducted: 0,
+          remainingCredits: usage?.credits?.balance || 0,
+        });
+      }
+
+      // 2. Cross-Agent Guidance for Website Requests (e.g. "Change my homepage")
+      if (unifiedResult.domain === "website") {
+        return NextResponse.json({
+          response: {
+            message: unifiedResult.responseMessage ||
+              `To modify your website design, colors, layout, or page structure, please use the **Website Editor** or consult the **Website Agent**! I'm here in SEO to help you optimize search engine rankings and AEO/AI Search discovery.`,
+            suggestedActions: ["Open Website Editor"],
+            navigationTarget: "pages",
+          },
+          creditsDeducted: 0,
+          remainingCredits: usage?.credits?.balance || 0,
+        });
+      }
+
+      // 3. General Capability Questions (e.g. "What is your SEO Agent?")
+      if (
+        unifiedResult.domain === "general" &&
+        (unifiedResult.route === "agent_capability_question" || unifiedResult.route === "product_question")
+      ) {
+        return NextResponse.json({
+          response: {
+            message: unifiedResult.responseMessage ||
+              `Hi 👋 I am your **Codeaxys SEO Specialist**!\n\n` +
+              `I orchestrate your website's full SEO engine:\n` +
+              `• **Technical SEO & Crawl Audits**: Canonical tags, robots.txt, sitemaps, orphan pages\n` +
+              `• **AEO & AI Search Readiness**: Optimizing for ChatGPT, Perplexity, and Gemini discovery\n` +
+              `• **Content Studio**: Writing blog posts, content gap analysis, keyword research\n` +
+              `• **Google Search Console**: Clicks, impressions, position tracking\n` +
+              `• **Local SEO**: NAP consistency and JSON-LD schema\n\n` +
+              `How can I help optimize your search visibility today?`,
+            suggestedActions: ["How is my website SEO?", "Are there technical issues?", "How ready is my website for AI Search?"],
+            navigationTarget: "overview",
+          },
+          creditsDeducted: 0,
+          remainingCredits: usage?.credits?.balance || 0,
+        });
+      }
     }
 
     // 5. Detect Customer Intent
@@ -95,7 +150,7 @@ export async function POST(
     return NextResponse.json({
       response: agentResponse,
       creditsDeducted: CREDIT_COST,
-      remainingCredits: Math.max(0, (usage.credits.balance || CREDIT_COST) - CREDIT_COST),
+      remainingCredits: Math.max(0, (usage?.credits?.balance || CREDIT_COST) - CREDIT_COST),
     });
   } catch (err: any) {
     console.error("POST SEO Agent Error:", err);

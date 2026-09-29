@@ -120,6 +120,16 @@ export function DashboardUsageCards({ usage }: DashboardUsageCardsProps) {
               Persistent media asset storage
             </span>
           </div>
+
+          <div className="mt-3 pt-2 border-t border-slate-100 flex justify-end">
+            <Link
+              href="/media"
+              className="text-xs font-semibold text-indigo-600 hover:text-indigo-700 flex items-center gap-1 transition-colors"
+            >
+              <span>Manage Library</span>
+              <ArrowUpRight className="w-3.5 h-3.5" />
+            </Link>
+          </div>
         </div>
 
         {/* 3. Websites Card */}

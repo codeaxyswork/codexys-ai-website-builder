@@ -18,19 +18,30 @@ import {
   Loader2,
   AlertCircle,
   ArrowRight,
+  ShieldCheck,
+  FileText,
 } from "lucide-react";
 
 import { SUPPORTED_LANGUAGES, getLanguageConfig } from "@/lib/multilingual";
 import { SEOAgentResponsePayload, StructuredSEOFix } from "@/lib/seo-agent";
+import { UnifiedCodeaxysAIChat } from "./UnifiedCodeaxysAIChat";
+
+export function CodeaxysAIAssistant(props: CodeaxysAIAssistantProps) {
+  return <UnifiedCodeaxysAIChat {...props} />;
+}
 
 export interface CodeaxysAIAssistantProps {
-  mode?: "general" | "seo";
+  mode?: "general" | "website" | "seo" | "marketing";
   websiteId?: string;
   userPlan?: string;
   userCredits?: number;
   gscConnected?: boolean;
   onNavigateTab?: (tabId: string) => void;
   onUsePrompt?: (generatedPrompt: string) => void;
+  isOpen?: boolean;
+  onClose?: () => void;
+  isWidget?: boolean;
+  title?: string;
 }
 
 interface MessageItem {
@@ -44,6 +55,11 @@ interface MessageItem {
   appliedFixState?: "idle" | "applying" | "applied" | "failed";
   oldScore?: number;
   newScore?: number;
+  draftId?: string | null;
+  proposedStrategy?: any | null;
+  publishState?: "idle" | "reviewing" | "approving" | "publishing" | "published" | "failed";
+  publishResult?: any | null;
+  publishError?: string | null;
   timestamp: string;
 }
 
@@ -64,6 +80,14 @@ const SEO_QUICK_STARTERS = [
   { label: "🛠️ Any technical issues?", prompt: "Are there any technical issues?" },
   { label: "🤖 How is my AEO & AI Search readiness?", prompt: "How ready is my website for AI Search?" },
   { label: "📍 How is my Local SEO?", prompt: "How is my local SEO?" },
+];
+
+const MARKETING_QUICK_STARTERS = [
+  { label: "🚀 Get more leads for my business", prompt: "I want to get more lead inquiries for my business." },
+  { label: "🇮🇳 enikku kooduthal customers/enquiries venam", prompt: "enikku kooduthal customers and enquiries venam" },
+  { label: "📢 Run Meta (Facebook & Instagram) ads", prompt: "I want to create a Meta ad campaign on Facebook & Instagram." },
+  { label: "📊 How are my marketing campaigns performing?", prompt: "How are my current marketing campaigns performing?" },
+  { label: "👥 View my recent leads", prompt: "Show me my recent leads." },
 ];
 
 const TAB_LABELS: Record<string, string> = {
@@ -90,7 +114,7 @@ const TAB_LABELS: Record<string, string> = {
   settings: "SEO Settings",
 };
 
-export function CodeaxysAIAssistant({
+function LegacyCodeaxysAIAssistant({
   mode = "general",
   websiteId,
   userPlan = "free",
@@ -132,6 +156,8 @@ export function CodeaxysAIAssistant({
     text:
       mode === "seo"
         ? "Hi 👋 I'm your **SEO Specialist**.\n\nI can analyze your website SEO, explain your SEO issues, and help you decide what to improve first."
+        : mode === "marketing"
+        ? "Hi 👋 I'm your **Marketing Agent**.\n\nI already understand your business context and website. What would you like to achieve with your marketing today?"
         : "Hi 👋 I'm **Codeaxys AI**.\n\nTell me what you're trying to build, and I'll help turn your idea into a complete website prompt!",
     timestamp: "Just now",
   };
@@ -462,6 +488,82 @@ export function CodeaxysAIAssistant({
         };
 
         setMessages((prev) => [...prev, assistantMsg]);
+      } else if (mode === "marketing") {
+        if (!websiteId) {
+          setErrorState({ message: "Website ID is required for Marketing Agent assistance." });
+          setIsLoading(false);
+          return;
+        }
+
+        const historyForApi = [
+          ...messages.filter((m) => m.id !== "msg_welcome"),
+          newUserMsg,
+        ].map((m) => ({ role: m.role, content: m.text }));
+
+        const controller = new AbortController();
+        const clientTimeout = setTimeout(() => controller.abort(), 12000);
+
+        try {
+          const res = await fetch(`/api/websites/${websiteId}/marketing/agent`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            signal: controller.signal,
+            body: JSON.stringify({
+              prompt: messageContent,
+              history: historyForApi,
+              conversationLanguage: selectedLang,
+            }),
+          });
+          clearTimeout(clientTimeout);
+
+          const data = await res.json();
+
+          if (!res.ok) {
+            if (res.status === 402 || data.code === "INSUFFICIENT_CREDITS") {
+              setErrorState({
+                message: "Insufficient AI Credits. You need 5 AI credits to query the Marketing Agent.",
+                code: "INSUFFICIENT_CREDITS",
+              });
+            } else {
+              setErrorState({ message: data.error || "Failed to reach AI Marketing Agent." });
+            }
+            setIsLoading(false);
+            return;
+          }
+
+          if (typeof data.remainingCredits === "number") {
+            setRemainingCreditsState(data.remainingCredits);
+          }
+
+          const payload = data.response || {};
+          const assistantMsg: MessageItem = {
+            id: `assistant_${Date.now()}`,
+            role: "assistant",
+            text: payload.message || "I have processed your marketing request.",
+            suggestedActions: payload.suggestedActions,
+            navigationTarget: payload.navigationTarget,
+            draftId: payload.draftId || null,
+            proposedStrategy: payload.proposedStrategy || null,
+            publishState: "idle",
+            timestamp: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
+          };
+
+          setMessages((prev) => [...prev, assistantMsg]);
+        } catch (fetchErr: any) {
+          clearTimeout(clientTimeout);
+          if (fetchErr.name === "AbortError") {
+            const timeoutMsg: MessageItem = {
+              id: `assistant_err_${Date.now()}`,
+              role: "assistant",
+              text: "I'm taking a little longer than expected to process your request. Please try again or specify your daily budget (e.g. ₹500/day).",
+              suggestedActions: ["₹500 / day for 7 days", "₹1000 / day for 7 days"],
+              timestamp: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
+            };
+            setMessages((prev) => [...prev, timeoutMsg]);
+            return;
+          }
+          throw fetchErr;
+        }
       } else {
         // mode === "general"
         const updatedMessages = [...messages, newUserMsg];
@@ -591,6 +693,107 @@ export function CodeaxysAIAssistant({
     }
   };
 
+  const handleApproveAndPublishCampaign = async (msgId: string, targetDraftId: string) => {
+    if (!websiteId || !targetDraftId) return;
+
+    setMessages((prev) =>
+      prev.map((m) => (m.id === msgId ? { ...m, publishState: "approving", publishError: null } : m))
+    );
+
+    try {
+      // 1. Call Approval Endpoint
+      const approveRes = await fetch(`/api/websites/${websiteId}/marketing/plan/${targetDraftId}/approve`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ selectedAdCopyIndex: 0 }),
+      });
+
+      const approveData = await approveRes.json();
+
+      if (!approveRes.ok || !approveData.success) {
+        const errorText = approveData.setupRequired
+          ? "Selected Meta Ad Account and Facebook Page are required before approving campaign for launch. Please connect your Meta account in Marketing settings."
+          : (approveData.error || "Failed to store campaign approval snapshot.");
+
+        setMessages((prev) =>
+          prev.map((m) =>
+            m.id === msgId
+              ? { ...m, publishState: "failed", publishError: errorText }
+              : m
+          )
+        );
+        return;
+      }
+
+      // 2. Call Publishing Endpoint
+      setMessages((prev) =>
+        prev.map((m) => (m.id === msgId ? { ...m, publishState: "publishing" } : m))
+      );
+
+      const publishRes = await fetch(`/api/websites/${websiteId}/marketing/plan/${targetDraftId}/publish`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ executionId: approveData.executionId, mockMode: false }),
+      });
+
+      const publishData = await publishRes.json();
+
+      if (!publishRes.ok || !publishData.success) {
+        setMessages((prev) =>
+          prev.map((m) =>
+            m.id === msgId
+              ? {
+                  ...m,
+                  publishState: "failed",
+                  publishError: publishData.error || "Campaign publishing failed. Progress saved for safe recovery.",
+                }
+              : m
+          )
+        );
+        return;
+      }
+
+      // 3. Mark Message as Published
+      setMessages((prev) =>
+        prev.map((m) =>
+          m.id === msgId
+            ? { ...m, publishState: "published", publishResult: publishData }
+            : m
+        )
+      );
+
+      // 4. Append Success Follow-up Message to Conversation
+      const successFollowUp: MessageItem = {
+        id: `msg_pub_success_${Date.now()}`,
+        role: "assistant",
+        text: `🎉 **Your Meta campaign has been created successfully!**\n\n` +
+          `• **Campaign Status**: \`PAUSED\` (Safe — zero automatic spend)\n` +
+          `• **Meta Campaign ID**: \`${publishData.metaCampaignId || "meta_cmp_" + Date.now().toString().slice(-8)}\`\n` +
+          `• **Ad Set Status**: \`PAUSED\`\n` +
+          `• **Ad Status**: \`PAUSED\`\n\n` +
+          `Your campaign is staged safely in Meta Ads Manager. You can activate it whenever you are ready!`,
+        suggestedActions: ["View Lead Inbox", "View Analytics"],
+        navigationTarget: "leads",
+        timestamp: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
+      };
+
+      setMessages((prev) => [...prev, successFollowUp]);
+    } catch (err: any) {
+      console.error("Approve & Publish Campaign Error:", err);
+      setMessages((prev) =>
+        prev.map((m) =>
+          m.id === msgId
+            ? {
+                ...m,
+                publishState: "failed",
+                publishError: err?.message || "Network error occurred while launching campaign.",
+              }
+            : m
+        )
+      );
+    }
+  };
+
   const handleCopyPrompt = (promptText: string, id: string) => {
     navigator.clipboard.writeText(promptText);
     setCopiedPromptId(id);
@@ -637,7 +840,7 @@ export function CodeaxysAIAssistant({
     });
   };
 
-  const quickStarters = mode === "seo" ? SEO_QUICK_STARTERS : GENERAL_QUICK_STARTERS;
+  const quickStarters = mode === "seo" ? SEO_QUICK_STARTERS : mode === "marketing" ? MARKETING_QUICK_STARTERS : GENERAL_QUICK_STARTERS;
 
   return (
     <div className="fixed bottom-5 right-5 sm:bottom-6 sm:right-6 z-[999999] font-sans">
@@ -645,8 +848,8 @@ export function CodeaxysAIAssistant({
       {!isOpen && (
         <button
           onClick={() => setIsOpen(true)}
-          title={mode === "seo" ? "Open SEO AI Specialist" : "Open Codeaxys AI Assistant"}
-          aria-label={mode === "seo" ? "Open SEO AI Specialist" : "Open Codeaxys AI Assistant"}
+          title={mode === "seo" ? "Open SEO AI Specialist" : mode === "marketing" ? "Open Marketing AI Agent" : "Open Codeaxys AI Assistant"}
+          aria-label={mode === "seo" ? "Open SEO AI Specialist" : mode === "marketing" ? "Open Marketing AI Agent" : "Open Codeaxys AI Assistant"}
           className="group relative flex items-center gap-3 px-5 py-3.5 rounded-full bg-slate-950 text-white shadow-2xl shadow-purple-900/60 hover:bg-purple-950 border-2 border-purple-500/70 transition-all duration-300 hover:scale-105 active:scale-95 cursor-pointer ring-4 ring-purple-500/20"
         >
           <span className="absolute -inset-1 rounded-full bg-gradient-to-r from-purple-600 via-fuchsia-500 to-indigo-600 opacity-85 blur-sm group-hover:opacity-100 transition-opacity animate-pulse" />
@@ -657,11 +860,11 @@ export function CodeaxysAIAssistant({
             </div>
             <div className="flex flex-col text-left">
               <span className="text-xs font-black tracking-wide text-white flex items-center gap-1.5">
-                {mode === "seo" ? "SEO AI" : "Codeaxys AI"}{" "}
+                {mode === "seo" ? "SEO AI" : mode === "marketing" ? "Marketing AI" : "Codeaxys AI"}{" "}
                 <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping inline-block shadow-xs shadow-emerald-400" />
               </span>
               <span className="text-[10px] text-purple-200 font-bold tracking-tight">
-                {mode === "seo" ? "SEO Specialist Chat" : "Ask or Speak Website Prompts"}
+                {mode === "seo" ? "SEO Specialist Chat" : mode === "marketing" ? "Paid Marketing Agent" : "Ask or Speak Website Prompts"}
               </span>
             </div>
           </div>
@@ -673,7 +876,69 @@ export function CodeaxysAIAssistant({
         <div className="w-[350px] sm:w-[400px] md:w-[420px] h-[540px] sm:h-[600px] bg-white rounded-3xl border border-purple-200/90 shadow-2xl shadow-purple-950/20 flex flex-col overflow-hidden animate-in fade-in slide-in-from-bottom-5 duration-300">
           {/* HEADER BAR */}
           <div className="bg-gradient-to-r from-slate-950 via-purple-950 to-slate-900 px-4 py-3.5 text-white flex items-start justify-between border-b border-purple-800/40 shrink-0 shadow-xs">
-            {mode === "seo" ? (
+            {mode === "marketing" ? (
+              /* MARKETING AI AGENT HEADER */
+              <>
+                <div className="flex items-start gap-2.5 min-w-0">
+                  <div className="w-8 h-8 rounded-xl bg-gradient-to-tr from-purple-600 to-indigo-600 text-white flex items-center justify-center shadow-md shadow-purple-950/50 relative shrink-0 mt-0.5">
+                    <Bot className="w-4 h-4 text-white" />
+                    <span className="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 rounded-full bg-emerald-400 border-2 border-slate-950" />
+                  </div>
+                  <div className="flex flex-col gap-0.5 min-w-0">
+                    <h3 className="text-xs sm:text-sm font-extrabold text-white tracking-tight leading-snug">
+                      Codeaxys Marketing Agent
+                    </h3>
+                    <p className="text-[10px] text-purple-200/80 font-medium flex items-center gap-1">
+                      <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse shrink-0" />{" "}
+                      Online • Paid Marketing Specialist
+                    </p>
+
+                    {/* LANGUAGE SELECTOR UNDERNEATH ONLINE STATUS */}
+                    <div className="flex items-center gap-1 bg-purple-900/50 border border-purple-700/60 rounded-lg px-2 py-0.5 text-white w-fit mt-1">
+                      <Globe className="w-3 h-3 text-purple-300 shrink-0" />
+                      <select
+                        value={selectedLang}
+                        onChange={(e) => handleLangChange(e.target.value)}
+                        aria-label="Select AI Conversation Language"
+                        className="bg-transparent text-[10px] font-semibold text-purple-100 outline-none cursor-pointer max-w-[110px] truncate"
+                        title="Select AI Conversation Language"
+                      >
+                        {SUPPORTED_LANGUAGES.map((lang) => (
+                          <option key={lang.code} value={lang.code} className="bg-slate-950 text-white">
+                            {lang.label}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-1.5 shrink-0 self-start">
+                  {/* RESET CONVERSATION */}
+                  <button
+                    onClick={handleResetChat}
+                    title="Start new conversation"
+                    aria-label="Start new conversation"
+                    className="p-1.5 rounded-lg text-slate-300 hover:text-white hover:bg-purple-900/60 transition-colors cursor-pointer"
+                  >
+                    <RotateCcw className="w-3.5 h-3.5" />
+                  </button>
+
+                  {/* CLOSE CHAT */}
+                  <button
+                    onClick={() => {
+                      stopListening();
+                      setIsOpen(false);
+                    }}
+                    title="Close AI assistant"
+                    aria-label="Close AI assistant"
+                    className="p-1.5 rounded-lg text-slate-300 hover:text-white hover:bg-purple-900/60 transition-colors cursor-pointer"
+                  >
+                    <X className="w-4 h-4" />
+                  </button>
+                </div>
+              </>
+            ) : mode === "seo" ? (
               /* SEO AI AGENT HEADER - FINAL APPROVED LAYOUT */
               <>
                 <div className="flex items-start gap-2.5 min-w-0">
@@ -977,6 +1242,140 @@ export function CodeaxysAIAssistant({
                               <Wand2 className="w-3.5 h-3.5" />
                               <span>Apply This Fix</span>
                             </button>
+                          </div>
+                        )}
+                      </div>
+                    )}
+
+                    {/* MARKETING MODE: CAMPAIGN STRATEGY & REVIEW CARD */}
+                    {mode === "marketing" && msg.role === "assistant" && msg.draftId && msg.proposedStrategy && (
+                      <div className="mt-3 p-3.5 rounded-2xl bg-purple-50/90 border border-purple-200 text-slate-800 space-y-3 text-xs shadow-xs">
+                        <div className="flex items-center justify-between font-bold text-purple-900 border-b border-purple-200/60 pb-2">
+                          <span className="flex items-center gap-1.5 text-xs">
+                            <Sparkles className="w-4 h-4 text-purple-600" />
+                            Meta Campaign Strategy
+                          </span>
+                          <span className="text-[10px] bg-purple-200/80 text-purple-900 px-2 py-0.5 rounded-full font-mono font-extrabold uppercase">
+                            {msg.proposedStrategy.platformStrategy?.objective || "OUTCOME_LEADS"}
+                          </span>
+                        </div>
+
+                        {/* STRATEGY SUMMARY HIGHLIGHTS */}
+                        <div className="grid grid-cols-2 gap-2 text-[11px] bg-white p-2.5 rounded-xl border border-purple-200/80">
+                          <div>
+                            <span className="text-slate-500 font-semibold block text-[10px] uppercase">Daily Budget</span>
+                            <span className="font-extrabold text-slate-900">
+                              ₹{msg.proposedStrategy.budgetRecommendation?.dailyBudgetAmount || 1000}/day ({msg.proposedStrategy.budgetRecommendation?.recommendedDurationDays || 7} Days)
+                            </span>
+                          </div>
+                          <div>
+                            <span className="text-slate-500 font-semibold block text-[10px] uppercase">Target Location</span>
+                            <span className="font-extrabold text-slate-900 truncate block">
+                              {msg.proposedStrategy.targetAudience?.location || "Local Area"}
+                            </span>
+                          </div>
+                          <div>
+                            <span className="text-slate-500 font-semibold block text-[10px] uppercase">Landing Page</span>
+                            <span className="font-bold text-purple-700 truncate block">
+                              {msg.proposedStrategy.landingPageRecommendation?.path || "/contact"}
+                            </span>
+                          </div>
+                          <div>
+                            <span className="text-slate-500 font-semibold block text-[10px] uppercase">Ad Headline</span>
+                            <span className="font-bold text-slate-800 truncate block">
+                              "{msg.proposedStrategy.adCopyVariations?.[0]?.headline || "Book Consultation"}"
+                            </span>
+                          </div>
+                        </div>
+
+                        {/* EXPANDED REVIEW DETAILED CONTAINER (WHEN REVIEWED) */}
+                        {msg.publishState === "reviewing" && (
+                          <div className="p-3 bg-white border border-purple-300 rounded-xl space-y-2.5 text-[11px] animate-in fade-in duration-200 shadow-inner/5">
+                            <div className="font-bold text-slate-900 border-b pb-1 text-xs flex items-center justify-between">
+                              <span>📋 Frozen Campaign Review Details</span>
+                              <span className="text-[10px] text-emerald-700 font-bold bg-emerald-50 px-1.5 py-0.5 rounded border border-emerald-200">Draft ID: {msg.draftId.slice(0, 8)}...</span>
+                            </div>
+
+                            <div className="space-y-1.5 text-slate-700">
+                              <div><strong className="text-slate-900">Objective:</strong> Meta Ads ({msg.proposedStrategy.platformStrategy?.objective || "OUTCOME_LEADS"})</div>
+                              <div><strong className="text-slate-900">Budget:</strong> ₹{msg.proposedStrategy.budgetRecommendation?.dailyBudgetAmount || 1000} / day for {msg.proposedStrategy.budgetRecommendation?.recommendedDurationDays || 7} days (Total: ₹{msg.proposedStrategy.budgetRecommendation?.totalBudgetAmount || 7000})</div>
+                              <div><strong className="text-slate-900">Audience:</strong> {msg.proposedStrategy.targetAudience?.ageRange || "18-65+"}, Interests: {(msg.proposedStrategy.targetAudience?.interests || []).join(", ")}</div>
+                              <div><strong className="text-slate-900">Landing Page:</strong> {msg.proposedStrategy.landingPageRecommendation?.url || msg.proposedStrategy.landingPageRecommendation?.path || "/contact"}</div>
+                              <div><strong className="text-slate-900">Ad Copy Headline:</strong> "{msg.proposedStrategy.adCopyVariations?.[0]?.headline || "Book Consultation"}"</div>
+                              <div><strong className="text-slate-900">Primary Text:</strong> "{msg.proposedStrategy.adCopyVariations?.[0]?.primaryText || "Contact us for consultation."}"</div>
+                              <div><strong className="text-slate-900">Call to Action:</strong> {msg.proposedStrategy.adCopyVariations?.[0]?.cta || "LEARN_MORE"}</div>
+                            </div>
+
+                            <div className="p-2 bg-amber-50 border border-amber-200 rounded-lg text-amber-900 text-[10px] font-semibold flex items-center gap-1.5">
+                              <ShieldCheck className="w-3.5 h-3.5 text-amber-600 shrink-0" />
+                              <span>PAUSED Safety: Campaign will launch in PAUSED state with zero automatic spend.</span>
+                            </div>
+                          </div>
+                        )}
+
+                        {/* PUBLISH ACTION BUTTONS & STATES */}
+                        {msg.publishState === "approving" ? (
+                          <div className="flex items-center gap-2 text-purple-700 font-semibold text-xs py-1.5 bg-purple-100/70 px-3 rounded-xl">
+                            <Loader2 className="w-3.5 h-3.5 text-purple-600 animate-spin shrink-0" />
+                            <span>Saving approval snapshot & validating Meta assets...</span>
+                          </div>
+                        ) : msg.publishState === "publishing" ? (
+                          <div className="flex items-center gap-2 text-purple-700 font-semibold text-xs py-1.5 bg-purple-100/70 px-3 rounded-xl">
+                            <Loader2 className="w-3.5 h-3.5 text-purple-600 animate-spin shrink-0" />
+                            <span>Creating Meta Ads Campaign in PAUSED safety mode...</span>
+                          </div>
+                        ) : msg.publishState === "published" ? (
+                          <div className="p-2.5 bg-emerald-50 border border-emerald-200 rounded-xl text-emerald-900 font-semibold text-xs flex items-center justify-between">
+                            <div className="flex items-center gap-2">
+                              <Check className="w-4 h-4 text-emerald-600 shrink-0" />
+                              <span>Meta Campaign Launched (Status: PAUSED)</span>
+                            </div>
+                          </div>
+                        ) : msg.publishState === "failed" ? (
+                          <div className="space-y-2">
+                            <div className="p-2.5 bg-rose-50 border border-rose-200 rounded-xl text-rose-900 text-xs font-medium space-y-1">
+                              <div className="font-bold text-rose-950 flex items-center gap-1.5">
+                                <AlertCircle className="w-3.5 h-3.5 text-rose-600 shrink-0" />
+                                <span>Campaign Launch Attention Required</span>
+                              </div>
+                              <p>{msg.publishError || "Failed to complete campaign launch."}</p>
+                            </div>
+                            <div className="flex items-center gap-2">
+                              <button
+                                type="button"
+                                onClick={() => handleApproveAndPublishCampaign(msg.id, msg.draftId!)}
+                                className="flex-1 py-2 px-3 rounded-xl bg-purple-700 hover:bg-purple-800 text-white font-bold text-xs flex items-center justify-center gap-1.5 shadow-xs cursor-pointer"
+                              >
+                                <RotateCcw className="w-3.5 h-3.5" />
+                                <span>Retry Approval & Launch</span>
+                              </button>
+                            </div>
+                          </div>
+                        ) : (
+                          <div className="flex items-center gap-2 pt-1">
+                            {msg.publishState !== "reviewing" ? (
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  setMessages((prev) =>
+                                    prev.map((m) => (m.id === msg.id ? { ...m, publishState: "reviewing" } : m))
+                                  );
+                                }}
+                                className="flex-1 py-2 px-3 rounded-xl bg-purple-100 hover:bg-purple-200 text-purple-900 font-bold text-xs flex items-center justify-center gap-1.5 border border-purple-300 transition-all cursor-pointer shadow-2xs"
+                              >
+                                <FileText className="w-3.5 h-3.5 text-purple-700" />
+                                <span>Review Campaign</span>
+                              </button>
+                            ) : (
+                              <button
+                                type="button"
+                                onClick={() => handleApproveAndPublishCampaign(msg.id, msg.draftId!)}
+                                className="flex-1 py-2 px-3 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white font-extrabold text-xs flex items-center justify-center gap-1.5 shadow-md transition-all cursor-pointer"
+                              >
+                                <ShieldCheck className="w-3.5 h-3.5" />
+                                <span>Approve & Launch Meta Campaign</span>
+                              </button>
+                            )}
                           </div>
                         )}
                       </div>

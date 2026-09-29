@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { createServerClient } from "@supabase/ssr";
+import { type EmailOtpType } from "@supabase/supabase-js";
 import { cookies } from "next/headers";
 
 const DEFAULT_SUPABASE_URL = "https://yumsturujjjgdxsrqgbm.supabase.co";
@@ -8,6 +9,8 @@ export async function GET(request: Request) {
   try {
     const requestUrl = new URL(request.url);
     const code = requestUrl.searchParams.get("code");
+    const token_hash = requestUrl.searchParams.get("token_hash");
+    const type = requestUrl.searchParams.get("type") as EmailOtpType | null;
     const next = requestUrl.searchParams.get("next") ?? "/dashboard";
 
     const forwardedHost = request.headers.get("x-forwarded-host");
@@ -22,12 +25,6 @@ export async function GET(request: Request) {
     const baseUrl = !isLocalEnv && forwardedHost
       ? `${request.headers.get("x-forwarded-proto") || "https"}://${forwardedHost}`
       : requestUrl.origin;
-
-    if (!code) {
-      return NextResponse.redirect(
-        `${baseUrl}/login?error=Could%20not%20authenticate%20user`
-      );
-    }
 
     const cookieStore = await cookies();
     const response = NextResponse.redirect(targetUrl);
@@ -66,16 +63,51 @@ export async function GET(request: Request) {
       },
     });
 
-    const { error } = await supabase.auth.exchangeCodeForSession(code);
+    // 1. Token Hash OTP Verification Flow (Direct Email Confirmation / OTP Token)
+    if (token_hash && type) {
+      const { error: verifyErr } = await supabase.auth.verifyOtp({
+        token_hash,
+        type,
+      });
 
-    if (!error) {
-      return response;
-    } else {
-      console.error("Exchange code for session error:", error?.message || error);
+      if (!verifyErr) {
+        return response;
+      } else {
+        console.error("verifyOtp error in /auth/callback:", verifyErr.message);
+        return NextResponse.redirect(
+          `${baseUrl}/login?error=${encodeURIComponent(verifyErr.message)}`
+        );
+      }
+    }
+
+    // 2. PKCE Code Exchange Flow
+    if (code) {
+      const { error: exchangeErr } = await supabase.auth.exchangeCodeForSession(code);
+
+      if (!exchangeErr) {
+        return response;
+      }
+
+      console.error("Exchange code for session error:", exchangeErr.message);
+
+      // If PKCE code verifier is missing (e.g. email link opened in another browser / device),
+      // redirect to login with clear success confirmation message instead of scary error
+      const isPkceError = exchangeErr.message.toLowerCase().includes("pkce") || exchangeErr.message.toLowerCase().includes("code verifier");
+      
+      if (isPkceError) {
+        return NextResponse.redirect(
+          `${baseUrl}/login?message=${encodeURIComponent("Email confirmed successfully! Please sign in with your credentials.")}`
+        );
+      }
+
       return NextResponse.redirect(
-        `${baseUrl}/login?error=${encodeURIComponent(error?.message || "Authentication failed")}`
+        `${baseUrl}/login?error=${encodeURIComponent(exchangeErr.message || "Authentication failed")}`
       );
     }
+
+    return NextResponse.redirect(
+      `${baseUrl}/login?error=Could%20not%20authenticate%20user`
+    );
   } catch (err: any) {
     console.error("Unhandled exception in /auth/callback:", err?.message || err);
     try {

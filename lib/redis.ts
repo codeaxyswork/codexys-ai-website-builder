@@ -12,7 +12,15 @@ export function getRedisClient(): Redis | null {
   const url = process.env.UPSTASH_REDIS_REST_URL;
   const token = process.env.UPSTASH_REDIS_REST_TOKEN;
 
-  if (!url || !token || url.includes("[SENSITIVE]") || token.includes("[SENSITIVE]")) {
+  if (
+    !url ||
+    !token ||
+    url.includes("[SENSITIVE]") ||
+    token.includes("[SENSITIVE]") ||
+    token.includes("<MY_UPSTASH") ||
+    token.includes("YOUR_REST_TOKEN") ||
+    token.startsWith("<")
+  ) {
     console.log("[Redis] UPSTASH_REDIS_REST_URL or UPSTASH_REDIS_REST_TOKEN not configured. Caching is in BYPASS mode.");
     redisClient = null;
     return null;

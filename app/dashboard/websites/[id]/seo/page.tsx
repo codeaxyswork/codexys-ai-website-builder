@@ -24,6 +24,7 @@ import SEOContentGapDashboard from "@/components/SEOContentGapDashboard";
 import { SEOContentStudio } from "@/components/SEOContentStudio";
 import { SEOTechnicalDashboard } from "@/components/SEOTechnicalDashboard";
 import { SEOCommandCenterDashboard } from "@/components/SEOCommandCenterDashboard";
+import { SEOReportsDashboard } from "@/components/SEOReportsDashboard";
 import { SEOAnalysisResult } from "@/lib/seo-analyzer";
 import { AISEOSuggestions } from "@/lib/seo-ai";
 import { 
@@ -476,6 +477,7 @@ export default function SEODashboardPage({ params }: SEODashboardPageProps) {
     { id: "topical-authority", label: "Topical Authority", icon: GitFork, badge: "🌳" },
     { id: "opportunities", label: "Opportunity Engine", icon: Lightbulb, badge: "⚡" },
     { id: "autopilot", label: "SEO Autopilot", icon: Cpu, badge: "⚙️" },
+    { id: "reports", label: "Reports & White Label", icon: FileText, badge: "📊" },
     { id: "performance", label: "Performance", icon: TrendingUp },
     { id: "monitoring", label: "Monitoring", icon: Bell, badge: "🔔" },
     { id: "organic", label: "Organic SEO", icon: Search },
@@ -774,6 +776,11 @@ export default function SEODashboardPage({ params }: SEODashboardPageProps) {
             {/* AUTOPILOT TAB */}
             {activeTab === "autopilot" && (
               <SEOAutopilotDashboard websiteId={websiteId} />
+            )}
+
+            {/* REPORTS & WHITE LABEL TAB */}
+            {activeTab === "reports" && (
+              <SEOReportsDashboard websiteId={websiteId} />
             )}
 
             {/* MONITORING TAB */}

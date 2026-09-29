@@ -1,0 +1,518 @@
+import { createClient, createAdminClient } from "@/utils/supabase/server";
+import { SourceWebsiteScan, MigrationMode, MigrationSelections, MigrationExecuteResult, PageCaptureManifest } from "./types";
+import { convertPageToCodeaxysNative, convertPageToExactSnapshot } from "./converter";
+import { generateAIRedesignForPage, DEFAULT_REDESIGN_PROMPT, buildSourcePageFromBrowserSnapshot } from "./redesign-engine";
+import { captureSourcePageWithBrowser } from "./browser-capture";
+import { runOpportunityScan } from "@/lib/seo-opportunities/engine";
+import { isPrivateOrReservedIP } from "./scanner";
+import { buildLocalPageMap, localizeHtmlLinks } from "./link-localizer";
+
+const failedHostsMap = new Map<string, number>();
+
+/**
+ * Downloads external image/media/font safely and saves to media_assets & storage bucket.
+ * Uses a strict 1.8s timeout per asset & circuit breaker per host to prevent blocking migration.
+ */
+async function importMediaAsset(
+  supabase: any,
+  userId: string,
+  websiteId: string,
+  imageUrl: string,
+  urlCache?: Map<string, string>
+): Promise<string | null> {
+  if (!imageUrl || typeof imageUrl !== "string") return null;
+  if (!imageUrl.startsWith("http://") && !imageUrl.startsWith("https://")) return null;
+
+  if (urlCache && urlCache.has(imageUrl)) {
+    return urlCache.get(imageUrl)!;
+  }
+
+  try {
+    const parsed = new URL(imageUrl);
+    const host = parsed.hostname.toLowerCase();
+
+    // Circuit breaker check per host
+    if ((failedHostsMap.get(host) || 0) >= 2) {
+      return null;
+    }
+
+    // SSRF check on host
+    if (isPrivateOrReservedIP(host)) return null;
+
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), 1800); // 1.8s timeout per asset
+
+    const res = await fetch(imageUrl, {
+      signal: controller.signal,
+      headers: {
+        "User-Agent": "Codeaxys-Media-Migrator/1.0 (+https://codeaxys.com)",
+      },
+    });
+
+    clearTimeout(timer);
+    if (!res.ok) {
+      failedHostsMap.set(host, (failedHostsMap.get(host) || 0) + 1);
+      return null;
+    }
+
+    const contentType = (res.headers.get("content-type") || "image/jpeg").toLowerCase();
+    const isAllowed = contentType.startsWith("image/") || contentType.includes("svg") || contentType.includes("font") || contentType.startsWith("video/");
+    if (!isAllowed) return null;
+
+    const buffer = Buffer.from(await res.arrayBuffer());
+    if (buffer.length > 10 * 1024 * 1024) return null; // 10MB limit
+
+    const rawExt = parsed.pathname.split(".").pop() || "jpg";
+    const cleanExt = rawExt.replace(/[^a-zA-Z0-9]/g, "").substring(0, 5) || "jpg";
+    const fileName = (parsed.pathname.split("/").pop() || `asset_${Date.now()}.${cleanExt}`)
+      .replace(/[^a-zA-Z0-9._-]/g, "_");
+    const storagePath = `${userId}/${websiteId}/migrated_${Date.now()}_${fileName}`;
+
+    const { error: uploadError } = await supabase.storage
+      .from("website-assets")
+      .upload(storagePath, buffer, {
+        contentType,
+        upsert: true,
+      });
+
+    let publicUrl = imageUrl;
+    if (!uploadError) {
+      const { data: publicData } = supabase.storage
+        .from("website-assets")
+        .getPublicUrl(storagePath);
+      publicUrl = publicData?.publicUrl || imageUrl;
+    }
+
+    // Insert metadata into media_assets table
+    await supabase.from("media_assets").insert({
+      user_id: userId,
+      website_id: websiteId,
+      file_name: fileName,
+      file_size_bytes: buffer.length,
+      mime_type: contentType,
+      storage_path: storagePath,
+      public_url: publicUrl,
+    });
+
+    if (urlCache && publicUrl !== imageUrl) {
+      urlCache.set(imageUrl, publicUrl);
+    }
+
+    return publicUrl;
+  } catch {
+    try {
+      const host = new URL(imageUrl).hostname.toLowerCase();
+      failedHostsMap.set(host, (failedHostsMap.get(host) || 0) + 1);
+    } catch {
+      // ignore
+    }
+    return null;
+  }
+}
+
+/**
+ * Executes full migration to produce a Codeaxys Native Draft Website.
+ */
+export async function executeWebsiteMigration(
+  userId: string,
+  scanResult: SourceWebsiteScan,
+  mode: MigrationMode,
+  selections: MigrationSelections,
+  customSupabaseClient?: any,
+  redesignPrompt?: string,
+  customRunId?: string
+): Promise<MigrationExecuteResult> {
+  const runId = customRunId || `run_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`;
+  const startTime = Date.now();
+  console.log(`\n[MIGRATION_EXECUTION_START] runId: ${runId} | mode: ${mode} | targetUrl: ${scanResult.targetUrl}`);
+
+  const supabase = customSupabaseClient || (await createClient());
+  console.log(`[MIGRATION] URL VALIDATED ${Date.now() - startTime}ms`);
+
+  // 1. Derive title and unique draft slug
+  const rawTitle = scanResult.pages[0]?.title || scanResult.domain || "Migrated Website";
+  const title = rawTitle.length > 50 ? rawTitle.substring(0, 47) + "..." : rawTitle;
+
+  const baseSlug = scanResult.domain.replace(/[^a-z0-9]+/gi, "-").toLowerCase();
+  const suffix = Math.random().toString(36).substring(2, 7);
+  const cleanSlug = `migrated-${baseSlug}-${suffix}`;
+
+  console.log(`[MIGRATION] WEBSITE CREATE START ${Date.now() - startTime}ms`);
+  let newWebsite = null;
+  let createWebError = null;
+
+  const { data: userWeb, error: userWebErr } = await supabase
+    .from("websites")
+    .insert({
+      user_id: userId,
+      title: `[Migrated] ${title}`,
+      slug: cleanSlug,
+      published_slug: cleanSlug,
+      prompt: `Migrated from ${scanResult.targetUrl}`,
+      is_published: false,
+      design_plan: {
+        websiteType: "migrated",
+        migration: {
+          originalUrl: scanResult.targetUrl,
+          domain: scanResult.domain,
+          platform: scanResult.platform.name,
+          mode,
+          selections,
+          summary: scanResult.summary,
+          urlMappings: scanResult.urlMappings,
+        },
+        colorPalette: [
+          { name: "Primary", hex: scanResult.globalStyles.colors.primary || "#6366f1" },
+          { name: "Secondary", hex: scanResult.globalStyles.colors.secondary || "#4f46e5" },
+        ],
+      },
+    })
+    .select("id")
+    .single();
+
+  if (userWeb) {
+    newWebsite = userWeb;
+  } else {
+    createWebError = userWebErr;
+    console.warn(`[MIGRATION WEBSITE INSERT WARNING] User client website create failed: ${userWebErr?.message}. Attempting admin client fallback.`);
+    const adminClient = createAdminClient();
+    const { data: adminWeb, error: adminWebErr } = await adminClient
+      .from("websites")
+      .insert({
+        user_id: userId,
+        title: `[Migrated] ${title}`,
+        slug: cleanSlug,
+        published_slug: cleanSlug,
+        prompt: `Migrated from ${scanResult.targetUrl}`,
+        is_published: false,
+        design_plan: {
+          websiteType: "migrated",
+          migration: {
+            originalUrl: scanResult.targetUrl,
+            domain: scanResult.domain,
+            platform: scanResult.platform.name,
+            mode,
+            selections,
+            summary: scanResult.summary,
+            urlMappings: scanResult.urlMappings,
+          },
+          colorPalette: [
+            { name: "Primary", hex: scanResult.globalStyles.colors.primary || "#6366f1" },
+            { name: "Secondary", hex: scanResult.globalStyles.colors.secondary || "#4f46e5" },
+          ],
+        },
+      })
+      .select("id")
+      .single();
+    if (adminWeb) {
+      newWebsite = adminWeb;
+    } else {
+      createWebError = adminWebErr;
+    }
+  }
+
+  if (createWebError || !newWebsite) {
+    throw new Error(`Failed to create migration draft website: ${createWebError?.message || "Unknown error"}`);
+  }
+
+  const websiteId = newWebsite.id;
+  console.log(`[MIGRATION] WEBSITE CREATE COMPLETE ${Date.now() - startTime}ms`);
+
+  const urlCache = new Map<string, string>();
+  const capturedPages: { path: string; html_content: string; css_content: string; manifest?: PageCaptureManifest }[] = [];
+
+  // Process ALL discovered/captured pages without artificial caps
+  const pagesToMigrate = scanResult.pages;
+
+  // 3. Process and convert pages
+  for (let i = 0; i < pagesToMigrate.length; i++) {
+    const srcPage = pagesToMigrate[i];
+    console.log(`[MIGRATION] PAGE CREATE START (${srcPage.path}) ${Date.now() - startTime}ms`);
+
+    let finalHtml = "";
+    let finalCss = "";
+    let finalJs = "";
+
+    if (mode === "exact") {
+      // EXACT MODE: STRICT BROWSER SNAPSHOT ARCHITECTURE (NO CHEERIO FALLBACK)
+      console.log(`[MIGRATION] BROWSER CAPTURE START (${srcPage.path}) ${Date.now() - startTime}ms`);
+      let browserSnapshot;
+      try {
+        browserSnapshot = await captureSourcePageWithBrowser(srcPage.url);
+        (srcPage as any)._browserManifest = browserSnapshot.manifest;
+        console.log(`[MIGRATION] SOURCE LOADED (${srcPage.path}) ${Date.now() - startTime}ms`);
+      } catch (err: any) {
+        if (i === 0) {
+          throw new Error(`Exact capture could not render the source website (${srcPage.url}): ${err.message}. No partial snapshot was created.`);
+        } else {
+          console.warn(`Exact capture skipped for secondary page ${srcPage.url}:`, err.message);
+          continue;
+        }
+      }
+
+      if (!browserSnapshot || !browserSnapshot.html || browserSnapshot.html.length < 2000) {
+        if (i === 0) {
+          throw new Error(`Exact capture produced invalid HTML payload for ${srcPage.url}. No partial snapshot was created.`);
+        } else {
+          console.warn(`Exact capture invalid HTML for secondary page ${srcPage.url}, skipping...`);
+          continue;
+        }
+      }
+
+      let capturedHtml = browserSnapshot.html;
+      let capturedCss = browserSnapshot.css || "";
+
+      console.log(`[MIGRATION] HTML CAPTURED ${Date.now() - startTime}ms`);
+      console.log(`[MIGRATION] CSS CAPTURED ${Date.now() - startTime}ms`);
+      console.log(`[MIGRATION] JS CAPTURED ${Date.now() - startTime}ms`);
+
+      // Collect all visual asset URLs strictly from browser snapshot
+      const urlsToMigrate = new Set<string>();
+      if (browserSnapshot.assetUrls) {
+        browserSnapshot.assetUrls.forEach((u) => {
+          if (u && (u.startsWith("http://") || u.startsWith("https://"))) urlsToMigrate.add(u);
+        });
+      }
+      if (browserSnapshot.slides) {
+        browserSnapshot.slides.forEach((s) => {
+          if (s.bgImage && s.bgImage.startsWith("http")) urlsToMigrate.add(s.bgImage);
+          if (s.foregroundImages) {
+            s.foregroundImages.forEach((fg) => {
+              if (fg && fg.startsWith("http")) urlsToMigrate.add(fg);
+            });
+          }
+        });
+      }
+
+      console.log(`[MIGRATION] ASSETS CAPTURED (${urlsToMigrate.size} assets) ${Date.now() - startTime}ms`);
+
+      // Parallel Bounded Batch Asset Localization (capped to max 30 key assets per page)
+      if (selections.content.images && urlsToMigrate.size > 0) {
+        const urlArray = Array.from(urlsToMigrate).slice(0, 30);
+        const BATCH_SIZE = 6;
+        for (let b = 0; b < urlArray.length; b += BATCH_SIZE) {
+          const chunk = urlArray.slice(b, b + BATCH_SIZE);
+          await Promise.all(
+            chunk.map(async (rawUrl) => {
+              const localizedUrl = await importMediaAsset(supabase, userId, websiteId, rawUrl, urlCache);
+              if (localizedUrl && localizedUrl !== rawUrl) {
+                capturedHtml = capturedHtml.replaceAll(rawUrl, localizedUrl);
+                capturedCss = capturedCss.replaceAll(rawUrl, localizedUrl);
+              }
+            })
+          );
+        }
+      }
+
+      console.log(`[MIGRATION] ASSETS LOCALIZED ${Date.now() - startTime}ms`);
+
+      const converted = convertPageToExactSnapshot(
+        {
+          html: capturedHtml,
+          css: capturedCss,
+          slides: browserSnapshot.slides,
+          title: browserSnapshot.title || srcPage.seo.seoTitle || srcPage.title,
+        },
+        websiteId
+      );
+
+      finalHtml = converted.htmlContent;
+      finalCss = converted.cssContent;
+      finalJs = converted.jsContent;
+    } else if (mode === "redesign") {
+      // SOURCE-PRESERVING AI REDESIGN MODE WITH REAL BROWSER CAPTURE
+      console.log(`[MIGRATION REDESIGN] BROWSER CAPTURE START (${srcPage.path}) ${Date.now() - startTime}ms`);
+      let browserSnapshot;
+      try {
+        browserSnapshot = await captureSourcePageWithBrowser(srcPage.url);
+        (srcPage as any)._browserManifest = browserSnapshot.manifest;
+      } catch (err: any) {
+        console.warn(`Browser capture for redesign mode warning (${srcPage.url}): ${err.message}`);
+      }
+
+      const richSourcePage = browserSnapshot
+        ? buildSourcePageFromBrowserSnapshot(browserSnapshot, srcPage.path)
+        : srcPage;
+
+      console.log(
+        `[MIGRATION REDESIGN] RICH SOURCE PAGE DERIVED (${richSourcePage.headings.length} headings, ${richSourcePage.paragraphs.length} paras, ${richSourcePage.images.length} images)`
+      );
+
+      const userPrompt = redesignPrompt || DEFAULT_REDESIGN_PROMPT;
+      const converted = await generateAIRedesignForPage(richSourcePage, scanResult.globalStyles, selections, userPrompt, undefined, userId, undefined, runId);
+      finalHtml = converted.htmlContent;
+      finalCss = converted.cssContent;
+      finalJs = converted.jsContent;
+
+      if (selections.content.images) {
+        const urlsToMigrate = new Set<string>();
+
+        if (srcPage.heroBgImage && srcPage.heroBgImage.startsWith("http")) urlsToMigrate.add(srcPage.heroBgImage);
+        if (srcPage.logoUrl && srcPage.logoUrl.startsWith("http")) urlsToMigrate.add(srcPage.logoUrl);
+
+        srcPage.sections.forEach((sec) => {
+          if (sec.bgImage && sec.bgImage.startsWith("http")) urlsToMigrate.add(sec.bgImage);
+          if (sec.slides) {
+            sec.slides.forEach((s) => {
+              if (s.bgImage && s.bgImage.startsWith("http")) urlsToMigrate.add(s.bgImage);
+              if (s.foregroundImages) {
+                s.foregroundImages.forEach((fg) => {
+                  if (fg && fg.startsWith("http")) urlsToMigrate.add(fg);
+                });
+              }
+            });
+          }
+        });
+
+        srcPage.images.forEach((img) => {
+          if (img.src && img.src.startsWith("http")) urlsToMigrate.add(img.src);
+        });
+
+        const urlArray = Array.from(urlsToMigrate).slice(0, 25);
+        const BATCH_SIZE = 6;
+        for (let b = 0; b < urlArray.length; b += BATCH_SIZE) {
+          const chunk = urlArray.slice(b, b + BATCH_SIZE);
+          await Promise.all(
+            chunk.map(async (rawUrl) => {
+              const importedUrl = await importMediaAsset(supabase, userId, websiteId, rawUrl, urlCache);
+              if (importedUrl) {
+                finalHtml = finalHtml.replaceAll(rawUrl, importedUrl);
+                finalCss = finalCss.replaceAll(rawUrl, importedUrl);
+              }
+            })
+          );
+        }
+      }
+    } else {
+      // REBUILD MODE
+      const converted = convertPageToCodeaxysNative(srcPage, scanResult.globalStyles, mode, selections);
+      finalHtml = converted.htmlContent;
+      finalCss = converted.cssContent;
+      finalJs = converted.jsContent;
+    }
+
+    console.log(`[MIGRATION] SEO SAVE START ${Date.now() - startTime}ms`);
+    const pagePath = (!srcPage.path || srcPage.path === "/" || srcPage.path === "/index.html") ? "index.html" : srcPage.path;
+
+    const pageInsertPayload = {
+      website_id: websiteId,
+      user_id: userId,
+      path: pagePath,
+      html_content: finalHtml,
+      css_content: finalCss,
+      js_content: finalJs,
+    };
+
+    // Insert into website_pages using authenticated user client first to satisfy RLS
+    const { data: insertedPages, error: pageInsertError } = await supabase
+      .from("website_pages")
+      .insert(pageInsertPayload)
+      .select("id")
+      .single();
+
+    let pageId = insertedPages?.id;
+
+    if (pageInsertError || !pageId) {
+      console.warn(`[MIGRATION PAGE INSERT WARNING] User client save failed for ${pagePath}: ${pageInsertError?.message}. Attempting admin client fallback.`);
+      const adminClient = createAdminClient();
+      const { data: adminPages, error: adminInsertError } = await adminClient
+        .from("website_pages")
+        .insert(pageInsertPayload)
+        .select("id")
+        .single();
+
+      if (adminInsertError || !adminPages) {
+        console.error(`[MIGRATION PAGE INSERT ERROR] Failed to save website_pages for ${pagePath}:`, adminInsertError?.message);
+      } else {
+        pageId = adminPages.id;
+      }
+    }
+
+    // Save page-level SEO metadata to website_page_seo table if pageId is available
+    if (pageId && (srcPage.seo?.seoTitle || srcPage.seo?.metaDescription)) {
+      const pageSeoPayload: any = {
+        website_id: websiteId,
+        page_id: pageId,
+        user_id: userId,
+        path: pagePath,
+      };
+
+      if (selections.seo.pageTitles && srcPage.seo?.seoTitle) {
+        pageSeoPayload.seo_title = srcPage.seo.seoTitle;
+      }
+      if (selections.seo.metaDescriptions && srcPage.seo?.metaDescription) {
+        pageSeoPayload.meta_description = srcPage.seo.metaDescription;
+      }
+      if (selections.seo.canonicalUrls && srcPage.seo?.canonicalUrl) {
+        pageSeoPayload.canonical_url = srcPage.seo.canonicalUrl;
+      }
+      if (selections.seo.openGraph && srcPage.seo?.ogTitle) {
+        pageSeoPayload.og_title = srcPage.seo.ogTitle;
+        pageSeoPayload.og_image_url = srcPage.seo.ogImage;
+      }
+
+      await supabase.from("website_page_seo").insert(pageSeoPayload);
+    }
+
+    let pageManifest = (mode === "exact" && (srcPage as any)._browserManifest) || undefined;
+
+    capturedPages.push({
+      path: pagePath,
+      html_content: finalHtml,
+      css_content: finalCss,
+      manifest: pageManifest,
+    });
+
+    console.log(`[MIGRATION] SEO SAVE COMPLETE ${Date.now() - startTime}ms`);
+    console.log(`[MIGRATION] PAGE CREATE COMPLETE (${srcPage.path}) ${Date.now() - startTime}ms`);
+  }
+
+  // 3.5 Localize internal links across all captured pages
+  console.log(`[MIGRATION] LOCALIZING INTERNAL LINKS ${Date.now() - startTime}ms`);
+  try {
+    const { pageMap, sourceHostnames } = buildLocalPageMap(capturedPages, scanResult.domain);
+    for (const page of capturedPages) {
+      const locRes = localizeHtmlLinks(page.html_content, pageMap, sourceHostnames);
+      if (locRes.internalLinksRewritten > 0) {
+        page.html_content = locRes.html;
+        await supabase
+          .from("website_pages")
+          .update({ html_content: locRes.html })
+          .eq("website_id", websiteId)
+          .eq("path", page.path);
+      }
+    }
+    console.log(`[MIGRATION] INTERNAL LINKS LOCALIZED ${Date.now() - startTime}ms`);
+  } catch (err: any) {
+    console.warn("[MIGRATION] Internal link localization warning:", err?.message);
+  }
+
+  // 4. Trigger async SEO intelligence analysis (NON-BLOCKING)
+  console.log(`[MIGRATION] OPPORTUNITY SCAN START ${Date.now() - startTime}ms`);
+  try {
+    runOpportunityScan(supabase, websiteId, userId).catch((err: any) => {
+      console.error("Async SEO Analysis trigger after migration failed:", err);
+    });
+  } catch {
+    // Non-blocking
+  }
+  console.log(`[MIGRATION] OPPORTUNITY SCAN COMPLETE ${Date.now() - startTime}ms`);
+
+  console.log(`[MIGRATION] FINALIZE START ${Date.now() - startTime}ms`);
+  console.log(`[MIGRATION] FINALIZE COMPLETE ${Date.now() - startTime}ms`);
+  console.log(`[MIGRATION] RESPONSE SENT ${Date.now() - startTime}ms`);
+
+  const manifests = capturedPages.map((p) => p.manifest).filter(Boolean) as any[];
+
+  return {
+    success: true,
+    websiteId,
+    draftSlug: cleanSlug,
+    title,
+    summary: scanResult.summary,
+    warnings: scanResult.warnings,
+    urlMappings: scanResult.urlMappings,
+    capturedPages,
+    manifests,
+  };
+}

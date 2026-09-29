@@ -23,13 +23,8 @@ export async function generateContentStudioArticle(
   brief: ContentBrief,
   outline?: ContentOutline
 ): Promise<GeneratedArticleDraft> {
+  // TEMPORARY UNLIMITED AI USAGE MODE: Credit balance check bypassed
   const CREDIT_COST = 5;
-
-  // 1. Check user credit balance
-  const usage = await getUserUsage(userId);
-  if (!usage || usage.credits.balance < CREDIT_COST) {
-    throw new Error(`Insufficient AI credits. Required: ${CREDIT_COST}, Balance: ${usage?.credits.balance || 0}`);
-  }
 
   // 2. Fetch Website Context
   const { data: website } = await supabase

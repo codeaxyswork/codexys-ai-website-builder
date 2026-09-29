@@ -1,6 +1,7 @@
 import { GoogleGenAI } from "@google/genai";
 import { getGeminiConfig } from "./gemini";
 import { DetectedSEOIntent, detectSEOIntent } from "./seo-agent-intent";
+import { mapOpportunityToProposedFix } from "./seo-command-center/aggregator";
 
 export interface SEOAgentContext {
   website: {
@@ -91,7 +92,43 @@ export interface SEOAgentContext {
     low: number;
     avgPriorityScore: number;
     autopilotEligible: number;
-    topOpportunities: Array<{ title: string; priorityScore: number; category: string; description: string }>;
+    topOpportunities: Array<{
+      id?: string;
+      opportunityId?: string;
+      title: string;
+      priorityScore: number;
+      category: string;
+      description: string;
+      affectedPage?: string | null;
+      affectedKeyword?: string | null;
+      priority?: string;
+      severity?: string;
+      recommendedAction?: string | null;
+      actionType?: string | null;
+      hasSupportedFix?: boolean;
+      proposedFix?: StructuredSEOFix | null;
+    }>;
+    highPriorityOpportunities?: Array<{
+      id: string;
+      opportunityId: string;
+      title: string;
+      category: string;
+      type: string;
+      description: string;
+      affectedPage: string | null;
+      affectedKeyword: string | null;
+      priority: string;
+      priorityScore: number;
+      severity: string;
+      impact: string;
+      effort: string;
+      recommendedAction: string | null;
+      actionType: string | null;
+      actionPayload: any;
+      status: string;
+      hasSupportedFix: boolean;
+      proposedFix: StructuredSEOFix | null;
+    }>;
   };
   autopilotSummary?: {
     status: string;
@@ -420,25 +457,60 @@ export async function buildSEOContext(
   // 11. Fetch Opportunities & Autopilot Context
   const { data: oppRows } = await supabase
     .from("seo_opportunities")
-    .select("title, priority_score, priority_level, category, description, is_autopilot_eligible, status")
+    .select("id, title, priority_score, priority, priority_level, category, opportunity_type, description, affected_page, affected_keyword, severity, impact, effort, recommended_action, action_type, action_payload, is_autopilot_eligible, status")
     .eq("website_id", websiteId)
-    .in("status", ["new", "viewed", "in_progress"])
+    .in("status", ["new", "viewed", "in_progress", "open"])
     .order("priority_score", { ascending: false });
 
   const opportunitiesList = oppRows || [];
   const oppTotal = opportunitiesList.length;
-  const oppCritical = opportunitiesList.filter((o: any) => o.priority_level === "critical").length;
-  const oppHigh = opportunitiesList.filter((o: any) => o.priority_level === "high").length;
-  const oppMedium = opportunitiesList.filter((o: any) => o.priority_level === "medium").length;
-  const oppLow = opportunitiesList.filter((o: any) => o.priority_level === "low").length;
+  const oppCritical = opportunitiesList.filter((o: any) => o.priority_level === "critical" || o.priority === "critical" || o.severity === "critical").length;
+  const oppHigh = opportunitiesList.filter((o: any) => o.priority_level === "high" || o.priority === "high" || o.severity === "high").length;
+  const oppMedium = opportunitiesList.filter((o: any) => o.priority_level === "medium" || o.priority === "medium" || o.severity === "medium").length;
+  const oppLow = opportunitiesList.filter((o: any) => o.priority_level === "low" || o.priority === "low" || o.severity === "low").length;
   const oppAvgScore = oppTotal > 0 ? Math.round(opportunitiesList.reduce((acc: number, o: any) => acc + (o.priority_score || 0), 0) / oppTotal) : 0;
   const oppAutopilotCount = opportunitiesList.filter((o: any) => o.is_autopilot_eligible).length;
 
-  const topOpportunities = opportunitiesList.slice(0, 5).map((o: any) => ({
+  const highPriorityOpportunities = opportunitiesList.slice(0, 10).map((o: any) => {
+    const { hasSupportedFix, proposedFix } = mapOpportunityToProposedFix(o);
+    return {
+      id: o.id,
+      opportunityId: o.id,
+      title: o.title,
+      category: o.category || o.opportunity_type || "general",
+      type: o.opportunity_type || o.category || "general",
+      description: o.description || o.title,
+      affectedPage: o.affected_page || null,
+      affectedKeyword: o.affected_keyword || null,
+      priority: o.priority || o.priority_level || "medium",
+      priorityScore: o.priority_score || 0,
+      severity: o.severity || "warning",
+      impact: o.impact || "medium",
+      effort: o.effort || "low",
+      recommendedAction: o.recommended_action || null,
+      actionType: o.action_type || null,
+      actionPayload: o.action_payload || {},
+      status: o.status || "new",
+      hasSupportedFix,
+      proposedFix,
+    };
+  });
+
+  const topOpportunities = highPriorityOpportunities.map((o: any) => ({
+    id: o.id,
+    opportunityId: o.opportunityId,
     title: o.title,
-    priorityScore: o.priority_score,
+    priorityScore: o.priorityScore,
     category: o.category,
     description: o.description,
+    affectedPage: o.affectedPage,
+    affectedKeyword: o.affectedKeyword,
+    priority: o.priority,
+    severity: o.severity,
+    recommendedAction: o.recommendedAction,
+    actionType: o.actionType,
+    hasSupportedFix: o.hasSupportedFix,
+    proposedFix: o.proposedFix,
   }));
 
   const { data: autoRow } = await supabase
@@ -620,6 +692,7 @@ export async function buildSEOContext(
       avgPriorityScore: oppAvgScore,
       autopilotEligible: oppAutopilotCount,
       topOpportunities,
+      highPriorityOpportunities,
     },
     autopilotSummary: autoRow
       ? {
@@ -730,6 +803,13 @@ export interface SEOAgentResponsePayload {
     | "integrations"
     | "settings";
   proposedFix?: StructuredSEOFix | null;
+  opportunityId?: string;
+  actionType?: string;
+  hasSupportedFix?: boolean;
+  affectedPage?: string;
+  priority?: string;
+  recommendedAction?: string;
+  requiresApproval?: boolean;
 }
 
 /**
@@ -773,7 +853,13 @@ CRITICAL ARCHITECTURE RULES & SAFETY BOUNDARIES:
 10. PRONOUN & REFERENCE RESOLUTION: When user asks short follow-ups ("fix that", "show me that", "what about that issue?"), resolve "that/it" using recent conversation history context.
 11. NAVIGATION TARGETS: Suggest exact tab route when referring user to a specific area:
     "overview" | "technical-crawl" | "content-studio" | "competitors" | "content-gaps" | "aeo" | "topical-authority" | "opportunities" | "autopilot" | "performance" | "monitoring" | "organic" | "technical" | "internal-links" | "local-seo" | "blog" | "pages" | "keywords" | "integrations" | "settings"
-12. DETERMINISTIC FIX PROPOSALS: If a safe fix applies (e.g. SEO title, meta description, OG tags, canonical URL, robots settings, image alt text), include a "proposedFix" object in your JSON output. Require user approval.
+12. DETERMINISTIC FIX PROPOSALS & HIGH-PRIORITY OPPORTUNITIES:
+    - Use opportunitySummary.highPriorityOpportunities or topOpportunities to answer questions like "What should I fix first?", "What are my biggest SEO problems?", "What is hurting my SEO?", and "What should I improve?".
+    - Always base opportunity explanations strictly on the provided context. Do NOT invent fake opportunities or recalculate priority scores.
+    - Structure your explanation clearly: (1) Detected Problem, (2) Why It Matters, (3) Affected Page/Entity, (4) Recommended Action.
+    - If hasSupportedFix is true for an opportunity and a safe fix payload exists, include a proposedFix object in your JSON output (supported categories: seo_title, meta_description, focus_keywords, og_title, og_description, canonical_url, robots_config, alt_text, heading_structure). Include opportunityId, actionType, hasSupportedFix: true, and requiresApproval: true.
+    - If an opportunity has no supported automatic fix (e.g. GEO entity graph, AIO unanswered questions, blog content), explain the manual recommendation, set hasSupportedFix: false, and set proposedFix: null. NEVER invent fake automatic fixes.
+    - Merely outputting a proposedFix in your response displays the proposal for user review. Actual database mutation occurs ONLY when the customer explicitly approves and applies the fix.
 
 OUTPUT FORMAT:
 Return strictly a single JSON object with no markdown fences, no wrapping, matching this shape:
@@ -781,6 +867,10 @@ Return strictly a single JSON object with no markdown fences, no wrapping, match
   "message": "Detailed, friendly, customer-focused markdown response.",
   "suggestedActions": ["Actionable tip 1", "Actionable tip 2"],
   "navigationTarget": "technical-crawl", // (optional target tab)
+  "opportunityId": "opp-123", // (optional)
+  "actionType": "auto_fix", // (optional)
+  "hasSupportedFix": true, // (optional)
+  "requiresApproval": true, // (optional)
   "proposedFix": { // (optional proposed fix object)
     "issueType": "seo_title",
     "pagePath": "index.html",
@@ -835,6 +925,13 @@ ${params.userPrompt}
         suggestedActions: Array.isArray(parsed.suggestedActions) ? parsed.suggestedActions : [],
         navigationTarget: parsed.navigationTarget || (intent.targetTabRoute as any) || undefined,
         proposedFix: parsed.proposedFix || null,
+        opportunityId: parsed.opportunityId || undefined,
+        actionType: parsed.actionType || undefined,
+        hasSupportedFix: typeof parsed.hasSupportedFix === "boolean" ? parsed.hasSupportedFix : (parsed.proposedFix ? true : false),
+        affectedPage: parsed.affectedPage || (parsed.proposedFix?.pagePath) || undefined,
+        priority: parsed.priority || undefined,
+        recommendedAction: parsed.recommendedAction || undefined,
+        requiresApproval: true,
       };
     } catch (err: any) {
       console.warn(`SEO Agent Gemini model ${targetModel} failed:`, err?.message || err);

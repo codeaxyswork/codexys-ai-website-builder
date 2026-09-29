@@ -27,7 +27,7 @@ export async function aggregateCommandCenterData(
     supabase.from('website_local_seo').select('local_seo_score, business_name, city, updated_at').eq('website_id', websiteId).maybeSingle(),
     supabase.from('gsc_search_analytics').select('query, clicks, impressions, ctr').eq('website_id', websiteId).limit(20),
     supabase.from('website_third_party_seo_integrations').select('provider, status, capabilities, last_tested_at').eq('website_id', websiteId),
-    supabase.from('seo_opportunities').select('id, title, category, priority, priority_score, action_payload, status, created_at').eq('website_id', websiteId).eq('status', 'open').order('priority_score', { ascending: false }),
+    supabase.from('seo_opportunities').select('id, title, category, priority, priority_score, action_payload, action_type, description, affected_page, affected_keyword, severity, status, created_at').eq('website_id', websiteId).in('status', ['new', 'open', 'viewed', 'in_progress']).order('priority_score', { ascending: false }),
     supabase.from('seo_autopilot_settings').select('status, scan_frequency, last_run_at, next_run_at').eq('website_id', websiteId).maybeSingle(),
     supabase.from('seo_unified_scores').select('unified_score, confidence_level, created_at').eq('website_id', websiteId).order('created_at', { ascending: false }).limit(10),
     supabase.from('blog_posts').select('id, title, status, created_at').eq('website_id', websiteId).order('created_at', { ascending: false }).limit(5),
@@ -109,16 +109,26 @@ export async function aggregateCommandCenterData(
     }
   });
 
-  const priorityActions = deduplicatedOpps.slice(0, 5).map((o: any) => ({
-    id: o.id,
-    title: o.title,
-    category: o.category || 'general',
-    priority: o.priority || 'medium',
-    priorityScore: o.priority_score || 50,
-    affectedPage: o.action_payload?.path || o.affected_page || '/',
-    reason: o.description || 'Action required to improve SEO health.',
-    recommendedAction: o.action_payload?.recommended_action || 'Inspect and apply fix in the module.',
-  }));
+  const priorityActions = deduplicatedOpps.slice(0, 5).map((o: any) => {
+    const { hasSupportedFix, proposedFix } = mapOpportunityToProposedFix(o);
+
+    return {
+      id: o.id,
+      opportunityId: o.id,
+      title: o.title,
+      category: o.category || 'general',
+      priority: ((typeof o.priority === 'string' ? o.priority.toLowerCase() : 'medium') as 'critical' | 'high' | 'medium' | 'low'),
+      priorityScore: o.priority_score || 50,
+      affectedPage: o.action_payload?.path || o.affected_page || '/',
+      reason: o.description || 'Action required to improve SEO health.',
+      recommendedAction: o.action_payload?.recommended_action || o.recommended_action || 'Inspect and apply fix in the module.',
+      actionType: o.action_type || null,
+      actionPayload: o.action_payload || null,
+      hasSupportedFix,
+      requiresApproval: true as const,
+      proposedFix,
+    };
+  });
 
   // 5. Historical Trend
   const historicalTrend = historyScores.map((h: any) => ({
@@ -249,5 +259,93 @@ export async function aggregateCommandCenterData(
     geoSummary,
     aioSummary,
     aiSearchReadiness,
+  };
+}
+
+export function mapOpportunityToProposedFix(opp: any) {
+  const cat = (opp.category || opp.opportunity_type || '').toLowerCase();
+  const pagePath = opp.affected_page || (opp.action_payload && opp.action_payload.path) || 'index.html';
+  const reason = opp.description || opp.title || 'SEO optimization opportunity.';
+  const payload = opp.action_payload || (opp.action && opp.action.payload) || {};
+  const fixType = opp.action?.fix_type || payload.fix_type;
+
+  if (cat === 'missing_seo_title' || cat === 'weak_seo_title' || payload.field === 'seo_title' || fixType === 'seo_title' || opp.opportunity_type === 'missing_title') {
+    return {
+      hasSupportedFix: true,
+      proposedFix: {
+        issueType: 'seo_title' as const,
+        pagePath,
+        currentValue: payload.currentValue || '',
+        recommendedValue: payload.recommendedValue || payload.title || 'Optimized SEO Title',
+        reason,
+        severity: (opp.severity === 'critical' || opp.priority === 'critical' ? 'critical' : 'warning') as 'critical' | 'warning' | 'opportunity',
+        instruction: 'Configure high-impact SEO title tag.',
+      },
+    };
+  }
+
+  if (cat === 'missing_meta_description' || payload.field === 'meta_description' || fixType === 'meta_description' || opp.opportunity_type === 'missing_meta_description') {
+    return {
+      hasSupportedFix: true,
+      proposedFix: {
+        issueType: 'meta_description' as const,
+        pagePath,
+        currentValue: payload.currentValue || '',
+        recommendedValue: payload.recommendedValue || payload.description || 'Compelling search meta description with clear call to action.',
+        reason,
+        severity: (opp.severity === 'critical' || opp.priority === 'critical' ? 'critical' : 'warning') as 'critical' | 'warning' | 'opportunity',
+        instruction: 'Configure search meta description snippet.',
+      },
+    };
+  }
+
+  if (cat === 'missing_focus_keywords' || payload.field === 'focus_keywords' || fixType === 'focus_keywords' || opp.opportunity_type === 'missing_keywords') {
+    return {
+      hasSupportedFix: true,
+      proposedFix: {
+        issueType: 'focus_keywords' as const,
+        pagePath,
+        currentValue: '',
+        recommendedValue: payload.recommendedValue || opp.affected_keyword || 'primary business keywords',
+        reason,
+        severity: 'warning' as const,
+        instruction: 'Configure target focus keywords.',
+      },
+    };
+  }
+
+  if (cat === 'high_impression_low_ctr' && opp.affected_keyword) {
+    return {
+      hasSupportedFix: true,
+      proposedFix: {
+        issueType: 'meta_description' as const,
+        pagePath,
+        currentValue: '',
+        recommendedValue: `Optimized title & description targeting query "${opp.affected_keyword}"`,
+        reason,
+        severity: 'warning' as const,
+        instruction: `Optimize SERP snippet for query "${opp.affected_keyword}"`,
+      },
+    };
+  }
+
+  if (cat === 'aio_weak_content_structure' || payload.field === 'content_structure' || fixType === 'heading_structure') {
+    return {
+      hasSupportedFix: true,
+      proposedFix: {
+        issueType: 'heading_structure' as const,
+        pagePath,
+        currentValue: '',
+        recommendedValue: 'Structured semantic HTML with H1/H2 hierarchy',
+        reason,
+        severity: 'warning' as const,
+        instruction: 'Structure content using clean H1/H2 heading hierarchy',
+      },
+    };
+  }
+
+  return {
+    hasSupportedFix: false,
+    proposedFix: null,
   };
 }

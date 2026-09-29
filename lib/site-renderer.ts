@@ -16,6 +16,12 @@ export function assemblePublishedWebsite(params: RenderSiteParams): string {
 
   let html = htmlRaw;
 
+  // 0. Ensure speculationrules scripts don't flood browser background prefetch queues
+  html = html.replace(/<script[^>]*type=["']speculationrules["'][^>]*>[\s\S]*?<\/script>/gi, '');
+
+  // 0.1 Ensure external scripts don't block DOM parsing or ready state
+  html = html.replace(/<script\b(?![^>]*\b(defer|async)\b)([^>]*\bsrc\s*=\s*[^>]+)>/gi, '<script defer $2>');
+
   // 1. Ensure basic HTML5 structure
   if (!html.includes("<!DOCTYPE html") && !html.includes("<!doctype html")) {
     const hasHead = html.includes("<head>") || html.includes("</head>");
@@ -40,14 +46,36 @@ export function assemblePublishedWebsite(params: RenderSiteParams): string {
     }
   }
 
-  // 3. Inject JS interactivity script before </body>
-  if (js) {
-    const scriptBlock = `<script>\n// PUBLISHED WEBSITE INTERACTIVITY\ntry {\n${js}\n} catch (e) { console.error("Site Script Error:", e); }\n</script>`;
-    if (html.includes("</body>")) {
-      html = html.replace("</body>", `${scriptBlock}\n</body>`);
-    } else {
-      html = `${html}\n${scriptBlock}`;
+  // 3. Inject JS interactivity script & client-side link interceptor before </body>
+  const linkInterceptorScript = `<script id="codeaxys-link-interceptor">
+(function() {
+  document.addEventListener('click', function(e) {
+    var anchor = e.target.closest('a');
+    if (!anchor) return;
+    var rawHref = anchor.getAttribute('href') || '';
+    if (!rawHref) return;
+
+    if (/mnc?conline\.com/i.test(rawHref)) {
+      e.preventDefault();
+      e.stopPropagation();
+      var path = rawHref.replace(/^https?:\\/\\/(?:www\\.)?mnc?conline\\.com/i, '');
+      var currentBase = window.location.pathname.split('/site/')[1];
+      if (currentBase) {
+        var websiteSlug = currentBase.split('/')[0];
+        var cleanPath = path.replace(/^\\/+/, '');
+        var targetUrl = '/site/' + websiteSlug + '/' + (cleanPath ? cleanPath : '');
+        window.location.href = targetUrl;
+      }
     }
+  }, true);
+})();
+</script>`;
+
+  const scriptBlock = `<script>\n// PUBLISHED WEBSITE INTERACTIVITY\ntry {\n${js}\n} catch (e) { console.error("Site Script Error:", e); }\n</script>\n${linkInterceptorScript}`;
+  if (html.includes("</body>")) {
+    html = html.replace("</body>", `${scriptBlock}\n</body>`);
+  } else {
+    html = `${html}\n${scriptBlock}`;
   }
 
   // 4. Inject SEO Metadata, Open Graph, Twitter Cards, Schema, Analytics & GTM
