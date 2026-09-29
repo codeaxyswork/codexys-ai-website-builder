@@ -1,5 +1,4 @@
-import { GET as rootFileGet } from "../app/[filename]/route";
-import { GET as siteFileGet } from "../app/site/[slug]/[filename]/route";
+import { GET as siteFileGet } from "../app/site/[slug]/[...subpath]/route";
 
 console.log("=== TESTING HTML FILE VERIFICATION ROUTE AND TOKEN SANITIZATION ===");
 

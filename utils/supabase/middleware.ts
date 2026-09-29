@@ -49,11 +49,10 @@ export async function updateSession(request: NextRequest) {
     const rawAppDomain = (
       process.env.APP_DOMAIN ||
       process.env.NEXT_PUBLIC_APP_DOMAIN ||
-      process.env.NEXT_PUBLIC_VERCEL_PROJECT_PRODUCTION_URL ||
       "codeaxys.com"
     ).toLowerCase().trim().replace(/^https?:\/\//i, "").replace(/\/.*$/, "");
 
-    const baseDomain = (rawAppDomain && !rawAppDomain.includes("localhost")) ? rawAppDomain : "codeaxys.com";
+    const baseDomain = (rawAppDomain && !rawAppDomain.includes("localhost") && !rawAppDomain.includes("vercel.app")) ? rawAppDomain : "codeaxys.com";
 
     const host = request.headers.get("host");
     const cleanHost = host ? host.split(":")[0].toLowerCase().trim() : "";
@@ -90,6 +89,9 @@ export async function updateSession(request: NextRequest) {
       const isMainDomain =
         cleanHost === baseDomain ||
         cleanHost === `www.${baseDomain}` ||
+        cleanHost === "codeaxys.com" ||
+        cleanHost === "www.codeaxys.com" ||
+        cleanHost.endsWith(".vercel.app") ||
         cleanHost === "localhost" ||
         cleanHost === "127.0.0.1";
 
@@ -97,9 +99,10 @@ export async function updateSession(request: NextRequest) {
         let targetSlug = cleanHost;
 
         // Platform Subdomain Check: e.g. mncc.codeaxys.com -> extract "mncc"
-        if (cleanHost.endsWith(`.${baseDomain}`)) {
-          const sub = cleanHost.slice(0, -(baseDomain.length + 1)).trim();
-          if (sub && sub !== "www" && sub !== "app" && sub !== "api") {
+        if (cleanHost.endsWith(`.${baseDomain}`) || cleanHost.endsWith(".codeaxys.com")) {
+          const matchedDomain = cleanHost.endsWith(`.${baseDomain}`) ? baseDomain : "codeaxys.com";
+          const sub = cleanHost.slice(0, -(matchedDomain.length + 1)).trim();
+          if (sub && sub !== "www" && sub !== "app" && sub !== "api" && sub !== "admin") {
             targetSlug = sub;
           }
         }
