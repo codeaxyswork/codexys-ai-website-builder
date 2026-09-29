@@ -2,6 +2,7 @@ import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 
 const DEFAULT_SUPABASE_URL = "https://yumsturujjjgdxsrqgbm.supabase.co";
+const DEFAULT_SUPABASE_ANON_KEY = "sb_publishable_qZERNQHUEVJN_deBFMDGLw_DQgJDwcS";
 
 export async function updateSession(request: NextRequest) {
   let supabaseResponse = NextResponse.next({
@@ -16,6 +17,17 @@ export async function updateSession(request: NextRequest) {
   if (!supabaseUrl || !supabaseUrl.startsWith("http")) {
     supabaseUrl = DEFAULT_SUPABASE_URL;
   }
+
+  if (!supabaseAnonKey || supabaseAnonKey === "[SENSITIVE]" || supabaseAnonKey.length < 10) {
+    supabaseAnonKey = DEFAULT_SUPABASE_ANON_KEY;
+  }
+
+  const applyResponseCookies = (targetRes: NextResponse) => {
+    supabaseResponse.cookies.getAll().forEach((cookie) => {
+      targetRes.cookies.set(cookie.name, cookie.value, cookie);
+    });
+    return targetRes;
+  };
 
   try {
     const supabase = createServerClient(supabaseUrl, supabaseAnonKey, {
@@ -82,7 +94,7 @@ export async function updateSession(request: NextRequest) {
       const url = request.nextUrl.clone();
       const targetSubpath = pathname === "/" ? "" : pathname;
       url.pathname = `/site/${cleanTestSlug}${targetSubpath}`;
-      return NextResponse.rewrite(url);
+      return applyResponseCookies(NextResponse.rewrite(url));
     }
 
     if (cleanHost && !isSaaSPath) {
@@ -110,7 +122,7 @@ export async function updateSession(request: NextRequest) {
         const url = request.nextUrl.clone();
         const targetSubpath = pathname === "/" ? "" : pathname;
         url.pathname = `/site/${targetSlug}${targetSubpath}`;
-        return NextResponse.rewrite(url);
+        return applyResponseCookies(NextResponse.rewrite(url));
       }
     }
 
@@ -118,21 +130,21 @@ export async function updateSession(request: NextRequest) {
     if (!user && pathname.startsWith("/admin")) {
       const url = request.nextUrl.clone();
       url.pathname = "/login";
-      return NextResponse.redirect(url);
+      return applyResponseCookies(NextResponse.redirect(url));
     }
 
     // Protect /dashboard route: redirect to /login if unauthenticated
     if (!user && pathname.startsWith("/dashboard")) {
       const url = request.nextUrl.clone();
       url.pathname = "/login";
-      return NextResponse.redirect(url);
+      return applyResponseCookies(NextResponse.redirect(url));
     }
 
     // Redirect authenticated users away from /login and /signup to /dashboard
     if (user && (pathname.startsWith("/login") || pathname.startsWith("/signup"))) {
       const url = request.nextUrl.clone();
       url.pathname = "/dashboard";
-      return NextResponse.redirect(url);
+      return applyResponseCookies(NextResponse.redirect(url));
     }
 
     // Check Platform Maintenance Mode
@@ -169,7 +181,7 @@ export async function updateSession(request: NextRequest) {
           if (!isAdminUser) {
             const url = request.nextUrl.clone();
             url.pathname = "/maintenance";
-            return NextResponse.redirect(url);
+            return applyResponseCookies(NextResponse.redirect(url));
           }
         }
       } catch {
