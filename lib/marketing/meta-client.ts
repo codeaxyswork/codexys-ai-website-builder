@@ -166,8 +166,8 @@ export function getMetaAuthUrl(websiteId: string, userId: string, appUrl?: strin
   }
 
   const configId = (process.env.META_CONFIG_ID || "").trim();
-  const baseUrl = (appUrl || process.env.NEXT_PUBLIC_APP_URL || "https://codexys-ai-website-builder.vercel.app").replace(/\/$/, "");
-  const redirectUri = `${baseUrl}/api/websites/${websiteId}/marketing/callback`;
+  const baseUrl = (appUrl || process.env.NEXT_PUBLIC_APP_URL || "https://codeaxys.com").replace(/\/$/, "");
+  const redirectUri = `${baseUrl}/api/marketing/callback`;
   const state = generateMetaAuthState(websiteId, userId);
 
   const scopes = [
@@ -229,8 +229,8 @@ export async function exchangeCodeForMetaTokens(
     throw new Error("Meta OAuth credentials (META_CLIENT_ID / META_CLIENT_SECRET) are missing on the server.");
   }
 
-  const baseUrl = (appUrl || process.env.NEXT_PUBLIC_APP_URL || "https://codexys-ai-website-builder.vercel.app").replace(/\/$/, "");
-  const redirectUri = `${baseUrl}/api/websites/${websiteId}/marketing/callback`;
+  const baseUrl = (appUrl || process.env.NEXT_PUBLIC_APP_URL || "https://codeaxys.com").replace(/\/$/, "");
+  const redirectUri = `${baseUrl}/api/marketing/callback`;
 
   const params = new URLSearchParams({
     client_id: clientId,
