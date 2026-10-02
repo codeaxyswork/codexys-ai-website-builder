@@ -116,8 +116,17 @@ export function WebsiteManagementClient({ website, indexPage, seoData }: Managem
     }
   };
 
-  const publicUrl = (publishedSlug || website.slug)
-    ? `${origin}/site/${publishedSlug || website.slug}`
+  const appDomain = (
+    process.env.NEXT_PUBLIC_APP_DOMAIN ||
+    process.env.APP_DOMAIN ||
+    "codeaxys.com"
+  ).trim().toLowerCase().replace(/^https?:\/\//i, "").replace(/\/.*$/, "");
+
+  const activeSlug = publishedSlug || website.slug;
+  const isLocalHost = origin.includes("localhost") || origin.includes("127.0.0.1");
+
+  const publicUrl = activeSlug
+    ? (isLocalHost ? `${origin}/site/${activeSlug}` : `https://${activeSlug}.${appDomain}`)
     : "";
 
   const customDomainUrl = website.custom_domain ? `https://${website.custom_domain}` : null;

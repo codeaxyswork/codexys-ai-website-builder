@@ -143,9 +143,32 @@ export async function executeWebsiteMigration(
   const rawTitle = scanResult.pages[0]?.title || scanResult.domain || "Migrated Website";
   const title = rawTitle.length > 50 ? rawTitle.substring(0, 47) + "..." : rawTitle;
 
-  const baseSlug = scanResult.domain.replace(/[^a-z0-9]+/gi, "-").toLowerCase();
-  const suffix = Math.random().toString(36).substring(2, 7);
-  const cleanSlug = `migrated-${baseSlug}-${suffix}`;
+  // Derive clean brand slug (e.g. mncconline.com -> mncc)
+  let cleanBrand = scanResult.domain
+    .toLowerCase()
+    .trim()
+    .replace(/^(https?:\/\/)?(www\.)?/i, "")
+    .replace(/(\.online|\.com|\.org|\.net|\.site|\.co|\.in|\.io|\.tech)+$/gi, "")
+    .replace(/online$/gi, "")
+    .replace(/[^a-z0-9]+/gi, "-")
+    .replace(/^-+|-+$/g, "");
+
+  if (!cleanBrand || cleanBrand.length < 2) {
+    cleanBrand = scanResult.domain.replace(/[^a-z0-9]+/gi, "-").toLowerCase().replace(/^-+|-+$/g, "");
+  }
+
+  // Ensure slug uniqueness
+  let cleanSlug = cleanBrand;
+  const { data: existingSlug } = await supabase
+    .from("websites")
+    .select("id")
+    .or(`slug.eq.${cleanSlug},published_slug.eq.${cleanSlug}`)
+    .maybeSingle();
+
+  if (existingSlug) {
+    const suffix = Math.random().toString(36).substring(2, 7);
+    cleanSlug = `${cleanBrand}-${suffix}`;
+  }
 
   const db = getSafeAdminClient();
 
