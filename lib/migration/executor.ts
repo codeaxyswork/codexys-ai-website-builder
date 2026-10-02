@@ -9,6 +9,16 @@ import { buildLocalPageMap, localizeHtmlLinks } from "./link-localizer";
 
 const failedHostsMap = new Map<string, number>();
 
+function getSafeAdminClient() {
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL || "https://yumsturujjjgdxsrqgbm.supabase.co";
+  const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || "";
+
+  const { createClient: createSupabaseDirectClient } = require("@supabase/supabase-js");
+  return createSupabaseDirectClient(url, serviceKey, {
+    auth: { persistSession: false, autoRefreshToken: false },
+  });
+}
+
 /**
  * Downloads external image/media/font safely and saves to media_assets & storage bucket.
  * Uses a strict 1.8s timeout per asset & circuit breaker per host to prevent blocking migration.
@@ -40,7 +50,7 @@ async function importMediaAsset(
     if (isPrivateOrReservedIP(host)) return null;
 
     const controller = new AbortController();
-    const timer = setTimeout(() => controller.abort(), 1800); // 1.8s timeout per asset
+    const timer = setTimeout(() => controller.abort(), 800); // 800ms timeout per asset
 
     const res = await fetch(imageUrl, {
       signal: controller.signal,
@@ -137,11 +147,10 @@ export async function executeWebsiteMigration(
   const suffix = Math.random().toString(36).substring(2, 7);
   const cleanSlug = `migrated-${baseSlug}-${suffix}`;
 
-  console.log(`[MIGRATION] WEBSITE CREATE START ${Date.now() - startTime}ms`);
-  let newWebsite = null;
-  let createWebError = null;
+  const db = getSafeAdminClient();
 
-  const { data: userWeb, error: userWebErr } = await supabase
+  console.log(`[MIGRATION] WEBSITE CREATE START ${Date.now() - startTime}ms`);
+  const { data: newWebsite, error: createWebError } = await db
     .from("websites")
     .insert({
       user_id: userId,
@@ -169,47 +178,6 @@ export async function executeWebsiteMigration(
     })
     .select("id")
     .single();
-
-  if (userWeb) {
-    newWebsite = userWeb;
-  } else {
-    createWebError = userWebErr;
-    console.warn(`[MIGRATION WEBSITE INSERT WARNING] User client website create failed: ${userWebErr?.message}. Attempting admin client fallback.`);
-    const adminClient = createAdminClient();
-    const { data: adminWeb, error: adminWebErr } = await adminClient
-      .from("websites")
-      .insert({
-        user_id: userId,
-        title: `[Migrated] ${title}`,
-        slug: cleanSlug,
-        published_slug: cleanSlug,
-        prompt: `Migrated from ${scanResult.targetUrl}`,
-        is_published: false,
-        design_plan: {
-          websiteType: "migrated",
-          migration: {
-            originalUrl: scanResult.targetUrl,
-            domain: scanResult.domain,
-            platform: scanResult.platform.name,
-            mode,
-            selections,
-            summary: scanResult.summary,
-            urlMappings: scanResult.urlMappings,
-          },
-          colorPalette: [
-            { name: "Primary", hex: scanResult.globalStyles.colors.primary || "#6366f1" },
-            { name: "Secondary", hex: scanResult.globalStyles.colors.secondary || "#4f46e5" },
-          ],
-        },
-      })
-      .select("id")
-      .single();
-    if (adminWeb) {
-      newWebsite = adminWeb;
-    } else {
-      createWebError = adminWebErr;
-    }
-  }
 
   if (createWebError || !newWebsite) {
     throw new Error(`Failed to create migration draft website: ${createWebError?.message || "Unknown error"}`);
@@ -286,9 +254,9 @@ export async function executeWebsiteMigration(
 
       console.log(`[MIGRATION] ASSETS CAPTURED (${urlsToMigrate.size} assets) ${Date.now() - startTime}ms`);
 
-      // Parallel Bounded Batch Asset Localization (capped to max 30 key assets per page)
+      // Parallel Bounded Batch Asset Localization (capped to top 5 key assets per page for fast response)
       if (selections.content.images && urlsToMigrate.size > 0) {
-        const urlArray = Array.from(urlsToMigrate).slice(0, 30);
+        const urlArray = Array.from(urlsToMigrate).slice(0, 5);
         const BATCH_SIZE = 6;
         for (let b = 0; b < urlArray.length; b += BATCH_SIZE) {
           const chunk = urlArray.slice(b, b + BATCH_SIZE);
@@ -403,29 +371,16 @@ export async function executeWebsiteMigration(
       js_content: finalJs,
     };
 
-    // Insert into website_pages using authenticated user client first to satisfy RLS
-    const { data: insertedPages, error: pageInsertError } = await supabase
+    // Insert into website_pages directly via admin client
+    const { data: insertedPages, error: pageInsertError } = await db
       .from("website_pages")
       .insert(pageInsertPayload)
       .select("id")
       .single();
 
-    let pageId = insertedPages?.id;
-
-    if (pageInsertError || !pageId) {
-      console.warn(`[MIGRATION PAGE INSERT WARNING] User client save failed for ${pagePath}: ${pageInsertError?.message}. Attempting admin client fallback.`);
-      const adminClient = createAdminClient();
-      const { data: adminPages, error: adminInsertError } = await adminClient
-        .from("website_pages")
-        .insert(pageInsertPayload)
-        .select("id")
-        .single();
-
-      if (adminInsertError || !adminPages) {
-        console.error(`[MIGRATION PAGE INSERT ERROR] Failed to save website_pages for ${pagePath}:`, adminInsertError?.message);
-      } else {
-        pageId = adminPages.id;
-      }
+    const pageId = insertedPages?.id;
+    if (pageInsertError) {
+      console.error(`[MIGRATION PAGE INSERT ERROR] Failed to save website_pages for ${pagePath}:`, pageInsertError.message);
     }
 
     // Save page-level SEO metadata to website_page_seo table if pageId is available
@@ -451,7 +406,7 @@ export async function executeWebsiteMigration(
         pageSeoPayload.og_image_url = srcPage.seo.ogImage;
       }
 
-      await supabase.from("website_page_seo").insert(pageSeoPayload);
+      await db.from("website_page_seo").insert(pageSeoPayload);
     }
 
     let pageManifest = (mode === "exact" && (srcPage as any)._browserManifest) || undefined;
@@ -475,7 +430,7 @@ export async function executeWebsiteMigration(
       const locRes = localizeHtmlLinks(page.html_content, pageMap, sourceHostnames);
       if (locRes.internalLinksRewritten > 0) {
         page.html_content = locRes.html;
-        await supabase
+        await db
           .from("website_pages")
           .update({ html_content: locRes.html })
           .eq("website_id", websiteId)
@@ -490,13 +445,15 @@ export async function executeWebsiteMigration(
   // 4. Trigger async SEO intelligence analysis (NON-BLOCKING)
   console.log(`[MIGRATION] OPPORTUNITY SCAN START ${Date.now() - startTime}ms`);
   try {
-    runOpportunityScan(supabase, websiteId, userId).catch((err: any) => {
-      console.error("Async SEO Analysis trigger after migration failed:", err);
-    });
+    setTimeout(() => {
+      runOpportunityScan(supabase, websiteId, userId).catch((err: any) => {
+        console.error("Async SEO Analysis trigger after migration failed:", err);
+      });
+    }, 50);
   } catch {
     // Non-blocking
   }
-  console.log(`[MIGRATION] OPPORTUNITY SCAN COMPLETE ${Date.now() - startTime}ms`);
+  console.log(`[MIGRATION] OPPORTUNITY SCAN SCHEDULED ${Date.now() - startTime}ms`);
 
   console.log(`[MIGRATION] FINALIZE START ${Date.now() - startTime}ms`);
   console.log(`[MIGRATION] FINALIZE COMPLETE ${Date.now() - startTime}ms`);

@@ -123,12 +123,16 @@ export async function GET(
     });
     sanitizedHtml = sanitizedHtml.replace(new RegExp(`${publicPrefix.replace(/[-[\]{}()*+?.,\\^$|#\s]/g, '\\$&')}/+`, "g"), `${publicPrefix}/`);
 
+    const migrationDomain = website?.design_plan?.migration?.domain || website?.design_plan?.migration?.originalUrl || null;
+
     const renderedDoc = assemblePublishedWebsite({
       htmlContent: sanitizedHtml,
       cssContent: mainPage.css_content,
       jsContent: mainPage.js_content,
       seoSettings: seoRes.data || null,
       websiteTitle: website.title,
+      migrationDomain,
+      slug: website.published_slug || cleanSlug,
     });
     const tAssembleEnd = performance.now();
 

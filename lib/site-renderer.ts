@@ -7,6 +7,47 @@ export interface RenderSiteParams {
   jsContent?: string | null;
   seoSettings?: SEOSettingsInput | null;
   websiteTitle?: string | null;
+  migrationDomain?: string | null;
+  slug?: string | null;
+}
+
+export function rewriteMigratedAssetUrls(
+  html: string,
+  migrationDomain?: string | null,
+  slug?: string | null
+): string {
+  if (!html || !migrationDomain) return html;
+
+  let cleanDomain = migrationDomain.trim().toLowerCase();
+  cleanDomain = cleanDomain.replace(/^https?:\/\//i, "").replace(/\/.*$/, "");
+  if (!cleanDomain) return html;
+
+  const targetOrigin = `https://${cleanDomain}`;
+  let result = html;
+
+  if (slug) {
+    const escSlug = slug.trim().replace(/[-[\]{}()*+?.,\\^$|#\s]/g, "\\$&");
+    const sitePathRegex = new RegExp(`(?:/site/${escSlug})?/(wp-content|wp-includes)/`, "gi");
+    result = result.replace(sitePathRegex, `${targetOrigin}/$1/`);
+  }
+  result = result.replace(/\/site\/[a-zA-Z0-9_-]+\/(wp-content|wp-includes)\//gi, `${targetOrigin}/$1/`);
+
+  result = result.replace(/([="'(,\s]|&quot;|^)\s*\/(wp-content|wp-includes)\//gi, (match, prefix, folder) => {
+    if (/https?:\/\/|\/\//i.test(match)) return match;
+    return `${prefix}${targetOrigin}/${folder.toLowerCase()}/`;
+  });
+
+  result = result.replace(/([="'(,\s]|&quot;|^)\s*(wp-content|wp-includes)\//gi, (match, prefix, folder) => {
+    if (/https?:\/\/|\/\//i.test(match)) return match;
+    return `${prefix}${targetOrigin}/${folder.toLowerCase()}/`;
+  });
+
+  // Fix double targetOrigin concatenation if any occurred
+  const escDomain = cleanDomain.replace(/[-[\]{}()*+?.,\\^$|#\s]/g, "\\$&");
+  result = result.replace(new RegExp(`https?:\\/\\/(?:www\\.)?${escDomain}https?:?\\/*(?:www\\.)?${escDomain}`, "gi"), targetOrigin);
+  result = result.replace(new RegExp(`https?:\\/\\/(?:www\\.)?${escDomain}https?:?\\/*`, "gi"), `${targetOrigin}/`);
+
+  return result;
 }
 
 export function assemblePublishedWebsite(params: RenderSiteParams): string {
@@ -15,6 +56,10 @@ export function assemblePublishedWebsite(params: RenderSiteParams): string {
   const js = (params.jsContent || "").trim();
 
   let html = htmlRaw;
+
+  if (params.migrationDomain) {
+    html = rewriteMigratedAssetUrls(html, params.migrationDomain, params.slug);
+  }
 
   // 0. Ensure speculationrules scripts don't flood browser background prefetch queues
   html = html.replace(/<script[^>]*type=["']speculationrules["'][^>]*>[\s\S]*?<\/script>/gi, '');

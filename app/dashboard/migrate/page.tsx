@@ -111,10 +111,17 @@ export default function MigrationPage() {
         body: JSON.stringify({ url }),
       });
 
-      const data = await res.json();
+      const rawText = await res.text();
+      let data: any = {};
+      try {
+        data = rawText ? JSON.parse(rawText) : {};
+      } catch {
+        data = { error: `Server returned an unparseable response (HTTP ${res.status}).` };
+      }
 
       if (!res.ok || data.error) {
-        setScanError(data.error || "Failed to scan website.");
+        const errorMsg = data.error || `Failed to scan website (HTTP ${res.status}).`;
+        setScanError(errorMsg);
         setIsScanning(false);
         return;
       }
@@ -186,10 +193,16 @@ export default function MigrationPage() {
       clearTimeout(pTimer2);
       clearTimeout(pTimer3);
 
-      const data: MigrationExecuteResult & { error?: string } = await res.json();
+      const rawText = await res.text();
+      let data: MigrationExecuteResult & { error?: string } = {} as any;
+      try {
+        data = rawText ? JSON.parse(rawText) : ({} as any);
+      } catch {
+        data = { error: `Server returned an unparseable response (HTTP ${res.status}).` } as any;
+      }
 
       if (!res.ok || data.error) {
-        const errorMsg = data.error || "Failed to complete website migration.";
+        const errorMsg = data.error || `Failed to complete website migration (HTTP ${res.status}).`;
         console.log(`[REDESIGN_UI_ERROR] runId: ${runId} | error: "${errorMsg}"`);
         setMigrationError(errorMsg);
         setStep("error");

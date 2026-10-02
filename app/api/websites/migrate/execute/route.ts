@@ -1,24 +1,52 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest } from "next/server";
 import { createClient } from "@/utils/supabase/server";
 import { executeWebsiteMigration } from "@/lib/migration/executor";
 import { SourceWebsiteScan, MigrationMode, MigrationSelections } from "@/lib/migration/types";
+
+export const maxDuration = 60;
+export const dynamic = "force-dynamic";
+
+function jsonResponse(data: any, status = 200) {
+  return new Response(JSON.stringify(data), {
+    status,
+    headers: {
+      "Content-Type": "application/json",
+      "Cache-Control": "no-store, no-cache, must-revalidate",
+    },
+  });
+}
 
 export async function POST(req: NextRequest) {
   const startTime = Date.now();
   console.log(`[MIGRATION API] Route invoked at ${new Date().toISOString()}`);
 
   try {
-    const supabase = await createClient();
-
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
-
-    if (!user) {
-      return NextResponse.json({ error: "Authentication required to execute website migration." }, { status: 401 });
+    let supabase: any;
+    try {
+      supabase = await createClient();
+    } catch (e: any) {
+      return jsonResponse({ success: false, error: `Failed to initialize auth client: ${e?.message || e}` }, 500);
     }
 
-    const body = await req.json();
+    let user: any = null;
+    try {
+      const { data } = await supabase.auth.getUser();
+      user = data?.user || null;
+    } catch (e: any) {
+      return jsonResponse({ success: false, error: `Auth validation failed: ${e?.message || e}` }, 401);
+    }
+
+    if (!user) {
+      return jsonResponse({ success: false, error: "Authentication required to execute website migration." }, 401);
+    }
+
+    let body: any = {};
+    try {
+      body = await req.json();
+    } catch {
+      return jsonResponse({ success: false, error: "Invalid JSON request payload." }, 400);
+    }
+
     const { scanResult, mode, selections, redesignPrompt, runId: clientRunId } = body as {
       scanResult?: SourceWebsiteScan;
       mode?: MigrationMode;
@@ -31,7 +59,7 @@ export async function POST(req: NextRequest) {
     console.log(`[MIGRATION API START] runId: ${runId} | mode: ${mode}`);
 
     if (!scanResult || !scanResult.targetUrl || !scanResult.pages) {
-      return NextResponse.json({ error: "Invalid scan result object provided." }, { status: 400 });
+      return jsonResponse({ success: false, error: "Invalid scan result object provided." }, 400);
     }
 
     const selectedMode: MigrationMode = mode || "exact";
@@ -44,12 +72,10 @@ export async function POST(req: NextRequest) {
     const result = await executeWebsiteMigration(user.id, scanResult, selectedMode, selectedOptions, supabase, redesignPrompt, runId);
 
     console.log(`[MIGRATION API] Route completed in ${Date.now() - startTime}ms`);
-    return NextResponse.json(result);
+    return jsonResponse(result, 200);
   } catch (err: any) {
-    console.error(`[MIGRATION API] Route Error (${Date.now() - startTime}ms):`, err);
-    return NextResponse.json(
-      { error: err?.message || "Failed to execute website migration." },
-      { status: 500 }
-    );
+    const errorMsg = String(err?.message || err || "Failed to execute website migration.");
+    console.error(`[MIGRATION API Error] (${Date.now() - startTime}ms):`, errorMsg);
+    return jsonResponse({ success: false, error: errorMsg }, 500);
   }
 }
