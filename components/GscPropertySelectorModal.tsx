@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
+import { getWebsitePublicUrl } from "@/lib/domain-resolver";
 
 export interface GscPropertyItem {
   siteUrl: string;
@@ -58,7 +59,7 @@ export function GscPropertySelectorModal({
       if (list.length > 0) {
         setSelectedUrl(list[0].siteUrl);
       } else {
-        const fallback = data.debug?.fallbackCandidateUrls?.[0] || (data.website?.slug ? `https://codexys-ai-website-builder.vercel.app/site/${data.website.slug}/` : "");
+        const fallback = data.debug?.fallbackCandidateUrls?.[0] || (data.website ? getWebsitePublicUrl(data.website) : "");
         if (fallback) {
           setSelectedUrl(fallback);
         }
@@ -132,7 +133,7 @@ export function GscPropertySelectorModal({
                   type="text"
                   value={selectedUrl}
                   onChange={(e) => setSelectedUrl(e.target.value)}
-                  placeholder="https://codexys-ai-website-builder.vercel.app/site/..."
+                  placeholder="https://your-slug.codeaxys.com"
                   className="w-full px-3 py-2 bg-white border border-slate-300 rounded-lg text-xs font-mono text-slate-900 focus:ring-2 focus:ring-purple-500 focus:outline-none"
                 />
               </div>

@@ -25,6 +25,7 @@ import { SEOContentStudio } from "@/components/SEOContentStudio";
 import { SEOTechnicalDashboard } from "@/components/SEOTechnicalDashboard";
 import { SEOCommandCenterDashboard } from "@/components/SEOCommandCenterDashboard";
 import { SEOReportsDashboard } from "@/components/SEOReportsDashboard";
+import { AiVisibilityDashboard } from "@/components/AiVisibilityDashboard";
 import { SEOAnalysisResult } from "@/lib/seo-analyzer";
 import { AISEOSuggestions } from "@/lib/seo-ai";
 import { 
@@ -50,7 +51,8 @@ import {
   Swords,
   Target,
   Activity,
-  ShieldCheck
+  ShieldCheck,
+  Eye
 } from "lucide-react";
 
 interface SEODashboardPageProps {
@@ -474,6 +476,7 @@ export default function SEODashboardPage({ params }: SEODashboardPageProps) {
     { id: "competitors", label: "Competitors", icon: Swords, badge: "⚔️" },
     { id: "content-gaps", label: "Content Gaps", icon: Target, badge: "🎯" },
     { id: "aeo", label: "AEO / AI Search", icon: Bot, badge: "🤖" },
+    { id: "ai-visibility", label: "AI Visibility", icon: Eye, badge: "👁️" },
     { id: "topical-authority", label: "Topical Authority", icon: GitFork, badge: "🌳" },
     { id: "opportunities", label: "Opportunity Engine", icon: Lightbulb, badge: "⚡" },
     { id: "autopilot", label: "SEO Autopilot", icon: Cpu, badge: "⚙️" },
@@ -761,6 +764,11 @@ export default function SEODashboardPage({ params }: SEODashboardPageProps) {
             {/* AEO TAB */}
             {activeTab === "aeo" && (
               <SEOAEODashboard websiteId={websiteId} />
+            )}
+
+            {/* AI VISIBILITY TAB */}
+            {activeTab === "ai-visibility" && (
+              <AiVisibilityDashboard websiteId={websiteId} brandName={website?.title} />
             )}
 
             {/* TOPICAL AUTHORITY TAB */}

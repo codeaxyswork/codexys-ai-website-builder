@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/utils/supabase/server";
 import { fetchGscProperties, refreshGscAccessToken, loadGscCredentials, saveGscCredentials } from "@/lib/gsc-client";
+import { getWebsitePublicUrl } from "@/lib/domain-resolver";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
@@ -24,7 +25,7 @@ export async function GET(
     // Verify website ownership
     const { data: website, error: siteErr } = await supabase
       .from("websites")
-      .select("id, title, slug, published_slug, custom_domain")
+      .select("id, title, slug, published_slug, custom_domain, is_published")
       .eq("id", websiteId)
       .eq("user_id", user.id)
       .single();
@@ -73,24 +74,17 @@ export async function GET(
     }
 
     // Construct dynamic candidate URLs for fallback sites.get probe
-    const baseUrl = (process.env.NEXT_PUBLIC_APP_URL || "https://codexys-ai-website-builder.vercel.app").replace(/\/$/, "");
-    const publishedSlug = website.published_slug || website.slug;
+    const canonicalPublicUrl = getWebsitePublicUrl(website);
     const fallbackCandidateUrls: string[] = [];
 
-    if (publishedSlug) {
-      fallbackCandidateUrls.push(`${baseUrl}/site/${publishedSlug}/`);
-      fallbackCandidateUrls.push(`${baseUrl}/site/${publishedSlug}`);
-      fallbackCandidateUrls.push(`http://codexys-ai-website-builder.vercel.app/site/${publishedSlug}/`);
-      fallbackCandidateUrls.push(`http://codexys-ai-website-builder.vercel.app/site/${publishedSlug}`);
+    if (canonicalPublicUrl) {
+      fallbackCandidateUrls.push(`${canonicalPublicUrl}/`);
+      fallbackCandidateUrls.push(canonicalPublicUrl);
+      try {
+        const u = new URL(canonicalPublicUrl);
+        fallbackCandidateUrls.push(`sc-domain:${u.hostname}`);
+      } catch (e) {}
     }
-    if (website.custom_domain) {
-      const cleanDomain = website.custom_domain.replace(/^https?:\/\//i, "").replace(/\/$/, "");
-      fallbackCandidateUrls.push(`https://${cleanDomain}/`);
-      fallbackCandidateUrls.push(`https://${cleanDomain}`);
-    }
-    // Also include domain level fallbacks
-    fallbackCandidateUrls.push(`${baseUrl}/`);
-    fallbackCandidateUrls.push(`sc-domain:${new URL(baseUrl).hostname}`);
 
     // Call Google Search Console API for properties (with fallback candidate URLs for sites.get)
     const { properties, debug } = await fetchGscProperties(accessToken, fallbackCandidateUrls);

@@ -7,6 +7,7 @@ import {
   loadGscCredentials,
   saveGscCredentials,
 } from "@/lib/gsc-client";
+import { getWebsitePublicUrl } from "@/lib/domain-resolver";
 
 export async function POST(
   request: Request,
@@ -67,16 +68,16 @@ export async function POST(
 
     // Validate that property_url came from user's authenticated Google account
     const candidateUrls = [property_url.trim()];
-    const baseUrl = (process.env.NEXT_PUBLIC_APP_URL || "https://codexys-ai-website-builder.vercel.app").replace(/\/$/, "");
-    const publishedSlug = website.published_slug || website.slug;
-    if (publishedSlug) {
-      candidateUrls.push(`${baseUrl}/site/${publishedSlug}/`);
-      candidateUrls.push(`${baseUrl}/site/${publishedSlug}`);
+    const canonicalPublicUrl = getWebsitePublicUrl(website);
+    if (canonicalPublicUrl) {
+      candidateUrls.push(`${canonicalPublicUrl}/`);
+      candidateUrls.push(canonicalPublicUrl);
     }
 
     const { properties } = await fetchGscProperties(accessToken, candidateUrls);
     let matchedProperty = properties.find((p) => p.siteUrl === property_url || p.siteUrl === property_url.trim());
 
+    const publishedSlug = website.published_slug || website.slug;
     if (!matchedProperty) {
       const cleanTarget = property_url.trim().replace(/\/$/, "").toLowerCase();
       const isCandidateMatch = candidateUrls.some(

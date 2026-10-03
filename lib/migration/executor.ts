@@ -6,6 +6,7 @@ import { captureSourcePageWithBrowser } from "./browser-capture";
 import { runOpportunityScan } from "@/lib/seo-opportunities/engine";
 import { isPrivateOrReservedIP } from "./scanner";
 import { buildLocalPageMap, localizeHtmlLinks } from "./link-localizer";
+import { importAndStoreMigrationAssets } from "./asset-importer";
 
 const failedHostsMap = new Map<string, number>();
 
@@ -443,6 +444,27 @@ export async function executeWebsiteMigration(
 
     console.log(`[MIGRATION] SEO SAVE COMPLETE ${Date.now() - startTime}ms`);
     console.log(`[MIGRATION] PAGE CREATE COMPLETE (${srcPage.path}) ${Date.now() - startTime}ms`);
+  }
+
+  // 3.4 Full External Asset Import & Storage Pipeline
+  console.log(`[MIGRATION] EXPORTING & STORING EXTERNAL MEDIA ASSETS ${Date.now() - startTime}ms`);
+  try {
+    const assetImportResult = await importAndStoreMigrationAssets(userId, websiteId, scanResult.baseUrl, capturedPages, { customSupabaseClient: db });
+    if (assetImportResult.urlMap.size > 0) {
+      console.log(`[MIGRATION] ASSET IMPORT COMPLETE: Rewriting DB records for ${assetImportResult.urlMap.size} asset URLs`);
+      for (const page of capturedPages) {
+        await db
+          .from("website_pages")
+          .update({
+            html_content: page.html_content,
+            css_content: page.css_content,
+          })
+          .eq("website_id", websiteId)
+          .eq("path", page.path);
+      }
+    }
+  } catch (assetErr: any) {
+    console.warn(`[MIGRATION ASSET IMPORT WARNING] (${Date.now() - startTime}ms):`, assetErr?.message);
   }
 
   // 3.5 Localize internal links across all captured pages

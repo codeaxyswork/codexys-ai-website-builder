@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import { getWebsitePublicUrl } from '@/lib/domain-resolver';
 import {
   ShieldCheck,
   Zap,
@@ -485,11 +486,10 @@ export function SEOCommandCenterDashboard({ websiteId, onNavigateTab }: SEOComma
               <h3 className="text-sm font-bold text-slate-900">AI-readable website manifest</h3>
             </div>
             <a
-              href={
-                data.websiteInfo.customDomain
-                  ? `https://${data.websiteInfo.customDomain}/llms.txt`
-                  : `/site/${data.websiteInfo.publishedSlug}/llms.txt`
-              }
+              href={getWebsitePublicUrl(
+                { published_slug: data.websiteInfo.publishedSlug, custom_domain: data.websiteInfo.customDomain },
+                { subpath: "/llms.txt" }
+              )}
               target="_blank"
               rel="noopener noreferrer"
               className="px-3.5 py-1.5 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 border border-indigo-200 rounded-lg text-xs font-semibold transition flex items-center gap-1.5 cursor-pointer"

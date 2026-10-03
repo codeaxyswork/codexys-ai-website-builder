@@ -4,6 +4,7 @@ import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import { AdminLayout } from "@/components/AdminLayout";
 import { Globe, Trash2, ExternalLink, Send } from "lucide-react";
+import { getWebsitePublicUrl } from "@/lib/domain-resolver";
 
 export default function AdminWebsitesPage() {
   const [loading, setLoading] = useState(true);
@@ -125,7 +126,7 @@ export default function AdminWebsitesPage() {
                         </span>
                       </td>
                       <td className="py-3 px-4 font-mono text-purple-700">
-                        {w.is_published && w.published_slug ? `/site/${w.published_slug}` : "-"}
+                        {w.is_published ? getWebsitePublicUrl(w) : "-"}
                       </td>
                       <td className="py-3 px-4 text-slate-400">{formatDate(w.created_at)}</td>
                       <td className="py-3 px-4 text-right">
@@ -133,7 +134,7 @@ export default function AdminWebsitesPage() {
                           {w.is_published && (
                             <>
                               <a
-                                href={`/site/${w.published_slug}`}
+                                href={getWebsitePublicUrl(w)}
                                 target="_blank"
                                 rel="noreferrer"
                                 className="p-1.5 rounded-lg border border-slate-200 bg-white text-purple-600 hover:bg-purple-50 transition-all"

@@ -6,6 +6,7 @@ import { runAEOAnalysis } from "./seo-aeo/engine";
 import { runTopicalAuthorityAnalysis } from "./seo-aeo/topical-authority";
 import { runGEOAnalysis } from "./seo-geo/engine";
 import { runAIOAnalysisEngine } from "./seo-aio/engine";
+import { getWebsitePublicUrl } from "./domain-resolver";
 
 export interface ExtractedBusinessContext {
   businessName: string;
@@ -195,14 +196,11 @@ export async function autoEnhanceGeneratedWebsiteSeo(
     // Fetch site slug
     const { data: website } = await supabase
       .from("websites")
-      .select("slug, published_slug")
+      .select("slug, published_slug, custom_domain, is_published")
       .eq("id", websiteId)
       .single();
 
-    const cleanSlug = website?.published_slug || website?.slug || `site-${websiteId.slice(0, 6)}`;
-    const appDomain = process.env.NEXT_PUBLIC_APP_DOMAIN || "localhost:3000";
-    const protocol = appDomain.includes("localhost") ? "http" : "https";
-    const canonicalUrl = `${protocol}://${appDomain}/site/${cleanSlug}`;
+    const canonicalUrl = getWebsitePublicUrl(website);
 
     // 1. Extract Business Context
     const context = extractBusinessContext(promptText, plan, htmlContent);

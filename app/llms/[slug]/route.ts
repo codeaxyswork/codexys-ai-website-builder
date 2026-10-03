@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/utils/supabase/server";
 import { generateAIWebsiteManifest } from "@/lib/seo-manifest";
+import { getWebsitePublicUrl } from "@/lib/domain-resolver";
 
 export async function GET(
   request: Request,
@@ -14,7 +15,7 @@ export async function GET(
     // Query published website by published_slug or slug
     const { data: website } = await supabase
       .from("websites")
-      .select("id, published_slug, custom_domain, is_published")
+      .select("id, published_slug, slug, custom_domain, is_published")
       .or(`published_slug.eq.${cleanSlug},slug.eq.${cleanSlug}`)
       .eq("is_published", true)
       .maybeSingle();
@@ -23,11 +24,7 @@ export async function GET(
       return new NextResponse("Not Found", { status: 404 });
     }
 
-    const host = request.headers.get("host") || "localhost:3000";
-    const protocol = request.headers.get("x-forwarded-proto") || "https";
-    const baseUrl = website.custom_domain
-      ? `${protocol}://${website.custom_domain}`
-      : `${protocol}://${host}/site/${website.published_slug}`;
+    const baseUrl = getWebsitePublicUrl(website);
 
     const manifestText = await generateAIWebsiteManifest(supabase, website.id, { baseUrl });
 

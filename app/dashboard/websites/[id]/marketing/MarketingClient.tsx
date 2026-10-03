@@ -932,6 +932,32 @@ export function MarketingClient({ website }: MarketingClientProps) {
     }
   };
 
+  const handleExportLeadsCSV = () => {
+    if (!leadsList || leadsList.length === 0) return;
+    const headers = ["ID", "Name", "Email", "Phone", "Source", "Campaign / Form", "Landing Page", "Status", "Date", "Notes"];
+    const rows = leadsList.map((l) => [
+      l.id,
+      `"${(l.name || "").replace(/"/g, '""')}"`,
+      `"${(l.email || "").replace(/"/g, '""')}"`,
+      `"${(l.phone || "").replace(/"/g, '""')}"`,
+      l.source || "unknown",
+      `"${(l.campaign_name || l.form_name || "").replace(/"/g, '""')}"`,
+      `"${(l.landing_page || l.form_id || "").replace(/"/g, '""')}"`,
+      l.status || "new",
+      l.created_at || "",
+      `"${(l.notes || l.message || "").replace(/"/g, '""')}"`,
+    ]);
+
+    const csvContent = "data:text/csv;charset=utf-8," + [headers.join(","), ...rows.map((r) => r.join(","))].join("\n");
+    const encodedUri = encodeURI(csvContent);
+    const link = document.createElement("a");
+    link.setAttribute("href", encodedUri);
+    link.setAttribute("download", `marketing-leads-${website.id.slice(0, 8)}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
   // Phase 6 API Helpers
   const fetchAnalytics = async (preset = datePresetFilter) => {
     setIsFetchingAnalytics(true);
@@ -2715,6 +2741,16 @@ export function MarketingClient({ website }: MarketingClientProps) {
                     <option value="converted">Converted</option>
                     <option value="lost">Lost</option>
                   </select>
+
+                  {/* Export CSV Button */}
+                  <button
+                    onClick={handleExportLeadsCSV}
+                    disabled={leadsList.length === 0}
+                    className="px-3.5 py-1.5 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 disabled:opacity-50 text-xs font-bold flex items-center gap-1.5 transition-all shadow-2xs cursor-pointer"
+                  >
+                    <Save className="w-3.5 h-3.5 text-purple-600" />
+                    <span>Export CSV</span>
+                  </button>
                 </div>
               </div>
 

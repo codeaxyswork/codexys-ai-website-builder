@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { createClient, createAdminClient } from "@/utils/supabase/server";
 import { FILE_LIMITS, ERROR_CODES } from "@/lib/constants";
 import { getUserUsage } from "@/lib/billing";
+import { invalidateUserCache } from "@/lib/cache";
 
 export async function POST(req: NextRequest) {
   try {
@@ -134,6 +135,9 @@ export async function POST(req: NextRequest) {
         { status: 500 }
       );
     }
+
+    // Invalidate user usage cache so dashboard immediately reflects new storage size
+    await invalidateUserCache(user.id);
 
     return NextResponse.json({
       success: true,

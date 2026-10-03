@@ -2,6 +2,7 @@
 
 import React, { useState } from "react";
 import { Globe, ExternalLink, Copy, Check, Loader2, Send, Lock } from "lucide-react";
+import { getWebsitePublicUrl } from "@/lib/domain-resolver";
 
 interface PublishControlsProps {
   websiteId: string | null;
@@ -81,7 +82,7 @@ export function PublishControls({
 
   const handleCopyLink = () => {
     if (!slug) return;
-    const fullUrl = `${window.location.origin}/site/${slug}`;
+    const fullUrl = getWebsitePublicUrl({ published_slug: slug });
     navigator.clipboard.writeText(fullUrl);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
@@ -95,6 +96,8 @@ export function PublishControls({
       </div>
     );
   }
+
+  const canonicalUrl = getWebsitePublicUrl({ published_slug: slug });
 
   return (
     <div className="flex flex-col gap-2">
@@ -116,8 +119,8 @@ export function PublishControls({
               Status: {isPublished ? "Published" : "Draft"}
             </span>
             {isPublished && slug && (
-              <span className="text-[10px] font-mono text-purple-700 block truncate max-w-[160px]">
-                /site/{slug}
+              <span className="text-[10px] font-mono text-purple-700 block truncate max-w-[160px]" title={canonicalUrl}>
+                {slug}.codeaxys.com
               </span>
             )}
           </div>
@@ -140,7 +143,7 @@ export function PublishControls({
           ) : (
             <>
               <a
-                href={`/site/${slug}`}
+                href={canonicalUrl}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-purple-50 hover:bg-purple-100 border border-purple-200 text-purple-700 text-xs font-semibold transition-all"

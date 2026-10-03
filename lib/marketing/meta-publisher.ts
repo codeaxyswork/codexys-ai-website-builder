@@ -41,6 +41,14 @@ export interface ApprovalSnapshot {
   platform: string;
   objective: string;
   snapshotHash: string;
+  creativeFormat?: "image" | "video" | "carousel";
+  videoUrl?: string;
+  carouselCards?: Array<{
+    headline: string;
+    description?: string;
+    imageUrl: string;
+    linkUrl?: string;
+  }>;
 }
 
 export interface ExecutionRecord {
@@ -401,7 +409,45 @@ export function validateProductionUrl(urlInput?: string | null): string {
 }
 
 /**
- * Step 4: Create Meta Ad Creative
+ * Step 3.5: Upload Video / Get Video ID from Meta (/advideos)
+ */
+export async function uploadMetaAdVideo(
+  accessToken: string,
+  adAccountId: string,
+  videoUrl: string
+): Promise<string | null> {
+  if (!videoUrl || !videoUrl.startsWith("http")) {
+    return null;
+  }
+
+  const actId = normalizeAdAccountId(adAccountId);
+  const url = `${getGraphBaseUrl()}/${actId}/advideos`;
+
+  try {
+    const bodyParams = new URLSearchParams({
+      file_url: videoUrl,
+      access_token: accessToken,
+    });
+
+    const res = await fetch(url, {
+      method: "POST",
+      headers: { "Content-Type": "application/x-www-form-urlencoded", Accept: "application/json" },
+      body: bodyParams.toString(),
+    });
+
+    const data = await res.json();
+    if (res.ok && data.id) {
+      return data.id;
+    }
+  } catch (err) {
+    console.warn("Meta Video Upload Warning (proceeding with video URL spec):", err);
+  }
+
+  return null;
+}
+
+/**
+ * Step 4: Create Meta Ad Creative (Supports Single Image, Video & Carousel Formats)
  */
 export async function createMetaAdCreative(
   accessToken: string,
@@ -415,27 +461,79 @@ export async function createMetaAdCreative(
   // Strict HTTPS Production URL Guard (Enforces same validated URL for both link & CTA value link)
   const validProductionUrl = validateProductionUrl(snapshot.landingPage?.url);
 
-  const linkData: any = {
-    link: validProductionUrl,
-    message: snapshot.selectedAdCopy.primaryText,
-    name: snapshot.selectedAdCopy.headline,
-    description: snapshot.selectedAdCopy.description,
-    call_to_action: {
-      type: normalizeMetaCtaType(snapshot.selectedAdCopy.cta),
-      value: { link: validProductionUrl },
-    },
-  };
+  const format = snapshot.creativeFormat || (snapshot.videoUrl ? "video" : snapshot.carouselCards && snapshot.carouselCards.length > 1 ? "carousel" : "image");
 
-  if (imageHash) {
-    linkData.image_hash = imageHash;
-  } else if (snapshot.selectedImage?.sourceUrl) {
-    linkData.picture = snapshot.selectedImage.sourceUrl;
+  let creativeSpec: any;
+
+  if (format === "video" && snapshot.videoUrl) {
+    const videoId = await uploadMetaAdVideo(accessToken, adAccountId, snapshot.videoUrl);
+    creativeSpec = {
+      page_id: snapshot.metaPageId,
+      video_data: {
+        video_id: videoId || undefined,
+        image_url: snapshot.selectedImage?.sourceUrl || undefined,
+        message: snapshot.selectedAdCopy.primaryText,
+        title: snapshot.selectedAdCopy.headline,
+        call_to_action: {
+          type: normalizeMetaCtaType(snapshot.selectedAdCopy.cta),
+          value: { link: validProductionUrl },
+        },
+      },
+    };
+  } else if (format === "carousel" && snapshot.carouselCards && snapshot.carouselCards.length > 0) {
+    const childAttachments = await Promise.all(
+      snapshot.carouselCards.map(async (card) => {
+        const cardHash = card.imageUrl ? await uploadMetaAdImage(accessToken, adAccountId, card.imageUrl) : null;
+        return {
+          link: card.linkUrl ? validateProductionUrl(card.linkUrl) : validProductionUrl,
+          name: card.headline || snapshot.selectedAdCopy.headline,
+          description: card.description || snapshot.selectedAdCopy.description,
+          image_hash: cardHash || undefined,
+          picture: cardHash ? undefined : card.imageUrl,
+          call_to_action: {
+            type: normalizeMetaCtaType(snapshot.selectedAdCopy.cta),
+            value: { link: validProductionUrl },
+          },
+        };
+      })
+    );
+
+    creativeSpec = {
+      page_id: snapshot.metaPageId,
+      link_data: {
+        link: validProductionUrl,
+        message: snapshot.selectedAdCopy.primaryText,
+        child_attachments: childAttachments,
+        call_to_action: {
+          type: normalizeMetaCtaType(snapshot.selectedAdCopy.cta),
+          value: { link: validProductionUrl },
+        },
+      },
+    };
+  } else {
+    // Single Image Default Format
+    const linkData: any = {
+      link: validProductionUrl,
+      message: snapshot.selectedAdCopy.primaryText,
+      name: snapshot.selectedAdCopy.headline,
+      description: snapshot.selectedAdCopy.description,
+      call_to_action: {
+        type: normalizeMetaCtaType(snapshot.selectedAdCopy.cta),
+        value: { link: validProductionUrl },
+      },
+    };
+
+    if (imageHash) {
+      linkData.image_hash = imageHash;
+    } else if (snapshot.selectedImage?.sourceUrl) {
+      linkData.picture = snapshot.selectedImage.sourceUrl;
+    }
+
+    creativeSpec = {
+      page_id: snapshot.metaPageId,
+      link_data: linkData,
+    };
   }
-
-  const creativeSpec = {
-    page_id: snapshot.metaPageId,
-    link_data: linkData,
-  };
 
   const creativeName = `Creative - ${snapshot.selectedAdCopy.headline.slice(0, 30)}`;
 

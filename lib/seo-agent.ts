@@ -2,6 +2,7 @@ import { GoogleGenAI } from "@google/genai";
 import { getGeminiConfig } from "./gemini";
 import { DetectedSEOIntent, detectSEOIntent } from "./seo-agent-intent";
 import { mapOpportunityToProposedFix } from "./seo-command-center/aggregator";
+import { getWebsitePublicUrl } from "./domain-resolver";
 
 export interface SEOAgentContext {
   website: {
@@ -217,13 +218,11 @@ export async function buildSEOContext(
   // 1. Fetch Website Metadata
   const { data: website } = await supabase
     .from("websites")
-    .select("user_id, title, published_slug, prompt")
+    .select("user_id, title, published_slug, slug, custom_domain, is_published, prompt")
     .eq("id", websiteId)
     .single();
 
-  const publishedUrl = website?.published_slug
-    ? `https://${process.env.NEXT_PUBLIC_APP_DOMAIN || "localhost:3000"}/site/${website.published_slug}`
-    : null;
+  const publishedUrl = getWebsitePublicUrl(website);
 
   // 2. Fetch website_seo Core Baseline
   const { data: seoRow } = await supabase

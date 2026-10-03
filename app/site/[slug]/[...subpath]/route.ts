@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { createAdminClient } from "@/utils/supabase/server";
 import { assemblePublishedWebsite } from "@/lib/site-renderer";
 import { getCachedSiteData, setCachedSiteData } from "@/lib/site-cache";
+import { getWebsitePublicUrl } from "@/lib/domain-resolver";
 export const dynamic = "force-dynamic";
 export const fetchCache = "force-no-store";
 export const revalidate = 0;
@@ -66,13 +67,31 @@ export async function GET(
       });
     }
 
+    // Direct platform route safeguard: Redirect /site/{slug}/{subpath} to canonical subdomain / custom domain
+    // only when visited directly on the main app host (e.g. codeaxys.com), preventing redirect loops during middleware rewrite.
+    const hostHeader = (request.headers.get("host") || "").split(":")[0].toLowerCase().trim();
+    const appDomain = (
+      process.env.APP_DOMAIN ||
+      process.env.NEXT_PUBLIC_APP_DOMAIN ||
+      process.env.NEXT_PUBLIC_VERCEL_PROJECT_PRODUCTION_URL ||
+      process.env.NEXT_PUBLIC_VERCEL_URL ||
+      "codeaxys.com"
+    ).toLowerCase().trim();
+
+    const isMainPlatformHost = hostHeader === appDomain || hostHeader === "codeaxys.com" || hostHeader === "www.codeaxys.com";
+
+    if (isMainPlatformHost && website.is_published) {
+      const canonicalUrl = getWebsitePublicUrl(website, { subpath: pathStr });
+      if (canonicalUrl && !canonicalUrl.includes("/site/")) {
+        return NextResponse.redirect(canonicalUrl, 301);
+      }
+    }
+
     // 2.5 Special file handling (llms.txt & google site verification)
     const lowerFile = (pathSegments[0] || "").toLowerCase().trim();
     if (pathSegments.length === 1 && (lowerFile === "llms.txt" || lowerFile === "llms")) {
       const { generateAIWebsiteManifest } = await import("@/lib/seo-manifest");
-      const host = request.headers.get("host") || "localhost:3000";
-      const protocol = request.headers.get("x-forwarded-proto") || "https";
-      const baseUrl = website.custom_domain ? `${protocol}://${website.custom_domain}` : `${protocol}://${host}/site/${website.published_slug || cleanSlug}`;
+      const baseUrl = getWebsitePublicUrl(website);
       const manifestText = await generateAIWebsiteManifest(supabase, website.id, { baseUrl });
       if (manifestText) {
         return new Response(manifestText, {

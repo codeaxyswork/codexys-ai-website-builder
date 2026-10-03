@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient, createAdminClient } from "@/utils/supabase/server";
+import { invalidateUserCache } from "@/lib/cache";
 
 export async function DELETE(
   request: NextRequest,
@@ -55,6 +56,9 @@ export async function DELETE(
     if (dbDeleteError) {
       return NextResponse.json({ error: dbDeleteError.message }, { status: 500 });
     }
+
+    // Invalidate user usage cache so dashboard immediately reflects new storage size
+    await invalidateUserCache(user.id);
 
     return NextResponse.json({ success: true });
   } catch (err: any) {

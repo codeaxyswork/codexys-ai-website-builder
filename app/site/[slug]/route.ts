@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { createAdminClient } from "@/utils/supabase/server";
 import { assemblePublishedWebsite } from "@/lib/site-renderer";
 import { getCachedSiteData, setCachedSiteData } from "@/lib/site-cache";
+import { getWebsitePublicUrl } from "@/lib/domain-resolver";
 export const dynamic = "force-dynamic";
 export const fetchCache = "force-no-store";
 export const revalidate = 0;
@@ -51,6 +52,26 @@ export async function GET(
         status: 404,
         headers: { "Content-Type": "text/html; charset=utf-8" },
       });
+    }
+
+    // Direct platform route safeguard: Redirect /site/{slug} to canonical subdomain / custom domain
+    // only when visited directly on the main app host (e.g. codeaxys.com), preventing redirect loops during middleware rewrite.
+    const hostHeader = (request.headers.get("host") || "").split(":")[0].toLowerCase().trim();
+    const appDomain = (
+      process.env.APP_DOMAIN ||
+      process.env.NEXT_PUBLIC_APP_DOMAIN ||
+      process.env.NEXT_PUBLIC_VERCEL_PROJECT_PRODUCTION_URL ||
+      process.env.NEXT_PUBLIC_VERCEL_URL ||
+      "codeaxys.com"
+    ).toLowerCase().trim();
+
+    const isMainPlatformHost = hostHeader === appDomain || hostHeader === "codeaxys.com" || hostHeader === "www.codeaxys.com";
+
+    if (isMainPlatformHost && website.is_published) {
+      const canonicalUrl = getWebsitePublicUrl(website);
+      if (canonicalUrl && !canonicalUrl.includes("/site/")) {
+        return NextResponse.redirect(canonicalUrl, 301);
+      }
     }
 
     // 2. Fetch SEO settings & active homepage page in parallel (LOAD ONLY 1 PAGE, NOT ALL 20)

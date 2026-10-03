@@ -1,6 +1,7 @@
 import * as cheerio from "cheerio";
 import { auditFactualConsistency, calculateCitationReadiness } from "./factual-consistency";
 import { redisGet, redisSet } from "../redis";
+import { getWebsitePublicUrl } from "../domain-resolver";
 
 export interface EntityRelationshipNode {
   type: "Business" | "Brand" | "Website" | "Service" | "Product" | "Location" | "Contact";
@@ -477,7 +478,7 @@ export async function runGEOAnalysis(
     email: null,
     services: seoRow?.focus_keywords ? (Array.isArray(seoRow.focus_keywords) ? seoRow.focus_keywords : typeof seoRow.focus_keywords === "string" ? seoRow.focus_keywords.split(",").map((s: string) => s.trim()) : []) : [],
     description: seoRow?.meta_description || website.prompt,
-    canonicalUrl: seoRow?.canonical_url || `http://localhost:3000/site/${website.published_slug || website.slug}`,
+    canonicalUrl: seoRow?.canonical_url || getWebsitePublicUrl(website),
     schemaMarkup: seoRow?.schema_markup,
     htmlContent: indexHtml,
   };

@@ -27,7 +27,7 @@ export interface UserUsageData {
   };
 }
 
-export async function getUserUsage(userId: string): Promise<UserUsageData | null> {
+export async function getUserUsage(userId: string, customClient?: any): Promise<UserUsageData | null> {
   try {
     const cacheKey = CACHE_KEYS.userUsage(userId);
     const { data: cachedUsage } = await getCache<UserUsageData>(cacheKey);
@@ -35,7 +35,7 @@ export async function getUserUsage(userId: string): Promise<UserUsageData | null
       return cachedUsage;
     }
 
-    const supabase = await createClient();
+    const supabase = customClient || (await createClient());
 
     const startOfMonth = new Date();
     startOfMonth.setDate(1);
@@ -95,7 +95,7 @@ export async function getUserUsage(userId: string): Promise<UserUsageData | null
     }
 
     const totalStorageBytes = assets.reduce(
-      (sum, asset) => sum + (Number(asset.file_size_bytes) || 0),
+      (sum: number, asset: any) => sum + (Number(asset.file_size_bytes) || 0),
       0
     );
 

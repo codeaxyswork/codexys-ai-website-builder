@@ -24,6 +24,7 @@ import {
   LayoutDashboard,
 } from "lucide-react";
 import { getWebsiteTrialStatus } from "@/lib/website-trial";
+import { getWebsitePublicUrl } from "@/lib/domain-resolver";
 
 export interface WebsiteItem {
   id: string;
@@ -251,14 +252,12 @@ export function DashboardWebsiteList({ initialWebsites, userPlan = "free" }: Das
                 {/* URL Box */}
                 {site.is_published && (
                   <div className="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl bg-slate-50 border border-slate-200 text-xs font-mono text-purple-700 shrink-0 max-w-full overflow-hidden self-start md:self-center">
-                    <span className="truncate max-w-xs font-semibold" title={site.custom_domain || `/site/${site.published_slug}`}>
-                      {site.custom_domain ? `🌐 ${site.custom_domain}` : `/site/${site.published_slug}`}
+                    <span className="truncate max-w-xs font-semibold" title={getWebsitePublicUrl(site)}>
+                      {site.custom_domain ? `🌐 ${site.custom_domain}` : (site.published_slug || site.slug ? `${site.published_slug || site.slug}.codeaxys.com` : "")}
                     </span>
                     <button
                       onClick={() => {
-                        const linkToCopy = site.custom_domain
-                          ? `https://${site.custom_domain}`
-                          : `${window.location.origin}/site/${site.published_slug}`;
+                        const linkToCopy = getWebsitePublicUrl(site);
                         navigator.clipboard.writeText(linkToCopy);
                         setCopiedId(site.id);
                         setTimeout(() => setCopiedId(null), 2000);
@@ -506,7 +505,7 @@ export function DashboardWebsiteList({ initialWebsites, userPlan = "free" }: Das
                 <div className="flex items-center gap-2 flex-wrap">
                   {(site.published_slug || site.slug) && (
                     <a
-                      href={`/site/${site.published_slug || site.slug}`}
+                      href={getWebsitePublicUrl(site)}
                       target="_blank"
                       rel="noopener noreferrer"
                       className="py-2 px-3.5 rounded-xl border border-slate-200 bg-white text-purple-700 hover:bg-purple-50 hover:border-purple-200 text-xs font-semibold flex items-center gap-1.5 transition-all shadow-2xs cursor-pointer"

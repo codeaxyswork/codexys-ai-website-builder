@@ -161,7 +161,7 @@ export function SEOSettingsForm({
               type="url"
               value={formData.canonical_url}
               onChange={(e) => handleTextChange("canonical_url", e.target.value)}
-              placeholder="https://example.com/site/your-slug"
+              placeholder="https://your-slug.codeaxys.com"
               className="w-full px-4 py-3 bg-white border border-slate-300 rounded-xl text-slate-900 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-purple-500/20 focus:border-purple-600 transition-all"
             />
           </div>

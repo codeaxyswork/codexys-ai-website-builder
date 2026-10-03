@@ -4,6 +4,7 @@ import { fetchAndParseRobotsTxt } from '@/lib/seo-technical/robots-parser';
 import { fetchAndParseSitemap } from '@/lib/seo-technical/sitemap-parser';
 import { runTechnicalCrawl } from '@/lib/seo-technical/crawler';
 import { analyzeTechnicalCrawl } from '@/lib/seo-technical/technical-analyzer';
+import { getWebsitePublicUrl } from '@/lib/domain-resolver';
 
 export async function POST(
   request: Request,
@@ -32,13 +33,8 @@ export async function POST(
       return NextResponse.json({ error: 'Website not found or access denied.' }, { status: 404 });
     }
 
-    // Determine start URL (custom domain > published slug > localhost fallback)
-    const appDomain = process.env.NEXT_PUBLIC_APP_DOMAIN || 'localhost:3000';
-    const baseUrl = website.custom_domain
-      ? `https://${website.custom_domain}`
-      : website.published_slug
-      ? `https://${appDomain}/site/${website.published_slug}`
-      : `http://${appDomain}`;
+    // Determine start URL via canonical getWebsitePublicUrl
+    const baseUrl = getWebsitePublicUrl(website);
 
     const startTime = Date.now();
 

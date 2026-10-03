@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/utils/supabase/server";
+import { getWebsitePublicUrl } from "@/lib/domain-resolver";
 
 export async function GET(
   request: Request,
@@ -13,7 +14,7 @@ export async function GET(
     // Fetch published website by published_slug or slug
     const { data: website } = await supabase
       .from("websites")
-      .select("id, published_slug, is_published, updated_at")
+      .select("id, published_slug, slug, custom_domain, is_published, updated_at")
       .or(`published_slug.eq.${cleanSlug},slug.eq.${cleanSlug}`)
       .eq("is_published", true)
       .single();
@@ -35,9 +36,7 @@ export async function GET(
       .eq("website_id", website.id)
       .eq("status", "published");
 
-    const host = request.headers.get("host") || "localhost:3000";
-    const protocol = request.headers.get("x-forwarded-proto") || "https";
-    const baseUrl = `${protocol}://${host}`;
+    const siteBaseUrl = getWebsitePublicUrl(website);
 
     const lastMod = website.updated_at
       ? new Date(website.updated_at).toISOString().split("T")[0]
@@ -50,7 +49,7 @@ export async function GET(
           ? new Date(p.updated_at).toISOString().split("T")[0]
           : lastMod;
         return `  <url>
-    <loc>${baseUrl}/site/${website.published_slug}${pagePath}</loc>
+    <loc>${siteBaseUrl}${pagePath}</loc>
     <lastmod>${pMod}</lastmod>
     <changefreq>weekly</changefreq>
     <priority>${p.path === "index.html" ? "1.0" : "0.8"}</priority>
@@ -63,7 +62,7 @@ export async function GET(
         ? new Date(b.updated_at).toISOString().split("T")[0]
         : lastMod;
       return `  <url>
-    <loc>${baseUrl}/site/${website.published_slug}/blog/${b.slug}</loc>
+    <loc>${siteBaseUrl}/blog/${b.slug}</loc>
     <lastmod>${bMod}</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.7</priority>

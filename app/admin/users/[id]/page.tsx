@@ -4,6 +4,7 @@ import React, { useState, useEffect, use } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { AdminLayout } from "@/components/AdminLayout";
+import { getWebsitePublicUrl } from "@/lib/domain-resolver";
 
 interface UserDetailsPageProps {
   params: Promise<{ id: string }>;
@@ -204,7 +205,7 @@ export default function AdminUserDetailsPage({ params }: UserDetailsPageProps) {
                     <div className="flex items-center gap-2">
                       {w.is_published ? (
                         <a
-                          href={`/site/${w.published_slug}`}
+                          href={getWebsitePublicUrl(w)}
                           target="_blank"
                           rel="noreferrer"
                           className="px-2.5 py-1 bg-emerald-50 text-emerald-700 border border-emerald-200 rounded-full font-semibold text-[10px]"

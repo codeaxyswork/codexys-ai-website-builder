@@ -32,6 +32,7 @@ import {
 import { getWebsiteTrialStatus } from "@/lib/website-trial";
 import { assemblePreviewDoc } from "@/lib/preview-helper";
 import { WebsiteAgentChat } from "@/components/WebsiteAgentChat";
+import { getWebsitePublicUrl } from "@/lib/domain-resolver";
 
 interface ManagementClientProps {
   website: any;
@@ -116,21 +117,12 @@ export function WebsiteManagementClient({ website, indexPage, seoData }: Managem
     }
   };
 
-  const appDomain = (
-    process.env.NEXT_PUBLIC_APP_DOMAIN ||
-    process.env.APP_DOMAIN ||
-    "codeaxys.com"
-  ).trim().toLowerCase().replace(/^https?:\/\//i, "").replace(/\/.*$/, "");
-
-  const activeSlug = publishedSlug || website.slug;
-  const isLocalHost = origin.includes("localhost") || origin.includes("127.0.0.1");
-
-  const publicUrl = activeSlug
-    ? (isLocalHost ? `${origin}/site/${activeSlug}` : `https://${activeSlug}.${appDomain}`)
-    : "";
-
-  const customDomainUrl = website.custom_domain ? `https://${website.custom_domain}` : null;
-  const activeLiveUrl = customDomainUrl || publicUrl;
+  const activeLiveUrl = getWebsitePublicUrl({
+    published_slug: publishedSlug || website.published_slug,
+    slug: website.slug,
+    custom_domain: website.custom_domain,
+    is_published: isPublished,
+  }, { origin });
 
   const plan = website.design_plan || {};
   const websiteType = plan.websiteType || "Custom AI Website";

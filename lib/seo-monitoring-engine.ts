@@ -158,6 +158,22 @@ export async function createMonitoringAlert(
     return false;
   }
 
+  // Non-blocking, failure-isolated outbound alert dispatch (Phase 1)
+  try {
+    import("./notifications/email-dispatcher")
+      .then(({ dispatchEmailAlert }) => {
+        dispatchEmailAlert(supabase, alert).catch((err) => console.error("Async email alert error:", err));
+      })
+      .catch(() => {});
+    import("./notifications/slack-dispatcher")
+      .then(({ dispatchSlackAlert }) => {
+        dispatchSlackAlert(supabase, alert).catch((err) => console.error("Async slack alert error:", err));
+      })
+      .catch(() => {});
+  } catch (e) {
+    // Suppress any dispatch error to preserve monitoring integrity
+  }
+
   return true;
 }
 

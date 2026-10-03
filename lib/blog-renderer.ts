@@ -1,3 +1,5 @@
+import { getWebsitePublicUrl } from "./domain-resolver";
+
 export interface BlogPostRenderInput {
   post: {
     id: string;
@@ -22,15 +24,16 @@ export interface BlogPostRenderInput {
   };
   websiteTitle: string;
   publishedSlug?: string | null;
+  customDomain?: string | null;
 }
 
 export function renderBlogPostHTML(input: BlogPostRenderInput): string {
-  const { post, websiteTitle, publishedSlug } = input;
+  const { post, websiteTitle, publishedSlug, customDomain } = input;
 
-  const appDomain = process.env.NEXT_PUBLIC_APP_DOMAIN || "localhost:3000";
-  const protocol = process.env.NODE_ENV === "production" ? "https" : "http";
-  const baseUrl = `${protocol}://${appDomain}`;
-  const canonical = post.canonical_url || (publishedSlug ? `${baseUrl}/site/${publishedSlug}/blog/${post.slug}` : "");
+  const canonical = post.canonical_url || getWebsitePublicUrl(
+    { published_slug: publishedSlug, custom_domain: customDomain },
+    { subpath: `/blog/${post.slug}` }
+  );
 
   const pageTitle = post.seo_title || post.title;
   const metaDesc = post.meta_description || post.excerpt || `Read ${post.title} on ${websiteTitle}`;
@@ -228,8 +231,8 @@ export function renderBlogPostHTML(input: BlogPostRenderInput): string {
 <body>
 
   <header class="site-header">
-    <a href="${publishedSlug ? `/site/${publishedSlug}` : "/"}" class="brand-title">${escapeHTML(websiteTitle)}</a>
-    <a href="${publishedSlug ? `/site/${publishedSlug}` : "/"}" class="back-link">← Back to Home</a>
+    <a href="/" class="brand-title">${escapeHTML(websiteTitle)}</a>
+    <a href="/" class="back-link">← Back to Home</a>
   </header>
 
   <main class="container">

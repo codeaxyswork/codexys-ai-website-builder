@@ -1,5 +1,6 @@
 import * as cheerio from "cheerio";
 import { redisGet, redisSet } from "./redis";
+import { getWebsitePublicUrl } from "./domain-resolver";
 
 export interface ManifestOptions {
   baseUrl?: string;
@@ -51,7 +52,7 @@ export async function generateAIWebsiteManifest(
   const indexHtml = indexPage?.html_content || "";
   const $ = cheerio.load(indexHtml);
 
-  const baseUrl = options.baseUrl || (website.custom_domain ? `https://${website.custom_domain}` : `/site/${website.published_slug}`);
+  const baseUrl = options.baseUrl || getWebsitePublicUrl(website);
 
   // Business Identity Priority: 1. local_seo, 2. website_seo, 3. website title/prompt
   const businessName = (localRow.business_name || website.title || "").trim();

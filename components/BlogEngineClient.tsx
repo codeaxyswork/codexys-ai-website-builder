@@ -3,6 +3,7 @@
 import React, { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { getWebsitePublicUrl } from "@/lib/domain-resolver";
 import {
   Newspaper,
   Plus,
@@ -485,9 +486,9 @@ export function BlogEngineClient({ website, initialPosts, userCredits }: BlogEng
                               {post.status === "published" ? "Unpublish" : "Publish"}
                             </button>
 
-                            {post.status === "published" && website.published_slug && (
+                            {post.status === "published" && (
                               <a
-                                href={`/site/${website.published_slug}/blog/${post.slug}`}
+                                href={getWebsitePublicUrl(website, { subpath: `/blog/${post.slug}` })}
                                 target="_blank"
                                 rel="noreferrer"
                                 className="h-9 w-9 rounded-xl border border-slate-200 bg-white hover:bg-purple-50 hover:border-purple-200 text-purple-700 flex items-center justify-center transition-all shadow-2xs"
