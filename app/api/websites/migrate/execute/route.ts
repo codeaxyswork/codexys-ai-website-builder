@@ -1,6 +1,6 @@
-import { NextRequest } from "next/server";
+import { NextRequest, after } from "next/server";
 import { createClient } from "@/utils/supabase/server";
-import { executeWebsiteMigration } from "@/lib/migration/executor";
+import { prepareMigrationDraftWebsite, executeWebsiteMigration } from "@/lib/migration/executor";
 import { SourceWebsiteScan, MigrationMode, MigrationSelections } from "@/lib/migration/types";
 
 export const maxDuration = 60;
@@ -69,22 +69,50 @@ export async function POST(req: NextRequest) {
       design: { colors: true, typography: true, spacing: true, layout: true, buttons: true },
     };
 
-    const result = await executeWebsiteMigration(user.id, scanResult, selectedMode, selectedOptions, supabase, redesignPrompt, runId);
+    // 1. Prepare draft website synchronously (< 300ms response time)
+    const { websiteId, cleanSlug } = await prepareMigrationDraftWebsite(
+      user.id,
+      scanResult,
+      selectedMode,
+      selectedOptions,
+      runId
+    );
 
-    console.log(`[MIGRATION API SUCCESS] runId: ${runId} | targetUrl: ${scanResult.targetUrl} | duration: ${Date.now() - startTime}ms`);
-    return jsonResponse(result, 200);
+    const previewUrl = `https://codeaxys.com/site/${cleanSlug}?preview=true`;
+
+    // 2. Dispatch long-running migration execution in the background via Next.js after()
+    after(async () => {
+      console.log(`[MIGRATION ASYNC WORKER STARTED] runId: ${runId} | websiteId: ${websiteId}`);
+      try {
+        await executeWebsiteMigration(
+          user.id,
+          scanResult,
+          selectedMode,
+          selectedOptions,
+          supabase,
+          redesignPrompt,
+          runId,
+          websiteId,
+          cleanSlug
+        );
+      } catch (bgErr: any) {
+        console.error(`[MIGRATION ASYNC WORKER ERROR] runId: ${runId}:`, bgErr);
+      }
+    });
+
+    console.log(`[MIGRATION API FAST RESPONSE] runId: ${runId} | websiteId: ${websiteId} | duration: ${Date.now() - startTime}ms`);
+
+    return jsonResponse({
+      success: true,
+      jobId: runId,
+      websiteId,
+      draftSlug: cleanSlug,
+      status: "queued",
+      previewUrl,
+    }, 200);
   } catch (err: any) {
     const errorMsg = String(err?.message || err || "Failed to execute website migration.");
-    console.error(`[MIGRATION API DIAGNOSTIC FAILURE] (duration: ${Date.now() - startTime}ms):`, {
-      runId: (req as any)._runId || "unknown",
-      userId: (req as any)._userId || "unknown",
-      sourceUrl: (req as any)._targetUrl || "unknown",
-      mode: (req as any)._mode || "exact",
-      errorName: err?.name || "Error",
-      errorMessage: errorMsg,
-      errorStack: err?.stack || "No stack trace available",
-      httpStatus: 500,
-    });
+    console.error(`[MIGRATION API INITIALIZATION FAILURE]:`, errorMsg);
     return jsonResponse({ success: false, error: errorMsg }, 500);
   }
 }

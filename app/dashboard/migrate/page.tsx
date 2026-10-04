@@ -151,30 +151,15 @@ export default function MigrationPage() {
     if (isExecuting) return;
 
     const runId = `ui_run_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`;
-    console.log(`\n[REDESIGN_UI_START] runId: ${runId} | mode: ${migrationMode}`);
+    console.log(`\n[MIGRATION_UI_START] runId: ${runId} | mode: ${migrationMode}`);
 
     setMigrationError(null);
     setExecutionResult(null);
     setIsExecuting(true);
 
     setStep("migrating");
-    setProgressPercent(15);
-    setProgressStage("Capturing source website...");
-
-    const pTimer1 = setTimeout(() => {
-      setProgressPercent(35);
-      setProgressStage("Waiting for browser...");
-    }, 2000);
-
-    const pTimer2 = setTimeout(() => {
-      setProgressPercent(60);
-      setProgressStage("Localizing assets...");
-    }, 6000);
-
-    const pTimer3 = setTimeout(() => {
-      setProgressPercent(85);
-      setProgressStage("Building Codeaxys snapshot...");
-    }, 12000);
+    setProgressPercent(10);
+    setProgressStage("Initializing migration job...");
 
     try {
       const res = await fetch("/api/websites/migrate/execute", {
@@ -189,39 +174,73 @@ export default function MigrationPage() {
         }),
       });
 
-      clearTimeout(pTimer1);
-      clearTimeout(pTimer2);
-      clearTimeout(pTimer3);
-
       const rawText = await res.text();
-      let data: MigrationExecuteResult & { error?: string } = {} as any;
+      let initData: any = {};
       try {
-        data = rawText ? JSON.parse(rawText) : ({} as any);
+        initData = rawText ? JSON.parse(rawText) : {};
       } catch {
-        data = { error: `Server returned an unparseable response (HTTP ${res.status}).` } as any;
+        initData = { error: `Server returned an unparseable response (HTTP ${res.status}).` };
       }
 
-      if (!res.ok || data.error) {
-        const errorMsg = data.error || `Failed to complete website migration (HTTP ${res.status}).`;
-        console.log(`[REDESIGN_UI_ERROR] runId: ${runId} | error: "${errorMsg}"`);
+      if (!res.ok || initData.error || !initData.success) {
+        const errorMsg = initData.error || `Failed to initialize website migration (HTTP ${res.status}).`;
+        console.log(`[MIGRATION_UI_INIT_ERROR] runId: ${runId} | error: "${errorMsg}"`);
         setMigrationError(errorMsg);
         setStep("error");
         setIsExecuting(false);
         return;
       }
 
-      setProgressPercent(100);
-      setProgressStage("Draft Website Ready!");
-      setExecutionResult(data);
-      setStep("review");
-      setIsExecuting(false);
+      const jobId = initData.jobId || runId;
+      const websiteId = initData.websiteId;
+
+      // Start Polling Loop for Migration Progress & Status
+      const pollInterval = setInterval(async () => {
+        try {
+          const statusRes = await fetch(`/api/websites/migrate/status?jobId=${jobId}&websiteId=${websiteId}`);
+          const statusData = await statusRes.json();
+
+          if (statusData && statusData.success) {
+            if (typeof statusData.progress === "number") {
+              setProgressPercent(statusData.progress);
+            }
+            if (statusData.currentStage) {
+              setProgressStage(statusData.currentStage);
+            }
+
+            if (statusData.status === "completed") {
+              clearInterval(pollInterval);
+              setProgressPercent(100);
+              setProgressStage("Draft Website Ready!");
+              setExecutionResult(statusData.result || {
+                success: true,
+                websiteId: statusData.websiteId,
+                draftSlug: statusData.draftSlug,
+                title: scanData.domain,
+                summary: scanData.summary,
+                warnings: scanData.warnings,
+                urlMappings: scanData.urlMappings,
+                capturedPages: [],
+              });
+              setStep("review");
+              setIsExecuting(false);
+            } else if (statusData.status === "failed") {
+              clearInterval(pollInterval);
+              const errorMsg = statusData.error || "Migration failed during background execution.";
+              console.log(`[MIGRATION_UI_EXECUTION_FAILED] runId: ${runId} | error: "${errorMsg}"`);
+              setMigrationError(errorMsg);
+              setStep("error");
+              setIsExecuting(false);
+            }
+          }
+        } catch (pollErr: any) {
+          console.warn(`[MIGRATION_POLL_WARN]`, pollErr?.message);
+        }
+      }, 1500);
     } catch (err: any) {
-      clearTimeout(pTimer1);
-      clearTimeout(pTimer2);
-      clearTimeout(pTimer3);
       setIsExecuting(false);
       const errorMsg = err?.message || "Failed to execute website migration.";
-      console.log(`[REDESIGN_UI_ERROR] runId: ${runId} | error: "${errorMsg}"`);
+      console.log(`[MIGRATION_UI_ERROR] runId: ${runId} | error: "${errorMsg}"`);
       setMigrationError(errorMsg);
       setStep("error");
     }
