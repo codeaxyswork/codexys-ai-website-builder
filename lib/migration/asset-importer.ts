@@ -265,7 +265,8 @@ export async function importAndStoreMigrationAssets(
   }
 
   stats.detected = allDiscoveredUrls.size;
-  const eligibleUrls = Array.from(allDiscoveredUrls).filter((u) => isSupportedAssetUrl(u));
+  const MAX_IMPORT_ASSETS = 20; // Cap to top 20 key assets per migration pass to preserve request SLA
+  const eligibleUrls = Array.from(allDiscoveredUrls).filter((u) => isSupportedAssetUrl(u)).slice(0, MAX_IMPORT_ASSETS);
   stats.eligible = eligibleUrls.length;
 
   if (eligibleUrls.length === 0) {

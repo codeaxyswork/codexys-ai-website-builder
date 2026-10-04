@@ -222,15 +222,20 @@ export async function executeWebsiteMigration(
   const urlCache = new Map<string, string>();
   const capturedPages: { path: string; html_content: string; css_content: string; manifest?: PageCaptureManifest }[] = [];
 
-  // Process ALL discovered/captured pages with time budget guard to prevent request timeout (60s API limit)
   const pagesToMigrate = scanResult.pages;
-  const TIME_BUDGET_MS = 25000; // 25s budget threshold to switch secondary pages to fast HTTP capture
+  const TIME_BUDGET_MS = 20000; // 20s budget threshold to switch secondary pages to fast HTTP capture
+  const SLA_HARD_CAP_MS = 38000; // 38s budget threshold to break page loop and finalize migration response
 
   // 3. Process and convert pages
   for (let i = 0; i < pagesToMigrate.length; i++) {
     const srcPage = pagesToMigrate[i];
     const pageStartTime = Date.now();
     const elapsedTime = pageStartTime - startTime;
+
+    if (i > 0 && elapsedTime > SLA_HARD_CAP_MS) {
+      console.log(`[MIGRATION SLA GUARD] Hard SLA cap reached (${elapsedTime}ms > ${SLA_HARD_CAP_MS}ms). Finalizing draft with ${capturedPages.length} captured pages.`);
+      break;
+    }
     console.log(`[MIGRATION] PAGE CREATE START [${i + 1}/${pagesToMigrate.length}] (${srcPage.path}) elapsed: ${elapsedTime}ms`);
 
     let finalHtml = "";
@@ -375,13 +380,13 @@ export async function executeWebsiteMigration(
         if (srcPage.heroBgImage && srcPage.heroBgImage.startsWith("http")) urlsToMigrate.add(srcPage.heroBgImage);
         if (srcPage.logoUrl && srcPage.logoUrl.startsWith("http")) urlsToMigrate.add(srcPage.logoUrl);
 
-        srcPage.sections.forEach((sec) => {
+        srcPage.sections.forEach((sec: any) => {
           if (sec.bgImage && sec.bgImage.startsWith("http")) urlsToMigrate.add(sec.bgImage);
           if (sec.slides) {
-            sec.slides.forEach((s) => {
+            sec.slides.forEach((s: any) => {
               if (s.bgImage && s.bgImage.startsWith("http")) urlsToMigrate.add(s.bgImage);
               if (s.foregroundImages) {
-                s.foregroundImages.forEach((fg) => {
+                s.foregroundImages.forEach((fg: any) => {
                   if (fg && fg.startsWith("http")) urlsToMigrate.add(fg);
                 });
               }
@@ -389,7 +394,7 @@ export async function executeWebsiteMigration(
           }
         });
 
-        srcPage.images.forEach((img) => {
+        srcPage.images.forEach((img: any) => {
           if (img.src && img.src.startsWith("http")) urlsToMigrate.add(img.src);
         });
 
