@@ -54,12 +54,63 @@ function classifyJsCategory(urlStr: string): "elementor" | "jquery" | "swiper" |
 }
 
 /**
+ * Launches a single shared Playwright Chromium browser instance for an entire migration job.
+ */
+export async function launchSharedMigrationBrowser(runId: string = "unknown"): Promise<Browser | null> {
+  const launchStart = Date.now();
+  console.log(`[PLAYWRIGHT_SHARED_BROWSER_STARTUP] runId=${runId}`);
+  try {
+    const pw = await import("playwright");
+    const chromiumModule = pw.chromium;
+    let executablePath: string | undefined = undefined;
+    let launchArgs: string[] = [
+      "--no-sandbox",
+      "--disable-setuid-sandbox",
+      "--disable-dev-shm-usage",
+      "--disable-accelerated-2d-canvas",
+      "--disable-gpu",
+    ];
+
+    try {
+      const sparticuz = await import("@sparticuz/chromium");
+      const chromiumBin = sparticuz.default || sparticuz;
+      if (chromiumBin && typeof chromiumBin.executablePath === "function") {
+        executablePath = await chromiumBin.executablePath();
+        if (Array.isArray(chromiumBin.args) && chromiumBin.args.length > 0) {
+          launchArgs = chromiumBin.args;
+        }
+        console.log(`[CHROMIUM_SPARTICUZ_EXECUTABLE_SUCCESS] runId=${runId} path=${executablePath}`);
+      }
+    } catch (sparticuzErr: any) {
+      console.log(`[CHROMIUM_SPARTICUZ_NOT_AVAILABLE] runId=${runId} msg=${sparticuzErr?.message || sparticuzErr}`);
+    }
+
+    const browser = await chromiumModule.launch({
+      executablePath: executablePath || undefined,
+      args: launchArgs,
+      headless: true,
+      timeout: 15000,
+    });
+    console.log(`[PLAYWRIGHT_SHARED_BROWSER_LAUNCH_SUCCESS] runId=${runId} elapsedMs=${Date.now() - launchStart}`);
+    return browser;
+  } catch (err: any) {
+    console.error(`[PLAYWRIGHT_SHARED_BROWSER_LAUNCH_FAILED] runId=${runId} elapsedMs=${Date.now() - launchStart} error="${err?.message || err}"`);
+    return null;
+  }
+}
+
+/**
  * Browser Capture Engine using Playwright Chromium.
  * Performs deep browser rendering, progressive scroll resource discovery,
  * runtime JS/CSS/asset classification, behavior detection, menu interaction testing,
  * and generates a deterministic per-page capture manifest.
  */
-export async function captureSourcePageWithBrowser(targetUrl: string, runId: string = "unknown"): Promise<BrowserPageSnapshot> {
+export async function captureSourcePageWithBrowser(
+  targetUrl: string,
+  runId: string = "unknown",
+  sharedBrowser?: Browser | null,
+  isHomepage: boolean = false
+): Promise<BrowserPageSnapshot> {
   const startTime = Date.now();
   const isSafe = await checkUrlSsf(targetUrl);
   if (!isSafe) {
@@ -67,7 +118,7 @@ export async function captureSourcePageWithBrowser(targetUrl: string, runId: str
   }
 
   try {
-    return await captureSourcePageInternal(targetUrl, startTime, runId);
+    return await captureSourcePageInternal(targetUrl, startTime, runId, sharedBrowser, isHomepage);
   } catch (err: any) {
     const elapsedMs = Date.now() - startTime;
     console.warn(`[HTTP_FALLBACK_START] runId=${runId} targetUrl=${targetUrl} stage=browser_capture_top_fallback elapsedMs=${elapsedMs} reason=${err?.message || err}`);
@@ -78,8 +129,15 @@ export async function captureSourcePageWithBrowser(targetUrl: string, runId: str
   }
 }
 
-async function captureSourcePageInternal(targetUrl: string, startTime: number, runId: string = "unknown"): Promise<BrowserPageSnapshot> {
-  let browser: Browser | null = null;
+async function captureSourcePageInternal(
+  targetUrl: string,
+  startTime: number,
+  runId: string = "unknown",
+  sharedBrowser?: Browser | null,
+  isHomepage: boolean = false
+): Promise<BrowserPageSnapshot> {
+  let browser: Browser | null = sharedBrowser || null;
+  const isSharedBrowser = !!sharedBrowser;
   const capturedNetworkUrls = new Set<string>();
   const detectedCssUrls = new Set<string>();
   const detectedJsUrls = new Set<string>();
@@ -91,74 +149,76 @@ async function captureSourcePageInternal(targetUrl: string, startTime: number, r
   const pageErrors: string[] = [];
   const networkFailures: string[] = [];
 
-  const loadStart = Date.now();
-  console.log(`[PLAYWRIGHT_MODULE_LOAD_START] runId=${runId} targetUrl=${targetUrl}`);
+  if (!browser) {
+    const loadStart = Date.now();
+    console.log(`[PLAYWRIGHT_MODULE_LOAD_START] runId=${runId} targetUrl=${targetUrl}`);
 
-  let chromiumModule: any = null;
-  try {
-    const pw = await import("playwright");
-    chromiumModule = pw.chromium;
-    console.log(`[PLAYWRIGHT_MODULE_LOAD_SUCCESS] runId=${runId} targetUrl=${targetUrl} elapsedMs=${Date.now() - loadStart}`);
-  } catch (loadErr: any) {
-    const elapsedMs = Date.now() - loadStart;
-    console.error(`[PLAYWRIGHT_MODULE_LOAD_FAILED] runId=${runId} targetUrl=${targetUrl} stage=module_load elapsedMs=${elapsedMs} error=${loadErr?.message || loadErr}`);
-    if (loadErr?.stack) console.error(loadErr.stack);
+    let chromiumModule: any = null;
+    try {
+      const pw = await import("playwright");
+      chromiumModule = pw.chromium;
+      console.log(`[PLAYWRIGHT_MODULE_LOAD_SUCCESS] runId=${runId} targetUrl=${targetUrl} elapsedMs=${Date.now() - loadStart}`);
+    } catch (loadErr: any) {
+      const elapsedMs = Date.now() - loadStart;
+      console.error(`[PLAYWRIGHT_MODULE_LOAD_FAILED] runId=${runId} targetUrl=${targetUrl} stage=module_load elapsedMs=${elapsedMs} error=${loadErr?.message || loadErr}`);
+      if (loadErr?.stack) console.error(loadErr.stack);
 
-    console.log(`[HTTP_FALLBACK_START] runId=${runId} targetUrl=${targetUrl} stage=module_load_fallback reason=playwright_module_load_failed`);
-    const fallbackStart = Date.now();
-    const fallbackRes = await fallbackHttpCapture(targetUrl, startTime);
-    console.log(`[HTTP_FALLBACK_SUCCESS] runId=${runId} targetUrl=${targetUrl} stage=module_load_fallback elapsedMs=${Date.now() - fallbackStart}`);
-    return fallbackRes;
-  }
-
-  const launchStart = Date.now();
-  console.log(`[CHROMIUM_LAUNCH_START] runId=${runId} targetUrl=${targetUrl}`);
-
-  let executablePath: string | undefined = undefined;
-  let launchArgs: string[] = [
-    "--no-sandbox",
-    "--disable-setuid-sandbox",
-    "--disable-dev-shm-usage",
-    "--disable-accelerated-2d-canvas",
-    "--disable-gpu",
-  ];
-
-  try {
-    const sparticuz = await import("@sparticuz/chromium");
-    const chromiumBin = sparticuz.default || sparticuz;
-    if (chromiumBin && typeof chromiumBin.executablePath === "function") {
-      executablePath = await chromiumBin.executablePath();
-      if (Array.isArray(chromiumBin.args) && chromiumBin.args.length > 0) {
-        launchArgs = chromiumBin.args;
-      }
-      console.log(`[CHROMIUM_SPARTICUZ_EXECUTABLE_SUCCESS] runId=${runId} path=${executablePath}`);
+      console.log(`[HTTP_FALLBACK_START] runId=${runId} targetUrl=${targetUrl} stage=module_load_fallback reason=playwright_module_load_failed`);
+      const fallbackStart = Date.now();
+      const fallbackRes = await fallbackHttpCapture(targetUrl, startTime);
+      console.log(`[HTTP_FALLBACK_SUCCESS] runId=${runId} targetUrl=${targetUrl} stage=module_load_fallback elapsedMs=${Date.now() - fallbackStart}`);
+      return fallbackRes;
     }
-  } catch (sparticuzErr: any) {
-    console.log(`[CHROMIUM_SPARTICUZ_NOT_AVAILABLE] runId=${runId} msg=${sparticuzErr?.message || sparticuzErr}`);
-  }
 
-  try {
-    browser = await chromiumModule.launch({
-      executablePath: executablePath || undefined,
-      args: launchArgs,
-      headless: true,
-      timeout: 15000,
-    });
-    console.log(`[CHROMIUM_LAUNCH_SUCCESS] runId=${runId} targetUrl=${targetUrl} elapsedMs=${Date.now() - launchStart}`);
-  } catch (launchErr: any) {
-    const elapsedMs = Date.now() - launchStart;
-    console.error(`[CHROMIUM_LAUNCH_FAILED] runId=${runId} targetUrl=${targetUrl} stage=chromium_launch elapsedMs=${elapsedMs} error=${launchErr?.message || launchErr}`);
-    if (launchErr?.stack) console.error(launchErr.stack);
+    const launchStart = Date.now();
+    console.log(`[CHROMIUM_LAUNCH_START] runId=${runId} targetUrl=${targetUrl}`);
 
-    console.log(`[HTTP_FALLBACK_START] runId=${runId} targetUrl=${targetUrl} stage=chromium_launch_fallback reason=chromium_launch_failed`);
-    const fallbackStart = Date.now();
-    const fallbackRes = await fallbackHttpCapture(targetUrl, startTime);
-    console.log(`[HTTP_FALLBACK_SUCCESS] runId=${runId} targetUrl=${targetUrl} stage=chromium_launch_fallback elapsedMs=${Date.now() - fallbackStart}`);
-    return fallbackRes;
+    let executablePath: string | undefined = undefined;
+    let launchArgs: string[] = [
+      "--no-sandbox",
+      "--disable-setuid-sandbox",
+      "--disable-dev-shm-usage",
+      "--disable-accelerated-2d-canvas",
+      "--disable-gpu",
+    ];
+
+    try {
+      const sparticuz = await import("@sparticuz/chromium");
+      const chromiumBin = sparticuz.default || sparticuz;
+      if (chromiumBin && typeof chromiumBin.executablePath === "function") {
+        executablePath = await chromiumBin.executablePath();
+        if (Array.isArray(chromiumBin.args) && chromiumBin.args.length > 0) {
+          launchArgs = chromiumBin.args;
+        }
+        console.log(`[CHROMIUM_SPARTICUZ_EXECUTABLE_SUCCESS] runId=${runId} path=${executablePath}`);
+      }
+    } catch (sparticuzErr: any) {
+      console.log(`[CHROMIUM_SPARTICUZ_NOT_AVAILABLE] runId=${runId} msg=${sparticuzErr?.message || sparticuzErr}`);
+    }
+
+    try {
+      browser = await chromiumModule.launch({
+        executablePath: executablePath || undefined,
+        args: launchArgs,
+        headless: true,
+        timeout: 15000,
+      });
+      console.log(`[CHROMIUM_LAUNCH_SUCCESS] runId=${runId} targetUrl=${targetUrl} elapsedMs=${Date.now() - launchStart}`);
+    } catch (launchErr: any) {
+      const elapsedMs = Date.now() - launchStart;
+      console.error(`[CHROMIUM_LAUNCH_FAILED] runId=${runId} targetUrl=${targetUrl} stage=chromium_launch elapsedMs=${elapsedMs} error=${launchErr?.message || launchErr}`);
+      if (launchErr?.stack) console.error(launchErr.stack);
+
+      console.log(`[HTTP_FALLBACK_START] runId=${runId} targetUrl=${targetUrl} stage=chromium_launch_fallback reason=chromium_launch_failed`);
+      const fallbackStart = Date.now();
+      const fallbackRes = await fallbackHttpCapture(targetUrl, startTime);
+      console.log(`[HTTP_FALLBACK_SUCCESS] runId=${runId} targetUrl=${targetUrl} stage=chromium_launch_fallback elapsedMs=${Date.now() - fallbackStart}`);
+      return fallbackRes;
+    }
   }
 
   const captureStart = Date.now();
-  console.log(`[BROWSER_PAGE_CAPTURE_START] runId=${runId} targetUrl=${targetUrl}`);
+  console.log(`[BROWSER_PAGE_CAPTURE_START] runId=${runId} targetUrl=${targetUrl} isSharedBrowser=${isSharedBrowser}`);
 
   try {
     if (!browser) {
@@ -349,41 +409,43 @@ async function captureSourcePageInternal(targetUrl: string, startTime: number, r
     }).catch(() => {});
 
     // Allow Elementor, widgets, and hero sliders to initialize
-    await page.waitForTimeout(1000);
+    await page.waitForTimeout(isHomepage ? 600 : 150);
     console.log(`[MIGRATION] RENDER READINESS COMPLETE`);
 
-    // PART 6: MENU INTERACTION VERIFICATION IN PLAYWRIGHT BROWSER
-    console.log(`[MIGRATION] TESTING MENU INTERACTION`);
+    // PART 6: MENU INTERACTION VERIFICATION IN PLAYWRIGHT BROWSER (HOMEPAGE ONLY)
     let menuInteractionResult: "PASS" | "FAIL" | "NOT_TESTABLE" = "NOT_TESTABLE";
-    try {
-      const menuBtnSelector =
-        ".elementor-menu-toggle, .navbar-toggler, .hamburger, button[aria-label*='menu'], [class*='menu-toggle'], [class*='nav-toggle'], [class*='hamburger']";
-      const menuBtn = await page.$(menuBtnSelector);
+    if (isHomepage) {
+      console.log(`[MIGRATION] TESTING MENU INTERACTION`);
+      try {
+        const menuBtnSelector =
+          ".elementor-menu-toggle, .navbar-toggler, .hamburger, button[aria-label*='menu'], [class*='menu-toggle'], [class*='nav-toggle'], [class*='hamburger']";
+        const menuBtn = await page.$(menuBtnSelector);
 
-      if (menuBtn) {
-        const isVisible = await menuBtn.isVisible().catch(() => false);
-        if (isVisible) {
-          await menuBtn.click({ timeout: 2000 }).catch(() => {});
-          await page.waitForTimeout(300);
+        if (menuBtn) {
+          const isVisible = await menuBtn.isVisible().catch(() => false);
+          if (isVisible) {
+            await menuBtn.click({ timeout: 2000 }).catch(() => {});
+            await page.waitForTimeout(300);
 
-          const menuOpenState = await page.evaluate((sel) => {
-            const btn = document.querySelector(sel);
-            const menuPanel = document.querySelector(".elementor-nav-menu, nav, .navbar-collapse, [class*='menu-dropdown'], [class*='nav-menu']");
-            const ariaExp = btn?.getAttribute("aria-expanded") === "true";
-            const hasActiveClass = btn?.classList.contains("elementor-active") || btn?.classList.contains("active") || btn?.classList.contains("open");
-            const panelVisible = menuPanel ? window.getComputedStyle(menuPanel).display !== "none" : false;
-            return ariaExp || hasActiveClass || panelVisible;
-          }, menuBtnSelector).catch(() => false);
+            const menuOpenState = await page.evaluate((sel) => {
+              const btn = document.querySelector(sel);
+              const menuPanel = document.querySelector(".elementor-nav-menu, nav, .navbar-collapse, [class*='menu-dropdown'], [class*='nav-menu']");
+              const ariaExp = btn?.getAttribute("aria-expanded") === "true";
+              const hasActiveClass = btn?.classList.contains("elementor-active") || btn?.classList.contains("active") || btn?.classList.contains("open");
+              const panelVisible = menuPanel ? window.getComputedStyle(menuPanel).display !== "none" : false;
+              return ariaExp || hasActiveClass || panelVisible;
+            }, menuBtnSelector).catch(() => false);
 
-          // Click back to close
-          await menuBtn.click({ timeout: 2000 }).catch(() => {});
-          await page.waitForTimeout(200);
+            // Click back to close
+            await menuBtn.click({ timeout: 2000 }).catch(() => {});
+            await page.waitForTimeout(200);
 
-          menuInteractionResult = menuOpenState ? "PASS" : "FAIL";
+            menuInteractionResult = menuOpenState ? "PASS" : "FAIL";
+          }
         }
+      } catch {
+        menuInteractionResult = "FAIL";
       }
-    } catch {
-      menuInteractionResult = "FAIL";
     }
 
     // Extract DOM, CSS, Asset URLs, Slides, SEO, Links, Forms & Behavior Detection
@@ -934,7 +996,7 @@ stylesheetCount: ${cssLen}`);
     console.log(`[HTTP_FALLBACK_SUCCESS] runId=${runId} targetUrl=${targetUrl} stage=browser_page_capture_fallback elapsedMs=${Date.now() - fallbackStart}`);
     return fallbackRes;
   } finally {
-    if (browser) {
+    if (!isSharedBrowser && browser) {
       await browser.close().catch(() => {});
     }
   }

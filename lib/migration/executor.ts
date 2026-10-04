@@ -2,7 +2,7 @@ import { createClient } from "@/utils/supabase/server";
 import { SourceWebsiteScan, MigrationMode, MigrationSelections, MigrationExecuteResult, PageCaptureManifest } from "./types";
 import { convertPageToCodeaxysNative, convertPageToExactSnapshot } from "./converter";
 import { generateAIRedesignForPage, DEFAULT_REDESIGN_PROMPT, buildSourcePageFromBrowserSnapshot } from "./redesign-engine";
-import { captureSourcePageWithBrowser, fallbackHttpCapture } from "./browser-capture";
+import { captureSourcePageWithBrowser, fallbackHttpCapture, launchSharedMigrationBrowser } from "./browser-capture";
 import { runOpportunityScan } from "@/lib/seo-opportunities/engine";
 import { isPrivateOrReservedIP } from "./scanner";
 import { buildLocalPageMap, localizeHtmlLinks } from "./link-localizer";
@@ -459,6 +459,11 @@ export async function executeWebsiteMigration(
   let completedCount = 0;
   let failedCount = 0;
 
+  let sharedBrowser: any = null;
+  if (mode === "exact") {
+    sharedBrowser = await launchSharedMigrationBrowser(runId);
+  }
+
   try {
     // Process and convert pages
     for (let i = 0; i < pagesToMigrate.length; i++) {
@@ -510,7 +515,7 @@ export async function executeWebsiteMigration(
 
         try {
           if (!forceFastCapture) {
-            browserSnapshot = await captureSourcePageWithBrowser(srcPage.url, runId);
+            browserSnapshot = await captureSourcePageWithBrowser(srcPage.url, runId, sharedBrowser, i === 0);
           } else {
             browserSnapshot = await fallbackHttpCapture(srcPage.url, Date.now());
           }
@@ -856,5 +861,14 @@ export async function executeWebsiteMigration(
     }
 
     throw err;
+  } finally {
+    if (sharedBrowser) {
+      try {
+        await sharedBrowser.close().catch(() => {});
+        console.log(`[PLAYWRIGHT_SHARED_BROWSER_CLOSED] runId=${runId}`);
+      } catch (closeErr: any) {
+        console.warn(`[PLAYWRIGHT_SHARED_BROWSER_CLOSE_WARN] runId=${runId} msg=${closeErr?.message || closeErr}`);
+      }
+    }
   }
 }
