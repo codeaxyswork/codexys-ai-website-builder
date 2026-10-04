@@ -36,12 +36,24 @@ export async function updateSession(request: NextRequest) {
           return request.cookies.getAll();
         },
         setAll(cookiesToSet) {
+          const rawDomain = (
+            process.env.APP_DOMAIN ||
+            process.env.NEXT_PUBLIC_APP_DOMAIN ||
+            "codeaxys.com"
+          ).toLowerCase().trim().replace(/^https?:\/\//i, "").replace(/\/.*$/, "");
+
+          const baseDomain = (rawDomain && !rawDomain.includes("localhost") && !rawDomain.includes("127.0.0.1")) ? rawDomain : "codeaxys.com";
+          const cookieDomain = (baseDomain && !baseDomain.includes("localhost") && !baseDomain.includes("127.0.0.1")) ? `.${baseDomain}` : undefined;
+
           cookiesToSet.forEach(({ name, value }) => request.cookies.set(name, value));
           supabaseResponse = NextResponse.next({
             request,
           });
           cookiesToSet.forEach(({ name, value, options }) =>
-            supabaseResponse.cookies.set(name, value, options)
+            supabaseResponse.cookies.set(name, value, {
+              ...options,
+              ...(cookieDomain ? { domain: cookieDomain } : {}),
+            })
           );
         },
       },

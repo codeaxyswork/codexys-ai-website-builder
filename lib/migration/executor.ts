@@ -158,65 +158,121 @@ export async function executeWebsiteMigration(
     cleanBrand = scanResult.domain.replace(/[^a-z0-9]+/gi, "-").toLowerCase().replace(/^-+|-+$/g, "");
   }
 
-  // Ensure slug uniqueness
+  // Ensure clean slug reuse for the same user's draft, or suffix for different user / published site
   let cleanSlug = cleanBrand;
-  const { data: existingSlug } = await supabase
+  const db = getSafeAdminClient();
+
+  const { data: existingWebsite } = await db
     .from("websites")
-    .select("id")
+    .select("id, user_id, is_published, slug")
     .or(`slug.eq.${cleanSlug},published_slug.eq.${cleanSlug}`)
     .maybeSingle();
 
-  if (existingSlug) {
-    const suffix = Math.random().toString(36).substring(2, 7);
-    cleanSlug = `${cleanBrand}-${suffix}`;
-  }
+  let websiteId: string;
 
-  const db = getSafeAdminClient();
+  if (existingWebsite) {
+    if (existingWebsite.user_id === userId && !existingWebsite.is_published) {
+      // Re-use existing draft website for this user & brand
+      websiteId = existingWebsite.id;
+      cleanSlug = existingWebsite.slug || cleanBrand;
 
-  console.log(`[MIGRATION] WEBSITE CREATE START ${Date.now() - startTime}ms`);
-  const { data: newWebsite, error: createWebError } = await db
-    .from("websites")
-    .insert({
-      user_id: userId,
-      title: `[Migrated] ${title}`,
-      slug: cleanSlug,
-      published_slug: cleanSlug,
-      prompt: `Migrated from ${scanResult.targetUrl}`,
-      is_published: false,
-      design_plan: {
-        websiteType: "migrated",
-        migration: {
-          originalUrl: scanResult.targetUrl,
-          domain: scanResult.domain,
-          platform: scanResult.platform.name,
-          mode,
-          selections,
-          summary: scanResult.summary,
-          urlMappings: scanResult.urlMappings,
+      await db.from("website_pages").delete().eq("website_id", websiteId).catch(() => {});
+      await db.from("website_seo").delete().eq("website_id", websiteId).catch(() => {});
+      await db.from("websites").update({
+        title: `[Migrated] ${title}`,
+        prompt: `Migrated from ${scanResult.targetUrl}`,
+        updated_at: new Date().toISOString(),
+        design_plan: {
+          websiteType: "migrated",
+          migration: {
+            originalUrl: scanResult.targetUrl,
+            domain: scanResult.domain,
+            platform: scanResult.platform.name,
+            mode,
+            selections,
+            summary: scanResult.summary,
+            urlMappings: scanResult.urlMappings,
+          },
+          colorPalette: [
+            { name: "Primary", hex: scanResult.globalStyles.colors.primary || "#6366f1" },
+            { name: "Secondary", hex: scanResult.globalStyles.colors.secondary || "#4f46e5" },
+          ],
         },
-        colorPalette: [
-          { name: "Primary", hex: scanResult.globalStyles.colors.primary || "#6366f1" },
-          { name: "Secondary", hex: scanResult.globalStyles.colors.secondary || "#4f46e5" },
-        ],
-      },
-    })
-    .select("id")
-    .single();
+      }).eq("id", websiteId);
+      console.log(`[MIGRATION] RE-USING EXISTING DRAFT WEBSITE ${websiteId} for ${cleanSlug}`);
+    } else {
+      const suffix = Math.random().toString(36).substring(2, 7);
+      cleanSlug = `${cleanBrand}-${suffix}`;
+      const { data: newWebsite, error: createWebError } = await db
+        .from("websites")
+        .insert({
+          user_id: userId,
+          title: `[Migrated] ${title}`,
+          slug: cleanSlug,
+          published_slug: cleanSlug,
+          prompt: `Migrated from ${scanResult.targetUrl}`,
+          is_published: false,
+          design_plan: {
+            websiteType: "migrated",
+            migration: {
+              originalUrl: scanResult.targetUrl,
+              domain: scanResult.domain,
+              platform: scanResult.platform.name,
+              mode,
+              selections,
+              summary: scanResult.summary,
+              urlMappings: scanResult.urlMappings,
+            },
+            colorPalette: [
+              { name: "Primary", hex: scanResult.globalStyles.colors.primary || "#6366f1" },
+              { name: "Secondary", hex: scanResult.globalStyles.colors.secondary || "#4f46e5" },
+            ],
+          },
+        })
+        .select("id")
+        .single();
 
-  if (createWebError || !newWebsite) {
-    const errorMsg = `Failed to create migration draft website: ${createWebError?.message || "Unknown error"} (code: ${createWebError?.code || "none"})`;
-    console.error(`[MIGRATION FAILURE DIAGNOSTIC]
-      runId: ${runId}
-      websiteId: none
-      userId: ${userId}
-      sourceUrl: ${scanResult.targetUrl}
-      mode: ${mode}
-      stage: WEBSITE_RECORD_INSERTION
-      error: ${errorMsg}`);
-    throw new Error(errorMsg);
+      if (createWebError || !newWebsite) {
+        throw new Error(`Failed to create migration draft website: ${createWebError?.message || "Unknown error"}`);
+      }
+      websiteId = newWebsite.id;
+    }
+  } else {
+    const { data: newWebsite, error: createWebError } = await db
+      .from("websites")
+      .insert({
+        user_id: userId,
+        title: `[Migrated] ${title}`,
+        slug: cleanSlug,
+        published_slug: cleanSlug,
+        prompt: `Migrated from ${scanResult.targetUrl}`,
+        is_published: false,
+        design_plan: {
+          websiteType: "migrated",
+          migration: {
+            originalUrl: scanResult.targetUrl,
+            domain: scanResult.domain,
+            platform: scanResult.platform.name,
+            mode,
+            selections,
+            summary: scanResult.summary,
+            urlMappings: scanResult.urlMappings,
+          },
+          colorPalette: [
+            { name: "Primary", hex: scanResult.globalStyles.colors.primary || "#6366f1" },
+            { name: "Secondary", hex: scanResult.globalStyles.colors.secondary || "#4f46e5" },
+          ],
+        },
+      })
+      .select("id")
+      .single();
+
+    if (createWebError || !newWebsite) {
+      throw new Error(`Failed to create migration draft website: ${createWebError?.message || "Unknown error"}`);
+    }
+    websiteId = newWebsite.id;
   }
 
-  const websiteId = newWebsite.id;
   console.log(`[MIGRATION] WEBSITE CREATE COMPLETE ${Date.now() - startTime}ms (websiteId: ${websiteId})`);
 
   const urlCache = new Map<string, string>();

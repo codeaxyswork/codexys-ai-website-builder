@@ -54,9 +54,15 @@ export async function GET(
       });
     }
 
-    // Security Check: If website is unpublished draft, allow access ONLY to authenticated owner
+    // Security Check: If website is unpublished draft, allow access ONLY to authenticated owner OR when preview parameter is present
     if (!website.is_published) {
       let isOwner = false;
+      let isPreview = false;
+      try {
+        const urlObj = new URL(request.url);
+        isPreview = urlObj.searchParams.get("preview") === "true" || urlObj.searchParams.get("preview") === "1";
+      } catch {}
+
       try {
         const authSupabase = await createClient();
         const { data: authData } = await authSupabase.auth.getUser();
@@ -67,7 +73,7 @@ export async function GET(
         // Non-owner
       }
 
-      if (!isOwner) {
+      if (!isOwner && !isPreview) {
         return new Response(render404HTML("Website Not Found"), {
           status: 404,
           headers: { "Content-Type": "text/html; charset=utf-8" },

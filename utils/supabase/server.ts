@@ -26,12 +26,23 @@ export async function createClient() {
         },
         setAll(cookiesToSet) {
           try {
+            const rawDomain = (
+              process.env.APP_DOMAIN ||
+              process.env.NEXT_PUBLIC_APP_DOMAIN ||
+              "codeaxys.com"
+            ).toLowerCase().trim().replace(/^https?:\/\//i, "").replace(/\/.*$/, "");
+
+            const baseDomain = (rawDomain && !rawDomain.includes("localhost") && !rawDomain.includes("127.0.0.1")) ? rawDomain : "codeaxys.com";
+            const cookieDomain = (baseDomain && !baseDomain.includes("localhost") && !baseDomain.includes("127.0.0.1")) ? `.${baseDomain}` : undefined;
+
             cookiesToSet.forEach(({ name, value, options }) =>
-              cookieStore.set(name, value, options)
+              cookieStore.set(name, value, {
+                ...options,
+                ...(cookieDomain ? { domain: cookieDomain } : {}),
+              })
             );
           } catch {
             // The `setAll` method was called from a Server Component.
-            // This can be ignored if you have middleware refreshing user sessions.
           }
         },
       },
