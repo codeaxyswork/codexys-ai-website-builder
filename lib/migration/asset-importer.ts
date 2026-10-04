@@ -256,72 +256,72 @@ export async function importAndStoreMigrationAssets(
     return { stats, urlMap };
   }
 
-  const BATCH_SIZE = 3;
-  for (let i = 0; i < eligibleUrls.length; i += BATCH_SIZE) {
-    const chunk = eligibleUrls.slice(i, i + BATCH_SIZE);
+  // SLA Hardening: Parallel bounded execution with a strict 3.5s overall pipeline timeout guard
+  const ASSET_PIPELINE_TIMEOUT_MS = 3500;
+  const processAssetsPromise = Promise.allSettled(
+    eligibleUrls.map(async (sourceUrl) => {
+      if (urlMap.has(sourceUrl)) {
+        stats.deduplicated++;
+        return;
+      }
 
-    await Promise.all(
-      chunk.map(async (sourceUrl) => {
-        if (urlMap.has(sourceUrl)) {
-          stats.deduplicated++;
+      try {
+        const fetched = await fetchMediaAsset(sourceUrl);
+        if (!fetched) {
+          stats.failed++;
           return;
         }
 
-        try {
-          const fetched = await fetchMediaAsset(sourceUrl);
-          if (!fetched) {
-            stats.failed++;
-            return;
-          }
+        const { buffer, contentType } = fetched;
+        const parsedUrl = new URL(sourceUrl);
+        const rawFileName = sanitizeFileName(parsedUrl.pathname);
+        const urlHash = crypto.createHash("md5").update(sourceUrl).digest("hex").substring(0, 8);
+        const fileName = `${urlHash}_${rawFileName}`;
+        const storagePath = `${userId}/${websiteId}/assets/${fileName}`;
 
-          const { buffer, contentType } = fetched;
-          const parsedUrl = new URL(sourceUrl);
-          const rawFileName = sanitizeFileName(parsedUrl.pathname);
-          const urlHash = crypto.createHash("md5").update(sourceUrl).digest("hex").substring(0, 8);
-          const fileName = `${urlHash}_${rawFileName}`;
-          const storagePath = `${userId}/${websiteId}/assets/${fileName}`;
-
-          const { error: uploadError } = await db.storage
-            .from("website-assets")
-            .upload(storagePath, buffer, {
-              contentType,
-              upsert: true,
-            });
-
-          if (uploadError) {
-            stats.failed++;
-            return;
-          }
-
-          const { data: publicData } = db.storage
-            .from("website-assets")
-            .getPublicUrl(storagePath);
-
-          const publicUrl = publicData?.publicUrl || "";
-          if (!publicUrl) {
-            stats.failed++;
-            return;
-          }
-
-          await db.from("media_assets").insert({
-            user_id: userId,
-            website_id: websiteId,
-            file_name: fileName,
-            file_size_bytes: buffer.length,
-            mime_type: contentType,
-            storage_path: storagePath,
-            public_url: publicUrl,
+        const { error: uploadError } = await db.storage
+          .from("website-assets")
+          .upload(storagePath, buffer, {
+            contentType,
+            upsert: true,
           });
 
-          urlMap.set(sourceUrl, publicUrl);
-          stats.imported++;
-          stats.totalBytes += buffer.length;
-        } catch (err: any) {
+        if (uploadError) {
           stats.failed++;
+          return;
         }
-      })
-    );
-  }
+
+        const { data: publicData } = db.storage
+          .from("website-assets")
+          .getPublicUrl(storagePath);
+
+        const publicUrl = publicData?.publicUrl || "";
+        if (!publicUrl) {
+          stats.failed++;
+          return;
+        }
+
+        await db.from("media_assets").insert({
+          user_id: userId,
+          website_id: websiteId,
+          file_name: fileName,
+          file_size_bytes: buffer.length,
+          mime_type: contentType,
+          storage_path: storagePath,
+          public_url: publicUrl,
+        });
+
+        urlMap.set(sourceUrl, publicUrl);
+        stats.imported++;
+        stats.totalBytes += buffer.length;
+      } catch {
+        stats.failed++;
+      }
+    })
+  );
+
+  const timeoutPromise = new Promise((resolve) => setTimeout(resolve, ASSET_PIPELINE_TIMEOUT_MS));
+  await Promise.race([processAssetsPromise, timeoutPromise]);
 
   if (urlMap.size > 0) {
     for (const page of pages) {

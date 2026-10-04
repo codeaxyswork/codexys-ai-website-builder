@@ -48,6 +48,28 @@ export function isPrivateOrReservedIP(ip: string): boolean {
 }
 
 /**
+ * Canonical URL normalization helper to ensure trailing-slash and index.html variants
+ * resolve to the exact same canonical string representation.
+ */
+export function normalizePageUrl(urlStr: string): string {
+  try {
+    const parsed = new URL(urlStr);
+    let pathname = parsed.pathname.toLowerCase();
+    if (pathname.length > 1 && pathname.endsWith("/")) {
+      pathname = pathname.slice(0, -1);
+    }
+    if (pathname === "/index.html" || pathname === "/index.htm" || pathname === "/index.php") {
+      pathname = "/";
+    }
+    const origin = parsed.origin.toLowerCase();
+    const cleanPath = pathname === "/" ? "" : pathname;
+    return `${origin}${cleanPath}${parsed.search}`;
+  } catch {
+    return urlStr.trim().toLowerCase();
+  }
+}
+
+/**
  * Validates URL format and performs DNS lookup to ensure host is not internal/private.
  */
 export async function validateAndSanitizeUrl(inputUrl: string): Promise<{
@@ -84,9 +106,10 @@ export async function validateAndSanitizeUrl(inputUrl: string): Promise<{
       return { valid: false, error: `Unable to resolve host: ${hostname}` };
     }
 
+    const canonicalUrl = normalizePageUrl(raw);
     return {
       valid: true,
-      normalizedUrl: parsed.origin + parsed.pathname.replace(/\/$/, "") + parsed.search,
+      normalizedUrl: canonicalUrl,
     };
   } catch {
     return { valid: false, error: "Malformed URL provided." };
@@ -624,8 +647,9 @@ export async function scanSourceWebsite(inputUrl: string): Promise<SourceWebsite
 
   while (queue.length > 0 && visitedUrls.size < CRAWL_LIMITS.MAX_PAGES) {
     const current = queue.shift()!;
-    if (visitedUrls.has(current.url)) continue;
-    visitedUrls.add(current.url);
+    const normCurrentUrl = normalizePageUrl(current.url);
+    if (visitedUrls.has(normCurrentUrl)) continue;
+    visitedUrls.add(normCurrentUrl);
 
     const fetched = await safeFetchHtml(current.url);
     if (!fetched) continue;
@@ -746,9 +770,10 @@ export async function scanSourceWebsite(inputUrl: string): Promise<SourceWebsite
         if (!href) return;
         try {
           const resolved = resolveUrl(href, baseUrl);
-          const parsedRes = new URL(resolved);
-          if (parsedRes.hostname === domain && !visitedUrls.has(resolved) && !queue.some((q) => q.url === resolved)) {
-            queue.push({ url: resolved, depth: current.depth + 1 });
+          const normResolved = normalizePageUrl(resolved);
+          const parsedRes = new URL(normResolved);
+          if (parsedRes.hostname === domain && !visitedUrls.has(normResolved) && !queue.some((q) => normalizePageUrl(q.url) === normResolved)) {
+            queue.push({ url: normResolved, depth: current.depth + 1 });
           }
         } catch {
           // Ignore invalid hrefs
