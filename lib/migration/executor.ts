@@ -312,7 +312,7 @@ export async function executeWebsiteMigration(
       console.log(`[MIGRATION] ASSETS CAPTURED (${urlsToMigrate.size} assets) ${Date.now() - startTime}ms`);
 
       // Parallel Bounded Batch Asset Localization (capped to top 5 key assets per page for fast response)
-      if (selections.content.images && urlsToMigrate.size > 0) {
+      if (selections?.content?.images !== false && urlsToMigrate.size > 0) {
         const urlArray = Array.from(urlsToMigrate).slice(0, 5);
         const BATCH_SIZE = 6;
         for (let b = 0; b < urlArray.length; b += BATCH_SIZE) {
