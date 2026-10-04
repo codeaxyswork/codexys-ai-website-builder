@@ -32,7 +32,7 @@ import {
 import { getWebsiteTrialStatus } from "@/lib/website-trial";
 import { assemblePreviewDoc } from "@/lib/preview-helper";
 import { WebsiteAgentChat } from "@/components/WebsiteAgentChat";
-import { getWebsitePublicUrl } from "@/lib/domain-resolver";
+import { getWebsitePublicUrl, getWebsitePreviewUrl } from "@/lib/domain-resolver";
 
 interface ManagementClientProps {
   website: any;
@@ -117,7 +117,7 @@ export function WebsiteManagementClient({ website, indexPage, seoData }: Managem
     }
   };
 
-  const activeLiveUrl = getWebsitePublicUrl({
+  const activeLiveUrl = getWebsitePreviewUrl({
     published_slug: publishedSlug || website.published_slug,
     slug: website.slug,
     custom_domain: website.custom_domain,

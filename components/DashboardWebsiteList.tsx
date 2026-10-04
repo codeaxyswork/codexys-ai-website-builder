@@ -24,7 +24,7 @@ import {
   LayoutDashboard,
 } from "lucide-react";
 import { getWebsiteTrialStatus } from "@/lib/website-trial";
-import { getWebsitePublicUrl } from "@/lib/domain-resolver";
+import { getWebsitePublicUrl, getWebsitePreviewUrl } from "@/lib/domain-resolver";
 
 export interface WebsiteItem {
   id: string;
@@ -250,20 +250,20 @@ export function DashboardWebsiteList({ initialWebsites, userPlan = "free" }: Das
                 </div>
 
                 {/* URL Box */}
-                {site.is_published && (
+                {(site.published_slug || site.slug) && (
                   <div className="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl bg-slate-50 border border-slate-200 text-xs font-mono text-purple-700 shrink-0 max-w-full overflow-hidden self-start md:self-center">
-                    <span className="truncate max-w-xs font-semibold" title={getWebsitePublicUrl(site)}>
+                    <span className="truncate max-w-xs font-semibold" title={getWebsitePreviewUrl(site)}>
                       {site.custom_domain ? `🌐 ${site.custom_domain}` : (site.published_slug || site.slug ? `${site.published_slug || site.slug}.codeaxys.com` : "")}
                     </span>
                     <button
                       onClick={() => {
-                        const linkToCopy = getWebsitePublicUrl(site);
+                        const linkToCopy = getWebsitePreviewUrl(site);
                         navigator.clipboard.writeText(linkToCopy);
                         setCopiedId(site.id);
                         setTimeout(() => setCopiedId(null), 2000);
                       }}
                       className="text-slate-400 hover:text-purple-700 transition-colors shrink-0 p-1 rounded-md hover:bg-slate-200/60 cursor-pointer"
-                      title="Copy Public Link"
+                      title="Copy Website Link"
                     >
                       {copiedId === site.id ? (
                         <Check className="w-3.5 h-3.5 text-emerald-600" />
@@ -505,14 +505,14 @@ export function DashboardWebsiteList({ initialWebsites, userPlan = "free" }: Das
                 <div className="flex items-center gap-2 flex-wrap">
                   {(site.published_slug || site.slug) && (
                     <a
-                      href={getWebsitePublicUrl(site)}
+                      href={getWebsitePreviewUrl(site)}
                       target="_blank"
                       rel="noopener noreferrer"
                       className="py-2 px-3.5 rounded-xl border border-slate-200 bg-white text-purple-700 hover:bg-purple-50 hover:border-purple-200 text-xs font-semibold flex items-center gap-1.5 transition-all shadow-2xs cursor-pointer"
-                      title="View Live Published Website"
+                      title={site.is_published ? "View Live Published Website" : "View Website Preview"}
                     >
                       <ExternalLink className="w-3.5 h-3.5 text-purple-600" />
-                      <span>Live Site</span>
+                      <span>{site.is_published ? "Live Site" : "Preview"}</span>
                     </a>
                   )}
 
