@@ -67,7 +67,7 @@ export async function captureSourcePageWithBrowser(targetUrl: string): Promise<B
   }
 
   // Detect Serverless environment (Vercel / AWS Lambda) where headless Chromium binary is not pre-packaged
-  const isServerless = !!(process.env.VERCEL || process.env.AWS_REGION || process.env.NOW_REGION || process.env.NEXT_RUNTIME === "nodejs");
+  const isServerless = !!(process.env.VERCEL || process.env.AWS_REGION || process.env.NOW_REGION);
   
   if (isServerless) {
     console.log(`[MIGRATION BROWSER] Serverless environment detected (${targetUrl}). Executing fast HTTP capture...`);
@@ -99,7 +99,7 @@ async function captureSourcePageInternal(targetUrl: string, startTime: number): 
     console.log(`[MIGRATION] BROWSER START (${targetUrl})`);
     try {
       browser = await chromium.launch({
-        timeout: 3000,
+        timeout: 10000,
         headless: true,
         args: [
           "--no-sandbox",
@@ -110,7 +110,7 @@ async function captureSourcePageInternal(targetUrl: string, startTime: number): 
         ],
       });
     } catch (launchErr: any) {
-      console.warn(`[BROWSER CAPTURE] Chromium launch failed on serverless environment (${launchErr?.message}). Falling back to HTTP HTML capture...`);
+      console.warn(`[BROWSER CAPTURE] Chromium launch failed (${launchErr?.message}). Falling back to HTTP HTML capture...`);
       return await fallbackHttpCapture(targetUrl, startTime);
     }
 
@@ -880,10 +880,10 @@ stylesheetCount: ${cssLen}`);
   }
 }
 
-async function fallbackHttpCapture(targetUrl: string, startTime: number): Promise<BrowserPageSnapshot> {
+export async function fallbackHttpCapture(targetUrl: string, startTime: number): Promise<BrowserPageSnapshot> {
   console.log(`[BROWSER CAPTURE FALLBACK] Executing HTTP fetch capture for ${targetUrl}`);
   const controller = new AbortController();
-  const timer = setTimeout(() => controller.abort(), 6000);
+  const timer = setTimeout(() => controller.abort(), 8000);
 
   let rawHtml = "";
   try {
@@ -911,6 +911,53 @@ async function fallbackHttpCapture(targetUrl: string, startTime: number): Promis
   const descMatch = rawHtml.match(/<meta[^>]*name=["']description["'][^>]*content=["'](.*?)["']/i);
   const metaDesc = descMatch ? descMatch[1].trim() : "";
 
+  // Extract asset URLs, CSS, JS, links, and forms from rawHtml
+  const assetUrlsSet = new Set<string>();
+  const cssUrlsSet = new Set<string>();
+  const jsUrlsSet = new Set<string>();
+
+  const toAbsUrl = (rel?: string) => {
+    if (!rel) return "";
+    try {
+      return new URL(rel, targetUrl).href;
+    } catch {
+      return rel;
+    }
+  };
+
+  if (rawHtml) {
+    // Images
+    const imgMatches = rawHtml.matchAll(/(?:src|poster|data-src|data-lazy-src)\s*=\s*["']([^"']+)["']/gi);
+    for (const m of imgMatches) {
+      if (m[1] && !m[1].startsWith("data:")) {
+        const abs = toAbsUrl(m[1].trim());
+        if (abs.startsWith("http://") || abs.startsWith("https://")) assetUrlsSet.add(abs);
+      }
+    }
+
+    // Stylesheets
+    const cssMatches = rawHtml.matchAll(/<link\s+[^>]*rel=["']stylesheet["'][^>]*href=["']([^"']+)["']/gi);
+    for (const m of cssMatches) {
+      if (m[1]) {
+        const abs = toAbsUrl(m[1].trim());
+        if (abs.startsWith("http://") || abs.startsWith("https://")) cssUrlsSet.add(abs);
+      }
+    }
+
+    // Scripts
+    const jsMatches = rawHtml.matchAll(/<script\s+[^>]*src=["']([^"']+)["']/gi);
+    for (const m of jsMatches) {
+      if (m[1]) {
+        const abs = toAbsUrl(m[1].trim());
+        if (abs.startsWith("http://") || abs.startsWith("https://")) jsUrlsSet.add(abs);
+      }
+    }
+  }
+
+  const assetUrls = Array.from(assetUrlsSet);
+  const cssUrls = Array.from(cssUrlsSet);
+  const jsUrls = Array.from(jsUrlsSet);
+
   const endTime = Date.now();
   const durationMs = endTime - startTime;
   const htmlSizeBytes = Buffer.byteLength(sanitizedHtml, "utf-8");
@@ -924,9 +971,9 @@ async function fallbackHttpCapture(targetUrl: string, startTime: number): Promis
     endTime,
     durationMs,
     htmlSizeBytes,
-    css: { detected: 0, localized: 0, unresolved: 0, urls: [] },
-    js: { detected: 0, localized: 0, unresolved: 0, urls: [] },
-    images: { detected: 1, localized: 1, unresolved: 0 },
+    css: { detected: cssUrls.length, localized: cssUrls.length, unresolved: 0, urls: cssUrls },
+    js: { detected: jsUrls.length, localized: jsUrls.length, unresolved: 0, urls: jsUrls },
+    images: { detected: assetUrls.length || 1, localized: assetUrls.length || 1, unresolved: 0 },
     fonts: { detected: 0, localized: 0, unresolved: 0, urls: [] },
     media: { videoCount: 0, iframeCount: 0 },
     inline: { styleCount: 0, scriptCount: 0 },
@@ -989,9 +1036,9 @@ async function fallbackHttpCapture(targetUrl: string, startTime: number): Promis
     title,
     html: sanitizedHtml,
     css: "",
-    assetUrls: [],
-    cssUrls: [],
-    jsUrls: [],
+    assetUrls,
+    cssUrls,
+    jsUrls,
     fontUrls: [],
     slides: [],
     seo: {

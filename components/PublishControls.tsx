@@ -2,7 +2,7 @@
 
 import React, { useState } from "react";
 import { Globe, ExternalLink, Copy, Check, Loader2, Send, Lock } from "lucide-react";
-import { getWebsitePublicUrl } from "@/lib/domain-resolver";
+import { getWebsitePublicUrl, getWebsitePreviewUrl } from "@/lib/domain-resolver";
 
 interface PublishControlsProps {
   websiteId: string | null;
@@ -82,7 +82,7 @@ export function PublishControls({
 
   const handleCopyLink = () => {
     if (!slug) return;
-    const fullUrl = getWebsitePublicUrl({ published_slug: slug });
+    const fullUrl = getWebsitePublicUrl({ published_slug: slug, is_published: isPublished });
     navigator.clipboard.writeText(fullUrl);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
@@ -97,7 +97,8 @@ export function PublishControls({
     );
   }
 
-  const canonicalUrl = getWebsitePublicUrl({ published_slug: slug });
+  const canonicalUrl = getWebsitePublicUrl({ published_slug: slug, is_published: isPublished });
+  const previewUrl = getWebsitePreviewUrl({ published_slug: slug, slug });
 
   return (
     <div className="flex flex-col gap-2">
@@ -118,7 +119,7 @@ export function PublishControls({
             <span className="text-xs font-bold text-slate-900 block">
               Status: {isPublished ? "Published" : "Draft"}
             </span>
-            {isPublished && slug && (
+            {slug && (
               <span className="text-[10px] font-mono text-purple-700 block truncate max-w-[160px]" title={canonicalUrl}>
                 {slug}.codeaxys.com
               </span>
@@ -128,18 +129,32 @@ export function PublishControls({
 
         <div className="flex items-center gap-1.5">
           {!isPublished ? (
-            <button
-              onClick={handlePublish}
-              disabled={loading}
-              className="flex items-center gap-1 px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold shadow-2xs transition-all disabled:opacity-50"
-            >
-              {loading ? (
-                <Loader2 className="w-3.5 h-3.5 animate-spin" />
-              ) : (
-                <Send className="w-3.5 h-3.5" />
+            <div className="flex items-center gap-1.5">
+              {slug && (
+                <a
+                  href={previewUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-indigo-50 hover:bg-indigo-100 border border-indigo-200 text-indigo-700 text-xs font-semibold transition-all"
+                  title="Preview Draft Website"
+                >
+                  <ExternalLink className="w-3.5 h-3.5" />
+                  <span>Preview</span>
+                </a>
               )}
-              <span>Publish</span>
-            </button>
+              <button
+                onClick={handlePublish}
+                disabled={loading}
+                className="flex items-center gap-1 px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold shadow-2xs transition-all disabled:opacity-50"
+              >
+                {loading ? (
+                  <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                ) : (
+                  <Send className="w-3.5 h-3.5" />
+                )}
+                <span>Publish</span>
+              </button>
+            </div>
           ) : (
             <>
               <a

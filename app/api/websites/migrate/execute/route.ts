@@ -71,11 +71,20 @@ export async function POST(req: NextRequest) {
 
     const result = await executeWebsiteMigration(user.id, scanResult, selectedMode, selectedOptions, supabase, redesignPrompt, runId);
 
-    console.log(`[MIGRATION API] Route completed in ${Date.now() - startTime}ms`);
+    console.log(`[MIGRATION API SUCCESS] runId: ${runId} | targetUrl: ${scanResult.targetUrl} | duration: ${Date.now() - startTime}ms`);
     return jsonResponse(result, 200);
   } catch (err: any) {
     const errorMsg = String(err?.message || err || "Failed to execute website migration.");
-    console.error(`[MIGRATION API Error] (${Date.now() - startTime}ms):`, errorMsg);
+    console.error(`[MIGRATION API DIAGNOSTIC FAILURE] (duration: ${Date.now() - startTime}ms):`, {
+      runId: (req as any)._runId || "unknown",
+      userId: (req as any)._userId || "unknown",
+      sourceUrl: (req as any)._targetUrl || "unknown",
+      mode: (req as any)._mode || "exact",
+      errorName: err?.name || "Error",
+      errorMessage: errorMsg,
+      errorStack: err?.stack || "No stack trace available",
+      httpStatus: 500,
+    });
     return jsonResponse({ success: false, error: errorMsg }, 500);
   }
 }

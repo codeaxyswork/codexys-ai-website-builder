@@ -73,3 +73,53 @@ export function getWebsitePublicUrl(
 
   return baseUrl;
 }
+
+/**
+ * Returns the draft preview URL for a website (adds ?preview=true when unpublished).
+ */
+export function getWebsitePreviewUrl(
+  website: WebsiteUrlInput | null | undefined,
+  options?: GetPublicUrlOptions
+): string {
+  if (!website) return "";
+  const base = getWebsitePublicUrl(website, options);
+  if (!base) return "";
+
+  if (website.is_published) return base;
+
+  return base.includes("?") ? `${base}&preview=true` : `${base}?preview=true`;
+}
+
+/**
+ * Returns the canonical production subdomain URL for a published website.
+ */
+export function getWebsiteProductionUrl(
+  website: WebsiteUrlInput | null | undefined,
+  options?: GetPublicUrlOptions
+): string {
+  if (!website) return "";
+  const activeSlug = (website.published_slug || website.slug || "").trim().toLowerCase();
+  if (!activeSlug) return "";
+
+  if (website.custom_domain && website.custom_domain.trim().length > 0) {
+    const cleanCustom = website.custom_domain.trim().toLowerCase().replace(/^https?:\/\//i, "").replace(/\/.*$/, "");
+    return `https://${cleanCustom}${options?.subpath ? (options.subpath.startsWith("/") ? options.subpath : `/${options.subpath}`) : ""}`;
+  }
+
+  const appDomainRaw = (
+    process.env.NEXT_PUBLIC_APP_DOMAIN ||
+    process.env.APP_DOMAIN ||
+    "codeaxys.com"
+  ).trim().toLowerCase().replace(/^https?:\/\//i, "").replace(/\/.*$/, "");
+
+  const baseDomain = (appDomainRaw && !appDomainRaw.includes("localhost") && !appDomainRaw.includes("vercel.app"))
+    ? appDomainRaw
+    : "codeaxys.com";
+
+  const prodUrl = `https://${activeSlug}.${baseDomain}`;
+  if (options?.subpath) {
+    const cleanSubpath = options.subpath.startsWith("/") ? options.subpath : `/${options.subpath}`;
+    return `${prodUrl}${cleanSubpath}`;
+  }
+  return prodUrl;
+}

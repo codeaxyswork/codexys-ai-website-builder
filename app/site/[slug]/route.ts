@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { createAdminClient } from "@/utils/supabase/server";
+import { createAdminClient, createClient } from "@/utils/supabase/server";
 import { assemblePublishedWebsite } from "@/lib/site-renderer";
 import { getCachedSiteData, setCachedSiteData } from "@/lib/site-cache";
 import { getWebsitePublicUrl } from "@/lib/domain-resolver";
@@ -42,16 +42,37 @@ export async function GET(
     const tWebStart = performance.now();
     const { data: website, error: websiteErr } = await supabase
       .from("websites")
-      .select("id, title, published_slug, slug, custom_domain, is_published, design_plan")
+      .select("id, user_id, title, published_slug, slug, custom_domain, is_published, design_plan")
       .or(`published_slug.eq.${cleanSlug},slug.eq.${cleanSlug},custom_domain.eq.${cleanSlug},custom_domain.eq.${rootDomainSlug}`)
-      .single();
+      .maybeSingle();
     const tWebEnd = performance.now();
 
-    if (websiteErr || !website || !website.is_published) {
+    if (websiteErr || !website) {
       return new Response(render404HTML("Website Not Found"), {
         status: 404,
         headers: { "Content-Type": "text/html; charset=utf-8" },
       });
+    }
+
+    // Security Check: If website is unpublished draft, allow access ONLY to authenticated owner
+    if (!website.is_published) {
+      let isOwner = false;
+      try {
+        const authSupabase = await createClient();
+        const { data: authData } = await authSupabase.auth.getUser();
+        if (authData?.user?.id && authData.user.id === website.user_id) {
+          isOwner = true;
+        }
+      } catch {
+        // Non-owner
+      }
+
+      if (!isOwner) {
+        return new Response(render404HTML("Website Not Found"), {
+          status: 404,
+          headers: { "Content-Type": "text/html; charset=utf-8" },
+        });
+      }
     }
 
     // Direct platform route safeguard: Redirect /site/{slug} to canonical subdomain / custom domain

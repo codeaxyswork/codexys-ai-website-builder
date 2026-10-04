@@ -2,7 +2,7 @@ import { createClient, createAdminClient } from "@/utils/supabase/server";
 import { SourceWebsiteScan, MigrationMode, MigrationSelections, MigrationExecuteResult, PageCaptureManifest } from "./types";
 import { convertPageToCodeaxysNative, convertPageToExactSnapshot } from "./converter";
 import { generateAIRedesignForPage, DEFAULT_REDESIGN_PROMPT, buildSourcePageFromBrowserSnapshot } from "./redesign-engine";
-import { captureSourcePageWithBrowser } from "./browser-capture";
+import { captureSourcePageWithBrowser, fallbackHttpCapture } from "./browser-capture";
 import { runOpportunityScan } from "@/lib/seo-opportunities/engine";
 import { isPrivateOrReservedIP } from "./scanner";
 import { buildLocalPageMap, localizeHtmlLinks } from "./link-localizer";
@@ -204,49 +204,82 @@ export async function executeWebsiteMigration(
     .single();
 
   if (createWebError || !newWebsite) {
-    throw new Error(`Failed to create migration draft website: ${createWebError?.message || "Unknown error"}`);
+    const errorMsg = `Failed to create migration draft website: ${createWebError?.message || "Unknown error"} (code: ${createWebError?.code || "none"})`;
+    console.error(`[MIGRATION FAILURE DIAGNOSTIC]
+      runId: ${runId}
+      websiteId: none
+      userId: ${userId}
+      sourceUrl: ${scanResult.targetUrl}
+      mode: ${mode}
+      stage: WEBSITE_RECORD_INSERTION
+      error: ${errorMsg}`);
+    throw new Error(errorMsg);
   }
 
   const websiteId = newWebsite.id;
-  console.log(`[MIGRATION] WEBSITE CREATE COMPLETE ${Date.now() - startTime}ms`);
+  console.log(`[MIGRATION] WEBSITE CREATE COMPLETE ${Date.now() - startTime}ms (websiteId: ${websiteId})`);
 
   const urlCache = new Map<string, string>();
   const capturedPages: { path: string; html_content: string; css_content: string; manifest?: PageCaptureManifest }[] = [];
 
-  // Process ALL discovered/captured pages without artificial caps
+  // Process ALL discovered/captured pages with time budget guard to prevent request timeout (60s API limit)
   const pagesToMigrate = scanResult.pages;
+  const TIME_BUDGET_MS = 25000; // 25s budget threshold to switch secondary pages to fast HTTP capture
 
   // 3. Process and convert pages
   for (let i = 0; i < pagesToMigrate.length; i++) {
     const srcPage = pagesToMigrate[i];
-    console.log(`[MIGRATION] PAGE CREATE START (${srcPage.path}) ${Date.now() - startTime}ms`);
+    const pageStartTime = Date.now();
+    const elapsedTime = pageStartTime - startTime;
+    console.log(`[MIGRATION] PAGE CREATE START [${i + 1}/${pagesToMigrate.length}] (${srcPage.path}) elapsed: ${elapsedTime}ms`);
 
     let finalHtml = "";
     let finalCss = "";
     let finalJs = "";
 
     if (mode === "exact") {
-      // EXACT MODE: STRICT BROWSER SNAPSHOT ARCHITECTURE (NO CHEERIO FALLBACK)
-      console.log(`[MIGRATION] BROWSER CAPTURE START (${srcPage.path}) ${Date.now() - startTime}ms`);
+      // EXACT MODE: PLAYWRIGHT BROWSER SNAPSHOT + HTTP FALLBACK RESILIENCY
+      console.log(`[MIGRATION] BROWSER CAPTURE START (${srcPage.path}) elapsed: ${Date.now() - startTime}ms`);
       let browserSnapshot;
-      try {
-        browserSnapshot = await captureSourcePageWithBrowser(srcPage.url);
-        (srcPage as any)._browserManifest = browserSnapshot.manifest;
-        console.log(`[MIGRATION] SOURCE LOADED (${srcPage.path}) ${Date.now() - startTime}ms`);
-      } catch (err: any) {
-        if (i === 0) {
-          throw new Error(`Exact capture could not render the source website (${srcPage.url}): ${err.message}. No partial snapshot was created.`);
-        } else {
-          console.warn(`Exact capture skipped for secondary page ${srcPage.url}:`, err.message);
-          continue;
-        }
+
+      // Time Budget Guard: If elapsed time > 25s and i > 0, use fast HTTP capture for secondary pages
+      const forceFastCapture = i > 0 && (Date.now() - startTime) > TIME_BUDGET_MS;
+      if (forceFastCapture) {
+        console.log(`[MIGRATION] TIME BUDGET GUARD ACTIVATED (${srcPage.path}): Switching secondary page to fast HTTP capture to preserve request SLA.`);
       }
 
-      if (!browserSnapshot || !browserSnapshot.html || browserSnapshot.html.length < 2000) {
-        if (i === 0) {
-          throw new Error(`Exact capture produced invalid HTML payload for ${srcPage.url}. No partial snapshot was created.`);
+      try {
+        if (!forceFastCapture) {
+          browserSnapshot = await captureSourcePageWithBrowser(srcPage.url);
         } else {
-          console.warn(`Exact capture invalid HTML for secondary page ${srcPage.url}, skipping...`);
+          browserSnapshot = await fallbackHttpCapture(srcPage.url, Date.now());
+        }
+      } catch (err: any) {
+        console.warn(`[MIGRATION PAGE CAPTURE WARNING] (${srcPage.path}): Playwright browser capture failed: ${err.message}. Attempting fallback HTTP capture...`);
+        browserSnapshot = await fallbackHttpCapture(srcPage.url, Date.now()).catch(() => undefined);
+      }
+
+      if (browserSnapshot) {
+        (srcPage as any)._browserManifest = browserSnapshot.manifest;
+        console.log(`[MIGRATION] SOURCE LOADED (${srcPage.path}) elapsed: ${Date.now() - startTime}ms`);
+      }
+
+      if (!browserSnapshot || !browserSnapshot.html || browserSnapshot.html.length < 500) {
+        if (i === 0) {
+          // Page 0 cleanup: Delete draft website record so no orphan website remains
+          await db.from("websites").delete().eq("id", websiteId).catch(() => {});
+          const failMsg = `Exact capture could not render the source homepage (${srcPage.url}). Draft website ${websiteId} cleaned up.`;
+          console.error(`[MIGRATION FAILURE DIAGNOSTIC]
+            runId: ${runId}
+            websiteId: ${websiteId}
+            userId: ${userId}
+            sourceUrl: ${srcPage.url}
+            mode: ${mode}
+            stage: HOMEPAGE_CAPTURE
+            error: ${failMsg}`);
+          throw new Error(failMsg);
+        } else {
+          console.warn(`[MIGRATION PAGE SKIPPED] Exact capture invalid HTML for secondary page ${srcPage.url}, skipping...`);
           continue;
         }
       }
