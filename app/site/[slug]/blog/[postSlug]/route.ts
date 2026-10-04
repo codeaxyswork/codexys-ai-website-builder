@@ -1,5 +1,11 @@
-import { createClient } from "@/utils/supabase/server";
+import { NextResponse } from "next/server";
+import { createAdminClient, createClient } from "@/utils/supabase/server";
 import { renderBlogPostHTML } from "@/lib/blog-renderer";
+import { assemblePublishedWebsite } from "@/lib/site-renderer";
+
+export const dynamic = "force-dynamic";
+export const fetchCache = "force-no-store";
+export const revalidate = 0;
 
 export async function GET(
   request: Request,
@@ -11,54 +17,125 @@ export async function GET(
     const cleanPostSlug = postSlug.toLowerCase().trim().replace(/\/+$/, "");
     const rootDomainSlug = cleanSlug.startsWith("www.") ? cleanSlug.slice(4) : cleanSlug;
 
-    const supabase = await createClient();
+    const supabase = createAdminClient();
 
-    // 1. Fetch published website by published_slug OR custom_domain
+    // 1. Fetch website by published_slug OR custom_domain
     const { data: website, error: webErr } = await supabase
       .from("websites")
-      .select("id, title, published_slug, custom_domain, is_published")
+      .select("id, user_id, title, published_slug, custom_domain, is_published, design_plan")
       .or(`published_slug.eq.${cleanSlug},custom_domain.eq.${cleanSlug},custom_domain.eq.${rootDomainSlug}`)
-      .eq("is_published", true)
-      .single();
+      .maybeSingle();
 
-    if (webErr || !website || !website.is_published) {
-      return new Response(render404HTML("Website Not Found or Unpublished"), {
+    if (webErr || !website) {
+      return new Response(render404HTML("Website Not Found"), {
         status: 404,
         headers: { "Content-Type": "text/html; charset=utf-8" },
       });
     }
 
-    // 2. Fetch published blog post
-    const { data: post, error: postErr } = await supabase
+    // Security & Preview Check: If website is unpublished draft, allow access ONLY to authenticated owner OR when preview parameter is present
+    if (!website.is_published) {
+      let isOwner = false;
+      let isPreview = false;
+      try {
+        const urlObj = new URL(request.url);
+        isPreview = urlObj.searchParams.get("preview") === "true" || urlObj.searchParams.get("preview") === "1";
+      } catch {}
+
+      try {
+        const authSupabase = await createClient();
+        const { data: authData } = await authSupabase.auth.getUser();
+        if (authData?.user?.id && authData.user.id === website.user_id) {
+          isOwner = true;
+        }
+      } catch {
+        // Non-owner
+      }
+
+      if (!isOwner && !isPreview) {
+        return new Response(render404HTML("Website Not Found"), {
+          status: 404,
+          headers: { "Content-Type": "text/html; charset=utf-8" },
+        });
+      }
+    }
+
+    // 2. Fetch blog post from blog_posts table
+    const { data: post } = await supabase
       .from("blog_posts")
       .select("*")
       .eq("website_id", website.id)
       .eq("slug", cleanPostSlug)
       .eq("status", "published")
-      .single();
+      .maybeSingle();
 
-    if (postErr || !post) {
-      return new Response(render404HTML("Blog Article Not Found"), {
-        status: 404,
-        headers: { "Content-Type": "text/html; charset=utf-8" },
+    if (post) {
+      const htmlDoc = renderBlogPostHTML({
+        post,
+        websiteTitle: website.title,
+        publishedSlug: website.published_slug,
+      });
+
+      return new Response(htmlDoc, {
+        status: 200,
+        headers: {
+          "Content-Type": "text/html; charset=utf-8",
+          "Cache-Control": "public, max-age=60, s-maxage=3600, stale-while-revalidate=86400",
+          "X-Content-Type-Options": "nosniff",
+          "X-Frame-Options": "SAMEORIGIN",
+        },
       });
     }
 
-    // 3. Render Blog Post HTML
-    const htmlDoc = renderBlogPostHTML({
-      post,
-      websiteTitle: website.title,
-      publishedSlug: website.published_slug,
-    });
+    // 3. Fallback: Search migrated website_pages table for blog path candidates
+    const candidatePaths = [
+      `blog/${cleanPostSlug}.html`,
+      `blog/${cleanPostSlug}`,
+      `/blog/${cleanPostSlug}.html`,
+      `/blog/${cleanPostSlug}`,
+    ];
 
-    return new Response(htmlDoc, {
-      status: 200,
-      headers: {
-        "Content-Type": "text/html; charset=utf-8",
-        "Cache-Control": "public, max-age=60, s-maxage=3600, stale-while-revalidate=86400",
-        "X-Content-Type-Options": "nosniff",
-        "X-Frame-Options": "SAMEORIGIN",
-      },
+    const { data: page } = await supabase
+      .from("website_pages")
+      .select("html_content, css_content, js_content, path")
+      .eq("website_id", website.id)
+      .in("path", candidatePaths)
+      .limit(1)
+      .maybeSingle();
+
+    if (page && page.html_content) {
+      const { data: seo } = await supabase
+        .from("website_seo")
+        .select("*")
+        .eq("website_id", website.id)
+        .maybeSingle();
+
+      const migrationDomain = website?.design_plan?.migration?.domain || website?.design_plan?.migration?.originalUrl || null;
+
+      const renderedDoc = assemblePublishedWebsite({
+        htmlContent: page.html_content,
+        cssContent: page.css_content,
+        jsContent: page.js_content,
+        seoSettings: seo || null,
+        websiteTitle: website.title,
+        migrationDomain,
+        slug: website.published_slug || cleanSlug,
+      });
+
+      return new Response(renderedDoc, {
+        status: 200,
+        headers: {
+          "Content-Type": "text/html; charset=utf-8",
+          "Cache-Control": "no-cache, no-store, must-revalidate",
+          "X-Content-Type-Options": "nosniff",
+          "X-Frame-Options": "SAMEORIGIN",
+        },
+      });
+    }
+
+    return new Response(render404HTML("Blog Article Not Found"), {
+      status: 404,
+      headers: { "Content-Type": "text/html; charset=utf-8" },
     });
   } catch (err: any) {
     console.error("Public Blog Post Render Route Error:", err);
@@ -93,3 +170,4 @@ function render404HTML(message: string): string {
 </body>
 </html>`;
 }
+
