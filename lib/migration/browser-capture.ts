@@ -326,7 +326,7 @@ async function captureSourcePageInternal(
     try {
       navResponse = await page.goto(targetUrl, {
         waitUntil: "commit",
-        timeout: 6000,
+        timeout: 12000,
       });
       console.log(`[MIGRATION] NAVIGATION COMPLETE (${targetUrl})`);
     } catch (gotoErr: any) {
@@ -1011,13 +1011,14 @@ export async function fallbackHttpCapture(targetUrl: string, startTime: number):
   try {
     const res = await fetch(targetUrl, {
       signal: controller.signal,
+      redirect: "follow",
       headers: {
         "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36 CodeaxysMigrator/1.0",
         "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8"
       }
     });
     clearTimeout(timer);
-    if (res.ok) {
+    if (res.status >= 200 && res.status < 400) {
       rawHtml = await res.text();
     }
   } catch (err: any) {
