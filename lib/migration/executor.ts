@@ -369,7 +369,7 @@ export async function executeWebsiteMigration(
       finalCss = converted.cssContent;
       finalJs = converted.jsContent;
 
-      if (selections.content.images) {
+      if (selections?.content?.images !== false) {
         const urlsToMigrate = new Set<string>();
 
         if (srcPage.heroBgImage && srcPage.heroBgImage.startsWith("http")) urlsToMigrate.add(srcPage.heroBgImage);
@@ -449,16 +449,16 @@ export async function executeWebsiteMigration(
         path: pagePath,
       };
 
-      if (selections.seo.pageTitles && srcPage.seo?.seoTitle) {
+      if (selections?.seo?.pageTitles !== false && srcPage.seo?.seoTitle) {
         pageSeoPayload.seo_title = srcPage.seo.seoTitle;
       }
-      if (selections.seo.metaDescriptions && srcPage.seo?.metaDescription) {
+      if (selections?.seo?.metaDescriptions !== false && srcPage.seo?.metaDescription) {
         pageSeoPayload.meta_description = srcPage.seo.metaDescription;
       }
-      if (selections.seo.canonicalUrls && srcPage.seo?.canonicalUrl) {
+      if (selections?.seo?.canonicalUrls !== false && srcPage.seo?.canonicalUrl) {
         pageSeoPayload.canonical_url = srcPage.seo.canonicalUrl;
       }
-      if (selections.seo.openGraph && srcPage.seo?.ogTitle) {
+      if (selections?.seo?.openGraph !== false && srcPage.seo?.ogTitle) {
         pageSeoPayload.og_title = srcPage.seo.ogTitle;
         pageSeoPayload.og_image_url = srcPage.seo.ogImage;
       }
