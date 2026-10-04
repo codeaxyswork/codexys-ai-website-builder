@@ -571,23 +571,7 @@ export async function executeWebsiteMigration(
           });
         }
 
-        // Parallel Bounded Batch Asset Localization (top 5 assets per page)
-        if (selections?.content?.images !== false && urlsToMigrate.size > 0) {
-          const urlArray = Array.from(urlsToMigrate).slice(0, 5);
-          const BATCH_SIZE = 5;
-          for (let b = 0; b < urlArray.length; b += BATCH_SIZE) {
-            const chunk = urlArray.slice(b, b + BATCH_SIZE);
-            await Promise.all(
-              chunk.map(async (rawUrl) => {
-                const localizedUrl = await importMediaAsset(supabase, userId, websiteId, rawUrl, urlCache);
-                if (localizedUrl && localizedUrl !== rawUrl) {
-                  capturedHtml = capturedHtml.replaceAll(rawUrl, localizedUrl);
-                  capturedCss = capturedCss.replaceAll(rawUrl, localizedUrl);
-                }
-              })
-            );
-          }
-        }
+
 
         const converted = convertPageToExactSnapshot(
           {
