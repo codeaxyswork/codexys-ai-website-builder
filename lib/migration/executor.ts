@@ -437,6 +437,8 @@ export async function executeWebsiteMigration(
   const totalPages = pagesToMigrate.length || 1;
   const pageDiagnostics: PageDiagnostic[] = [];
 
+  console.log(`[MIGRATION_DISCOVERED_PAGES] runId=${runId} websiteId=${existingWebsiteId || 'pending'} count=${totalPages} pages=${JSON.stringify(pagesToMigrate.map(p => ({ url: p.url, path: p.path })))}`);
+
   await updateMigrationJobState(db, websiteId, runId, {
     status: "RUNNING",
     progress: 15,
@@ -450,6 +452,7 @@ export async function executeWebsiteMigration(
 
   const urlCache = new Map<string, string>();
   const capturedPages: { path: string; html_content: string; css_content: string; manifest?: PageCaptureManifest }[] = [];
+  const storedPagesList: string[] = [];
 
   let completedCount = 0;
   let failedCount = 0;
@@ -658,6 +661,7 @@ export async function executeWebsiteMigration(
       if (pageInsertError) {
         console.error(`[MIGRATION_STEP_ERROR] runId=${runId} websiteId=${websiteId} step=${stepPagesDb} error="${pageInsertError.message}"`);
       } else {
+        storedPagesList.push(pagePath);
         console.log(`[MIGRATION_STEP_COMPLETE] runId=${runId} websiteId=${websiteId} step=${stepPagesDb} elapsedMs=${Date.now() - startPagesDbMs}`);
       }
 
@@ -705,6 +709,9 @@ export async function executeWebsiteMigration(
 
       console.log(`[MIGRATION_STEP_COMPLETE] runId=${runId} websiteId=${websiteId} step=PAGE_CAPTURE_${i + 1} status=COMPLETED elapsedMs=${Date.now() - pageStartTime}`);
     }
+
+    console.log(`[MIGRATION_CAPTURED_PAGES] runId=${runId} websiteId=${websiteId} count=${capturedPages.length} paths=${JSON.stringify(capturedPages.map(p => p.path))}`);
+    console.log(`[MIGRATION_STORED_PAGES] runId=${runId} websiteId=${websiteId} count=${storedPagesList.length} paths=${JSON.stringify(storedPagesList)}`);
 
     // FINALIZATION STAGE WITH FINALIZATION_TIMEOUT_MS GUARD (15s MAX)
     const finalizationStartMs = Date.now();
