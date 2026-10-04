@@ -208,7 +208,8 @@ export default function MigrationPage() {
               setProgressStage(statusData.currentStage);
             }
 
-            if (statusData.status === "completed") {
+            const upperStatus = (statusData.status || "").toUpperCase();
+            if (upperStatus === "COMPLETED") {
               clearInterval(pollInterval);
               setProgressPercent(100);
               setProgressStage("Draft Website Ready!");
@@ -224,9 +225,9 @@ export default function MigrationPage() {
               });
               setStep("review");
               setIsExecuting(false);
-            } else if (statusData.status === "failed") {
+            } else if (upperStatus === "FAILED") {
               clearInterval(pollInterval);
-              const errorMsg = statusData.error || "Migration failed during background execution.";
+              const errorMsg = statusData.lastError || statusData.error || "Migration failed during background execution.";
               console.log(`[MIGRATION_UI_EXECUTION_FAILED] runId: ${runId} | error: "${errorMsg}"`);
               setMigrationError(errorMsg);
               setStep("error");

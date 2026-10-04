@@ -1,5 +1,4 @@
 import { NextRequest } from "next/server";
-import { createClient, createAdminClient } from "@/utils/supabase/server";
 
 export const dynamic = "force-dynamic";
 
@@ -34,32 +33,45 @@ export async function GET(req: NextRequest) {
 
     const db = getSafeAdminClient();
 
-    // Query website record for migration status in design_plan
     let website: any = null;
     if (websiteId) {
-      const { data } = await db.from("websites").select("id, slug, is_published, design_plan").eq("id", websiteId).maybeSingle();
+      const { data } = await db.from("websites").select("id, slug, is_published, design_plan, created_at").eq("id", websiteId).maybeSingle();
       website = data;
     } else if (jobId) {
-      const { data } = await db.from("websites").select("id, slug, is_published, design_plan").filter("design_plan->migration_job->>jobId", "eq", jobId).maybeSingle();
+      const { data } = await db.from("websites").select("id, slug, is_published, design_plan, created_at").filter("design_plan->migration_job->>jobId", "eq", jobId).maybeSingle();
       website = data;
     }
 
     if (!website) {
       return jsonResponse({
         success: true,
-        status: "queued",
+        jobId: jobId || null,
+        websiteId: websiteId || null,
+        status: "QUEUED",
         progress: 10,
-        currentStage: "Initializing migration job...",
+        currentStage: "Initializing migration environment...",
+        currentPage: 0,
+        totalPages: 0,
+        completedPages: 0,
+        failedPages: 0,
+        elapsedTime: 0,
+        lastError: null,
         error: null,
       });
     }
 
     const migrationJob = website.design_plan?.migration_job || {};
-    const status = migrationJob.status || "queued";
+    const status = (migrationJob.status || "QUEUED").toUpperCase();
     const progress = typeof migrationJob.progress === "number" ? migrationJob.progress : 10;
     const currentStage = migrationJob.currentStage || "Processing migration...";
-    const error = migrationJob.error || null;
+    const currentPage = migrationJob.currentPage || 0;
+    const totalPages = migrationJob.totalPages || 1;
+    const completedPages = migrationJob.completedPages || 0;
+    const failedPages = migrationJob.failedPages || 0;
+    const elapsedTime = migrationJob.startTime ? Math.max(0, Date.now() - new Date(migrationJob.startTime).getTime()) : 0;
+    const lastError = migrationJob.error || null;
     const result = migrationJob.result || null;
+    const pageDiagnostics = migrationJob.pageDiagnostics || [];
     const draftSlug = website.slug;
     const previewUrl = `https://codeaxys.com/site/${draftSlug}?preview=true`;
 
@@ -71,9 +83,16 @@ export async function GET(req: NextRequest) {
       status,
       progress,
       currentStage,
+      currentPage,
+      totalPages,
+      completedPages,
+      failedPages,
+      elapsedTime,
+      lastError,
+      error: lastError,
       previewUrl,
       result,
-      error,
+      pageDiagnostics,
     });
   } catch (err: any) {
     return jsonResponse({ success: false, error: err?.message || "Failed to fetch migration status." }, 500);

@@ -209,15 +209,39 @@ export function DashboardWebsiteList({ initialWebsites, userPlan = "free" }: Das
                       <span className="px-2.5 py-0.5 rounded-md bg-purple-50 border border-purple-200 text-purple-700 text-[10px] font-bold uppercase tracking-wider">
                         {websiteType}
                       </span>
-                      <span
-                        className={`px-2.5 py-0.5 rounded-full text-[10px] font-extrabold uppercase border ${
-                          site.is_published
-                            ? "bg-emerald-50 border-emerald-200 text-emerald-700"
-                            : "bg-amber-50 border-amber-200 text-amber-700"
-                        }`}
-                      >
-                        {site.is_published ? "Published" : "Draft"}
-                      </span>
+                      {(() => {
+                        const migrationJob = site.design_plan?.migration_job;
+                        const rawJobStatus = (migrationJob?.status || "").toUpperCase();
+                        const isMigratedSite = site.design_plan?.websiteType === "migrated" || site.design_plan?.migration;
+
+                        let statusBadgeText = site.is_published ? "Published" : "Draft";
+                        let statusBadgeStyle = site.is_published
+                          ? "bg-emerald-50 border-emerald-200 text-emerald-700"
+                          : "bg-amber-50 border-amber-200 text-amber-700";
+
+                        if (isMigratedSite) {
+                          if (rawJobStatus === "FAILED") {
+                            statusBadgeText = "Migration Failed";
+                            statusBadgeStyle = "bg-red-50 border-red-200 text-red-700 font-extrabold";
+                          } else if (["QUEUED", "RUNNING", "CAPTURING_PAGE", "CAPTURING_ASSETS", "FINALIZING"].includes(rawJobStatus)) {
+                            statusBadgeText = "Migration Running";
+                            statusBadgeStyle = "bg-blue-50 border-blue-200 text-blue-700 font-extrabold animate-pulse";
+                          } else if (rawJobStatus === "COMPLETED" || !migrationJob) {
+                            statusBadgeText = site.is_published ? "Published" : "Migrated / Draft";
+                            statusBadgeStyle = site.is_published
+                              ? "bg-emerald-50 border-emerald-200 text-emerald-700"
+                              : "bg-purple-50 border-purple-200 text-purple-700";
+                          }
+                        }
+
+                        return (
+                          <span
+                            className={`px-2.5 py-0.5 rounded-full text-[10px] font-extrabold uppercase border ${statusBadgeStyle}`}
+                          >
+                            {statusBadgeText}
+                          </span>
+                        );
+                      })()}
                       <span
                         className={`px-2.5 py-0.5 rounded-full text-[10px] font-extrabold uppercase border ${
                           trialInfo.badgeColor === "emerald"
