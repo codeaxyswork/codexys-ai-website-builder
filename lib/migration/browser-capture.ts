@@ -113,17 +113,36 @@ async function captureSourcePageInternal(targetUrl: string, startTime: number, r
 
   const launchStart = Date.now();
   console.log(`[CHROMIUM_LAUNCH_START] runId=${runId} targetUrl=${targetUrl}`);
+
+  let executablePath: string | undefined = undefined;
+  let launchArgs: string[] = [
+    "--no-sandbox",
+    "--disable-setuid-sandbox",
+    "--disable-dev-shm-usage",
+    "--disable-accelerated-2d-canvas",
+    "--disable-gpu",
+  ];
+
+  try {
+    const sparticuz = await import("@sparticuz/chromium");
+    const chromiumBin = sparticuz.default || sparticuz;
+    if (chromiumBin && typeof chromiumBin.executablePath === "function") {
+      executablePath = await chromiumBin.executablePath();
+      if (Array.isArray(chromiumBin.args) && chromiumBin.args.length > 0) {
+        launchArgs = chromiumBin.args;
+      }
+      console.log(`[CHROMIUM_SPARTICUZ_EXECUTABLE_SUCCESS] runId=${runId} path=${executablePath}`);
+    }
+  } catch (sparticuzErr: any) {
+    console.log(`[CHROMIUM_SPARTICUZ_NOT_AVAILABLE] runId=${runId} msg=${sparticuzErr?.message || sparticuzErr}`);
+  }
+
   try {
     browser = await chromiumModule.launch({
-      timeout: 10000,
+      executablePath: executablePath || undefined,
+      args: launchArgs,
       headless: true,
-      args: [
-        "--no-sandbox",
-        "--disable-setuid-sandbox",
-        "--disable-dev-shm-usage",
-        "--disable-accelerated-2d-canvas",
-        "--disable-gpu",
-      ],
+      timeout: 15000,
     });
     console.log(`[CHROMIUM_LAUNCH_SUCCESS] runId=${runId} targetUrl=${targetUrl} elapsedMs=${Date.now() - launchStart}`);
   } catch (launchErr: any) {
