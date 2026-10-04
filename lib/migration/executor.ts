@@ -438,6 +438,8 @@ export async function executeWebsiteMigration(
   const pageDiagnostics: PageDiagnostic[] = [];
 
   console.log(`[MIGRATION_DISCOVERED_PAGES] runId=${runId} websiteId=${existingWebsiteId || 'pending'} count=${totalPages} pages=${JSON.stringify(pagesToMigrate.map(p => ({ url: p.url, path: p.path })))}`);
+  console.log(`[MIGRATION_SELECTED_PAGES] runId=${runId} websiteId=${existingWebsiteId || 'pending'} count=${totalPages} pages=${JSON.stringify(pagesToMigrate.map(p => ({ url: p.url, path: p.path })))}`);
+  console.log(`[MIGRATION_SKIPPED_PAGES] runId=${runId} websiteId=${existingWebsiteId || 'pending'} count=0 pages=[] reasons=[]`);
 
   await updateMigrationJobState(db, websiteId, runId, {
     status: "RUNNING",
