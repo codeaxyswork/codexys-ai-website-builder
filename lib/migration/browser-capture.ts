@@ -386,7 +386,7 @@ async function captureSourcePageInternal(
             }, 100);
           }
         }),
-        new Promise((resolve) => setTimeout(() => resolve(false), 3000)),
+        new Promise((resolve) => setTimeout(() => resolve(false), 500)),
       ]);
     }).catch(() => {});
 
