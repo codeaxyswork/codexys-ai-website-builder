@@ -325,7 +325,7 @@ async function captureSourcePageInternal(
     let finalUrl = targetUrl;
     try {
       navResponse = await page.goto(targetUrl, {
-        waitUntil: "domcontentloaded",
+        waitUntil: "commit",
         timeout: 6000,
       });
       console.log(`[MIGRATION] NAVIGATION COMPLETE (${targetUrl})`);
