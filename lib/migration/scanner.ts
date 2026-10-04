@@ -17,6 +17,18 @@ import {
 } from "./types";
 
 const lookupAsync = promisify(dns.lookup);
+const dnsCache = new Map<string, { address: string; timestamp: number }>();
+
+async function getCachedDnsLookup(hostname: string): Promise<{ address: string }> {
+  const lower = hostname.toLowerCase();
+  const cached = dnsCache.get(lower);
+  if (cached && Date.now() - cached.timestamp < 300000) {
+    return { address: cached.address };
+  }
+  const resolved = await lookupAsync(lower);
+  dnsCache.set(lower, { address: resolved.address, timestamp: Date.now() });
+  return resolved;
+}
 
 // Crawl limits
 const CRAWL_LIMITS = {
@@ -98,7 +110,7 @@ export async function validateAndSanitizeUrl(inputUrl: string): Promise<{
     }
 
     try {
-      const resolved = await lookupAsync(hostname);
+      const resolved = await getCachedDnsLookup(hostname);
       if (isPrivateOrReservedIP(resolved.address)) {
         return { valid: false, error: `Domain resolves to forbidden private IP (${resolved.address}).` };
       }
