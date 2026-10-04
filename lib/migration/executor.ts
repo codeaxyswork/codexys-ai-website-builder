@@ -51,6 +51,33 @@ export interface PageDiagnostic {
 }
 
 /**
+ * Wraps an async operation with a strict bounded timeout using Promise.race.
+ * Prevents any async database call, asset download, browser cleanup, or finalization step from hanging indefinitely.
+ */
+export async function withTimeout<T>(
+  promise: Promise<T>,
+  timeoutMs: number,
+  operationName: string,
+  runId = "unknown"
+): Promise<T> {
+  let timer: NodeJS.Timeout;
+  const timeoutPromise = new Promise<never>((_, reject) => {
+    timer = setTimeout(() => {
+      reject(new Error(`Operation '${operationName}' timed out after ${timeoutMs}ms (runId=${runId})`));
+    }, timeoutMs);
+  });
+
+  try {
+    const result = await Promise.race([promise, timeoutPromise]);
+    clearTimeout(timer!);
+    return result;
+  } catch (err) {
+    clearTimeout(timer!);
+    throw err;
+  }
+}
+
+/**
  * Telemetry-instrumented migration job state updater.
  */
 export async function updateMigrationJobState(
@@ -76,47 +103,54 @@ export async function updateMigrationJobState(
   console.log(`[MIGRATION_STEP_START] runId=${runId} websiteId=${websiteId} step=${stepName} progress=${update.progress || 0}% stage="${update.currentStage || ''}"`);
 
   try {
-    const { data: web, error: selectErr } = await db.from("websites").select("design_plan").eq("id", websiteId).maybeSingle();
-    if (selectErr || !web) {
-      console.error(`[MIGRATION_STEP_ERROR] runId=${runId} websiteId=${websiteId} step=${stepName} error="${selectErr?.message || 'Website not found'}"`);
-      return;
-    }
+    await withTimeout(
+      (async () => {
+        const { data: web, error: selectErr } = await db.from("websites").select("design_plan").eq("id", websiteId).maybeSingle();
+        if (selectErr || !web) {
+          console.error(`[MIGRATION_STEP_ERROR] runId=${runId} websiteId=${websiteId} step=${stepName} error="${selectErr?.message || 'Website not found'}"`);
+          return;
+        }
 
-    const currentPlan = web.design_plan || {};
-    const currentJob = currentPlan.migration_job || {};
+        const currentPlan = web.design_plan || {};
+        const currentJob = currentPlan.migration_job || {};
 
-    const updatedJob = {
-      ...currentJob,
-      jobId: runId,
-      status: update.status || currentJob.status || "QUEUED",
-      progress: typeof update.progress === "number" ? update.progress : currentJob.progress || 10,
-      currentStage: update.currentStage || currentJob.currentStage || "Processing migration...",
-      currentPage: typeof update.currentPage === "number" ? update.currentPage : currentJob.currentPage || 0,
-      totalPages: typeof update.totalPages === "number" ? update.totalPages : currentJob.totalPages || 1,
-      completedPages: typeof update.completedPages === "number" ? update.completedPages : currentJob.completedPages || 0,
-      failedPages: typeof update.failedPages === "number" ? update.failedPages : currentJob.failedPages || 0,
-      error: update.error !== undefined ? update.error : currentJob.error || null,
-      result: update.result !== undefined ? update.result : currentJob.result || null,
-      pageDiagnostics: update.pageDiagnostics || currentJob.pageDiagnostics || [],
-      startTime: update.startTime || currentJob.startTime || new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
-    };
+        const updatedJob = {
+          ...currentJob,
+          jobId: runId,
+          status: update.status || currentJob.status || "QUEUED",
+          progress: typeof update.progress === "number" ? update.progress : currentJob.progress || 10,
+          currentStage: update.currentStage || currentJob.currentStage || "Processing migration...",
+          currentPage: typeof update.currentPage === "number" ? update.currentPage : currentJob.currentPage || 0,
+          totalPages: typeof update.totalPages === "number" ? update.totalPages : currentJob.totalPages || 1,
+          completedPages: typeof update.completedPages === "number" ? update.completedPages : currentJob.completedPages || 0,
+          failedPages: typeof update.failedPages === "number" ? update.failedPages : currentJob.failedPages || 0,
+          error: update.error !== undefined ? update.error : currentJob.error || null,
+          result: update.result !== undefined ? update.result : currentJob.result || null,
+          pageDiagnostics: update.pageDiagnostics || currentJob.pageDiagnostics || [],
+          startTime: update.startTime || currentJob.startTime || new Date().toISOString(),
+          updatedAt: new Date().toISOString(),
+        };
 
-    const { error: updateErr } = await db
-      .from("websites")
-      .update({
-        design_plan: {
-          ...currentPlan,
-          migration_job: updatedJob,
-        },
-      })
-      .eq("id", websiteId);
+        const { error: updateErr } = await db
+          .from("websites")
+          .update({
+            design_plan: {
+              ...currentPlan,
+              migration_job: updatedJob,
+            },
+          })
+          .eq("id", websiteId);
 
-    if (updateErr) {
-      console.error(`[MIGRATION_STEP_ERROR] runId=${runId} websiteId=${websiteId} step=${stepName} error="${updateErr.message}"`);
-    } else {
-      console.log(`[MIGRATION_STEP_COMPLETE] runId=${runId} websiteId=${websiteId} step=${stepName} elapsedMs=${Date.now() - startMs}`);
-    }
+        if (updateErr) {
+          console.error(`[MIGRATION_STEP_ERROR] runId=${runId} websiteId=${websiteId} step=${stepName} error="${updateErr.message}"`);
+        } else {
+          console.log(`[MIGRATION_STEP_COMPLETE] runId=${runId} websiteId=${websiteId} step=${stepName} elapsedMs=${Date.now() - startMs}`);
+        }
+      })(),
+      3000,
+      stepName,
+      runId
+    );
   } catch (e: any) {
     console.error(`[MIGRATION_STEP_ERROR] runId=${runId} websiteId=${websiteId} step=${stepName} error="${e?.message || e}"`);
   }
@@ -704,155 +738,189 @@ export async function executeWebsiteMigration(
     console.log(`[MIGRATION_CAPTURED_PAGES] runId=${runId} websiteId=${websiteId} count=${capturedPages.length} paths=${JSON.stringify(capturedPages.map(p => p.path))}`);
     console.log(`[MIGRATION_STORED_PAGES] runId=${runId} websiteId=${websiteId} count=${storedPagesList.length} paths=${JSON.stringify(storedPagesList)}`);
 
-    // FINALIZATION STAGE WITH FINALIZATION_TIMEOUT_MS GUARD (15s MAX)
+    // =========================================================================
+    // TELEMETRY-INSTRUMENTED FINALIZATION STAGE WITH STRICT TIMEOUT BOUNDS
+    // =========================================================================
     const finalizationStartMs = Date.now();
-    console.log(`[MIGRATION_STEP_START] runId=${runId} websiteId=${websiteId} step=FINALIZATION_STAGE elapsedMs=${finalizationStartMs - startTime}`);
+    console.log(`[MIGRATION_FINALIZE_START] runId=${runId} websiteId=${websiteId} operation=FINALIZE_START elapsedMs=${finalizationStartMs - startTime}`);
 
-    await updateMigrationJobState(db, websiteId, runId, {
-      status: "CAPTURING_ASSETS",
-      progress: 75,
-      currentStage: "Importing external media assets to storage...",
-      completedPages: completedCount,
-      failedPages: failedCount,
-      pageDiagnostics,
-    });
-
-    // 1. Asset Importer Step
-    const stepAssets = "ASSET_IMPORT_PIPELINE";
-    const startAssetsMs = Date.now();
-    console.log(`[MIGRATION_STEP_START] runId=${runId} websiteId=${websiteId} step=${stepAssets} elapsedMs=${startAssetsMs - startTime}`);
-
-    try {
-      const assetImportResult = await importAndStoreMigrationAssets(userId, websiteId, scanResult.baseUrl, capturedPages, { customSupabaseClient: db, runId });
-      if (assetImportResult.urlMap.size > 0) {
-        console.log(`[MIGRATION_STEP_START] runId=${runId} websiteId=${websiteId} step=HTML_CSS_REWRITE_DB_UPDATE count=${capturedPages.length}`);
-        for (const page of capturedPages) {
-          const { error: pageUpdateErr } = await db
-            .from("website_pages")
-            .update({
-              html_content: page.html_content,
-              css_content: page.css_content,
-            })
-            .eq("website_id", websiteId)
-            .eq("path", page.path);
-          if (pageUpdateErr) {
-            console.error(`[MIGRATION_STEP_ERROR] runId=${runId} websiteId=${websiteId} step=HTML_CSS_REWRITE_DB_UPDATE path="${page.path}" error="${pageUpdateErr.message}"`);
-          }
-        }
-      }
-      console.log(`[MIGRATION_STEP_COMPLETE] runId=${runId} websiteId=${websiteId} step=${stepAssets} elapsedMs=${Date.now() - startAssetsMs}`);
-    } catch (assetErr: any) {
-      console.error(`[MIGRATION_STEP_ERROR] runId=${runId} websiteId=${websiteId} step=${stepAssets} error="${assetErr?.message || assetErr}"`);
-    }
-
-    await updateMigrationJobState(db, websiteId, runId, {
-      status: "FINALIZING",
-      progress: 90,
-      currentStage: "Localizing internal links & verifying layout...",
-      completedPages: completedCount,
-      failedPages: failedCount,
-      pageDiagnostics,
-    });
-
-    // 2. Internal Link Localization Step
-    const stepLinks = "INTERNAL_LINK_LOCALIZATION";
-    const startLinksMs = Date.now();
-    console.log(`[MIGRATION_STEP_START] runId=${runId} websiteId=${websiteId} step=${stepLinks} elapsedMs=${startLinksMs - startTime}`);
-
-    try {
-      const { pageMap, sourceHostnames } = buildLocalPageMap(capturedPages, scanResult.domain);
-      for (const page of capturedPages) {
-        const locRes = localizeHtmlLinks(page.html_content, pageMap, sourceHostnames);
-        if (locRes.internalLinksRewritten > 0) {
-          page.html_content = locRes.html;
-          const { error: linkUpdateErr } = await db
-            .from("website_pages")
-            .update({ html_content: locRes.html })
-            .eq("website_id", websiteId)
-            .eq("path", page.path);
-          if (linkUpdateErr) {
-            console.error(`[MIGRATION_STEP_ERROR] runId=${runId} websiteId=${websiteId} step=${stepLinks}_DB_UPDATE path="${page.path}" error="${linkUpdateErr.message}"`);
-          }
-        }
-      }
-      console.log(`[MIGRATION_STEP_COMPLETE] runId=${runId} websiteId=${websiteId} step=${stepLinks} elapsedMs=${Date.now() - startLinksMs}`);
-    } catch (err: any) {
-      console.error(`[MIGRATION_STEP_ERROR] runId=${runId} websiteId=${websiteId} step=${stepLinks} error="${err?.message || err}"`);
-    }
-
-    // 3. Trigger async SEO intelligence analysis (NON-BLOCKING)
-    try {
-      setTimeout(() => {
-        runOpportunityScan(supabase, websiteId, userId).catch((err: any) => {
-          console.error(`[MIGRATION_STEP_ERROR] runId=${runId} websiteId=${websiteId} step=SEO_OPPORTUNITY_SCAN error="${err?.message || err}"`);
-        });
-      }, 50);
-    } catch {
-      // Non-blocking
-    }
-
-    const manifests = capturedPages.map((p) => p.manifest).filter(Boolean) as any[];
-
-    const finalResult: MigrationExecuteResult = {
-      success: true,
-      websiteId,
-      draftSlug: cleanSlug,
-      title,
-      summary: scanResult.summary,
-      warnings: scanResult.warnings,
-      urlMappings: scanResult.urlMappings,
-      capturedPages,
-      manifests,
-    };
-
-    // Mark migration as COMPLETED only after ALL pages, assets, and DB records are verified
-    const stepComplete = "FINAL_MIGRATION_JOB_COMPLETED";
-    const startCompleteMs = Date.now();
-    console.log(`[MIGRATION_STEP_START] runId=${runId} websiteId=${websiteId} step=${stepComplete} elapsedMs=${startCompleteMs - startTime}`);
-
-    await updateMigrationJobState(db, websiteId, runId, {
-      status: "COMPLETED",
-      progress: 100,
-      currentStage: "Draft Website Ready!",
-      completedPages: completedCount,
-      failedPages: failedCount,
-      error: null,
-      result: finalResult,
-      pageDiagnostics,
-    });
-
-    console.log(`[MIGRATION_STEP_COMPLETE] runId=${runId} websiteId=${websiteId} step=${stepComplete} totalTimeMs=${Date.now() - startTime}`);
-    return finalResult;
-  } catch (err: any) {
-    const errorMsg = String(err?.message || err || "Migration failed during execution.");
-    console.error(`[MIGRATION_STEP_ERROR] runId=${runId} websiteId=${websiteId} step=EXECUTE_MIGRATION_EXCEPTION error="${errorMsg}"`);
-
-    if (capturedPages.length === 0) {
-      // Clean up empty website row so broken draft never pollutes the dashboard
-      await safeDbDelete(db, "website_pages", "website_id", websiteId, runId, websiteId);
-      await safeDbDelete(db, "website_seo", "website_id", websiteId, runId, websiteId);
-      await safeDbDelete(db, "websites", "id", websiteId, runId, websiteId);
-    } else {
+    // 1. ASSET IMPORT STAGE
+      console.log(`[MIGRATION_ASSET_IMPORT_START] runId=${runId} websiteId=${websiteId} operation=ASSET_IMPORT elapsedMs=${Date.now() - startTime}`);
       await updateMigrationJobState(db, websiteId, runId, {
-        status: "FAILED",
-        progress: 0,
-        currentStage: "Migration Failed",
-        error: errorMsg,
+        status: "CAPTURING_ASSETS",
+        progress: 75,
+        currentStage: "Importing external media assets to storage...",
         completedPages: completedCount,
         failedPages: failedCount,
         pageDiagnostics,
       });
-    }
 
-    throw err;
-  } finally {
-    if (sharedBrowser) {
       try {
-        await sharedBrowser.close().catch(() => {});
-        console.log(`[PLAYWRIGHT_SHARED_BROWSER_CLOSED] runId=${runId}`);
-      } catch (closeErr: any) {
-        console.warn(`[PLAYWRIGHT_SHARED_BROWSER_CLOSE_WARN] runId=${runId} msg=${closeErr?.message || closeErr}`);
+        await withTimeout(
+          importAndStoreMigrationAssets(userId, websiteId, scanResult.baseUrl, capturedPages, { customSupabaseClient: db, runId }),
+          4000,
+          "ASSET_IMPORT_PIPELINE",
+          runId
+        );
+      } catch (assetErr: any) {
+        console.error(`[MIGRATION_FINALIZE_ERROR] runId=${runId} websiteId=${websiteId} operation=ASSET_IMPORT error="${assetErr?.message || assetErr}" elapsedMs=${Date.now() - startTime}`);
+      }
+      console.log(`[MIGRATION_ASSET_IMPORT_COMPLETE] runId=${runId} websiteId=${websiteId} operation=ASSET_IMPORT elapsedMs=${Date.now() - startTime}`);
+
+      // 2. LINK LOCALIZATION STAGE
+      console.log(`[MIGRATION_LINK_LOCALIZATION_START] runId=${runId} websiteId=${websiteId} operation=LINK_LOCALIZATION elapsedMs=${Date.now() - startTime}`);
+      await updateMigrationJobState(db, websiteId, runId, {
+        status: "FINALIZING",
+        progress: 85,
+        currentStage: "Localizing internal links & verifying layout...",
+        completedPages: completedCount,
+        failedPages: failedCount,
+        pageDiagnostics,
+      });
+
+      try {
+        await withTimeout(
+          (async () => {
+            const { pageMap, sourceHostnames } = buildLocalPageMap(capturedPages, scanResult.domain);
+            for (const page of capturedPages) {
+              const locRes = localizeHtmlLinks(page.html_content, pageMap, sourceHostnames);
+              if (locRes.internalLinksRewritten > 0) {
+                page.html_content = locRes.html;
+              }
+            }
+          })(),
+          2000,
+          "LINK_LOCALIZATION",
+          runId
+        );
+      } catch (linkErr: any) {
+        console.error(`[MIGRATION_FINALIZE_ERROR] runId=${runId} websiteId=${websiteId} operation=LINK_LOCALIZATION error="${linkErr?.message || linkErr}" elapsedMs=${Date.now() - startTime}`);
+      }
+      console.log(`[MIGRATION_LINK_LOCALIZATION_COMPLETE] runId=${runId} websiteId=${websiteId} operation=LINK_LOCALIZATION elapsedMs=${Date.now() - startTime}`);
+
+      // 3. LAYOUT VERIFICATION STAGE
+      console.log(`[MIGRATION_LAYOUT_VERIFY_START] runId=${runId} websiteId=${websiteId} operation=LAYOUT_VERIFY elapsedMs=${Date.now() - startTime}`);
+      try {
+        await withTimeout(
+          (async () => {
+            for (const page of capturedPages) {
+              if (!page.html_content || page.html_content.length < 100) {
+                console.warn(`[LAYOUT_VERIFY_WARN] runId=${runId} path="${page.path}" empty or truncated HTML`);
+              }
+            }
+          })(),
+          1000,
+          "LAYOUT_VERIFY",
+          runId
+        );
+      } catch (verifyErr: any) {
+        console.error(`[MIGRATION_FINALIZE_ERROR] runId=${runId} websiteId=${websiteId} operation=LAYOUT_VERIFY error="${verifyErr?.message || verifyErr}" elapsedMs=${Date.now() - startTime}`);
+      }
+      console.log(`[MIGRATION_LAYOUT_VERIFY_COMPLETE] runId=${runId} websiteId=${websiteId} operation=LAYOUT_VERIFY elapsedMs=${Date.now() - startTime}`);
+
+      // 4. DATABASE FINALIZE STAGE (Batch/Parallel Update for all pages)
+      console.log(`[MIGRATION_DB_FINALIZE_START] runId=${runId} websiteId=${websiteId} operation=DB_FINALIZE count=${capturedPages.length} elapsedMs=${Date.now() - startTime}`);
+      try {
+        await withTimeout(
+          Promise.allSettled(
+            capturedPages.map((page) =>
+              db
+                .from("website_pages")
+                .update({
+                  html_content: page.html_content,
+                  css_content: page.css_content,
+                })
+                .eq("website_id", websiteId)
+                .eq("path", page.path)
+            )
+          ),
+          4000,
+          "DATABASE_PAGE_FINALIZE",
+          runId
+        );
+      } catch (dbErr: any) {
+        console.error(`[MIGRATION_FINALIZE_ERROR] runId=${runId} websiteId=${websiteId} operation=DB_FINALIZE error="${dbErr?.message || dbErr}" elapsedMs=${Date.now() - startTime}`);
+      }
+      console.log(`[MIGRATION_DB_FINALIZE_COMPLETE] runId=${runId} websiteId=${websiteId} operation=DB_FINALIZE elapsedMs=${Date.now() - startTime}`);
+
+      // 5. Trigger async SEO intelligence analysis (NON-BLOCKING)
+      try {
+        setTimeout(() => {
+          runOpportunityScan(supabase, websiteId, userId).catch((err: any) => {
+            console.error(`[MIGRATION_FINALIZE_ERROR] runId=${runId} websiteId=${websiteId} operation=SEO_OPPORTUNITY_SCAN error="${err?.message || err}"`);
+          });
+        }, 50);
+      } catch {
+        // Non-blocking
+      }
+
+      const manifests = capturedPages.map((p) => p.manifest).filter(Boolean) as any[];
+
+      const finalResult: MigrationExecuteResult = {
+        success: true,
+        websiteId,
+        draftSlug: cleanSlug,
+        title,
+        summary: scanResult.summary,
+        warnings: scanResult.warnings,
+        urlMappings: scanResult.urlMappings,
+        capturedPages,
+        manifests,
+      };
+
+      // Mark migration as COMPLETED only after ALL pages, assets, and DB records are verified
+      await withTimeout(
+        updateMigrationJobState(db, websiteId, runId, {
+          status: "COMPLETED",
+          progress: 100,
+          currentStage: "Draft Website Ready!",
+          completedPages: completedCount,
+          failedPages: failedCount,
+          error: null,
+          result: finalResult,
+          pageDiagnostics,
+        }),
+        3000,
+        "FINAL_COMPLETED_STATUS_UPDATE",
+        runId
+      );
+
+      console.log(`[MIGRATION_COMPLETED] runId=${runId} websiteId=${websiteId} operation=MIGRATION_COMPLETED totalTimeMs=${Date.now() - startTime}`);
+      return finalResult;
+    } catch (err: any) {
+      const errorMsg = String(err?.message || err || "Migration failed during execution.");
+      console.error(`[MIGRATION_FINALIZE_ERROR] runId=${runId} websiteId=${websiteId} operation=EXECUTE_MIGRATION_EXCEPTION error="${errorMsg}" elapsedMs=${Date.now() - startTime}`);
+
+      if (capturedPages.length === 0) {
+        // Clean up empty website row so broken draft never pollutes the dashboard
+        await safeDbDelete(db, "website_pages", "website_id", websiteId, runId, websiteId);
+        await safeDbDelete(db, "website_seo", "website_id", websiteId, runId, websiteId);
+        await safeDbDelete(db, "websites", "id", websiteId, runId, websiteId);
+      } else {
+        await updateMigrationJobState(db, websiteId, runId, {
+          status: "FAILED",
+          progress: 0,
+          currentStage: "Migration Failed",
+          error: errorMsg,
+          completedPages: completedCount,
+          failedPages: failedCount,
+          pageDiagnostics,
+        });
+      }
+
+      throw err;
+    } finally {
+      if (sharedBrowser) {
+        console.log(`[MIGRATION_BROWSER_CLOSE_START] runId=${runId} websiteId=${websiteId} operation=BROWSER_CLOSE elapsedMs=${Date.now() - startTime}`);
+        try {
+          await withTimeout(sharedBrowser.close().catch(() => {}), 2000, "BROWSER_CLOSE", runId).catch(() => {});
+        } catch {
+          // Ignore browser close timeout
+        }
+        console.log(`[MIGRATION_BROWSER_CLOSE_COMPLETE] runId=${runId} websiteId=${websiteId} operation=BROWSER_CLOSE elapsedMs=${Date.now() - startTime}`);
       }
     }
   }
-}
+
+
+

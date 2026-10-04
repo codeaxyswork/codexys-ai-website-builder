@@ -195,8 +195,20 @@ export default function MigrationPage() {
       const websiteId = initData.websiteId;
 
       // Start Polling Loop for Migration Progress & Status
+      const pollStartMs = Date.now();
+      const MAX_POLL_DURATION_MS = 45000;
+
       const pollInterval = setInterval(async () => {
         try {
+          if (Date.now() - pollStartMs > MAX_POLL_DURATION_MS) {
+            clearInterval(pollInterval);
+            console.warn(`[MIGRATION_UI_POLL_TIMEOUT] runId: ${runId} | Polling exceeded 45s safety limit.`);
+            setMigrationError("Migration progress polling timed out after 45 seconds.");
+            setStep("error");
+            setIsExecuting(false);
+            return;
+          }
+
           const statusRes = await fetch(`/api/websites/migrate/status?jobId=${jobId}&websiteId=${websiteId}`);
           const statusData = await statusRes.json();
 
