@@ -250,7 +250,7 @@ export async function executeWebsiteMigration(
 
       try {
         if (!forceFastCapture) {
-          browserSnapshot = await captureSourcePageWithBrowser(srcPage.url);
+          browserSnapshot = await captureSourcePageWithBrowser(srcPage.url, runId);
         } else {
           browserSnapshot = await fallbackHttpCapture(srcPage.url, Date.now());
         }

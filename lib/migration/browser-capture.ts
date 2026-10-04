@@ -1,4 +1,4 @@
-import { chromium, Browser, BrowserContext, Page } from "playwright";
+import type { Browser, BrowserContext, Page } from "playwright";
 import { isPrivateOrReservedIP, validateAndSanitizeUrl } from "./scanner";
 import { MigrationSEO, MigrationLink, MigrationForm, MigrationSlide, MigrationWarning, PageCaptureManifest, BehaviorSource } from "./types";
 
@@ -59,30 +59,26 @@ function classifyJsCategory(urlStr: string): "elementor" | "jquery" | "swiper" |
  * runtime JS/CSS/asset classification, behavior detection, menu interaction testing,
  * and generates a deterministic per-page capture manifest.
  */
-export async function captureSourcePageWithBrowser(targetUrl: string): Promise<BrowserPageSnapshot> {
+export async function captureSourcePageWithBrowser(targetUrl: string, runId: string = "unknown"): Promise<BrowserPageSnapshot> {
   const startTime = Date.now();
   const isSafe = await checkUrlSsf(targetUrl);
   if (!isSafe) {
     throw new Error(`SSRF Security Violation: Access to URL ${targetUrl} is forbidden.`);
   }
 
-  // Detect Serverless environment (Vercel / AWS Lambda) where headless Chromium binary is not pre-packaged
-  const isServerless = !!(process.env.VERCEL || process.env.AWS_REGION || process.env.NOW_REGION);
-  
-  if (isServerless) {
-    console.log(`[MIGRATION BROWSER] Serverless environment detected (${targetUrl}). Executing fast HTTP capture...`);
-    return await fallbackHttpCapture(targetUrl, startTime);
-  }
-
   try {
-    return await captureSourcePageInternal(targetUrl, startTime);
+    return await captureSourcePageInternal(targetUrl, startTime, runId);
   } catch (err: any) {
-    console.warn(`[MIGRATION BROWSER] Browser capture fallback triggered (${err?.message}). Executing HTTP capture...`);
-    return await fallbackHttpCapture(targetUrl, startTime);
+    const elapsedMs = Date.now() - startTime;
+    console.warn(`[HTTP_FALLBACK_START] runId=${runId} targetUrl=${targetUrl} stage=browser_capture_top_fallback elapsedMs=${elapsedMs} reason=${err?.message || err}`);
+    if (err?.stack) console.error(err.stack);
+    const fallbackRes = await fallbackHttpCapture(targetUrl, startTime);
+    console.log(`[HTTP_FALLBACK_SUCCESS] runId=${runId} targetUrl=${targetUrl} stage=browser_capture_top_fallback elapsedMs=${Date.now() - startTime}`);
+    return fallbackRes;
   }
 }
 
-async function captureSourcePageInternal(targetUrl: string, startTime: number): Promise<BrowserPageSnapshot> {
+async function captureSourcePageInternal(targetUrl: string, startTime: number, runId: string = "unknown"): Promise<BrowserPageSnapshot> {
   let browser: Browser | null = null;
   const capturedNetworkUrls = new Set<string>();
   const detectedCssUrls = new Set<string>();
@@ -95,25 +91,60 @@ async function captureSourcePageInternal(targetUrl: string, startTime: number): 
   const pageErrors: string[] = [];
   const networkFailures: string[] = [];
 
-  try {
-    console.log(`[MIGRATION] BROWSER START (${targetUrl})`);
-    try {
-      browser = await chromium.launch({
-        timeout: 10000,
-        headless: true,
-        args: [
-          "--no-sandbox",
-          "--disable-setuid-sandbox",
-          "--disable-dev-shm-usage",
-          "--disable-accelerated-2d-canvas",
-          "--disable-gpu",
-        ],
-      });
-    } catch (launchErr: any) {
-      console.warn(`[BROWSER CAPTURE] Chromium launch failed (${launchErr?.message}). Falling back to HTTP HTML capture...`);
-      return await fallbackHttpCapture(targetUrl, startTime);
-    }
+  const loadStart = Date.now();
+  console.log(`[PLAYWRIGHT_MODULE_LOAD_START] runId=${runId} targetUrl=${targetUrl}`);
 
+  let chromiumModule: any = null;
+  try {
+    const pw = await import("playwright");
+    chromiumModule = pw.chromium;
+    console.log(`[PLAYWRIGHT_MODULE_LOAD_SUCCESS] runId=${runId} targetUrl=${targetUrl} elapsedMs=${Date.now() - loadStart}`);
+  } catch (loadErr: any) {
+    const elapsedMs = Date.now() - loadStart;
+    console.error(`[PLAYWRIGHT_MODULE_LOAD_FAILED] runId=${runId} targetUrl=${targetUrl} stage=module_load elapsedMs=${elapsedMs} error=${loadErr?.message || loadErr}`);
+    if (loadErr?.stack) console.error(loadErr.stack);
+
+    console.log(`[HTTP_FALLBACK_START] runId=${runId} targetUrl=${targetUrl} stage=module_load_fallback reason=playwright_module_load_failed`);
+    const fallbackStart = Date.now();
+    const fallbackRes = await fallbackHttpCapture(targetUrl, startTime);
+    console.log(`[HTTP_FALLBACK_SUCCESS] runId=${runId} targetUrl=${targetUrl} stage=module_load_fallback elapsedMs=${Date.now() - fallbackStart}`);
+    return fallbackRes;
+  }
+
+  const launchStart = Date.now();
+  console.log(`[CHROMIUM_LAUNCH_START] runId=${runId} targetUrl=${targetUrl}`);
+  try {
+    browser = await chromiumModule.launch({
+      timeout: 10000,
+      headless: true,
+      args: [
+        "--no-sandbox",
+        "--disable-setuid-sandbox",
+        "--disable-dev-shm-usage",
+        "--disable-accelerated-2d-canvas",
+        "--disable-gpu",
+      ],
+    });
+    console.log(`[CHROMIUM_LAUNCH_SUCCESS] runId=${runId} targetUrl=${targetUrl} elapsedMs=${Date.now() - launchStart}`);
+  } catch (launchErr: any) {
+    const elapsedMs = Date.now() - launchStart;
+    console.error(`[CHROMIUM_LAUNCH_FAILED] runId=${runId} targetUrl=${targetUrl} stage=chromium_launch elapsedMs=${elapsedMs} error=${launchErr?.message || launchErr}`);
+    if (launchErr?.stack) console.error(launchErr.stack);
+
+    console.log(`[HTTP_FALLBACK_START] runId=${runId} targetUrl=${targetUrl} stage=chromium_launch_fallback reason=chromium_launch_failed`);
+    const fallbackStart = Date.now();
+    const fallbackRes = await fallbackHttpCapture(targetUrl, startTime);
+    console.log(`[HTTP_FALLBACK_SUCCESS] runId=${runId} targetUrl=${targetUrl} stage=chromium_launch_fallback elapsedMs=${Date.now() - fallbackStart}`);
+    return fallbackRes;
+  }
+
+  const captureStart = Date.now();
+  console.log(`[BROWSER_PAGE_CAPTURE_START] runId=${runId} targetUrl=${targetUrl}`);
+
+  try {
+    if (!browser) {
+      throw new Error("Chromium browser instance is null");
+    }
     const context: BrowserContext = await browser.newContext({
       userAgent:
         "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36 CodeaxysMigrator/1.0",
@@ -873,6 +904,16 @@ stylesheetCount: ${cssLen}`);
       warnings: capturedData.warnings,
       manifest,
     };
+  } catch (err: any) {
+    const elapsedMs = Date.now() - captureStart;
+    console.error(`[BROWSER_PAGE_CAPTURE_FAILED] runId=${runId} targetUrl=${targetUrl} stage=browser_page_capture elapsedMs=${elapsedMs} error=${err?.message || err}`);
+    if (err?.stack) console.error(err.stack);
+
+    console.log(`[HTTP_FALLBACK_START] runId=${runId} targetUrl=${targetUrl} stage=browser_page_capture_fallback reason=browser_page_capture_failed`);
+    const fallbackStart = Date.now();
+    const fallbackRes = await fallbackHttpCapture(targetUrl, startTime);
+    console.log(`[HTTP_FALLBACK_SUCCESS] runId=${runId} targetUrl=${targetUrl} stage=browser_page_capture_fallback elapsedMs=${Date.now() - fallbackStart}`);
+    return fallbackRes;
   } finally {
     if (browser) {
       await browser.close().catch(() => {});
