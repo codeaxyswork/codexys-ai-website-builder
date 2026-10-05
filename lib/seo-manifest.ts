@@ -1,6 +1,6 @@
 import * as cheerio from "cheerio";
 import { redisGet, redisSet } from "./redis";
-import { getWebsitePublicUrl } from "./domain-resolver";
+import { getWebsitePublicUrl, getWebsitePageUrl } from "./domain-resolver";
 
 export interface ManifestOptions {
   baseUrl?: string;
@@ -93,12 +93,12 @@ export async function generateAIWebsiteManifest(
 
     let pageTitle = p.path === "index.html" ? "Home" : p.path.replace(".html", "").replace(/[-_]/g, " ");
     pageTitle = pageTitle.charAt(0).toUpperCase() + pageTitle.slice(1);
-    const pageUrl = p.path === "index.html" ? `${baseUrl}/` : `${baseUrl}/${p.path}`;
+    const pageUrl = getWebsitePageUrl(website, p.path);
     publicPages.push({ title: pageTitle, url: pageUrl });
   });
 
   publishedBlogs.forEach((b: any) => {
-    publicPages.push({ title: b.title, url: `${baseUrl}/blog/${b.slug}` });
+    publicPages.push({ title: b.title, url: getWebsitePageUrl(website, `/blog/${b.slug}`) });
   });
 
   // Extract FAQ Content

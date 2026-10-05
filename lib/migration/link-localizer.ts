@@ -167,15 +167,15 @@ export function buildLocalPageMap(
     // Local target format:
     // With urlPrefix e.g. "/site/my-slug":
     //   index -> "/site/my-slug/"
-    //   profile -> "/site/my-slug/profile/"
+    //   profile -> "/site/my-slug/profile"
     // Without urlPrefix:
     //   index -> "/"
-    //   profile -> "/profile/"
+    //   profile -> "/profile"
     let localHref = "/";
     if (cleanPrefix) {
-      localHref = targetSlug === "index" ? `${cleanPrefix}/` : `${cleanPrefix}/${targetSlug}/`;
+      localHref = targetSlug === "index" ? `${cleanPrefix}/` : `${cleanPrefix}/${targetSlug}`;
     } else {
-      localHref = targetSlug === "index" ? "/" : `/${targetSlug}/`;
+      localHref = targetSlug === "index" ? "/" : `/${targetSlug}`;
     }
 
     if (slugFromPath) pageMap.set(slugFromPath, localHref);

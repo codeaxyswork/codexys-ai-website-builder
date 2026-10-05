@@ -43,7 +43,7 @@ function runTests() {
   const urlUnverified = getWebsitePublicUrl(unverifiedSite);
   assert(
     "TEST 5: Unverified domain falls back to Codeaxys subdomain",
-    urlUnverified === "https://site-a.codeaxys.com",
+    urlUnverified === "https://site-a.codeaxys.com/",
     `Got: ${urlUnverified}`
   );
 
@@ -57,8 +57,8 @@ function runTests() {
   };
   const urlVerified = getWebsitePublicUrl(verifiedSite);
   assert(
-    "TEST 6: Verified domain resolves to https://company-a.com",
-    urlVerified === "https://company-a.com",
+    "TEST 6: Verified domain resolves to https://company-a.com/",
+    urlVerified === "https://company-a.com/",
     `Got: ${urlVerified}`
   );
 
@@ -89,7 +89,7 @@ function runTests() {
   const prodUrl = getWebsiteProductionUrl(standardSite);
   assert(
     "TEST 9: Codeaxys subdomain canonical production URL",
-    prodUrl === "https://saiprosteel.codeaxys.com",
+    prodUrl === "https://saiprosteel.codeaxys.com/",
     `Got: ${prodUrl}`
   );
 

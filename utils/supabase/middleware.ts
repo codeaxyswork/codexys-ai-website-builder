@@ -89,7 +89,6 @@ export async function updateSession(request: NextRequest) {
       pathname.startsWith("/dashboard") ||
       pathname.startsWith("/login") ||
       pathname.startsWith("/signup") ||
-      pathname.startsWith("/site") ||
       pathname.startsWith("/sitemap") ||
       pathname.startsWith("/robots") ||
       pathname.startsWith("/privacy-policy") ||
@@ -98,44 +97,77 @@ export async function updateSession(request: NextRequest) {
       pathname.startsWith("/admin") ||
       pathname.startsWith("/maintenance");
 
+    const isMainDomain =
+      !cleanHost ||
+      cleanHost === baseDomain ||
+      cleanHost === `www.${baseDomain}` ||
+      cleanHost === "codeaxys.com" ||
+      cleanHost === "www.codeaxys.com" ||
+      cleanHost.endsWith(".vercel.app") ||
+      cleanHost === "localhost" ||
+      cleanHost === "127.0.0.1";
+
+    // Direct /site/{slug} leak guard on tenant hosts: redirect 308 to clean public path
+    if (!isMainDomain && pathname.startsWith("/site")) {
+      const remainder = pathname.substring(5).replace(/^\/+/, ""); // strip "/site"
+      const parts = remainder.split("/").filter(Boolean);
+      const url = request.nextUrl.clone();
+      if (parts.length > 1) {
+        parts.shift(); // remove slug
+        url.pathname = `/${parts.join("/")}`;
+      } else {
+        url.pathname = "/";
+      }
+      return applyResponseCookies(NextResponse.redirect(url, 308));
+    }
+
     // Local Testing Hook: allow simulating subdomain resolution via header or query parameter
     const testSubdomain = request.headers.get("x-test-subdomain") || request.nextUrl.searchParams.get("__test_subdomain");
 
     if (testSubdomain && !isSaaSPath) {
       const cleanTestSlug = testSubdomain.toLowerCase().trim();
+      const requestHeaders = new Headers(request.headers);
+      requestHeaders.set("x-codeaxys-internal-rewrite", "true");
+      requestHeaders.set("x-codeaxys-tenant-host", `${cleanTestSlug}.codeaxys.com`);
+
       const url = request.nextUrl.clone();
       const targetSubpath = pathname === "/" ? "" : pathname;
       url.pathname = `/site/${cleanTestSlug}${targetSubpath}`;
-      return applyResponseCookies(NextResponse.rewrite(url));
+      return applyResponseCookies(
+        NextResponse.rewrite(url, {
+          request: {
+            headers: requestHeaders,
+          },
+        })
+      );
     }
 
-    if (cleanHost && !isSaaSPath) {
-      const isMainDomain =
-        cleanHost === baseDomain ||
-        cleanHost === `www.${baseDomain}` ||
-        cleanHost === "codeaxys.com" ||
-        cleanHost === "www.codeaxys.com" ||
-        cleanHost.endsWith(".vercel.app") ||
-        cleanHost === "localhost" ||
-        cleanHost === "127.0.0.1";
+    if (cleanHost && !isMainDomain && !isSaaSPath) {
+      let targetSlug = cleanHost;
 
-      if (!isMainDomain) {
-        let targetSlug = cleanHost;
-
-        // Platform Subdomain Check: e.g. mncc.codeaxys.com -> extract "mncc"
-        if (cleanHost.endsWith(`.${baseDomain}`) || cleanHost.endsWith(".codeaxys.com")) {
-          const matchedDomain = cleanHost.endsWith(`.${baseDomain}`) ? baseDomain : "codeaxys.com";
-          const sub = cleanHost.slice(0, -(matchedDomain.length + 1)).trim();
-          if (sub && sub !== "www" && sub !== "app" && sub !== "api" && sub !== "admin") {
-            targetSlug = sub;
-          }
+      // Platform Subdomain Check: e.g. brand.codeaxys.com -> extract "brand"
+      if (cleanHost.endsWith(`.${baseDomain}`) || cleanHost.endsWith(".codeaxys.com")) {
+        const matchedDomain = cleanHost.endsWith(`.${baseDomain}`) ? baseDomain : "codeaxys.com";
+        const sub = cleanHost.slice(0, -(matchedDomain.length + 1)).trim();
+        if (sub && sub !== "www" && sub !== "app" && sub !== "api" && sub !== "admin") {
+          targetSlug = sub;
         }
-
-        const url = request.nextUrl.clone();
-        const targetSubpath = pathname === "/" ? "" : pathname;
-        url.pathname = `/site/${targetSlug}${targetSubpath}`;
-        return applyResponseCookies(NextResponse.rewrite(url));
       }
+
+      const requestHeaders = new Headers(request.headers);
+      requestHeaders.set("x-codeaxys-internal-rewrite", "true");
+      requestHeaders.set("x-codeaxys-tenant-host", cleanHost);
+
+      const url = request.nextUrl.clone();
+      const targetSubpath = pathname === "/" ? "" : pathname;
+      url.pathname = `/site/${targetSlug}${targetSubpath}`;
+      return applyResponseCookies(
+        NextResponse.rewrite(url, {
+          request: {
+            headers: requestHeaders,
+          },
+        })
+      );
     }
 
     // Protect /admin routes: require authentication

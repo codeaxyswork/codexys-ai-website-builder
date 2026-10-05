@@ -95,8 +95,8 @@ async function runE2ESuite() {
     is_published: true,
   };
   assert(
-    "READY custom domain resolves to https://acme.com",
-    getWebsiteProductionUrl(siteReady) === "https://acme.com"
+    "READY custom domain resolves to https://acme.com/",
+    getWebsiteProductionUrl(siteReady) === "https://acme.com/"
   );
 
   const sitePendingDns = {
@@ -108,8 +108,8 @@ async function runE2ESuite() {
     is_published: true,
   };
   assert(
-    "PENDING_DNS custom domain safely falls back to https://acme-corp.codeaxys.com",
-    getWebsiteProductionUrl(sitePendingDns) === "https://acme-corp.codeaxys.com"
+    "PENDING_DNS custom domain safely falls back to https://acme-corp.codeaxys.com/",
+    getWebsiteProductionUrl(sitePendingDns) === "https://acme-corp.codeaxys.com/"
   );
 
   const siteNoDomain = {
@@ -119,7 +119,7 @@ async function runE2ESuite() {
   };
   assert(
     "No custom domain resolves to Codeaxys subdomain",
-    getWebsiteProductionUrl(siteNoDomain) === "https://acme-corp.codeaxys.com"
+    getWebsiteProductionUrl(siteNoDomain) === "https://acme-corp.codeaxys.com/"
   );
 
   console.log(`\n==================================================`);

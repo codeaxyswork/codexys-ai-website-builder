@@ -16,6 +16,8 @@ export interface GetPublicUrlOptions {
   forceCustomDomain?: boolean;
   /** Append subpath e.g. /blog/my-post */
   subpath?: string;
+  /** Control whether root homepage has trailing slash (default: true -> "https://slug.codeaxys.com/") */
+  trailingSlash?: boolean;
 }
 
 export interface NormalizedDomainResult {
@@ -27,6 +29,225 @@ export interface NormalizedDomainResult {
   wwwDomain: string;       // "www.example.com"
   hasWww: boolean;
   isSubdomain: boolean;
+}
+
+/**
+ * Normalizes any URL path, internal route, or slug into a standard clean public website path.
+ *
+ * Requirements:
+ * - Empty, "/", "", "/index", "index.html", "/site/{slug}" -> "/"
+ * - Internal pages: "/about-us", "/services", "/blog/example-post"
+ * - Normalizes leading slashes, trailing slashes, duplicate slashes
+ * - Preserves query parameters and hash fragments (e.g. "/about-us?preview=true#team")
+ */
+export function normalizePagePath(rawPath?: string | null): string {
+  if (!rawPath || typeof rawPath !== "string") {
+    return "/";
+  }
+
+  let str = rawPath.trim();
+  if (!str || str === "/") {
+    return "/";
+  }
+
+  // Separate query parameters and hash fragments
+  let extra = "";
+  const qIdx = str.indexOf("?");
+  const hIdx = str.indexOf("#");
+  if (qIdx !== -1 || hIdx !== -1) {
+    const splitIdx = qIdx !== -1 && hIdx !== -1 ? Math.min(qIdx, hIdx) : qIdx !== -1 ? qIdx : hIdx;
+    extra = str.substring(splitIdx);
+    str = str.substring(0, splitIdx);
+  }
+
+  // Strip internal Next.js /site/{slug}/ prefix if present
+  if (str.includes("/site/")) {
+    const siteIdx = str.indexOf("/site/");
+    const afterSite = str.substring(siteIdx + 6);
+    const parts = afterSite.split("/").filter(Boolean);
+    if (parts.length > 1) {
+      parts.shift(); // remove website slug
+      str = "/" + parts.join("/");
+    } else {
+      str = "/";
+    }
+  }
+
+  // Remove duplicate slashes
+  str = str.replace(/\/+/g, "/");
+
+  // Remove leading and trailing slashes for clean evaluation
+  str = str.replace(/^\/+|\/+$/g, "");
+
+  // Remove .html or .htm extensions
+  if (str.endsWith(".html")) {
+    str = str.slice(0, -5);
+  } else if (str.endsWith(".htm")) {
+    str = str.slice(0, -4);
+  }
+
+  // Decode URI component safely
+  try {
+    str = decodeURIComponent(str);
+  } catch {}
+
+  const lower = str.toLowerCase();
+  if (!str || lower === "index" || lower === "home" || lower === "default") {
+    return extra ? `/${extra}` : "/";
+  }
+
+  return `/${str}${extra}`;
+}
+
+/**
+ * Universal canonical public URL resolver for Codeaxys websites.
+ * Single source of truth across AI-generated, migrated, and existing websites.
+ *
+ * Canonical Public URLs:
+ * - Homepage: https://{slug}.codeaxys.com/
+ * - Subpages: https://{slug}.codeaxys.com/{path}
+ * - Custom domain homepage: https://{custom-domain}/
+ * - Custom domain subpages: https://{custom-domain}/{path}
+ */
+export function getWebsitePublicUrl(
+  website: WebsiteUrlInput | null | undefined,
+  options?: GetPublicUrlOptions
+): string {
+  if (!website) return "";
+
+  const trailingSlash = options?.trailingSlash !== false;
+
+  // 1. Custom Domain takes priority IF verified/ready or forceCustomDomain is enabled
+  const hasCustomDomain = Boolean(website.custom_domain && website.custom_domain.trim().length > 0);
+  const isCustomDomainReady =
+    hasCustomDomain &&
+    (options?.forceCustomDomain ||
+      website.custom_domain_verified === true ||
+      website.custom_domain_status === "ready" ||
+      website.custom_domain_status === "verified" ||
+      (website.custom_domain_verified === undefined && website.custom_domain_status === undefined));
+
+  if (hasCustomDomain && isCustomDomainReady) {
+    const cleanCustom = website.custom_domain!.trim().toLowerCase().replace(/^https?:\/\//i, "").replace(/\/.*$/, "");
+    const baseCustomUrl = `https://${cleanCustom}`;
+
+    if (options?.subpath) {
+      const normPath = normalizePagePath(options.subpath);
+      if (normPath === "/") {
+        return trailingSlash ? `${baseCustomUrl}/` : baseCustomUrl;
+      }
+      if (normPath.startsWith("/?") || normPath.startsWith("/#")) {
+        return `${baseCustomUrl}/${normPath.slice(1)}`;
+      }
+      return `${baseCustomUrl}${normPath}`;
+    }
+
+    return trailingSlash ? `${baseCustomUrl}/` : baseCustomUrl;
+  }
+
+  // 2. Codeaxys Subdomain vs Local Dev Route
+  const activeSlug = (website.published_slug || website.slug || "").trim().toLowerCase();
+  if (!activeSlug) return "";
+
+  const appDomainRaw = (
+    process.env.NEXT_PUBLIC_APP_DOMAIN ||
+    process.env.APP_DOMAIN ||
+    "codeaxys.com"
+  ).trim().toLowerCase().replace(/^https?:\/\//i, "").replace(/\/.*$/, "");
+
+  // Deterministic local dev mode check evaluated identically on both server & client
+  const origin = options?.origin || "";
+  const isDevMode =
+    options?.forceLocalPath === true ||
+    (Boolean(origin) && (origin.includes("localhost") || origin.includes("127.0.0.1"))) ||
+    appDomainRaw.includes("localhost") ||
+    appDomainRaw.includes("127.0.0.1");
+
+  if (isDevMode) {
+    const localHost = (origin && (origin.includes("localhost") || origin.includes("127.0.0.1")))
+      ? origin.replace(/^https?:\/\//i, "").replace(/\/.*$/, "")
+      : appDomainRaw.includes("localhost")
+      ? appDomainRaw
+      : "localhost:3000";
+    const baseDev = `http://${localHost}/site/${activeSlug}`;
+
+    if (options?.subpath) {
+      const normPath = normalizePagePath(options.subpath);
+      if (normPath === "/") {
+        return `${baseDev}/`;
+      }
+      return `${baseDev}${normPath}`;
+    }
+
+    return trailingSlash ? `${baseDev}/` : baseDev;
+  }
+
+  const baseDomain = (appDomainRaw && !appDomainRaw.includes("localhost") && !appDomainRaw.includes("vercel.app"))
+    ? appDomainRaw
+    : "codeaxys.com";
+
+  const baseSubdomainUrl = `https://${activeSlug}.${baseDomain}`;
+
+  if (options?.subpath) {
+    const normPath = normalizePagePath(options.subpath);
+    if (normPath === "/") {
+      return trailingSlash ? `${baseSubdomainUrl}/` : baseSubdomainUrl;
+    }
+    if (normPath.startsWith("/?") || normPath.startsWith("/#")) {
+      return `${baseSubdomainUrl}/${normPath.slice(1)}`;
+    }
+    return `${baseSubdomainUrl}${normPath}`;
+  }
+
+  return trailingSlash ? `${baseSubdomainUrl}/` : baseSubdomainUrl;
+}
+
+/**
+ * Universal canonical page URL resolver.
+ * Homepage: https://{slug}.codeaxys.com/
+ * Subpages: https://{slug}.codeaxys.com/{normalizedPath}
+ */
+export function getWebsitePageUrl(
+  website: WebsiteUrlInput | null | undefined,
+  pagePath?: string | null,
+  options?: GetPublicUrlOptions
+): string {
+  if (!website) return "";
+  const norm = normalizePagePath(pagePath);
+  return getWebsitePublicUrl(website, {
+    ...options,
+    subpath: norm,
+  });
+}
+
+/**
+ * Returns the draft preview URL for a website (adds ?preview=true when unpublished).
+ * Exposes clean public URL with ?preview=true, NEVER leaking /site/{slug}.
+ */
+export function getWebsitePreviewUrl(
+  website: WebsiteUrlInput | null | undefined,
+  options?: GetPublicUrlOptions
+): string {
+  if (!website) return "";
+  const base = getWebsitePublicUrl(website, options);
+  if (!base) return "";
+
+  if (website.is_published) return base;
+
+  if (base.includes("?")) {
+    return base.includes("preview=") ? base : `${base}&preview=true`;
+  }
+  return base.endsWith("/") ? `${base}?preview=true` : `${base}?preview=true`;
+}
+
+/**
+ * Returns the canonical production subdomain URL for a published website.
+ */
+export function getWebsiteProductionUrl(
+  website: WebsiteUrlInput | null | undefined,
+  options?: GetPublicUrlOptions
+): string {
+  return getWebsitePublicUrl(website, options);
 }
 
 /**
@@ -215,134 +436,6 @@ export function normalizeCustomDomainInput(input: string): NormalizedDomainResul
   };
 }
 
-export function getWebsitePublicUrl(
-  website: WebsiteUrlInput | null | undefined,
-  options?: GetPublicUrlOptions
-): string {
-  if (!website) return "";
-
-  // 1. Custom Domain takes priority IF verified/ready or forceCustomDomain is enabled
-  const hasCustomDomain = Boolean(website.custom_domain && website.custom_domain.trim().length > 0);
-  const isCustomDomainReady =
-    hasCustomDomain &&
-    (options?.forceCustomDomain ||
-      website.custom_domain_verified === true ||
-      website.custom_domain_status === "ready" ||
-      website.custom_domain_status === "verified" ||
-      // Backwards-compatibility: if custom_domain is set and neither verified nor status was provided in input
-      (website.custom_domain_verified === undefined && website.custom_domain_status === undefined));
-
-  if (hasCustomDomain && isCustomDomainReady) {
-    const cleanCustom = website.custom_domain!.trim().toLowerCase().replace(/^https?:\/\//i, "").replace(/\/.*$/, "");
-    const baseCustomUrl = `https://${cleanCustom}`;
-    if (options?.subpath) {
-      const cleanSubpath = options.subpath.startsWith("/") ? options.subpath : `/${options.subpath}`;
-      return `${baseCustomUrl}${cleanSubpath}`;
-    }
-    return baseCustomUrl;
-  }
-
-  // 2. Codeaxys Subdomain vs Local Dev Route
-  const activeSlug = (website.published_slug || website.slug || "").trim().toLowerCase();
-  if (!activeSlug) return "";
-
-  const appDomainRaw = (
-    process.env.NEXT_PUBLIC_APP_DOMAIN ||
-    process.env.APP_DOMAIN ||
-    "codeaxys.com"
-  ).trim().toLowerCase().replace(/^https?:\/\//i, "").replace(/\/.*$/, "");
-
-  // Deterministic local dev mode check evaluated identically on both server & client
-  const origin = options?.origin || "";
-  const isDevMode =
-    options?.forceLocalPath ||
-    process.env.NODE_ENV !== "production" ||
-    appDomainRaw.includes("localhost") ||
-    appDomainRaw.includes("127.0.0.1") ||
-    origin.includes("localhost") ||
-    origin.includes("127.0.0.1");
-
-  let baseUrl = "";
-  if (isDevMode) {
-    const localHost = (origin && (origin.includes("localhost") || origin.includes("127.0.0.1")))
-      ? origin.replace(/^https?:\/\//i, "").replace(/\/.*$/, "")
-      : appDomainRaw.includes("localhost")
-      ? appDomainRaw
-      : "localhost:3000";
-    baseUrl = `http://${localHost}/site/${activeSlug}`;
-  } else {
-    const baseDomain = (appDomainRaw && !appDomainRaw.includes("localhost") && !appDomainRaw.includes("vercel.app"))
-      ? appDomainRaw
-      : "codeaxys.com";
-    baseUrl = `https://${activeSlug}.${baseDomain}`;
-  }
-
-  if (options?.subpath) {
-    const cleanSubpath = options.subpath.startsWith("/") ? options.subpath : `/${options.subpath}`;
-    return `${baseUrl}${cleanSubpath}`;
-  }
-
-  return baseUrl;
-}
-
-/**
- * Returns the draft preview URL for a website (adds ?preview=true when unpublished).
- */
-export function getWebsitePreviewUrl(
-  website: WebsiteUrlInput | null | undefined,
-  options?: GetPublicUrlOptions
-): string {
-  if (!website) return "";
-  const base = getWebsitePublicUrl(website, options);
-  if (!base) return "";
-
-  if (website.is_published) return base;
-
-  return base.includes("?") ? `${base}&preview=true` : `${base}?preview=true`;
-}
-
-/**
- * Returns the canonical production subdomain URL for a published website.
- */
-export function getWebsiteProductionUrl(
-  website: WebsiteUrlInput | null | undefined,
-  options?: GetPublicUrlOptions
-): string {
-  if (!website) return "";
-  const activeSlug = (website.published_slug || website.slug || "").trim().toLowerCase();
-  if (!activeSlug) return "";
-
-  const hasCustomDomain = Boolean(website.custom_domain && website.custom_domain.trim().length > 0);
-  const isCustomDomainReady =
-    hasCustomDomain &&
-    (options?.forceCustomDomain ||
-      website.custom_domain_verified === true ||
-      website.custom_domain_status === "ready" ||
-      website.custom_domain_status === "verified" ||
-      (website.custom_domain_verified === undefined && website.custom_domain_status === undefined));
-
-  if (hasCustomDomain && isCustomDomainReady) {
-    const cleanCustom = website.custom_domain!.trim().toLowerCase().replace(/^https?:\/\//i, "").replace(/\/.*$/, "");
-    return `https://${cleanCustom}${options?.subpath ? (options.subpath.startsWith("/") ? options.subpath : `/${options.subpath}`) : ""}`;
-  }
-
-  const appDomainRaw = (
-    process.env.NEXT_PUBLIC_APP_DOMAIN ||
-    process.env.APP_DOMAIN ||
-    "codeaxys.com"
-  ).trim().toLowerCase().replace(/^https?:\/\//i, "").replace(/\/.*$/, "");
-
-  const baseDomain = (appDomainRaw && !appDomainRaw.includes("localhost") && !appDomainRaw.includes("vercel.app"))
-    ? appDomainRaw
-    : "codeaxys.com";
-
-  const prodUrl = `https://${activeSlug}.${baseDomain}`;
-  if (options?.subpath) {
-    const cleanSubpath = options.subpath.startsWith("/") ? options.subpath : `/${options.subpath}`;
-    return `${prodUrl}${cleanSubpath}`;
-  }
-  return prodUrl;
-}
 
 /**
  * Returns the canonical subdomain hostname for a website (e.g. "example.codeaxys.com").

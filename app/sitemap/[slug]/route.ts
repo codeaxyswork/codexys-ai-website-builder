@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/utils/supabase/server";
-import { getWebsitePublicUrl } from "@/lib/domain-resolver";
+import { getWebsitePageUrl } from "@/lib/domain-resolver";
 
 export async function GET(
   request: Request,
@@ -36,33 +36,33 @@ export async function GET(
       .eq("website_id", website.id)
       .eq("status", "published");
 
-    const siteBaseUrl = getWebsitePublicUrl(website);
-
     const lastMod = website.updated_at
       ? new Date(website.updated_at).toISOString().split("T")[0]
       : new Date().toISOString().split("T")[0];
 
     const pageEntries = (pages && pages.length > 0 ? pages : [{ path: "index.html", updated_at: website.updated_at }])
       .map((p) => {
-        const pagePath = p.path === "index.html" ? "" : `/${p.path}`;
+        const canonicalLoc = getWebsitePageUrl(website, p.path);
         const pMod = p.updated_at
           ? new Date(p.updated_at).toISOString().split("T")[0]
           : lastMod;
+        const isHome = !p.path || p.path === "/" || p.path.toLowerCase().startsWith("index");
         return `  <url>
-    <loc>${siteBaseUrl}${pagePath}</loc>
+    <loc>${canonicalLoc}</loc>
     <lastmod>${pMod}</lastmod>
     <changefreq>weekly</changefreq>
-    <priority>${p.path === "index.html" ? "1.0" : "0.8"}</priority>
+    <priority>${isHome ? "1.0" : "0.8"}</priority>
   </url>`;
       })
       .join("\n");
 
     const blogEntries = (publishedPosts || []).map((b) => {
+      const blogLoc = getWebsitePageUrl(website, `/blog/${b.slug}`);
       const bMod = b.updated_at
         ? new Date(b.updated_at).toISOString().split("T")[0]
         : lastMod;
       return `  <url>
-    <loc>${siteBaseUrl}/blog/${b.slug}</loc>
+    <loc>${blogLoc}</loc>
     <lastmod>${bMod}</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.7</priority>

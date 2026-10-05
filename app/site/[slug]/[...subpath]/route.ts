@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { createAdminClient, createClient } from "@/utils/supabase/server";
 import { assemblePublishedWebsite } from "@/lib/site-renderer";
 import { getCachedSiteData, setCachedSiteData } from "@/lib/site-cache";
-import { getWebsitePublicUrl } from "@/lib/domain-resolver";
+import { getWebsitePublicUrl, getWebsitePageUrl, getWebsitePreviewUrl } from "@/lib/domain-resolver";
 export const dynamic = "force-dynamic";
 export const fetchCache = "force-no-store";
 export const revalidate = 0;
@@ -112,22 +112,24 @@ export async function GET(
       }
     }
 
-    // Direct platform route safeguard: Redirect /site/{slug}/{subpath} to canonical subdomain / custom domain
-    // only when visited directly on the main app host (e.g. codeaxys.com), preventing redirect loops during middleware rewrite.
-    const appDomain = (
-      process.env.APP_DOMAIN ||
-      process.env.NEXT_PUBLIC_APP_DOMAIN ||
-      process.env.NEXT_PUBLIC_VERCEL_PROJECT_PRODUCTION_URL ||
-      process.env.NEXT_PUBLIC_VERCEL_URL ||
-      "codeaxys.com"
-    ).toLowerCase().trim();
+    // Direct platform route safeguard: Redirect direct requests to /site/{slug}/{subpath} to canonical public URL.
+    // When rewritten internally by middleware (e.g. user visits https://brand.codeaxys.com/about-us),
+    // the x-codeaxys-internal-rewrite header is "true", so it renders directly.
+    const isInternalRewrite = request.headers.get("x-codeaxys-internal-rewrite") === "true";
 
-    const isMainPlatformHost = hostHeader === appDomain || hostHeader === "codeaxys.com" || hostHeader === "www.codeaxys.com";
+    if (!isInternalRewrite) {
+      let isPreview = false;
+      try {
+        const urlObj = new URL(request.url);
+        isPreview = urlObj.searchParams.get("preview") === "true" || urlObj.searchParams.get("preview") === "1";
+      } catch {}
 
-    if (isMainPlatformHost && website.is_published) {
-      const canonicalUrl = getWebsitePublicUrl(website, { subpath: pathStr });
+      const canonicalUrl = isPreview
+        ? getWebsitePreviewUrl(website, { subpath: pathStr })
+        : getWebsitePageUrl(website, pathStr);
+
       if (canonicalUrl && !canonicalUrl.includes("/site/")) {
-        return NextResponse.redirect(canonicalUrl, 301);
+        return NextResponse.redirect(canonicalUrl, 308);
       }
     }
 
@@ -222,37 +224,34 @@ export async function GET(
       });
     }
 
-    // 4. Assemble production HTML with runtime link localizer safeguard
+    // 4. Assemble production HTML with clean public link normalization
     const tAssembleStart = performance.now();
-    const publicPrefix = `/site/${website.published_slug || cleanSlug}`;
 
     let sanitizedHtml = targetPage.html_content || "";
-    // Runtime safeguard: Ensure zero live WordPress domain links or root-relative links escape into client browser
-    sanitizedHtml = sanitizedHtml.replace(/href=["']https?:\/\/(?:www\.)?mnc?conline\.com\/?["']/gi, `href="${publicPrefix}/"`);
-    sanitizedHtml = sanitizedHtml.replace(/href=["']https?:\/\/(?:www\.)?mnc?conline\.com\/([^"']+)["']/gi, (match: string, pathGroup: string) => {
-      const cleanPathGroup = pathGroup.startsWith("/") ? pathGroup.slice(1) : pathGroup;
-      return `href="${publicPrefix}/${cleanPathGroup}"`;
-    });
-    // If website specifies another source domain, replace it as well
+
+    // 1. Generic source domain link localization: If website was migrated, rewrite any absolute links pointing to the original domain to clean root-relative paths
     const extraDomain = website?.design_plan?.migration?.domain || website?.design_plan?.migration?.originalUrl;
     if (extraDomain) {
       try {
         const cleanDomain = extraDomain.replace(/^https?:\/\//i, "").replace(/\/.*$/, "").trim().toLowerCase();
-        if (cleanDomain && cleanDomain !== "mncconline.com" && cleanDomain !== "mnconline.com") {
-          const escDom = cleanDomain.replace(/[-[\]{}()*+?.,\\^$|#\s]/g, '\\$&');
-          sanitizedHtml = sanitizedHtml.replace(new RegExp(`href=["']https?:\\/\\/(?:www\.)?${escDom}\\/?([^"']*)["']`, "gi"), (m: string, pGroup: string) => {
-            const cPath = (pGroup || "").startsWith("/") ? pGroup.slice(1) : (pGroup || "");
-            return `href="${publicPrefix}/${cPath}"`;
+        if (cleanDomain) {
+          const escDom = cleanDomain.replace(/[-[\]{}()*+?.,\\^$|#\s]/g, "\\$&");
+          sanitizedHtml = sanitizedHtml.replace(new RegExp(`href=["']https?:\\/\\/(?:www\\.)?${escDom}\\/?([^"']*)["']`, "gi"), (_match: string, pGroup: string) => {
+            const cPath = (pGroup || "").trim().replace(/^\/+|\/+$/g, "");
+            return cPath ? `href="/${cPath}"` : `href="/"`;
           });
         }
       } catch {}
     }
-    sanitizedHtml = sanitizedHtml.replace(/href=["']\/((?!site\/|api\/|_next\/|wp-content\/|wp-includes\/|#|javascript:)[^"']*)["']/gi, (match: string, pathGroup: string) => {
-      if (/\.(css|js|png|jpg|jpeg|gif|svg|ico|woff|woff2|ttf)$/i.test(pathGroup)) return match;
-      const cleanPathGroup = pathGroup.startsWith("/") ? pathGroup.slice(1) : pathGroup;
-      return `href="${publicPrefix}/${cleanPathGroup}"`;
+
+    // 2. Universal cleanup: Strip any leaked internal /site/{slug}/ prefixes from HTML links
+    sanitizedHtml = sanitizedHtml.replace(/href=["'](?:\/site\/[a-zA-Z0-9_-]+)(\/[^"']*)?["']/gi, (_match: string, restGroup: string) => {
+      const cPath = (restGroup || "").trim().replace(/^\/+|\/+$/g, "");
+      return cPath ? `href="/${cPath}"` : `href="/"`;
     });
-    sanitizedHtml = sanitizedHtml.replace(new RegExp(`${publicPrefix.replace(/[-[\]{}()*+?.,\\^$|#\s]/g, '\\$&')}/+`, "g"), `${publicPrefix}/`);
+
+    // 3. Normalize logo/home links to clean root "/"
+    sanitizedHtml = sanitizedHtml.replace(/href=["']\/(?:index\.html?|home|default)?["']/gi, `href="/"`);
 
     const migrationDomain = website?.design_plan?.migration?.domain || website?.design_plan?.migration?.originalUrl || null;
 
