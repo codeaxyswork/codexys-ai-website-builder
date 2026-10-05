@@ -542,8 +542,8 @@ async function captureSourcePageInternal(
         if (href) assetUrlsSet.add(toAbs(href));
       });
 
-      // Extract background images from DOM attributes and styles
-      document.querySelectorAll("*").forEach((el) => {
+      // Extract background images from DOM attributes and styles (targeted selector for max performance)
+      document.querySelectorAll('[style*="url"], [data-bg], [data-background], [data-image], [data-background-image]').forEach((el) => {
         const dataBg = el.getAttribute("data-bg") || el.getAttribute("data-background") || el.getAttribute("data-image") || el.getAttribute("data-background-image");
         if (dataBg) assetUrlsSet.add(toAbs(dataBg));
 
