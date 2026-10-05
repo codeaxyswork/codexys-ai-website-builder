@@ -34,11 +34,12 @@ export async function GET(req: NextRequest) {
     const db = getSafeAdminClient();
 
     let website: any = null;
-    if (websiteId) {
-      const { data } = await db.from("websites").select("id, slug, is_published, design_plan, created_at").eq("id", websiteId).maybeSingle();
-      website = data;
-    } else if (jobId) {
+    if (jobId) {
       const { data } = await db.from("websites").select("id, slug, is_published, design_plan, created_at").filter("design_plan->migration_job->>jobId", "eq", jobId).maybeSingle();
+      website = data;
+    }
+    if (!website && websiteId) {
+      const { data } = await db.from("websites").select("id, slug, is_published, design_plan, created_at").eq("id", websiteId).maybeSingle();
       website = data;
     }
 

@@ -904,22 +904,15 @@ export async function executeWebsiteMigration(
       const errorMsg = String(err?.message || err || "Migration failed during execution.");
       console.error(`[MIGRATION_FINALIZE_ERROR] runId=${runId} websiteId=${websiteId} operation=EXECUTE_MIGRATION_EXCEPTION error="${errorMsg}" elapsedMs=${Date.now() - startTime}`);
 
-      if (capturedPages.length === 0) {
-        // Clean up empty website row so broken draft never pollutes the dashboard
-        await safeDbDelete(db, "website_pages", "website_id", websiteId, runId, websiteId);
-        await safeDbDelete(db, "website_seo", "website_id", websiteId, runId, websiteId);
-        await safeDbDelete(db, "websites", "id", websiteId, runId, websiteId);
-      } else {
-        await updateMigrationJobState(db, websiteId, runId, {
-          status: "FAILED",
-          progress: 0,
-          currentStage: "Migration Failed",
-          error: errorMsg,
-          completedPages: completedCount,
-          failedPages: failedCount,
-          pageDiagnostics,
-        });
-      }
+      await updateMigrationJobState(db, websiteId, runId, {
+        status: "FAILED",
+        progress: 0,
+        currentStage: "Migration Failed",
+        error: errorMsg,
+        completedPages: completedCount,
+        failedPages: failedCount,
+        pageDiagnostics,
+      });
 
       throw err;
     } finally {

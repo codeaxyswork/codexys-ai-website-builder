@@ -201,9 +201,40 @@ export default function MigrationPage() {
       const pollInterval = setInterval(async () => {
         try {
           if (Date.now() - pollStartMs > MAX_POLL_DURATION_MS) {
+            const finalRes = await fetch(`/api/websites/migrate/status?jobId=${jobId}&websiteId=${websiteId}`).catch(() => null);
+            const finalData = finalRes ? await finalRes.json().catch(() => null) : null;
+            const finalStatus = (finalData?.status || "").toUpperCase();
+
             clearInterval(pollInterval);
-            console.warn(`[MIGRATION_UI_POLL_TIMEOUT] runId: ${runId} | Polling exceeded 45s safety limit.`);
-            setMigrationError("Migration progress polling timed out after 45 seconds.");
+
+            if (finalStatus === "COMPLETED") {
+              setProgressPercent(100);
+              setProgressStage("Draft Website Ready!");
+              setExecutionResult(finalData.result || {
+                success: true,
+                websiteId: finalData.websiteId,
+                draftSlug: finalData.draftSlug,
+                title: scanData?.domain || "Migrated Website",
+                summary: scanData?.summary,
+                warnings: scanData?.warnings,
+                urlMappings: scanData?.urlMappings,
+                capturedPages: [],
+              });
+              setStep("review");
+              setIsExecuting(false);
+              return;
+            }
+
+            if (finalStatus === "FAILED") {
+              const errorMsg = finalData.lastError || finalData.error || "Migration failed during background execution.";
+              setMigrationError(errorMsg);
+              setStep("error");
+              setIsExecuting(false);
+              return;
+            }
+
+            console.warn(`[MIGRATION_UI_POLL_TIMEOUT] runId: ${runId} | Polling exceeded 45s safety limit. Stage: ${finalData?.currentStage || "Unknown"}`);
+            setMigrationError(`Migration progress polling timed out after 45 seconds (Server stage: ${finalData?.currentStage || "In progress"}).`);
             setStep("error");
             setIsExecuting(false);
             return;
