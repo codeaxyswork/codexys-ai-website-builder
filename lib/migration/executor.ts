@@ -577,9 +577,7 @@ export async function startOrResumeMigrationJob(
       sharedBrowser = await launchSharedMigrationBrowser(runId).catch(() => null);
     }
 
-    const startIndex = currentJob.currentPage && currentJob.currentPage < totalPages ? currentJob.currentPage : capturedPages.length;
-
-    for (let i = startIndex; i < totalPages; i++) {
+    for (let i = 0; i < totalPages; i++) {
       session.lastPing = Date.now();
       const srcPage = pagesToMigrate[i];
       const pageStartTime = Date.now();
@@ -632,8 +630,17 @@ export async function startOrResumeMigrationJob(
       let browserSnapshot: any = null;
 
       if (mode === "exact") {
+        const forceFastCapture = i > 0 && (Date.now() - startTime) > 20000;
+        if (forceFastCapture) {
+          console.log(`[MIGRATION_STEP_START] runId=${runId} websiteId=${websiteId} step=FAST_HTTP_CAPTURE_${i + 1} path="${pagePath}" elapsedMs=${Date.now() - startTime}`);
+        }
+
         try {
-          browserSnapshot = await captureSourcePageWithBrowser(srcPage.url, runId, sharedBrowser, i === 0);
+          if (!forceFastCapture) {
+            browserSnapshot = await captureSourcePageWithBrowser(srcPage.url, runId, sharedBrowser, i === 0);
+          } else {
+            browserSnapshot = await fallbackHttpCapture(srcPage.url, Date.now());
+          }
         } catch (err: any) {
           pageErrorMessage = err?.message || "Playwright browser capture failed";
           console.warn(`[BROWSER_CAPTURE_FALLBACK] path="${pagePath}" error="${pageErrorMessage}". Falling back to fast HTTP capture.`);

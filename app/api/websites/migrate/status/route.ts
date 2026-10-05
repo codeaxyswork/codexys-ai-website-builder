@@ -1,6 +1,7 @@
-import { NextRequest } from "next/server";
+import { NextRequest, after } from "next/server";
 import { getMigrationJobState, checkAndAdvanceMigrationJob } from "@/lib/migration/executor";
 
+export const maxDuration = 60;
 export const dynamic = "force-dynamic";
 
 function jsonResponse(data: any, status = 200) {
@@ -76,9 +77,15 @@ export async function GET(req: NextRequest) {
 
     // 4. Autonomous self-healing / resume trigger: If job is active and has stalled, resume execution
     if (effectiveWebsiteId && activeJobId) {
-      checkAndAdvanceMigrationJob(effectiveWebsiteId, activeJobId).catch((advErr) => {
-        console.warn(`[STATUS_SELF_HEAL_WARN] websiteId=${effectiveWebsiteId}:`, advErr?.message);
-      });
+      try {
+        after(async () => {
+          await checkAndAdvanceMigrationJob(effectiveWebsiteId, activeJobId);
+        });
+      } catch {
+        checkAndAdvanceMigrationJob(effectiveWebsiteId, activeJobId).catch((advErr) => {
+          console.warn(`[STATUS_SELF_HEAL_WARN] websiteId=${effectiveWebsiteId}:`, advErr?.message);
+        });
+      }
     }
 
     const status = (migrationJob.status || "QUEUED").toUpperCase();
