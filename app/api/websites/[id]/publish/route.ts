@@ -78,7 +78,7 @@ export async function POST(
     }
 
     // 4. Update website publishing status
-    const { error: updateError } = await supabase
+    const { data: updatedWebsite, error: updateError } = await supabase
       .from("websites")
       .update({
         is_published: true,
@@ -87,27 +87,30 @@ export async function POST(
         updated_at: new Date().toISOString(),
       })
       .eq("id", id)
-      .eq("user_id", user.id);
+      .eq("user_id", user.id)
+      .select("id, slug, published_slug, custom_domain, custom_domain_verified, custom_domain_status, is_published")
+      .single();
 
     if (updateError) {
       return NextResponse.json({ error: updateError.message }, { status: 500 });
     }
 
-    const appDomain = (
-      process.env.NEXT_PUBLIC_APP_DOMAIN ||
-      process.env.APP_DOMAIN ||
-      "codeaxys.com"
-    ).trim().toLowerCase().replace(/^https?:\/\//i, "").replace(/\/.*$/, "");
+    // 5. Deterministically resolve production URL using single source of truth
+    const isCustomDomainReady =
+      Boolean(updatedWebsite?.custom_domain) &&
+      (updatedWebsite?.custom_domain_verified === true ||
+        updatedWebsite?.custom_domain_status === "ready" ||
+        updatedWebsite?.custom_domain_status === "verified");
 
-    const cleanAppDomain = (appDomain && !appDomain.includes("localhost")) ? appDomain : "codeaxys.com";
-
-    const customDom = (website.custom_domain || website.domain || "").trim();
-    let productionUrl = "";
-    if (customDom && !customDom.includes("localhost") && !customDom.includes("website.com")) {
-      productionUrl = customDom.startsWith("http") ? customDom : `https://${customDom}`;
-    } else {
-      productionUrl = `https://${uniqueSlug}.${cleanAppDomain}`;
-    }
+    const { getWebsiteProductionUrl } = await import("@/lib/domain-resolver");
+    const productionUrl = getWebsiteProductionUrl({
+      published_slug: uniqueSlug,
+      slug: updatedWebsite?.slug || website.slug,
+      custom_domain: updatedWebsite?.custom_domain,
+      custom_domain_verified: updatedWebsite?.custom_domain_verified,
+      custom_domain_status: updatedWebsite?.custom_domain_status,
+      is_published: true,
+    });
 
     return NextResponse.json({
       success: true,
@@ -115,6 +118,8 @@ export async function POST(
       slug: uniqueSlug,
       url: productionUrl,
       publicUrl: productionUrl,
+      isCustomDomain: isCustomDomainReady,
+      customDomain: isCustomDomainReady ? updatedWebsite?.custom_domain : null,
     });
   } catch (err: any) {
     console.error("Publish Website API Error:", err);

@@ -3,7 +3,19 @@
 import React, { useState, useEffect, use } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { ArrowLeft, Globe } from "lucide-react";
+import {
+  ArrowLeft,
+  Globe,
+  CheckCircle2,
+  RefreshCw,
+  ExternalLink,
+  AlertCircle,
+  ShieldCheck,
+  Send,
+  Loader2,
+  Lock,
+} from "lucide-react";
+import { getWebsitePublicUrl } from "@/lib/domain-resolver";
 
 interface DomainPageProps {
   params: Promise<{ id: string }>;
@@ -25,6 +37,10 @@ export default function DomainManagementPage({ params }: DomainPageProps) {
 
   const [isSaving, setIsSaving] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [isVerifying, setIsVerifying] = useState(false);
+  const [isPublishing, setIsPublishing] = useState(false);
+  const [publishSuccessUrl, setPublishSuccessUrl] = useState<string | null>(null);
+
   const [copiedKey, setCopiedKey] = useState<string | null>(null);
   const [statusMessage, setStatusMessage] = useState<string | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
@@ -41,7 +57,13 @@ export default function DomainManagementPage({ params }: DomainPageProps) {
       if (siteRes.ok) {
         const siteData = await siteRes.json();
         const found = (siteData.websites || []).find((w: any) => w.id === websiteId);
-        if (found) setWebsite(found);
+        if (found) {
+          setWebsite(found);
+          if (found.is_published) {
+            const canonical = getWebsitePublicUrl(found);
+            setPublishSuccessUrl(canonical);
+          }
+        }
       }
 
       // 2. Fetch User Plan Usage
@@ -63,6 +85,9 @@ export default function DomainManagementPage({ params }: DomainPageProps) {
         if (dData.domain?.custom_domain) {
           setDomainInput(dData.domain.custom_domain);
           setWwwConfigured(dData.domain.www_domain_configured !== false);
+        }
+        if (dData.verificationMessage) {
+          setStatusMessage(dData.verificationMessage);
         }
       }
     } catch (err: any) {
@@ -122,12 +147,64 @@ export default function DomainManagementPage({ params }: DomainPageProps) {
       setDomainInput(data.domain.custom_domain || sanitized);
       setDomainData(data.domain);
       setDnsInstructions(data.dnsInstructions);
-      setStatusMessage("Custom domain configuration saved. Configure DNS records below.");
+
+      if (data.status === "ready" || data.domain.custom_domain_verified) {
+        setStatusMessage("✓ Custom domain attached, verified, and SSL ready!");
+      } else {
+        setStatusMessage("✓ Domain attached! Add the required DNS records below and click 'Verify DNS'.");
+      }
     } catch (err: any) {
       console.error("Save Domain Error:", err);
       setErrorMessage(err.message || "Failed to update domain.");
     } finally {
       setIsSaving(false);
+    }
+  };
+
+  const handleVerifyDns = async () => {
+    if (!domainData?.custom_domain || isVerifying) return;
+    try {
+      setIsVerifying(true);
+      setErrorMessage(null);
+      setStatusMessage(null);
+
+      const res = await fetch(`/api/websites/${websiteId}/domain/verify`, {
+        method: "POST",
+      });
+
+      const data = await res.json();
+      if (!res.ok) {
+        throw new Error(data.error || "DNS verification check failed.");
+      }
+
+      setDomainData(data.domain || {
+        ...domainData,
+        custom_domain_status: data.status,
+        custom_domain_verified: data.verified,
+      });
+
+      if (data.dnsInstructions) {
+        setDnsInstructions(data.dnsInstructions);
+      }
+
+      if (data.verified || data.status === "ready") {
+        setStatusMessage("✓ Custom domain verified and ready! SSL active and live.");
+        if (website?.is_published) {
+          const canonical = `https://${domainData.custom_domain}`;
+          setPublishSuccessUrl(canonical);
+        }
+      } else if (data.status === "ssl_pending") {
+        setStatusMessage("✓ DNS records verified! SSL certificate is being provisioned. Ready in 1-2 minutes.");
+      } else if (data.status === "dns_configured") {
+        setStatusMessage("✓ DNS detected! Propagating across global infrastructure.");
+      } else if (data.message) {
+        setStatusMessage(data.message);
+      }
+    } catch (err: any) {
+      console.error("Verify DNS Error:", err);
+      setErrorMessage(err.message || "Failed to verify DNS records.");
+    } finally {
+      setIsVerifying(false);
     }
   };
 
@@ -149,12 +226,50 @@ export default function DomainManagementPage({ params }: DomainPageProps) {
 
       setDomainInput("");
       setDomainData(null);
-      setStatusMessage("Custom domain configuration removed.");
+      setDnsInstructions(null);
+      setStatusMessage("Custom domain configuration removed. Fallback Codeaxys subdomain restored.");
     } catch (err: any) {
       console.error("Delete Domain Error:", err);
       setErrorMessage(err.message || "Failed to remove domain.");
     } finally {
       setIsDeleting(false);
+    }
+  };
+
+  const handlePublishWebsite = async () => {
+    if (!websiteId || isPublishing) return;
+    try {
+      setIsPublishing(true);
+      setErrorMessage(null);
+
+      const res = await fetch(`/api/websites/${websiteId}/publish`, {
+        method: "POST",
+      });
+
+      const data = await res.json();
+      if (!res.ok || data.error) {
+        throw new Error(data.error || "Failed to publish website.");
+      }
+
+      const finalUrl = data.publicUrl || data.url;
+      setPublishSuccessUrl(finalUrl);
+      setWebsite((prev: any) => ({
+        ...prev,
+        is_published: true,
+        published_slug: data.slug,
+      }));
+
+      setStatusMessage("✓ Website published successfully!");
+
+      // Automatically open the final live URL in a new browser tab
+      if (finalUrl) {
+        window.open(finalUrl, "_blank", "noopener,noreferrer");
+      }
+    } catch (err: any) {
+      console.error("Publish Error:", err);
+      setErrorMessage(err.message || "Failed to publish website.");
+    } finally {
+      setIsPublishing(false);
     }
   };
 
@@ -165,11 +280,43 @@ export default function DomainManagementPage({ params }: DomainPageProps) {
   };
 
   const getStatusBadge = (status: string, isVerified: boolean) => {
-    if (isVerified || status === "verified") {
+    if (isVerified || status === "ready" || status === "verified") {
       return (
         <span className="px-3 py-1 bg-emerald-50 text-emerald-700 border border-emerald-200 rounded-full text-xs font-semibold flex items-center gap-1.5">
           <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-          Connected & Verified
+          Connected & Live (SSL Ready)
+        </span>
+      );
+    }
+    if (status === "ssl_pending") {
+      return (
+        <span className="px-3 py-1 bg-indigo-50 text-indigo-700 border border-indigo-200 rounded-full text-xs font-semibold flex items-center gap-1.5">
+          <span className="w-2 h-2 rounded-full bg-indigo-500 animate-pulse"></span>
+          DNS Verified · SSL Provisioning...
+        </span>
+      );
+    }
+    if (status === "dns_configured") {
+      return (
+        <span className="px-3 py-1 bg-blue-50 text-blue-700 border border-blue-200 rounded-full text-xs font-semibold flex items-center gap-1.5">
+          <span className="w-2 h-2 rounded-full bg-blue-500 animate-pulse"></span>
+          DNS Detected · Propagating...
+        </span>
+      );
+    }
+    if (status === "verifying") {
+      return (
+        <span className="px-3 py-1 bg-purple-50 text-purple-700 border border-purple-200 rounded-full text-xs font-semibold flex items-center gap-1.5">
+          <span className="w-2 h-2 rounded-full bg-purple-500 animate-spin"></span>
+          Verifying Propagation...
+        </span>
+      );
+    }
+    if (status === "error") {
+      return (
+        <span className="px-3 py-1 bg-rose-50 text-rose-700 border border-rose-200 rounded-full text-xs font-semibold flex items-center gap-1.5">
+          <span className="w-2 h-2 rounded-full bg-rose-500"></span>
+          DNS Misconfigured
         </span>
       );
     }
@@ -181,14 +328,6 @@ export default function DomainManagementPage({ params }: DomainPageProps) {
         </span>
       );
     }
-    if (status === "verifying") {
-      return (
-        <span className="px-3 py-1 bg-blue-50 text-blue-700 border border-blue-200 rounded-full text-xs font-semibold flex items-center gap-1.5">
-          <span className="w-2 h-2 rounded-full bg-blue-500 animate-spin"></span>
-          Verifying Propagation...
-        </span>
-      );
-    }
     return (
       <span className="px-3 py-1 bg-slate-100 text-slate-600 border border-slate-200 rounded-full text-xs font-semibold flex items-center gap-1.5">
         <span className="w-2 h-2 rounded-full bg-slate-400"></span>
@@ -196,6 +335,19 @@ export default function DomainManagementPage({ params }: DomainPageProps) {
       </span>
     );
   };
+
+  const isCustomDomainReady = Boolean(
+    domainData?.custom_domain &&
+      (domainData?.custom_domain_verified ||
+        domainData?.custom_domain_status === "ready" ||
+        domainData?.custom_domain_status === "verified")
+  );
+
+  const canonicalDisplayUrl = isCustomDomainReady
+    ? `https://${domainData.custom_domain}`
+    : website
+    ? getWebsitePublicUrl(website)
+    : "";
 
   if (loading) {
     return (
@@ -292,8 +444,11 @@ export default function DomainManagementPage({ params }: DomainPageProps) {
 
         {errorMessage && (
           <div className="p-4 bg-rose-50 border border-rose-200 rounded-xl text-rose-800 text-sm flex items-center justify-between">
-            <span>{errorMessage}</span>
-            <button onClick={() => setErrorMessage(null)} className="font-bold hover:text-rose-900">
+            <div className="flex items-center gap-2">
+              <AlertCircle className="w-4 h-4 text-rose-600 shrink-0" />
+              <span>{errorMessage}</span>
+            </div>
+            <button onClick={() => setErrorMessage(null)} className="font-bold hover:text-rose-900 px-2 py-1">
               ×
             </button>
           </div>
@@ -301,8 +456,11 @@ export default function DomainManagementPage({ params }: DomainPageProps) {
 
         {statusMessage && (
           <div className="p-4 bg-emerald-50 border border-emerald-200 rounded-xl text-emerald-800 text-sm flex items-center justify-between">
-            <span>{statusMessage}</span>
-            <button onClick={() => setStatusMessage(null)} className="font-bold hover:text-emerald-900">
+            <div className="flex items-center gap-2">
+              <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+              <span>{statusMessage}</span>
+            </div>
+            <button onClick={() => setStatusMessage(null)} className="font-bold hover:text-emerald-900 px-2 py-1">
               ×
             </button>
           </div>
@@ -325,7 +483,7 @@ export default function DomainManagementPage({ params }: DomainPageProps) {
 
             {getStatusBadge(
               domainData?.custom_domain_status || "none",
-              domainData?.custom_domain_verified
+              Boolean(domainData?.custom_domain_verified)
             )}
           </div>
 
@@ -351,9 +509,10 @@ export default function DomainManagementPage({ params }: DomainPageProps) {
                 <button
                   type="submit"
                   disabled={!canCustomDomain || isSaving || !domainInput.trim()}
-                  className="px-5 py-2.5 bg-purple-600 hover:bg-purple-700 text-white font-medium text-sm rounded-lg shadow-sm transition-all disabled:opacity-50"
+                  className="px-5 py-2.5 bg-purple-600 hover:bg-purple-700 text-white font-medium text-sm rounded-lg shadow-sm transition-all disabled:opacity-50 flex items-center gap-2 shrink-0"
                 >
-                  {isSaving ? "Saving..." : domainData?.custom_domain ? "Update Domain" : "Add Custom Domain"}
+                  {isSaving && <Loader2 className="w-4 h-4 animate-spin" />}
+                  <span>{isSaving ? "Saving..." : domainData?.custom_domain ? "Update Domain" : "Add Custom Domain"}</span>
                 </button>
               </div>
               <p className="text-[11px] text-slate-500 mt-1.5 flex items-center gap-1">
@@ -370,7 +529,7 @@ export default function DomainManagementPage({ params }: DomainPageProps) {
                 className="h-4 w-4 text-purple-600 rounded border-slate-300 focus:ring-purple-500"
               />
               <span className="text-xs font-semibold text-slate-700">
-                Also direct www requests (e.g. www.mycompany.com) to this website
+                Also direct www requests (e.g. www.mycompany.com) to this website via 308 permanent redirect
               </span>
             </label>
           </form>
@@ -395,43 +554,43 @@ export default function DomainManagementPage({ params }: DomainPageProps) {
         {/* 2. DNS INSTRUCTIONS CARD */}
         {dnsInstructions && (
           <div className="bg-white border border-slate-200 rounded-xl p-6 shadow-sm">
-            <h3 className="text-base font-bold text-slate-900 border-b border-slate-100 pb-3 mb-4 flex items-center gap-2">
-              <svg className="w-5 h-5 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
-              </svg>
-              DNS Records Required
-            </h3>
-            <p className="text-xs text-slate-500 mb-5 leading-relaxed">
-              Log into your domain provider (e.g. GoDaddy, Namecheap, Cloudflare) and add the following DNS records:
-            </p>
-
-            <div className="space-y-4">
-              {/* CNAME Record */}
-              <div className="p-4 bg-slate-50 border border-slate-200 rounded-xl flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
-                <div>
-                  <span className="text-xs font-bold uppercase tracking-wider text-purple-700 block">1. CNAME Record</span>
-                  <div className="flex items-center gap-3 text-xs text-slate-700 mt-1">
-                    <span>Host: <strong className="font-mono bg-white px-1.5 py-0.5 rounded border border-slate-200">{dnsInstructions.cname.host}</strong></span>
-                    <span>Target: <strong className="font-mono bg-white px-1.5 py-0.5 rounded border border-slate-200">{dnsInstructions.cname.value}</strong></span>
-                  </div>
-                </div>
-
-                <button
-                  type="button"
-                  onClick={() => handleCopy(dnsInstructions.cname.value, "cname")}
-                  className="px-3 py-1.5 bg-white border border-slate-300 hover:border-slate-400 text-slate-700 text-xs font-semibold rounded-lg shadow-xs transition-all"
-                >
-                  {copiedKey === "cname" ? "✓ Copied" : "Copy Value"}
-                </button>
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 pb-3 mb-4">
+              <div>
+                <h3 className="text-base font-bold text-slate-900 flex items-center gap-2">
+                  <svg className="w-5 h-5 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+                  </svg>
+                  DNS Records Required
+                </h3>
+                <p className="text-xs text-slate-500 mt-0.5">
+                  Add the exact records below at your domain registrar (GoDaddy, Cloudflare, Namecheap).
+                </p>
               </div>
 
+              {/* Verify DNS Action Button */}
+              <button
+                type="button"
+                onClick={handleVerifyDns}
+                disabled={isVerifying}
+                className="inline-flex items-center gap-2 px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white text-xs font-bold rounded-xl shadow-xs transition-all disabled:opacity-50 shrink-0"
+              >
+                {isVerifying ? (
+                  <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                ) : (
+                  <RefreshCw className="w-3.5 h-3.5" />
+                )}
+                <span>{isVerifying ? "Verifying DNS..." : "Verify DNS"}</span>
+              </button>
+            </div>
+
+            <div className="space-y-4">
               {/* A Record */}
               <div className="p-4 bg-slate-50 border border-slate-200 rounded-xl flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
                 <div>
-                  <span className="text-xs font-bold uppercase tracking-wider text-purple-700 block">2. A Record</span>
+                  <span className="text-xs font-bold uppercase tracking-wider text-purple-700 block">1. A Record (Apex)</span>
                   <div className="flex items-center gap-3 text-xs text-slate-700 mt-1">
                     <span>Host: <strong className="font-mono bg-white px-1.5 py-0.5 rounded border border-slate-200">{dnsInstructions.aRecord.host}</strong></span>
-                    <span>IP Value: <strong className="font-mono bg-white px-1.5 py-0.5 rounded border border-slate-200">{dnsInstructions.aRecord.value}</strong></span>
+                    <span>IP Target: <strong className="font-mono bg-white px-1.5 py-0.5 rounded border border-slate-200">{dnsInstructions.aRecord.value}</strong></span>
                   </div>
                 </div>
 
@@ -444,7 +603,26 @@ export default function DomainManagementPage({ params }: DomainPageProps) {
                 </button>
               </div>
 
-              {/* TXT Challenge Record */}
+              {/* CNAME Record */}
+              <div className="p-4 bg-slate-50 border border-slate-200 rounded-xl flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+                <div>
+                  <span className="text-xs font-bold uppercase tracking-wider text-purple-700 block">2. CNAME Record (www Subdomain)</span>
+                  <div className="flex items-center gap-3 text-xs text-slate-700 mt-1">
+                    <span>Host: <strong className="font-mono bg-white px-1.5 py-0.5 rounded border border-slate-200">{dnsInstructions.cname.host}</strong></span>
+                    <span>Target: <strong className="font-mono bg-white px-1.5 py-0.5 rounded border border-slate-200">{dnsInstructions.cname.value}</strong></span>
+                  </div>
+                </div>
+
+                <button
+                  type="button"
+                  onClick={() => handleCopy(dnsInstructions.cname.value, "cname")}
+                  className="px-3 py-1.5 bg-white border border-slate-300 hover:border-slate-400 text-slate-700 text-xs font-semibold rounded-lg shadow-xs transition-all"
+                >
+                  {copiedKey === "cname" ? "✓ Copied" : "Copy Target"}
+                </button>
+              </div>
+
+              {/* TXT Challenge Record (Optional) */}
               {dnsInstructions.txtRecord && (
                 <div className="p-4 bg-slate-50 border border-slate-200 rounded-xl flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
                   <div>
@@ -465,8 +643,119 @@ export default function DomainManagementPage({ params }: DomainPageProps) {
                 </div>
               )}
             </div>
+
+            {/* Verification State Progression Indicator */}
+            <div className="mt-6 pt-5 border-t border-slate-100">
+              <span className="text-xs font-bold uppercase tracking-wider text-slate-500 block mb-3">Verification Pipeline</span>
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                <div className="p-2.5 rounded-lg bg-emerald-50 border border-emerald-200 flex items-center gap-2">
+                  <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+                  <span className="text-xs font-semibold text-emerald-800">1. Domain Added</span>
+                </div>
+
+                <div className={`p-2.5 rounded-lg border flex items-center gap-2 ${
+                  domainData?.custom_domain_status === "dns_configured" ||
+                  domainData?.custom_domain_status === "ssl_pending" ||
+                  domainData?.custom_domain_status === "ready" ||
+                  domainData?.custom_domain_verified
+                    ? "bg-emerald-50 border-emerald-200 text-emerald-800"
+                    : "bg-slate-50 border-slate-200 text-slate-500"
+                }`}>
+                  <CheckCircle2 className="w-4 h-4 shrink-0" />
+                  <span className="text-xs font-semibold">2. DNS Detected</span>
+                </div>
+
+                <div className={`p-2.5 rounded-lg border flex items-center gap-2 ${
+                  domainData?.custom_domain_status === "ssl_pending" ||
+                  domainData?.custom_domain_status === "ready" ||
+                  domainData?.custom_domain_verified
+                    ? "bg-emerald-50 border-emerald-200 text-emerald-800"
+                    : "bg-slate-50 border-slate-200 text-slate-500"
+                }`}>
+                  <CheckCircle2 className="w-4 h-4 shrink-0" />
+                  <span className="text-xs font-semibold">3. Domain Verified</span>
+                </div>
+
+                <div className={`p-2.5 rounded-lg border flex items-center gap-2 ${
+                  domainData?.custom_domain_status === "ready" || domainData?.custom_domain_verified
+                    ? "bg-emerald-50 border-emerald-200 text-emerald-800"
+                    : "bg-slate-50 border-slate-200 text-slate-500"
+                }`}>
+                  <ShieldCheck className="w-4 h-4 shrink-0" />
+                  <span className="text-xs font-semibold">4. SSL Ready</span>
+                </div>
+              </div>
+            </div>
           </div>
         )}
+
+        {/* 3. PUBLISH & GO LIVE CARD */}
+        <div className="bg-white border border-slate-200 rounded-xl p-6 shadow-sm">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-100 pb-4 mb-4">
+            <div>
+              <h3 className="text-base font-bold text-slate-900 flex items-center gap-2">
+                <Send className="w-5 h-5 text-emerald-600" />
+                Publish Website & Go Live
+              </h3>
+              <p className="text-xs text-slate-500 mt-0.5">
+                Publish your website to make it publicly accessible on the web.
+              </p>
+            </div>
+
+            <div className="flex items-center gap-2">
+              <span
+                className={`w-2.5 h-2.5 rounded-full ${
+                  website?.is_published ? "bg-emerald-500 animate-pulse" : "bg-amber-500"
+                }`}
+              />
+              <span className="text-xs font-bold text-slate-800">
+                Status: {website?.is_published ? "Published & Live" : "Unpublished Draft"}
+              </span>
+            </div>
+          </div>
+
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-4 rounded-xl bg-slate-50 border border-slate-200">
+            <div>
+              <span className="text-xs text-slate-500 block">Canonical Public URL:</span>
+              <strong className="text-sm font-mono text-purple-700 break-all">
+                {publishSuccessUrl || canonicalDisplayUrl || "https://..."}
+              </strong>
+              {isCustomDomainReady && (
+                <span className="inline-block mt-1 text-[11px] font-semibold text-emerald-700 bg-emerald-100/60 px-2 py-0.5 rounded">
+                  ✓ Serving over verified custom domain
+                </span>
+              )}
+            </div>
+
+            <div className="flex items-center gap-2 shrink-0">
+              {publishSuccessUrl && (
+                <a
+                  href={publishSuccessUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-white hover:bg-slate-100 border border-slate-300 text-slate-800 text-xs font-bold shadow-xs transition-all"
+                >
+                  <ExternalLink className="w-3.5 h-3.5 text-purple-600" />
+                  <span>Open Website</span>
+                </a>
+              )}
+
+              <button
+                type="button"
+                onClick={handlePublishWebsite}
+                disabled={isPublishing}
+                className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold shadow-sm transition-all disabled:opacity-50"
+              >
+                {isPublishing ? (
+                  <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                ) : (
+                  <Send className="w-3.5 h-3.5" />
+                )}
+                <span>{isPublishing ? "Publishing..." : website?.is_published ? "Re-publish Website" : "Publish Website"}</span>
+              </button>
+            </div>
+          </div>
+        </div>
       </main>
     </div>
   );

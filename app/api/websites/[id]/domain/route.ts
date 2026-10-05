@@ -1,6 +1,11 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/utils/supabase/server";
-import { verifyDomain, sanitizeDomain, isValidDomain } from "@/lib/domain-verification";
+import {
+  verifyDomain,
+  addDomainToVercel,
+  removeDomainFromVercel,
+} from "@/lib/domain-verification";
+import { normalizeCustomDomainInput } from "@/lib/domain-resolver";
 import { getUserUsage } from "@/lib/billing";
 
 export async function GET(
@@ -36,22 +41,29 @@ export async function GET(
       );
     }
 
-    const verificationInfo = await verifyDomain(
-      website.custom_domain || "",
-      website.domain_verification_token || ""
-    );
+    let verificationInfo: any = null;
+    if (website.custom_domain) {
+      verificationInfo = await verifyDomain(
+        website.custom_domain,
+        website.domain_verification_token || "",
+        { wwwConfigured: website.www_domain_configured !== false }
+      );
+    }
 
     return NextResponse.json({
       domain: {
         custom_domain: website.custom_domain,
         custom_domain_verified: Boolean(website.custom_domain_verified),
-        custom_domain_status: website.custom_domain_status || "none",
+        custom_domain_status: website.custom_domain_status || (website.custom_domain ? "pending_dns" : "none"),
         custom_domain_verified_at: website.custom_domain_verified_at,
         domain_verification_token: website.domain_verification_token,
-        www_domain_configured: Boolean(website.www_domain_configured),
+        www_domain_configured: website.www_domain_configured !== false,
       },
-      dnsInstructions: verificationInfo.dnsRecordsRequired,
-      verificationMessage: verificationInfo.message,
+      dnsInstructions: verificationInfo?.dnsRecordsRequired || null,
+      verificationMessage: verificationInfo?.message || null,
+      dnsChecks: verificationInfo?.dnsChecks || null,
+      sslReady: verificationInfo?.sslReady || false,
+      vercelVerified: verificationInfo?.vercelVerified || false,
     });
   } catch (err: any) {
     console.error("GET Domain API Error:", err);
@@ -95,7 +107,7 @@ export async function PUT(
     // Verify website ownership
     const { data: website, error: websiteErr } = await supabase
       .from("websites")
-      .select("id, custom_domain, domain_verification_token")
+      .select("id, custom_domain, domain_verification_token, custom_domain_verified_at")
       .eq("id", websiteId)
       .eq("user_id", user.id)
       .single();
@@ -109,37 +121,67 @@ export async function PUT(
 
     const body = await request.json();
     const rawDomain = body.custom_domain || "";
-    const wwwConfigured = Boolean(body.www_domain_configured);
+    const wwwConfigured = body.www_domain_configured !== false;
 
-    if (!rawDomain.trim()) {
+    // 1. Validate & Normalize Domain
+    const norm = normalizeCustomDomainInput(rawDomain);
+    if (!norm.isValid) {
       return NextResponse.json(
-        { error: "Domain name cannot be empty." },
+        { error: norm.error || "Invalid domain format. Please enter a valid domain name (e.g., example.com)." },
         { status: 400 }
       );
     }
 
-    // Clean domain string (automatically strips https://, http://, trailing slashes, paths, and ports)
-    const cleanDomain = sanitizeDomain(rawDomain);
+    const cleanDomain = norm.canonicalDomain;
+    const wwwDomain = norm.wwwDomain;
 
-    if (!cleanDomain || !isValidDomain(cleanDomain)) {
+    // 2. Prevent Domain Conflict / Hijacking Across All Websites
+    const { data: conflictSites } = await supabase
+      .from("websites")
+      .select("id, title")
+      .neq("id", websiteId)
+      .or(`custom_domain.eq.${cleanDomain},custom_domain.eq.${wwwDomain}`)
+      .limit(1);
+
+    if (conflictSites && conflictSites.length > 0) {
       return NextResponse.json(
-        { error: "Invalid domain format. Please enter a valid domain (e.g., example.com or www.example.com)." },
-        { status: 400 }
+        {
+          error: `Domain "${cleanDomain}" is already connected to another website. Please remove it from the other website before connecting it here.`,
+          code: "DOMAIN_CONFLICT",
+        },
+        { status: 409 }
       );
     }
 
-    // Generate token if not already existing
+    // 3. If previous domain was different, detach old domain from Vercel
+    if (website.custom_domain && website.custom_domain !== cleanDomain) {
+      await removeDomainFromVercel(website.custom_domain);
+      await removeDomainFromVercel(`www.${website.custom_domain}`);
+    }
+
+    // 4. Attach domain to Vercel Project dynamically
+    await addDomainToVercel(cleanDomain);
+    if (wwwConfigured) {
+      await addDomainToVercel(wwwDomain);
+    }
+
+    // 5. Generate token if not already existing
     const token =
       website.domain_verification_token ||
       `codexys-verify-${Math.random().toString(36).substring(2, 10)}`;
 
-    const verificationResult = await verifyDomain(cleanDomain, token);
+    // 6. Perform live DNS & Vercel verification
+    const verificationResult = await verifyDomain(cleanDomain, token, {
+      wwwConfigured,
+    });
 
     const updatePayload = {
       custom_domain: cleanDomain,
       custom_domain_status: verificationResult.status,
       custom_domain_verified: verificationResult.verified,
-      custom_domain_verified_at: verificationResult.verified ? new Date().toISOString() : null,
+      custom_domain_verified_at: verificationResult.verified
+        ? website.custom_domain_verified_at || new Date().toISOString()
+        : null,
       domain_verification_token: token,
       www_domain_configured: wwwConfigured,
       updated_at: new Date().toISOString(),
@@ -160,6 +202,11 @@ export async function PUT(
     return NextResponse.json({
       domain: updated,
       dnsInstructions: verificationResult.dnsRecordsRequired,
+      verificationMessage: verificationResult.message,
+      dnsChecks: verificationResult.dnsChecks,
+      sslReady: verificationResult.sslReady,
+      vercelVerified: verificationResult.vercelVerified,
+      status: verificationResult.status,
       message: "Custom domain configuration saved successfully.",
     });
   } catch (err: any) {
@@ -190,7 +237,7 @@ export async function DELETE(
     // Verify ownership
     const { data: website, error: websiteErr } = await supabase
       .from("websites")
-      .select("id")
+      .select("id, custom_domain")
       .eq("id", websiteId)
       .eq("user_id", user.id)
       .single();
@@ -200,6 +247,12 @@ export async function DELETE(
         { error: "Website not found or access denied." },
         { status: 404 }
       );
+    }
+
+    // Detach domain and www subdomain from Vercel
+    if (website.custom_domain) {
+      await removeDomainFromVercel(website.custom_domain);
+      await removeDomainFromVercel(`www.${website.custom_domain}`);
     }
 
     const { error: updateErr } = await supabase

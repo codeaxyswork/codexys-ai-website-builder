@@ -8,6 +8,9 @@ interface PublishControlsProps {
   websiteId: string | null;
   isPublished: boolean;
   publishedSlug: string | null;
+  customDomain?: string | null;
+  customDomainVerified?: boolean | null;
+  customDomainStatus?: string | null;
   onStatusChange?: (published: boolean, slug: string | null) => void;
 }
 
@@ -15,10 +18,14 @@ export function PublishControls({
   websiteId,
   isPublished: initialPublished,
   publishedSlug: initialSlug,
+  customDomain,
+  customDomainVerified,
+  customDomainStatus,
   onStatusChange,
 }: PublishControlsProps) {
   const [isPublished, setIsPublished] = useState(initialPublished);
   const [slug, setSlug] = useState<string | null>(initialSlug);
+  const [publishedUrl, setPublishedUrl] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [copied, setCopied] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -43,6 +50,7 @@ export function PublishControls({
 
       setIsPublished(true);
       setSlug(data.slug);
+      if (data.publicUrl) setPublishedUrl(data.publicUrl);
       if (onStatusChange) onStatusChange(true, data.slug);
     } catch (err: any) {
       console.error("Publish error:", err);
@@ -71,6 +79,7 @@ export function PublishControls({
       }
 
       setIsPublished(false);
+      setPublishedUrl(null);
       if (onStatusChange) onStatusChange(false, slug);
     } catch (err: any) {
       console.error("Unpublish error:", err);
@@ -80,10 +89,19 @@ export function PublishControls({
     }
   };
 
+  const canonicalUrl =
+    publishedUrl ||
+    getWebsitePublicUrl({
+      published_slug: slug,
+      custom_domain: customDomain,
+      custom_domain_verified: customDomainVerified,
+      custom_domain_status: customDomainStatus,
+      is_published: isPublished,
+    });
+
   const handleCopyLink = () => {
-    if (!slug) return;
-    const fullUrl = getWebsitePublicUrl({ published_slug: slug, is_published: isPublished });
-    navigator.clipboard.writeText(fullUrl);
+    if (!canonicalUrl) return;
+    navigator.clipboard.writeText(canonicalUrl);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
   };
@@ -97,7 +115,6 @@ export function PublishControls({
     );
   }
 
-  const canonicalUrl = getWebsitePublicUrl({ published_slug: slug, is_published: isPublished });
   const previewUrl = getWebsitePreviewUrl({ published_slug: slug, slug });
 
   return (

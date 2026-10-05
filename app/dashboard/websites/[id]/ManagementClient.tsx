@@ -121,6 +121,8 @@ export function WebsiteManagementClient({ website, indexPage, seoData }: Managem
     published_slug: publishedSlug || website.published_slug,
     slug: website.slug,
     custom_domain: website.custom_domain,
+    custom_domain_verified: website.custom_domain_verified,
+    custom_domain_status: website.custom_domain_status,
     is_published: isPublished,
   }, { origin });
 

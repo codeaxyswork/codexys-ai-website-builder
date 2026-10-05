@@ -42,7 +42,7 @@ export async function GET(
     const tWebStart = performance.now();
     const { data: website, error: websiteErr } = await supabase
       .from("websites")
-      .select("id, user_id, title, published_slug, slug, custom_domain, is_published, design_plan")
+      .select("id, user_id, title, published_slug, slug, custom_domain, custom_domain_verified, custom_domain_status, www_domain_configured, is_published, design_plan")
       .or(`published_slug.eq.${cleanSlug},slug.eq.${cleanSlug},custom_domain.eq.${cleanSlug},custom_domain.eq.${rootDomainSlug}`)
       .maybeSingle();
     const tWebEnd = performance.now();
@@ -81,9 +81,26 @@ export async function GET(
       }
     }
 
+    const hostHeader = (request.headers.get("host") || "").split(":")[0].toLowerCase().trim();
+
+    // WWW Redirection Safeguard: When www is enabled, redirect www.example.com -> example.com (308 Permanent)
+    if (website.custom_domain && website.www_domain_configured !== false) {
+      const cleanCustom = website.custom_domain.toLowerCase().trim().replace(/^https?:\/\//i, "").replace(/\/.*$/, "");
+      const cleanWww = `www.${cleanCustom}`;
+      if (hostHeader === cleanWww) {
+        let redirectTarget = `https://${cleanCustom}/`;
+        try {
+          const urlObj = new URL(request.url);
+          if (urlObj.search) {
+            redirectTarget += urlObj.search;
+          }
+        } catch {}
+        return NextResponse.redirect(redirectTarget, 308);
+      }
+    }
+
     // Direct platform route safeguard: Redirect /site/{slug} to canonical subdomain / custom domain
     // only when visited directly on the main app host (e.g. codeaxys.com), preventing redirect loops during middleware rewrite.
-    const hostHeader = (request.headers.get("host") || "").split(":")[0].toLowerCase().trim();
     const appDomain = (
       process.env.APP_DOMAIN ||
       process.env.NEXT_PUBLIC_APP_DOMAIN ||
