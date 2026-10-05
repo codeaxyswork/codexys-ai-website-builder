@@ -337,6 +337,10 @@ export async function prepareMigrationDraftWebsite(
       })
       .eq("id", websiteId);
 
+    // Clean up any old pages from prior attempts for this draft website to ensure a clean slate
+    await db.from("website_pages").delete().eq("website_id", websiteId);
+    await db.from("website_page_seo").delete().eq("website_id", websiteId);
+
     console.log(`[MIGRATION_STEP_COMPLETE] runId=${runId} websiteId=${websiteId} step=PREPARE_DRAFT_WEBSITE mode=REUSE_USER_DRAFT slug=${cleanSlug} elapsedMs=${Date.now() - startMs}`);
   } else {
     // Check if there is an active collision with ANY other published or existing website
@@ -584,12 +588,17 @@ export async function startOrResumeMigrationJob(
       const pagePath = (!srcPage.path || srcPage.path === "/" || srcPage.path === "/index.html") ? "index.html" : srcPage.path;
 
       // Check if page is already captured and stored in website_pages
-      const { data: alreadySaved } = await db
+      const { data: existingRows } = await db
         .from("website_pages")
         .select("id, html_content, css_content")
         .eq("website_id", websiteId)
-        .eq("path", pagePath)
-        .maybeSingle();
+        .eq("path", pagePath);
+
+      const alreadySaved = existingRows && existingRows.length > 0 ? existingRows[0] : null;
+      if (existingRows && existingRows.length > 1) {
+        const idsToDelete = existingRows.slice(1).map((r: any) => r.id);
+        await db.from("website_pages").delete().in("id", idsToDelete);
+      }
 
       if (alreadySaved && alreadySaved.html_content && alreadySaved.html_content.length > 200) {
         console.log(`[MIGRATION_PAGE_ALREADY_STORED] websiteId=${websiteId} path="${pagePath}" (skipping re-capture)`);
@@ -732,6 +741,12 @@ export async function startOrResumeMigrationJob(
           })
           .eq("id", alreadySaved.id);
       } else {
+        await db
+          .from("website_pages")
+          .delete()
+          .eq("website_id", websiteId)
+          .eq("path", pagePath);
+
         const { data: insertedPage } = await db
           .from("website_pages")
           .insert(pagePayload)
@@ -860,6 +875,29 @@ export async function startOrResumeMigrationJob(
       lastHeartbeatAt: new Date().toISOString(),
     });
 
+    // Deduplicate any possible duplicate rows in website_pages
+    const { data: allStoredPages } = await db
+      .from("website_pages")
+      .select("id, path, created_at")
+      .eq("website_id", websiteId)
+      .order("created_at", { ascending: false });
+
+    if (allStoredPages && allStoredPages.length > 0) {
+      const seenPaths = new Set<string>();
+      const duplicateIdsToDelete: string[] = [];
+      for (const page of allStoredPages) {
+        if (seenPaths.has(page.path)) {
+          duplicateIdsToDelete.push(page.id);
+        } else {
+          seenPaths.add(page.path);
+        }
+      }
+      if (duplicateIdsToDelete.length > 0) {
+        console.log(`[MIGRATION_CLEANUP_DUPLICATES] Deleting ${duplicateIdsToDelete.length} duplicate website_pages rows for websiteId=${websiteId}`);
+        await db.from("website_pages").delete().in("id", duplicateIdsToDelete);
+      }
+    }
+
     const { data: verifiedPages, error: verifyErr } = await db
       .from("website_pages")
       .select("id, path")
@@ -978,7 +1016,7 @@ export async function checkAndAdvanceMigrationJob(websiteId: string, runId: stri
 
   if (activeStatuses.includes(job.status)) {
     const lastHeartbeat = job.lastHeartbeatAt ? new Date(job.lastHeartbeatAt).getTime() : 0;
-    const isStalled = Date.now() - lastHeartbeat > 7000;
+    const isStalled = Date.now() - lastHeartbeat > 25000;
 
     if (isStalled || job.status === "QUEUED") {
       console.log(`[MIGRATION_RESUME_DISPATCH] Resuming stalled job for websiteId=${websiteId} runId=${runId} stage=${job.status}`);
