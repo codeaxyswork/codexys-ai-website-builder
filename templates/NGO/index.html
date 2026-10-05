@@ -1,0 +1,1031 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="HopeRise Global Foundation - A modern non-profit and charity organization dedicated to clean water, child education, healthcare, and emergency relief worldwide.">
+  <title>HopeRise Global Foundation | NGO & Charity Template</title>
+
+  <!-- RemixIcon Icons CDN -->
+  <link href="https://cdn.jsdelivr.net/npm/remixicon@3.5.0/fonts/remixicon.css" rel="stylesheet">
+
+  <!-- Custom Stylesheet -->
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+  <!-- ==========================================================================
+       1. HEADER & TOPBAR NAVIGATION
+       ========================================================================== -->
+  <div class="top-bar">
+    <div class="container top-bar-content">
+      <div class="top-bar-info">
+        <div class="top-bar-info-item">
+          <i class="ri-phone-fill"></i>
+          <span>Emergency Helpline: +1 (800) 467-3747</span>
+        </div>
+        <div class="top-bar-info-item">
+          <i class="ri-mail-fill"></i>
+          <span>contact@hoperise.org</span>
+        </div>
+        <div class="top-bar-info-item">
+          <i class="ri-map-pin-2-fill"></i>
+          <span>Geneva & New York Headquarters</span>
+        </div>
+      </div>
+      <div class="top-bar-social">
+        <a href="#facebook" aria-label="Facebook"><i class="ri-facebook-fill"></i></a>
+        <a href="#twitter" aria-label="Twitter"><i class="ri-twitter-fill"></i></a>
+        <a href="#instagram" aria-label="Instagram"><i class="ri-instagram-line"></i></a>
+        <a href="#youtube" aria-label="YouTube"><i class="ri-youtube-fill"></i></a>
+      </div>
+    </div>
+  </div>
+
+  <header class="navbar" id="navbar">
+    <div class="container navbar-container">
+      <a href="index.html" class="brand-logo">
+        <i class="ri-heart-pulse-fill"></i>
+        <span>HopeRise</span> Foundation
+      </a>
+
+      <!-- Main Navigation Menu -->
+      <nav class="nav-menu" id="nav-menu">
+        <a href="#about" class="nav-link">About Us</a>
+        <a href="#programs" class="nav-link">Programs</a>
+        <a href="#impact" class="nav-link">Impact</a>
+        
+        <a href="#services" class="nav-link">Service</a>
+
+        <a href="#gallery" class="nav-link">Gallery</a>
+        <a href="#contact" class="nav-link">Contact</a>
+      </nav>
+
+      <div class="nav-actions">
+        <button class="btn btn-primary" onclick="openDonateModal('Urgent Need')">
+          <i class="ri-heart-fill"></i> Donate Now
+        </button>
+        <button class="mobile-toggle" id="mobile-toggle" aria-label="Toggle Navigation Menu">
+          <i class="ri-menu-3-line"></i>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- ==========================================================================
+       2. HERO SLIDER (3 Slides)
+       ========================================================================== -->
+  <section class="hero-slider">
+    <!-- Slide 1 -->
+    <div class="hero-slide active" id="slide-1">
+      <img src="images/hero-1.png" alt="Community Clean Water Project" class="hero-bg-img">
+      <div class="hero-overlay"></div>
+      <div class="container hero-content-wrapper">
+        <div class="hero-content">
+          <div class="hero-badge">
+            <i class="ri-drop-fill"></i> Clean Water Initiative 2026
+          </div>
+          <h1 class="hero-title">Giving Every Child Access To <span>Clean Safe Water</span></h1>
+          <p class="hero-desc">Over 700 million people lack access to safe drinking water. Together, we install solar pumps and filtration hubs that transform vulnerable rural communities.</p>
+          <div class="hero-buttons">
+            <button class="btn btn-primary" onclick="openDonateModal('Clean Water Project')">
+              Donate To Water Cause <i class="ri-arrow-right-line"></i>
+            </button>
+            <a href="#about" class="btn btn-outline-white">
+              Our Story <i class="ri-play-circle-line"></i>
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Slide 2 -->
+    <div class="hero-slide" id="slide-2">
+      <img src="images/hero-2.png" alt="Empowering Children Through Education" class="hero-bg-img">
+      <div class="hero-overlay"></div>
+      <div class="container hero-content-wrapper">
+        <div class="hero-content">
+          <div class="hero-badge">
+            <i class="ri-book-open-fill"></i> Global Education Fund
+          </div>
+          <h1 class="hero-title">Unlocking The Potential Of <span>Tomorrow's Leaders</span></h1>
+          <p class="hero-desc">We build eco-friendly schools, train local teachers, and provide STEM digital learning kits to over 85,000 underprivileged children.</p>
+          <div class="hero-buttons">
+            <button class="btn btn-primary" onclick="openDonateModal('Education Fund')">
+              Sponsor A Student <i class="ri-arrow-right-line"></i>
+            </button>
+            <a href="#programs" class="btn btn-outline-white">Explore Programs</a>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Slide 3 -->
+    <div class="hero-slide" id="slide-3">
+      <img src="images/hero-3.png" alt="Healthcare and Emergency Aid" class="hero-bg-img">
+      <div class="hero-overlay"></div>
+      <div class="container hero-content-wrapper">
+        <div class="hero-content">
+          <div class="hero-badge">
+            <i class="ri-hospital-fill"></i> Healthcare & Emergency Relief
+          </div>
+          <h1 class="hero-title">Bringing Urgent Healthcare To <span>Families In Need</span></h1>
+          <p class="hero-desc">Mobile medical clinics and rapid emergency food kits delivered directly to disaster areas and remote villages across 42 nations.</p>
+          <div class="hero-buttons">
+            <button class="btn btn-primary" onclick="openDonateModal('Medical Relief')">
+              Support Medical Aid <i class="ri-arrow-right-line"></i>
+            </button>
+            <a href="#contact" class="btn btn-outline-white">Get Involved</a>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Slider Nav Controls -->
+    <button class="slider-arrow prev" onclick="changeSlide(-1)" aria-label="Previous Slide"><i class="ri-arrow-left-s-line"></i></button>
+    <button class="slider-arrow next" onclick="changeSlide(1)" aria-label="Next Slide"><i class="ri-arrow-right-s-line"></i></button>
+
+    <div class="slider-dots">
+      <span class="dot active" onclick="goToSlide(0)"></span>
+      <span class="dot" onclick="goToSlide(1)"></span>
+      <span class="dot" onclick="goToSlide(2)"></span>
+    </div>
+  </section>
+
+  <!-- ==========================================================================
+       PROMINENT GLOBAL REPRESENTATIVES (ASIAN, ENGLISH, AMERICAN, AFRICAN)
+       ========================================================================== -->
+  <section class="section-padding" id="global-representatives" style="background: var(--dark); color: #ffffff;">
+    <div class="container">
+      <div class="section-header">
+        <div class="sub-title" style="background: rgba(16, 185, 129, 0.2); color: #34d399;">
+          <i class="ri-earth-fill"></i> Global Diversity & Leadership
+        </div>
+        <h2 class="section-title" style="color: #ffffff;">Our International Representatives</h2>
+        <p class="section-desc" style="color: #94a3b8;">Meet our leaders representing Asian, English/European, American, and African programs worldwide.</p>
+      </div>
+
+      <div class="representatives-grid">
+        <!-- 1. ASIAN CARD -->
+        <div class="service-card" style="background: var(--dark-surface); border-color: var(--dark-border); text-align: center; padding: 24px; border-radius: var(--radius-lg);">
+          <img src="images/asian_person.jpg" alt="Asian Representative" style="width: 100%; height: 260px; object-fit: cover; border-radius: var(--radius-md); margin-bottom: 20px;">
+          <span class="sub-title" style="background: #059669; color: #ffffff; margin-bottom: 12px; font-weight: 800;">ASIAN</span>
+          <h3 style="color: #ffffff; font-size: 1.35rem; margin-bottom: 4px;">Mei-Ling Zhang</h3>
+          <p style="color: #94a3b8; font-size: 0.95rem;">Asia-Pacific Director</p>
+        </div>
+
+        <!-- 2. ENGLISH CARD -->
+        <div class="service-card" style="background: var(--dark-surface); border-color: var(--dark-border); text-align: center; padding: 24px; border-radius: var(--radius-lg);">
+          <img src="images/english_person.jpg" alt="English Representative" style="width: 100%; height: 260px; object-fit: cover; border-radius: var(--radius-md); margin-bottom: 20px;">
+          <span class="sub-title" style="background: #4f46e5; color: #ffffff; margin-bottom: 12px; font-weight: 800;">ENGLISH</span>
+          <h3 style="color: #ffffff; font-size: 1.35rem; margin-bottom: 4px;">Dr. Eleanor Vance</h3>
+          <p style="color: #94a3b8; font-size: 0.95rem;">UK & European Director</p>
+        </div>
+
+        <!-- 3. AMERICAN CARD -->
+        <div class="service-card" style="background: var(--dark-surface); border-color: var(--dark-border); text-align: center; padding: 24px; border-radius: var(--radius-lg);">
+          <img src="images/american_person.jpg" alt="American Representative" style="width: 100%; height: 260px; object-fit: cover; border-radius: var(--radius-md); margin-bottom: 20px;">
+          <span class="sub-title" style="background: #0284c7; color: #ffffff; margin-bottom: 12px; font-weight: 800;">AMERICAN</span>
+          <h3 style="color: #ffffff; font-size: 1.35rem; margin-bottom: 4px;">Marcus Miller</h3>
+          <p style="color: #94a3b8; font-size: 0.95rem;">Americas & Global Director</p>
+        </div>
+
+        <!-- 4. AFRICAN CARD -->
+        <div class="service-card" style="background: var(--dark-surface); border-color: var(--dark-border); text-align: center; padding: 24px; border-radius: var(--radius-lg);">
+          <img src="images/african_person.jpg" alt="African Representative" style="width: 100%; height: 260px; object-fit: cover; border-radius: var(--radius-md); margin-bottom: 20px;">
+          <span class="sub-title" style="background: #d97706; color: #ffffff; margin-bottom: 12px; font-weight: 800;">AFRICAN</span>
+          <h3 style="color: #ffffff; font-size: 1.35rem; margin-bottom: 4px;">Samuel Adebayo</h3>
+          <p style="color: #94a3b8; font-size: 0.95rem;">Field Operations Lead</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ==========================================================================
+       3. ABOUT THE ORGANIZATION
+       ========================================================================== -->
+  <section class="section-padding" id="about">
+    <div class="container">
+      <div class="about-grid">
+        <div class="about-img-box">
+          <img src="images/about.png" alt="HopeRise Global Founder and Community">
+          <button class="play-btn-overlay" onclick="openModal('video-modal')" aria-label="Watch Story Video">
+            <i class="ri-play-fill"></i>
+          </button>
+          <div class="about-experience-badge">
+            <span class="exp-num">18+</span>
+            <span class="exp-text">Years of Global<br>Humanitarian Aid</span>
+          </div>
+        </div>
+
+        <div class="about-content">
+          <div class="sub-title">
+            <i class="ri-heart-pulse-fill"></i> About HopeRise Foundation
+          </div>
+          <h2 class="section-title">Dedicated To Ending Extreme Poverty & Restoring Hope</h2>
+          <p class="about-content-text">Founded in 2008, HopeRise Global Foundation is an international non-profit movement dedicated to bringing sustainable clean water, quality education, healthcare, and crisis response to underserved populations.</p>
+
+          <div class="about-features-list">
+            <div class="feature-item">
+              <i class="ri-checkbox-circle-fill"></i> 94% Direct Field Funding
+            </div>
+            <div class="feature-item">
+              <i class="ri-checkbox-circle-fill"></i> 100% Transparent Financials
+            </div>
+            <div class="feature-item">
+              <i class="ri-checkbox-circle-fill"></i> Solar-Powered Infrastructure
+            </div>
+            <div class="feature-item">
+              <i class="ri-checkbox-circle-fill"></i> Local Community Ownership
+            </div>
+          </div>
+
+          <div class="founder-box">
+            <div class="founder-info">
+              <h4>Dr. Eleanor Vance</h4>
+              <p>Founder & Global Executive Director</p>
+            </div>
+            <button class="btn btn-outline" onclick="openModal('video-modal')">
+              Watch Our Mission Story
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ==========================================================================
+       4. OUR IMPACT (Live Statistics Counter Grid)
+       ========================================================================== -->
+  <section class="section-padding impact-section" id="impact">
+    <div class="container">
+      <div class="section-header">
+        <div class="sub-title" style="background: rgba(255,255,255,0.1); color: #34d399;">
+          <i class="ri-line-chart-fill"></i> Measurable Results
+        </div>
+        <h2 class="section-title" style="color: #ffffff;">Our Global Impact in Numbers</h2>
+        <p class="section-desc" style="color: #94a3b8;">Through your generous contributions and our global partner network, here is what we have achieved together.</p>
+      </div>
+
+      <div class="impact-grid">
+        <div class="impact-card">
+          <div class="impact-icon"><i class="ri-user-smile-fill"></i></div>
+          <div class="impact-number" data-target="250000">0</div>
+          <div class="impact-label">Lives Positively Impacted</div>
+        </div>
+
+        <div class="impact-card">
+          <div class="impact-icon"><i class="ri-drop-fill"></i></div>
+          <div class="impact-number" data-target="1240">0</div>
+          <div class="impact-label">Clean Water Wells Built</div>
+        </div>
+
+        <div class="impact-card">
+          <div class="impact-icon"><i class="ri-graduation-cap-fill"></i></div>
+          <div class="impact-number" data-target="85000">0</div>
+          <div class="impact-label">Children Educated</div>
+        </div>
+
+        <div class="impact-card">
+          <div class="impact-icon"><i class="ri-earth-fill"></i></div>
+          <div class="impact-number" data-target="15200">0</div>
+          <div class="impact-label">Active Global Volunteers</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ==========================================================================
+       5. OUR CAUSES (Featured Urgent Campaigns)
+       ========================================================================== -->
+  <section class="section-padding" id="causes">
+    <div class="container">
+      <div class="section-header">
+        <div class="sub-title"><i class="ri-global-fill"></i> Regional Initiatives</div>
+        <h2 class="section-title">Explore Missions By Region & Community</h2>
+        <p class="section-desc">Select a specific region below to explore dedicated programs empowering African, Asian, English/European, Latino, and Middle Eastern communities.</p>
+      </div>
+
+      <!-- Region Filter Tabs -->
+      <div class="region-filters">
+        <button class="region-btn active" onclick="filterRegion('all', this)">🌍 All Global Missions</button>
+        <button class="region-btn" onclick="filterRegion('africa', this)">🌍 African Missions</button>
+        <button class="region-btn" onclick="filterRegion('asia', this)">🌏 Asian Missions</button>
+        <button class="region-btn" onclick="filterRegion('europe', this)">🌍 English / European Missions</button>
+        <button class="region-btn" onclick="filterRegion('latam', this)">🌎 Latino / Hispanic Missions</button>
+        <button class="region-btn" onclick="filterRegion('mena', this)">🌍 Middle Eastern Missions</button>
+      </div>
+
+      <div class="causes-grid">
+        <!-- 1. African Cause Card -->
+        <div class="cause-card" data-region="africa">
+          <div class="cause-img-box">
+            <img src="images/cause-1.png" alt="African Clean Water Project">
+            <span class="cause-category" style="background: #059669;">African Initiative</span>
+          </div>
+          <div class="cause-content">
+            <span class="region-badge">🌍 Africa • Nigeria & Kenya</span>
+            <h3 class="cause-title">Solar Water Pumps in Rural African Villages</h3>
+            <p class="cause-desc">Installing heavy-duty solar water borehole pumps supplying clean drinking water to over 15,000 villagers daily.</p>
+            <div class="cause-progress-wrapper">
+              <div class="cause-progress-info">
+                <span class="raised-amount">$78,400 Raised</span>
+                <span class="goal-amount">Goal: $95,000</span>
+              </div>
+              <div class="progress-bar-bg">
+                <div class="progress-bar-fill" style="width: 82%;"></div>
+              </div>
+            </div>
+            <button class="btn btn-primary" onclick="openDonateModal('African Solar Water Project')">
+              Donate To African Mission
+            </button>
+          </div>
+        </div>
+
+        <!-- 2. Asian Cause Card -->
+        <div class="cause-card" data-region="asia">
+          <div class="cause-img-box">
+            <img src="images/cause-2.png" alt="Asian STEM Education Project">
+            <span class="cause-category" style="background: #0284c7;">Asian Initiative</span>
+          </div>
+          <div class="cause-content">
+            <span class="region-badge">🌏 Asia • Vietnam & India</span>
+            <h3 class="cause-title">STEM Digital Classrooms in Asian Rural Schools</h3>
+            <p class="cause-desc">Equipping schools with solar laptop stations, digital textbooks, and internet connectivity for rural youth.</p>
+            <div class="cause-progress-wrapper">
+              <div class="cause-progress-info">
+                <span class="raised-amount">$52,100 Raised</span>
+                <span class="goal-amount">Goal: $60,000</span>
+              </div>
+              <div class="progress-bar-bg">
+                <div class="progress-bar-fill" style="width: 86%;"></div>
+              </div>
+            </div>
+            <button class="btn btn-primary" onclick="openDonateModal('Asian STEM Education')">
+              Donate To Asian Mission
+            </button>
+          </div>
+        </div>
+
+        <!-- 3. English / European Cause Card -->
+        <div class="cause-card" data-region="europe">
+          <div class="cause-img-box">
+            <img src="https://images.unsplash.com/photo-1593113598332-cd288d649433?auto=format&fit=crop&w=600&q=80" alt="English Youth Mentorship">
+            <span class="cause-category" style="background: #4f46e5;">English / UK Initiative</span>
+          </div>
+          <div class="cause-content">
+            <span class="region-badge">🇬🇧 Europe • London & Manchester</span>
+            <h3 class="cause-title">Youth Mentorship & Community Food Banks in the UK</h3>
+            <p class="cause-desc">Providing warm meals, youth after-school literacy programs, and mental health counseling across urban centers.</p>
+            <div class="cause-progress-wrapper">
+              <div class="cause-progress-info">
+                <span class="raised-amount">$44,500 Raised</span>
+                <span class="goal-amount">Goal: $50,000</span>
+              </div>
+              <div class="progress-bar-bg">
+                <div class="progress-bar-fill" style="width: 89%;"></div>
+              </div>
+            </div>
+            <button class="btn btn-primary" onclick="openDonateModal('English Community Project')">
+              Donate To English Mission
+            </button>
+          </div>
+        </div>
+
+        <!-- 4. Hispanic / Latino Cause Card -->
+        <div class="cause-card" data-region="latam">
+          <div class="cause-img-box">
+            <img src="images/about.png" alt="Latino Eco-Agriculture">
+            <span class="cause-category" style="background: #d97706;">Latino Initiative</span>
+          </div>
+          <div class="cause-content">
+            <span class="region-badge">🌎 Latin America • Guatemala & Peru</span>
+            <h3 class="cause-title">Eco-Farming & Clean Mountain Springs in Andes</h3>
+            <p class="cause-desc">Supporting indigenous farming families with sustainable drip irrigation and mountain watershed protection.</p>
+            <div class="cause-progress-wrapper">
+              <div class="cause-progress-info">
+                <span class="raised-amount">$61,200 Raised</span>
+                <span class="goal-amount">Goal: $70,000</span>
+              </div>
+              <div class="progress-bar-bg">
+                <div class="progress-bar-fill" style="width: 87%;"></div>
+              </div>
+            </div>
+            <button class="btn btn-primary" onclick="openDonateModal('Latino Eco-Farming Project')">
+              Donate To Latino Mission
+            </button>
+          </div>
+        </div>
+
+        <!-- 5. Middle Eastern Cause Card -->
+        <div class="cause-card" data-region="mena">
+          <div class="cause-img-box">
+            <img src="images/cause-3.png" alt="Middle Eastern Medical Relief">
+            <span class="cause-category" style="background: #dc2626;">Middle Eastern Initiative</span>
+          </div>
+          <div class="cause-content">
+            <span class="region-badge">🌍 Middle East • Jordan & Lebanon</span>
+            <h3 class="cause-title">Mobile Medical Clinics & Emergency Nutrition in MENA</h3>
+            <p class="cause-desc">Deploying mobile healthcare units, clean water trucks, and child malnutrition care packages to crisis zones.</p>
+            <div class="cause-progress-wrapper">
+              <div class="cause-progress-info">
+                <span class="raised-amount">$112,000 Raised</span>
+                <span class="goal-amount">Goal: $120,000</span>
+              </div>
+              <div class="progress-bar-bg">
+                <div class="progress-bar-fill" style="width: 93%;"></div>
+              </div>
+            </div>
+            <button class="btn btn-primary" onclick="openDonateModal('MENA Medical Relief')">
+              Donate To MENA Mission
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ==========================================================================
+       6. HOW YOU CAN HELP / WAYS TO SUPPORT (Services Menu Items)
+       ========================================================================== -->
+  <section class="section-padding" id="services" style="background: var(--light-bg);">
+    <div class="container">
+      <div class="section-header">
+        <div class="sub-title"><i class="ri-service-fill"></i> Ways To Support</div>
+        <h2 class="section-title">How You Can Help Make A Difference</h2>
+        <p class="section-desc">Join our global community of change-makers through flexible giving, direct sponsorship, peer fundraising, or hands-on volunteering.</p>
+      </div>
+
+      <div class="services-grid">
+        <!-- Service 1: Donate -->
+        <div class="service-card">
+          <div class="service-icon"><i class="ri-hand-coin-fill"></i></div>
+          <h3 class="service-title">Donate</h3>
+          <p class="service-desc">Make a one-time or monthly tax-deductible contribution to fund urgent field operations and sustainable projects.</p>
+          <button class="service-btn" onclick="openDonateModal('General Giving')">
+            Donate Now <i class="ri-arrow-right-line"></i>
+          </button>
+        </div>
+
+        <!-- Service 2: Sponsor -->
+        <div class="service-card">
+          <div class="service-icon"><i class="ri-user-heart-fill"></i></div>
+          <h3 class="service-title">Sponsor</h3>
+          <p class="service-desc">Sponsor a child's annual education or fund a village solar pump with direct updates and personal letters.</p>
+          <button class="service-btn" onclick="openModal('sponsor-modal')">
+            Start Sponsorship <i class="ri-arrow-right-line"></i>
+          </button>
+        </div>
+
+        <!-- Service 3: Fundraise -->
+        <div class="service-card">
+          <div class="service-icon"><i class="ri-megaphone-fill"></i></div>
+          <h3 class="service-title">Fundraise</h3>
+          <p class="service-desc">Create your personal campaign page for your birthday, marathon, or school drive with our easy toolkits.</p>
+          <button class="service-btn" onclick="openModal('fundraise-modal')">
+            Start Campaign <i class="ri-arrow-right-line"></i>
+          </button>
+        </div>
+
+        <!-- Service 4: Volunteer -->
+        <div class="service-card">
+          <div class="service-icon"><i class="ri-team-fill"></i></div>
+          <h3 class="service-title">Volunteer</h3>
+          <p class="service-desc">Apply for local community initiatives or international field missions to share your skills where needed most.</p>
+          <button class="service-btn" onclick="openModal('volunteer-modal')">
+            Join As Volunteer <i class="ri-arrow-right-line"></i>
+          </button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ==========================================================================
+       7. WHAT WE DO (Core Programs)
+       ========================================================================== -->
+  <section class="section-padding" id="programs">
+    <div class="container">
+      <div class="section-header">
+        <div class="sub-title"><i class="ri-apps-fill"></i> What We Do</div>
+        <h2 class="section-title">Our Core Programs</h2>
+        <p class="section-desc">Sustainable solutions engineered to empower communities from the ground up.</p>
+      </div>
+
+      <div class="programs-grid">
+        <div class="program-card">
+          <div class="program-icon-box"><i class="ri-book-open-line"></i></div>
+          <div class="program-info">
+            <h3>Quality Education</h3>
+            <p>Constructing modern classrooms, supplying learning technology, and training local educators for long-term empowerment.</p>
+          </div>
+        </div>
+
+        <div class="program-card">
+          <div class="program-icon-box"><i class="ri-drop-line"></i></div>
+          <div class="program-info">
+            <h3>Clean Water & Sanitation</h3>
+            <p>Building solar borehole pumps, rainwater harvest tanks, and hygiene facilities to eliminate waterborne diseases.</p>
+          </div>
+        </div>
+
+        <div class="program-card">
+          <div class="program-icon-box"><i class="ri-pulse-line"></i></div>
+          <div class="program-info">
+            <h3>Healthcare & Medical Clinics</h3>
+            <p>Operating mobile medical clinics, maternal care wards, and immunizations for vulnerable women and children.</p>
+          </div>
+        </div>
+
+        <div class="program-card">
+          <div class="program-icon-box"><i class="ri-seedling-line"></i></div>
+          <div class="program-info">
+            <h3>Sustainable Agriculture</h3>
+            <p>Providing drip irrigation, drought-resistant seeds, and organic farming training to ensure food sovereignty.</p>
+          </div>
+        </div>
+
+        <div class="program-card">
+          <div class="program-icon-box"><i class="ri-fire-line"></i></div>
+          <div class="program-info">
+            <h3>Emergency Crisis Response</h3>
+            <p>Deploying emergency response teams with medical aid, shelters, and food within 24 hours of natural disasters.</p>
+          </div>
+        </div>
+
+        <div class="program-card">
+          <div class="program-icon-box"><i class="ri-user-star-line"></i></div>
+          <div class="program-info">
+            <h3>Youth Empowerment</h3>
+            <p>Vocational training workshops and micro-finance grants for young entrepreneurs to break generational poverty cycles.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+
+
+  <!-- ==========================================================================
+       9. MEET OUR TEAM
+       ========================================================================== -->
+  <section class="section-padding" id="team">
+    <div class="container">
+      <div class="section-header">
+        <div class="sub-title"><i class="ri-team-fill"></i> Leadership & Team</div>
+        <h2 class="section-title">Meet The People Behind The Mission</h2>
+        <p class="section-desc">Passionate humanitarian experts, field coordinators, and advocates driving global change.</p>
+      </div>
+
+      <div class="team-grid">
+        <!-- 1. ASIAN -->
+        <div class="team-card">
+          <div class="team-img-wrapper">
+            <img src="images/asian_person.jpg" alt="Asian Representative">
+            <div class="team-socials">
+              <a href="#linkedin" aria-label="LinkedIn"><i class="ri-linkedin-fill"></i></a>
+              <a href="#twitter" aria-label="Twitter"><i class="ri-twitter-fill"></i></a>
+            </div>
+          </div>
+          <div class="team-info">
+            <h3 class="team-name">Mei-Ling Zhang</h3>
+            <span class="team-role">Asia-Pacific Lead</span>
+            <p style="font-size: 0.9rem; font-weight: 800; color: #059669; margin-top: 6px; text-transform: uppercase;">ASIAN</p>
+          </div>
+        </div>
+
+        <!-- 2. ENGLISH -->
+        <div class="team-card">
+          <div class="team-img-wrapper">
+            <img src="images/english_person.jpg" alt="English Representative">
+            <div class="team-socials">
+              <a href="#linkedin" aria-label="LinkedIn"><i class="ri-linkedin-fill"></i></a>
+              <a href="#twitter" aria-label="Twitter"><i class="ri-twitter-fill"></i></a>
+            </div>
+          </div>
+          <div class="team-info">
+            <h3 class="team-name">Dr. Eleanor Vance</h3>
+            <span class="team-role">UK & European Lead</span>
+            <p style="font-size: 0.9rem; font-weight: 800; color: #4f46e5; margin-top: 6px; text-transform: uppercase;">ENGLISH</p>
+          </div>
+        </div>
+
+        <!-- 3. AMERICAN -->
+        <div class="team-card">
+          <div class="team-img-wrapper">
+            <img src="images/american_person.jpg" alt="American Representative">
+            <div class="team-socials">
+              <a href="#linkedin" aria-label="LinkedIn"><i class="ri-linkedin-fill"></i></a>
+              <a href="#twitter" aria-label="Twitter"><i class="ri-twitter-fill"></i></a>
+            </div>
+          </div>
+          <div class="team-info">
+            <h3 class="team-name">Marcus Miller</h3>
+            <span class="team-role">Americas & Global Director</span>
+            <p style="font-size: 0.9rem; font-weight: 800; color: #0284c7; margin-top: 6px; text-transform: uppercase;">AMERICAN</p>
+          </div>
+        </div>
+
+        <!-- 4. AFRICAN -->
+        <div class="team-card">
+          <div class="team-img-wrapper">
+            <img src="images/african_person.jpg" alt="African Representative">
+            <div class="team-socials">
+              <a href="#linkedin" aria-label="LinkedIn"><i class="ri-linkedin-fill"></i></a>
+              <a href="#twitter" aria-label="Twitter"><i class="ri-twitter-fill"></i></a>
+            </div>
+          </div>
+          <div class="team-info">
+            <h3 class="team-name">Samuel Adebayo</h3>
+            <span class="team-role">Field Operations Lead</span>
+            <p style="font-size: 0.9rem; font-weight: 800; color: #d97706; margin-top: 6px; text-transform: uppercase;">AFRICAN</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ==========================================================================
+       10. UPCOMING EVENTS
+       ========================================================================== -->
+  <section class="section-padding" id="events" style="background: var(--light-bg);">
+    <div class="container">
+      <div class="section-header">
+        <div class="sub-title"><i class="ri-calendar-event-fill"></i> Upcoming Events</div>
+        <h2 class="section-title">Join Our Gatherings & Summits</h2>
+        <p class="section-desc">Connect with donors, volunteers, and change-makers at our upcoming global charity events.</p>
+      </div>
+
+      <div class="events-grid">
+        <!-- Event 1 -->
+        <div class="event-card">
+          <div class="event-img">
+            <img src="images/event-1.png" alt="Global Charity Gala">
+            <div class="event-date-badge">
+              <div class="date-day">15</div>
+              <div class="date-month">AUG</div>
+            </div>
+          </div>
+          <div class="event-details">
+            <div class="event-meta">
+              <span><i class="ri-time-line"></i> 6:00 PM EST</span>
+              <span><i class="ri-map-pin-line"></i> Grand Ballroom, NYC</span>
+            </div>
+            <h3 class="event-title">Annual Global Hope Charity Gala 2026</h3>
+            <p class="event-desc">An evening of celebration, keynote speeches, cultural performances, and silent auctions raising funds for clean water access.</p>
+            <button class="btn btn-primary" onclick="openModal('event-modal')" style="align-self: flex-start;">
+              Reserve Seat
+            </button>
+          </div>
+        </div>
+
+        <!-- Event 2 -->
+        <div class="event-card">
+          <div class="event-img">
+            <img src="images/cause-1.png" alt="Clean Water Walkathon">
+            <div class="event-date-badge">
+              <div class="date-day">28</div>
+              <div class="date-month">SEP</div>
+            </div>
+          </div>
+          <div class="event-details">
+            <div class="event-meta">
+              <span><i class="ri-time-line"></i> 9:00 AM EST</span>
+              <span><i class="ri-map-pin-line"></i> Central Park & Hybrid</span>
+            </div>
+            <h3 class="event-title">Walk 6K For Clean Water Walkathon</h3>
+            <p class="event-desc">Walk 6 kilometers—the average distance women in rural communities walk daily to retrieve water. Participate in-person or virtually.</p>
+            <button class="btn btn-primary" onclick="openModal('event-modal')" style="align-self: flex-start;">
+              Register To Walk
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ==========================================================================
+       11. TESTIMONIALS & BENEFICIARY STORIES
+       ========================================================================== -->
+  <section class="section-padding testimonials-section">
+    <div class="container">
+      <div class="section-header">
+        <div class="sub-title"><i class="ri-chat-quote-fill"></i> Testimonials</div>
+        <h2 class="section-title">Stories Of Hope & Transformation</h2>
+        <p class="section-desc">Hear directly from the community members whose lives were changed through your generous support.</p>
+      </div>
+
+      <div class="testimonial-card">
+        <div class="quote-icon"><i class="ri-double-quotes-l"></i></div>
+        <p class="testimonial-text">"Before the solar water well was installed by HopeRise, my daughters spent 4 hours every day carrying water instead of going to school. Now, they are top of their class and dreaming of becoming doctors!"</p>
+        <div class="stars">
+          <i class="ri-star-fill"></i><i class="ri-star-fill"></i><i class="ri-star-fill"></i><i class="ri-star-fill"></i><i class="ri-star-fill"></i>
+        </div>
+        <div class="client-info">
+          <h4>Aminata Diallo</h4>
+          <p>Community Elder, Mukono District</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ==========================================================================
+       12. INTERACTIVE FILTERABLE GALLERY
+       ========================================================================== -->
+  <section class="section-padding" id="gallery">
+    <div class="container">
+      <div class="section-header">
+        <div class="sub-title"><i class="ri-gallery-fill"></i> Visual Gallery</div>
+        <h2 class="section-title">Moments Of Action Across The World</h2>
+        <p class="section-desc">Explore photographs captured by our field teams on the frontlines of humanitarian work.</p>
+      </div>
+
+      <!-- Gallery Filter Controls -->
+      <div class="gallery-filters">
+        <button class="filter-btn active" onclick="filterGallery('all', this)">All Photos</button>
+        <button class="filter-btn" onclick="filterGallery('water', this)">Clean Water</button>
+        <button class="filter-btn" onclick="filterGallery('education', this)">Education</button>
+        <button class="filter-btn" onclick="filterGallery('relief', this)">Emergency Relief</button>
+      </div>
+
+      <div class="gallery-grid">
+        <div class="gallery-item" data-category="water" onclick="openLightbox('images/hero-1.png', 'Joyful children drinking clean water')">
+          <img src="images/hero-1.png" alt="Clean Water Project">
+          <div class="gallery-overlay">
+            <i class="ri-zoom-in-line"></i>
+            <span>Clean Water Well</span>
+          </div>
+        </div>
+
+        <div class="gallery-item" data-category="education" onclick="openLightbox('images/hero-2.png', 'Classroom education session')">
+          <img src="images/hero-2.png" alt="Education Classroom">
+          <div class="gallery-overlay">
+            <i class="ri-zoom-in-line"></i>
+            <span>Rural Classroom</span>
+          </div>
+        </div>
+
+        <div class="gallery-item" data-category="relief" onclick="openLightbox('images/hero-3.png', 'Healthcare clinic aid distribution')">
+          <img src="images/hero-3.png" alt="Healthcare Distribution">
+          <div class="gallery-overlay">
+            <i class="ri-zoom-in-line"></i>
+            <span>Medical Aid Distribution</span>
+          </div>
+        </div>
+
+        <div class="gallery-item" data-category="water" onclick="openLightbox('images/cause-1.png', 'Stainless steel water tank assembly')">
+          <img src="images/cause-1.png" alt="Water Tank Assembly">
+          <div class="gallery-overlay">
+            <i class="ri-zoom-in-line"></i>
+            <span>Solar Water Tank</span>
+          </div>
+        </div>
+
+        <div class="gallery-item" data-category="education" onclick="openLightbox('images/cause-2.png', 'Students learning on digital laptops')">
+          <img src="images/cause-2.png" alt="STEM Laptops">
+          <div class="gallery-overlay">
+            <i class="ri-zoom-in-line"></i>
+            <span>STEM Digital Learning</span>
+          </div>
+        </div>
+
+        <div class="gallery-item" data-category="relief" onclick="openLightbox('images/cause-3.png', 'Emergency food boxes distribution')">
+          <img src="images/cause-3.png" alt="Emergency Food Boxes">
+          <div class="gallery-overlay">
+            <i class="ri-zoom-in-line"></i>
+            <span>Emergency Food Supplies</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+
+  <!-- ==========================================================================
+       14. QUICK INTERACTIVE DONATION WIDGET & CONTACT SECTION
+       ========================================================================== -->
+  <section class="section-padding" id="contact" style="background: var(--light-bg);">
+    <div class="container">
+      <div class="contact-grid">
+        <!-- Left Side: Contact Information & Details -->
+        <div class="contact-details">
+          <div class="sub-title"><i class="ri-mail-send-fill"></i> Get In Touch</div>
+          <h2 class="section-title">We Would Love To Hear From You</h2>
+          <p class="section-desc" style="margin-bottom: 30px; line-height: 1.8;">Have questions about our programs, partnership opportunities, or organizing a local fundraiser? Contact our team directly.</p>
+
+          <div class="contact-info-list">
+            <!-- Item 1: Phone -->
+            <div class="contact-info-item">
+              <div class="contact-info-icon">
+                <i class="ri-phone-fill"></i>
+              </div>
+              <div class="contact-info-text">
+                <h4>Emergency Helpline</h4>
+                <p>+1 (800) 467-3747</p>
+              </div>
+            </div>
+
+            <!-- Item 2: Email -->
+            <div class="contact-info-item">
+              <div class="contact-info-icon">
+                <i class="ri-mail-fill"></i>
+              </div>
+              <div class="contact-info-text">
+                <h4>Email Address</h4>
+                <p>contact@hoperise.org</p>
+              </div>
+            </div>
+
+            <!-- Item 3: Office -->
+            <div class="contact-info-item">
+              <div class="contact-info-icon">
+                <i class="ri-map-pin-2-fill"></i>
+              </div>
+              <div class="contact-info-text">
+                <h4>Global Headquarters</h4>
+                <p>Geneva & New York</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Right Side: Contact Form Card -->
+        <div class="contact-form-card">
+          <form id="contact-form" onsubmit="handleContactSubmit(event)">
+            <div class="form-group">
+              <label>Your Full Name</label>
+              <input type="text" class="form-control" placeholder="e.g. Sarah Jenkins" required>
+            </div>
+            <div class="form-group">
+              <label>Email Address</label>
+              <input type="email" class="form-control" placeholder="e.g. sarah@example.com" required>
+            </div>
+            <div class="form-group">
+              <label>Subject</label>
+              <select class="form-control" required>
+                <option value="">Select Topic...</option>
+                <option value="General Inquiry">General Inquiry</option>
+                <option value="Partnerships">Corporate Partnerships</option>
+                <option value="Volunteering">Volunteering Opportunities</option>
+                <option value="Donations">Donation Support</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>Message</label>
+              <textarea class="form-control" rows="4" placeholder="Write your message here..." required></textarea>
+            </div>
+            <button type="submit" class="btn btn-primary" style="width: 100%;">
+              Send Message <i class="ri-send-plane-fill"></i>
+            </button>
+          </form>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ==========================================================================
+       15. FOOTER
+       ========================================================================== -->
+  <footer class="footer">
+    <div class="container">
+      <div class="footer-grid">
+        <div class="footer-brand">
+          <a href="index.html" class="brand-logo" style="color: #ffffff;">
+            <i class="ri-heart-pulse-fill" style="color: var(--primary);"></i>
+            HopeRise Foundation
+          </a>
+          <p>HopeRise Global Foundation is a registered 501(c)(3) non-profit organization dedicated to empowering vulnerable communities through clean water, education, and healthcare.</p>
+          <div class="top-bar-social" style="margin-top: 20px;">
+            <a href="#facebook" aria-label="Facebook"><i class="ri-facebook-fill"></i></a>
+            <a href="#twitter" aria-label="Twitter"><i class="ri-twitter-fill"></i></a>
+            <a href="#instagram" aria-label="Instagram"><i class="ri-instagram-line"></i></a>
+            <a href="#youtube" aria-label="YouTube"><i class="ri-youtube-fill"></i></a>
+          </div>
+        </div>
+
+        <div>
+          <h4 class="footer-title">Quick Links</h4>
+          <ul class="footer-links">
+            <li><a href="#about">About Us</a></li>
+            <li><a href="#programs">Our Programs</a></li>
+            <li><a href="#causes">Featured Causes</a></li>
+            <li><a href="#team">Leadership Team</a></li>
+            <li><a href="#events">Upcoming Events</a></li>
+            <li><a href="#contact">Contact Us</a></li>
+          </ul>
+        </div>
+
+        <div>
+          <h4 class="footer-title">Services & Action</h4>
+          <ul class="footer-links">
+            <li><a href="#donate-section" onclick="openDonateModal('General Fund')">Donate Online</a></li>
+            <li><a href="#services" onclick="openModal('sponsor-modal')">Sponsor A Child</a></li>
+            <li><a href="#services" onclick="openModal('fundraise-modal')">Start A Fundraiser</a></li>
+            <li><a href="#services" onclick="openModal('volunteer-modal')">Volunteer Mission</a></li>
+            <li><a href="#impact">Financial Audit 2025</a></li>
+          </ul>
+        </div>
+
+
+      </div>
+
+      <div class="footer-bottom">
+        <p>&copy; 2026 HopeRise Global Foundation. All Rights Reserved. Built with heart for global humanitarian impact.</p>
+      </div>
+    </div>
+  </footer>
+
+  <!-- ==========================================================================
+       16. MODALS & TOAST NOTIFICATION
+       ========================================================================== -->
+  <!-- Donate Modal -->
+  <div class="modal-overlay" id="donate-modal">
+    <div class="modal-box">
+      <span class="modal-close" onclick="closeModal('donate-modal')">&times;</span>
+      <h3 style="font-size: 1.6rem; margin-bottom: 8px;" id="modal-cause-title">Donate To Support</h3>
+      <p style="color: var(--text-muted); margin-bottom: 20px;">Your contribution directly funds life-saving emergency and development projects.</p>
+
+      <form onsubmit="handleModalDonation(event)">
+        <div class="form-group">
+          <label>Donation Frequency</label>
+          <select class="form-control">
+            <option value="One-Time">One-Time Gift</option>
+            <option value="Monthly">Monthly Recurring Partner</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Donation Amount ($USD)</label>
+          <input type="number" class="form-control" value="100" required>
+        </div>
+        <div class="form-group">
+          <label>Payment Method</label>
+          <select class="form-control">
+            <option value="Credit Card">Credit Card / Debit Card</option>
+            <option value="PayPal">PayPal</option>
+            <option value="Apple Pay">Apple Pay</option>
+          </select>
+        </div>
+        <button type="submit" class="btn btn-primary" style="width: 100%;">Confirm Donation</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- Volunteer Modal -->
+  <div class="modal-overlay" id="volunteer-modal">
+    <div class="modal-box">
+      <span class="modal-close" onclick="closeModal('volunteer-modal')">&times;</span>
+      <h3 style="font-size: 1.6rem; margin-bottom: 8px;">Volunteer Application</h3>
+      <p style="color: var(--text-muted); margin-bottom: 20px;">Join our active global network of over 15,000 volunteers making a difference locally and overseas.</p>
+
+      <form onsubmit="handleFormSubmission(event, 'Volunteer application submitted! Our team will email you within 24 hours.')">
+        <div class="form-group">
+          <label>Full Name</label>
+          <input type="text" class="form-control" placeholder="Your name" required>
+        </div>
+        <div class="form-group">
+          <label>Email Address</label>
+          <input type="email" class="form-control" placeholder="Your email" required>
+        </div>
+        <div class="form-group">
+          <label>Area of Interest</label>
+          <select class="form-control" required>
+            <option value="Community Fieldwork">Community Fieldwork</option>
+            <option value="Teaching & Education">Teaching & Education</option>
+            <option value="Medical & Healthcare">Medical & Healthcare</option>
+            <option value="Digital & Marketing">Digital & Marketing</option>
+          </select>
+        </div>
+        <button type="submit" class="btn btn-primary" style="width: 100%;">Submit Application</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- Video Lightbox Modal -->
+  <div class="modal-overlay" id="video-modal">
+    <div class="modal-box" style="max-width: 800px; padding: 20px; text-align: center; background: #000000; color: #ffffff;">
+      <span class="modal-close" onclick="closeModal('video-modal')" style="color: #ffffff;">&times;</span>
+      <h3 style="margin-bottom: 16px;">HopeRise Foundation Field Documentary</h3>
+      <div style="position: relative; padding-bottom: 56.25%; height: 0; overflow: hidden; border-radius: 8px;">
+        <iframe style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; border: 0;" src="https://www.youtube-nocookie.com/embed/dQw4w9WgXcQ" title="Documentary Video" allowfullscreen></iframe>
+      </div>
+    </div>
+  </div>
+
+  <!-- Lightbox Modal for Gallery -->
+  <div class="modal-overlay" id="lightbox-modal">
+    <div class="modal-box" style="max-width: 800px; padding: 16px; background: #000000; text-align: center;">
+      <span class="modal-close" onclick="closeModal('lightbox-modal')" style="color: #ffffff;">&times;</span>
+      <img id="lightbox-img" src="" alt="Gallery Image" style="max-height: 75vh; margin: 0 auto; border-radius: 8px;">
+      <p id="lightbox-caption" style="color: #ffffff; margin-top: 12px; font-size: 1.1rem; font-weight: 600;"></p>
+    </div>
+  </div>
+
+  <!-- Toast Notification -->
+  <div class="toast" id="toast">
+    <i class="ri-checkbox-circle-fill" style="color: #34d399; font-size: 1.4rem;"></i>
+    <span id="toast-message">Operation successful!</span>
+  </div>
+
+  <!-- Custom JavaScript File -->
+  <script src="scripts.js"></script>
+</body>
+</html>

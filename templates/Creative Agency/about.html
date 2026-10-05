@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>About Us | AETERNA Creative Agency</title>
+    <meta name="description" content="Discover AETERNA's strategic creative culture, our vision, mission, and the senior creative directors, designers, and developers crafting digital products.">
+    
+    <!-- Google Fonts & FontAwesome -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Syne:wght@500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <!-- Scroll Progress Indicator -->
+    <div id="scroll-progress" aria-hidden="true"></div>
+
+    <!-- Custom Cursor Follower -->
+    <div class="custom-cursor" id="cursor" aria-hidden="true">
+        <div class="custom-cursor-dot"></div>
+        <div class="custom-cursor-circle"></div>
+    </div>
+
+    <!-- Header Navigation -->
+    <header class="header sticky" id="main-header">
+        <div class="header-container">
+            <a href="index.html" class="logo" id="header-logo">
+                AETERNA<span class="logo-dot">.</span>
+            </a>
+            
+            <nav class="nav-menu" id="nav-menu-desktop" aria-label="Desktop navigation">
+                <ul>
+                    <li><a href="index.html" class="nav-link">Home</a></li>
+                    <li><a href="about.html" class="nav-link active">About Us</a></li>
+                    <li><a href="services.html" class="nav-link">Services</a></li>
+                    <li><a href="index.html#work" class="nav-link">Our Work</a></li>
+                    <li><a href="index.html#contact" class="nav-link">Contact</a></li>
+                </ul>
+            </nav>
+
+            <div class="header-cta-group">
+                <a href="index.html#contact" class="btn btn-magnetic btn-nav-cta" id="header-cta-btn">
+                    Let's Talk <i class="fa-solid fa-arrow-right-long icon-arrow"></i>
+                </a>
+                
+                <button class="hamburger" id="hamburger-btn" aria-label="Toggle Navigation Menu" aria-expanded="false" aria-controls="mobile-overlay">
+                    <span class="hamburger-line line-top"></span>
+                    <span class="hamburger-line line-mid"></span>
+                    <span class="hamburger-line line-bot"></span>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Mobile Navigation Overlay -->
+    <div class="mobile-overlay" id="mobile-overlay" aria-hidden="true">
+        <div class="mobile-overlay-bg"></div>
+        <div class="mobile-overlay-container">
+            <nav class="mobile-nav" aria-label="Mobile navigation">
+                <ul>
+                    <li><a href="index.html" class="mobile-nav-link">Home</a></li>
+                    <li><a href="about.html" class="mobile-nav-link">About Us</a></li>
+                    <li><a href="services.html" class="mobile-nav-link">Services</a></li>
+                    <li><a href="index.html#work" class="mobile-nav-link">Our Work</a></li>
+                    <li><a href="index.html#contact" class="mobile-nav-link">Contact</a></li>
+                </ul>
+            </nav>
+            <div class="mobile-nav-footer">
+                <div class="mobile-nav-cta-wrapper">
+                    <a href="index.html#contact" class="btn btn-primary btn-magnetic">Start Your Project</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Content Wrapper -->
+    <main>
+        <!-- About Hero Banner -->
+        <section class="about-hero-section">
+            <div class="container">
+                <div class="about-grid" style="margin-bottom: 80px;">
+                    <div class="about-content-col scroll-reveal-left">
+                        <div class="section-tag">About Aeterna</div>
+                        <h1 class="section-title title-highlight" style="font-size: 64px; line-height: 1.1; margin-bottom: 25px;">Creative Thinking Meets Strategic Execution</h1>
+                        <p class="about-text-p1">
+                            We are a multidisciplinary creative agency passionate about building brands, crafting digital experiences, and helping businesses stand out in a competitive world.
+                        </p>
+                        <p class="about-text-p2">
+                            Aeterna was born from a unified vision: to disrupt standard corporate web layouts with immersive experiences that combine cutting-edge technology and art. We push boundaries to design digital platforms that capture client values and convert interaction into real brand equity.
+                        </p>
+                    </div>
+                    <div class="about-visual-col scroll-reveal-right">
+                        <div class="about-img-wrapper">
+                            <img src="assets/about_studio.png" alt="Creative studio workspace" class="about-main-img">
+                            <div class="about-visual-badge" style="animation: none;">
+                                <span class="badge-num">8+</span>
+                                <span class="badge-txt">Years of<br>Disruption</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Vision & Mission Grid -->
+                <div class="vision-mission-grid scroll-reveal-up" style="grid-template-columns: repeat(2, 1fr); gap: 40px; margin-top: 60px; border-top: 1px solid var(--color-border); padding-top: 60px;">
+                    <div class="vm-card" style="padding: 50px;">
+                        <div class="vm-icon" style="font-size: 36px;"><i class="fa-solid fa-eye"></i></div>
+                        <h2 style="font-size: 28px; margin-bottom: 20px;">Our Vision</h2>
+                        <p style="font-size: 16px; line-height: 1.6; color: var(--color-text-secondary);">
+                            To become a globally recognized creative agency that empowers brands through innovation, design excellence, and transformative digital experiences. We aspire to build digital bridges that make technology feel organic, premium, and human-centric.
+                        </p>
+                    </div>
+                    <div class="vm-card" style="padding: 50px;">
+                        <div class="vm-icon" style="font-size: 36px;"><i class="fa-solid fa-bullseye"></i></div>
+                        <h2 style="font-size: 28px; margin-bottom: 20px;">Our Mission</h2>
+                        <p style="font-size: 16px; line-height: 1.6; color: var(--color-text-secondary);">
+                            To help businesses communicate their value through meaningful branding, engaging digital experiences, and strategic creative solutions that generate measurable results. We focus on transforming complex ideas into intuitive layouts that scale user engagement.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Staggered Core values -->
+        <section class="values-section" style="background-color: var(--color-bg-secondary);">
+            <div class="container">
+                <div class="section-header-center scroll-reveal-up">
+                    <div class="section-tag-center">Core Beliefs</div>
+                    <h2 class="section-title">The Values That Guide Us</h2>
+                </div>
+
+                <div class="services-grid">
+                    <div class="service-card scroll-reveal-card" style="cursor: default; padding: 40px 30px;">
+                        <div class="service-icon-wrapper" style="width: 50px; height: 50px; margin-bottom: 20px;"><i class="fa-solid fa-wand-magic-sparkles"></i></div>
+                        <h3 style="font-size: 20px; margin-bottom: 12px;">Radical Creativity</h3>
+                        <p style="font-size: 14px; color: var(--color-text-secondary);">We reject the mundane and boring. Every single visual asset we draft pushes the standard envelope of creativity.</p>
+                    </div>
+                    <div class="service-card scroll-reveal-card" style="cursor: default; padding: 40px 30px;">
+                        <div class="service-icon-wrapper" style="width: 50px; height: 50px; margin-bottom: 20px;"><i class="fa-solid fa-circle-nodes"></i></div>
+                        <h3 style="font-size: 20px; margin-bottom: 12px;">Strategic Execution</h3>
+                        <p style="font-size: 14px; color: var(--color-text-secondary);">Beautiful pixels are nothing without intent. We anchor our creative visions to hard data and product strategies.</p>
+                    </div>
+                    <div class="service-card scroll-reveal-card" style="cursor: default; padding: 40px 30px;">
+                        <div class="service-icon-wrapper" style="width: 50px; height: 50px; margin-bottom: 20px;"><i class="fa-solid fa-rocket"></i></div>
+                        <h3 style="font-size: 20px; margin-bottom: 12px;">Constant Disruption</h3>
+                        <p style="font-size: 14px; color: var(--color-text-secondary);">Technology evolves rapidly. We constantly experiment with animation engines, layout patterns, and AI tools.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Our Expanded Team Section -->
+        <section class="team-section">
+            <div class="container">
+                <div class="section-header-center scroll-reveal-up">
+                    <div class="section-tag-center">Our Team</div>
+                    <h2 class="section-title">Meet The Creative Minds</h2>
+                    <p class="section-subtitle">A passionate team of designers, strategists, developers, and innovators dedicated to creating extraordinary digital experiences.</p>
+                </div>
+
+                <div class="team-grid" style="grid-template-columns: repeat(4, 1fr); gap: 20px;">
+                    
+                    <!-- Member 1 -->
+                    <div class="team-card scroll-reveal-card">
+                        <div class="team-img-wrapper">
+                            <img src="assets/team_director.png" alt="Evelyn Vane" class="team-img">
+                            <div class="team-social-overlay">
+                                <a href="https://linkedin.com" target="_blank" rel="noopener"><i class="fa-brands fa-linkedin-in"></i></a>
+                                <a href="https://dribbble.com" target="_blank" rel="noopener"><i class="fa-brands fa-dribbble"></i></a>
+                                <a href="https://instagram.com" target="_blank" rel="noopener"><i class="fa-brands fa-instagram"></i></a>
+                            </div>
+                        </div>
+                        <div class="team-info" style="padding: 20px 10px;">
+                            <h3 class="team-name" style="font-size: 18px;">Evelyn Vane</h3>
+                            <span class="team-role" style="font-size: 13px;">Founder / Creative Director</span>
+                        </div>
+                    </div>
+
+                    <!-- Member 2 -->
+                    <div class="team-card scroll-reveal-card">
+                        <div class="team-img-wrapper">
+                            <img src="assets/team_art.png" alt="Marcus Thorne" class="team-img">
+                            <div class="team-social-overlay">
+                                <a href="https://linkedin.com" target="_blank" rel="noopener"><i class="fa-brands fa-linkedin-in"></i></a>
+                                <a href="https://behance.net" target="_blank" rel="noopener"><i class="fa-brands fa-behance"></i></a>
+                                <a href="https://instagram.com" target="_blank" rel="noopener"><i class="fa-brands fa-instagram"></i></a>
+                            </div>
+                        </div>
+                        <div class="team-info" style="padding: 20px 10px;">
+                            <h3 class="team-name" style="font-size: 18px;">Marcus Thorne</h3>
+                            <span class="team-role" style="font-size: 13px;">Art Director & Lead UI</span>
+                        </div>
+                    </div>
+
+                    <!-- Member 3 -->
+                    <div class="team-card scroll-reveal-card">
+                        <div class="team-img-wrapper">
+                            <div class="team-img-fallback-wrapper" style="aspect-ratio: 1/1; background-color: #202024; display: flex; align-items: center; justify-content: center; font-size: 38px; color: var(--color-accent);">
+                                <i class="fa-solid fa-code"></i>
+                            </div>
+                            <div class="team-social-overlay">
+                                <a href="https://linkedin.com" target="_blank" rel="noopener"><i class="fa-brands fa-linkedin-in"></i></a>
+                                <a href="https://linkedin.com" target="_blank" rel="noopener"><i class="fa-brands fa-github"></i></a>
+                            </div>
+                        </div>
+                        <div class="team-info" style="padding: 20px 10px;">
+                            <h3 class="team-name" style="font-size: 18px;">Aiden Scott</h3>
+                            <span class="team-role" style="font-size: 13px;">Lead Frontend Architect</span>
+                        </div>
+                    </div>
+
+                    <!-- Member 4 -->
+                    <div class="team-card scroll-reveal-card">
+                        <div class="team-img-wrapper">
+                            <div class="team-img-fallback-wrapper" style="aspect-ratio: 1/1; background-color: #202024; display: flex; align-items: center; justify-content: center; font-size: 38px; color: var(--color-accent);">
+                                <i class="fa-solid fa-chart-line"></i>
+                            </div>
+                            <div class="team-social-overlay">
+                                <a href="https://linkedin.com" target="_blank" rel="noopener"><i class="fa-brands fa-linkedin-in"></i></a>
+                                <a href="https://instagram.com" target="_blank" rel="noopener"><i class="fa-brands fa-instagram"></i></a>
+                            </div>
+                        </div>
+                        <div class="team-info" style="padding: 20px 10px;">
+                            <h3 class="team-name" style="font-size: 18px;">Sora Jenkins</h3>
+                            <span class="team-role" style="font-size: 13px;">Growth Strategy Partner</span>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </section>
+
+        <!-- CTA Banner -->
+        <section class="cta-section">
+            <div class="container">
+                <div class="cta-box scroll-reveal-up">
+                    <h2 class="cta-title">Ready To Build<br>Something Extraordinary?</h2>
+                    <p class="cta-desc">Let's collaborate to create impactful digital experiences that elevate your brand and accelerate growth.</p>
+                    <a href="index.html#contact" class="btn btn-primary btn-magnetic" id="cta-action-btn">Start Your Project</a>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Footer Section -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-top">
+                <div class="footer-brand-col">
+                    <a href="index.html" class="logo">AETERNA<span class="logo-dot">.</span></a>
+                    <p class="footer-tagline">We create bold brands, exceptional experiences, and digital products that drive growth.</p>
+                    <div class="footer-social-links">
+                        <a href="https://linkedin.com" target="_blank" rel="noopener" aria-label="LinkedIn"><i class="fa-brands fa-linkedin-in"></i></a>
+                        <a href="https://instagram.com" target="_blank" rel="noopener" aria-label="Instagram"><i class="fa-brands fa-instagram"></i></a>
+                        <a href="https://facebook.com" target="_blank" rel="noopener" aria-label="Facebook"><i class="fa-brands fa-facebook-f"></i></a>
+                        <a href="https://behance.net" target="_blank" rel="noopener" aria-label="Behance"><i class="fa-brands fa-behance"></i></a>
+                        <a href="https://dribbble.com" target="_blank" rel="noopener" aria-label="Dribbble"><i class="fa-brands fa-dribbble"></i></a>
+                    </div>
+                </div>
+                
+                <div class="footer-links-col">
+                    <h4>Quick Links</h4>
+                    <ul>
+                        <li><a href="index.html">Home</a></li>
+                        <li><a href="about.html">About Us</a></li>
+                        <li><a href="services.html">Services</a></li>
+                        <li><a href="index.html#work">Our Work</a></li>
+                        <li><a href="index.html#contact">Contact</a></li>
+                    </ul>
+                </div>
+
+                <div class="footer-links-col">
+                    <h4>Our Services</h4>
+                    <ul>
+                        <li><a href="services.html">Branding</a></li>
+                        <li><a href="services.html">UI UX Design</a></li>
+                        <li><a href="services.html">Website Design</a></li>
+                        <li><a href="services.html">Website Development</a></li>
+                        <li><a href="services.html">Digital Marketing</a></li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="footer-bottom">
+                <p class="copyright">&copy; 2026 AETERNA Creative Agency. All Rights Reserved. Private Policy.</p>
+                <button class="btn-scroll-top btn-magnetic" id="back-to-top" aria-label="Scroll back to top">
+                    <i class="fa-solid fa-arrow-up"></i>
+                </button>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Scripts -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
+    <script src="https://unpkg.com/@studio-freight/lenis@1.0.34/dist/lenis.min.js"></script>
+    <script src="script.js"></script>
+</body>
+</html>

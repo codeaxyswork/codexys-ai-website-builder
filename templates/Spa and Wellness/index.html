@@ -1,0 +1,1257 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Serenity Spa & Wellness | Premium Sanctuary For Mind, Body & Soul</title>
+  <meta name="description" content="Experience pure luxury, healing, and holistic rejuvenation at Serenity Spa & Wellness. Book professional massages, Ayurvedic therapies, and wellness programs.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,200..800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <link rel="stylesheet" href="styles.css">
+  <script src="scripts.js" defer></script>
+</head>
+<body>
+
+  <!-- ==========================================
+       HEADER & FLOATING NAVBAR
+       ========================================== -->
+  <header class="header-wrap" id="header">
+    <nav class="navbar" id="navbar">
+      <div class="nav-container">
+        <a href="#" class="nav-logo" id="nav-logo-link">
+          <div class="logo-icon">
+            <svg width="40" height="40" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <circle cx="20" cy="20" r="18" fill="white" fill-opacity="0.15" stroke="rgba(255,255,255,0.25)" stroke-width="1.2"/>
+              <path d="M20 9C13.8 9 9 13.8 9 20C9 23.8 11 27.2 14 29.2C14.6 29.6 15.4 29.2 15.4 28.5V25.2C15.4 24.5 14.9 23.9 14.2 23.7C10.8 23 9.2 20.2 9.2 17.5C9.2 12.8 13.3 9.1 18.7 9.1C24.1 9.1 28.2 12.8 28.2 17.5C28.2 21.1 25.1 24.2 21.4 24.9V28.5C21.4 29.2 22.2 29.6 22.8 29.2C25.8 27.2 27.8 23.8 27.8 20C27.8 13.8 23 9 20 9Z" fill="white"/>
+              <circle cx="20" cy="20" r="3" fill="var(--gold)"/>
+            </svg>
+          </div>
+          <span class="logo-text">Serenity</span>
+        </a>
+        <ul class="nav-links" id="nav-links">
+          <li><a href="#hero" class="nav-link active" id="nl-home">Home</a></li>
+          <li><a href="#about" class="nav-link" id="nl-about">About</a></li>
+          <li><a href="#treatments" class="nav-link" id="nl-treatments">Treatments</a></li>
+          <li><a href="#programs" class="nav-link" id="nl-programs">Wellness Programs</a></li>
+          <li><a href="#gallery" class="nav-link" id="nl-gallery">Gallery</a></li>
+          <li><a href="#pricing" class="nav-link" id="nl-pricing">Pricing</a></li>
+          <li><a href="#contact" class="nav-link" id="nl-contact">Contact</a></li>
+        </ul>
+        <a href="#cta-booking" class="nav-book-btn-pill" id="nav-book">
+          <span>Book Appointment</span>
+          <span class="btn-arrow"><i class="fa-solid fa-arrow-right"></i></span>
+        </a>
+        <button class="hamburger" id="hamburger" aria-label="Toggle menu">
+          <span></span><span></span><span></span>
+        </button>
+      </div>
+    </nav>
+  </header>
+
+  <main>
+
+    <!-- ==========================================
+         HERO SECTION — Redesigned 2-Col Slider Layout
+         ========================================== -->
+    <section id="hero" class="hero-section">
+      <!-- Background layers per slide -->
+      <div class="hero-bgs">
+        <div class="hero-bg-layer active" id="hbg-0" style="background-image:url('hero1.png')"></div>
+        <div class="hero-bg-layer" id="hbg-1" style="background-image:url('hero2.png')"></div>
+        <div class="hero-bg-layer" id="hbg-2" style="background-image:url('hero3.png')"></div>
+      </div>
+      <div class="hero-dark-overlay"></div>
+
+      <div class="container hero-container-grid">
+        
+        <!-- Left: Slide text content -->
+        <div class="hero-slides" id="hero-slides">
+          
+          <!-- Slide 1 -->
+          <div class="hero-slide active" id="hs-0">
+            <span class="eyebrow-badge-pill"><span class="badge-dot"></span> Premium Spa Experience</span>
+            <h1 class="slide-heading">Discover the perfect escape for relaxation and care</h1>
+            <div class="slide-actions">
+              <a href="#cta-booking" class="btn btn-pill-dark" id="hero-book-1">
+                <span>View All Services</span>
+                <span class="btn-arrow-circle"><i class="fa-solid fa-arrow-right"></i></span>
+              </a>
+              <button class="btn-video-play" onclick="alert('Opening video story...');" id="video-play-1">
+                <span class="play-icon-circle"><i class="fa-solid fa-play"></i></span>
+                <span class="play-text">Watch Our Story</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- Slide 2 -->
+          <div class="hero-slide" id="hs-1">
+            <span class="eyebrow-badge-pill"><span class="badge-dot"></span> Pure Luxury Relaxation</span>
+            <h1 class="slide-heading">Reconnect your mind, body and soul in serenity</h1>
+            <div class="slide-actions">
+              <a href="#treatments" class="btn btn-pill-dark" id="hero-explore-1">
+                <span>Explore Treatments</span>
+                <span class="btn-arrow-circle"><i class="fa-solid fa-arrow-right"></i></span>
+              </a>
+              <button class="btn-video-play" onclick="alert('Opening video story...');" id="video-play-2">
+                <span class="play-icon-circle"><i class="fa-solid fa-play"></i></span>
+                <span class="play-text">Watch Our Story</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- Slide 3 -->
+          <div class="hero-slide" id="hs-2">
+            <span class="eyebrow-badge-pill"><span class="badge-dot"></span> Complete Wellness Journey</span>
+            <h1 class="slide-heading">Begin your healthy lifestyle transformation today</h1>
+            <div class="slide-actions">
+              <a href="#cta-booking" class="btn btn-pill-dark" id="hero-schedule-1">
+                <span>Schedule Consultation</span>
+                <span class="btn-arrow-circle"><i class="fa-solid fa-arrow-right"></i></span>
+              </a>
+              <button class="btn-video-play" onclick="alert('Opening video story...');" id="video-play-3">
+                <span class="play-icon-circle"><i class="fa-solid fa-play"></i></span>
+                <span class="play-text">Watch Our Story</span>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Right: Floating reviews card matching screenshot exactly -->
+        <div class="hero-floating-reviews-col">
+          <div class="hero-reviews-glass-card animate-up">
+            
+            <div class="reviews-top">
+              <div style="width: 48px; height: 48px; border-radius: 50%; background: rgba(197, 168, 128, 0.2); border: 1px solid var(--gold); display: flex; align-items: center; justify-content: center; margin-bottom: 0.2rem; color: var(--gold); font-size: 1.2rem;">
+                <i class="fa-solid fa-award"></i>
+              </div>
+              <span class="reviews-title" style="font-size: 1.3rem; font-weight: 700; line-height: 1.25; color: var(--white);">15+ Years of Wellness Excellence</span>
+            </div>
+
+            <div class="reviews-divider"></div>
+
+            <div class="reviews-bottom">
+              <p style="font-size: 0.95rem; color: rgba(255, 255, 255, 0.85); line-height: 1.5; font-weight: 500;">Providing exceptional spa and wellness experiences since 2010.</p>
+            </div>
+
+          </div>
+        </div>
+      </div>
+
+      <!-- Right Side Vertical Slider Navigation Dots -->
+      <div class="hero-vertical-dots">
+        <button class="sdot active" data-slide="0" id="sdot-0" aria-label="Slide 1"></button>
+        <button class="sdot" data-slide="1" id="sdot-1" aria-label="Slide 2"></button>
+        <button class="sdot" data-slide="2" id="sdot-2" aria-label="Slide 3"></button>
+      </div>
+
+      <div class="scroll-cue">
+        <span>Scroll</span>
+        <div class="scroll-bar"></div>
+      </div>
+    </section>
+
+    <!-- ==========================================
+         ABOUT US SECTION — Redesigned Split Col
+         ========================================== -->
+    <section id="about" class="about-section section-pad">
+      <div class="container about-container-grid">
+        
+        <!-- Left: Text content block -->
+        <div class="about-text-col" id="about-content-block">
+          <span class="eyebrow-badge-pill"><span class="badge-dot"></span> About Us</span>
+          <h2 class="section-heading">Bringing our, relaxation and care together</h2>
+          <p class="body-text">We are passionate about helping people achieve a healthier and more balanced life style through professional spa treatments and holistic our therapies. Through personalized spa treatments.</p>
+          
+          <div class="about-benefits-row">
+            <div class="about-benefit-card">
+              <div class="benefit-icon-wrap">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M12 2V22M2 12H22M5 5L19 19M19 5L5 19" stroke="var(--gold)" stroke-width="2.5" stroke-linecap="round"/>
+                </svg>
+              </div>
+              <p class="benefit-card-text">Spa treatments designed to relax your body and mind.</p>
+            </div>
+            
+            <div class="about-benefit-card">
+              <div class="benefit-icon-wrap">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M12 2V22M2 12H22M5 5L19 19M19 5L5 19" stroke="var(--gold)" stroke-width="2.5" stroke-linecap="round"/>
+                </svg>
+              </div>
+              <p class="benefit-card-text">A peaceful environment combined with expert care</p>
+            </div>
+          </div>
+
+          <!-- Stats Bento Box Card -->
+          <div class="about-stats-bento">
+            <div class="about-stat-cell">
+              <span class="about-stat-num">100+</span>
+              <span class="about-stat-label">Luxury Spa Treatments &amp; our Services</span>
+            </div>
+            <div class="about-stat-divider"></div>
+            <div class="about-stat-cell">
+              <span class="about-stat-num">40+</span>
+              <span class="about-stat-label">Certified our Therapists and Spa Experts</span>
+            </div>
+          </div>
+
+
+        </div>
+
+        <!-- Right: Montage Visuals block -->
+        <div class="about-montage-col" id="about-images-block">
+          <div class="about-montage-container">
+            
+            <!-- Background Line Art branch -->
+            <div class="decorative-leaf-art">
+              <svg width="180" height="180" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M10 90C40 70 60 40 75 10" stroke="rgba(88, 94, 72, 0.12)" stroke-width="1.8" stroke-linecap="round"/>
+                <!-- leaf pairs -->
+                <path d="M30 76C25 70 20 72 23 79C26 86 31 82 30 76Z" fill="rgba(88, 94, 72, 0.05)" stroke="rgba(88, 94, 72, 0.12)" stroke-width="0.8"/>
+                <path d="M35 73C40 78 38 83 31 80C24 77 28 72 35 73Z" fill="rgba(88, 94, 72, 0.05)" stroke="rgba(88, 94, 72, 0.12)" stroke-width="0.8"/>
+                <path d="M48 57C43 51 38 53 41 60C44 67 49 63 48 57Z" fill="rgba(88, 94, 72, 0.05)" stroke="rgba(88, 94, 72, 0.12)" stroke-width="0.8"/>
+                <path d="M53 54C58 59 56 64 49 61C42 58 46 53 53 54Z" fill="rgba(88, 94, 72, 0.05)" stroke="rgba(88, 94, 72, 0.12)" stroke-width="0.8"/>
+                <path d="M62 33C57 27 52 29 55 36C58 43 63 39 62 33Z" fill="rgba(88, 94, 72, 0.05)" stroke="rgba(88, 94, 72, 0.12)" stroke-width="0.8"/>
+                <path d="M67 30C72 35 70 40 63 37C56 34 60 29 67 30Z" fill="rgba(88, 94, 72, 0.05)" stroke="rgba(88, 94, 72, 0.12)" stroke-width="0.8"/>
+              </svg>
+            </div>
+
+            <!-- Arched Main Profile top right -->
+            <div class="about-img-frame arch-main animate-up">
+              <img src="about1.png" alt="Serene Face with Flower" loading="lazy">
+            </div>
+
+            <!-- Arched Sub Robe bottom left -->
+            <div class="about-img-frame arch-sub animate-up">
+              <img src="about2.png" alt="Relaxing in Robe" loading="lazy">
+            </div>
+
+            <!-- Floating card massage session -->
+            <div class="about-floating-card animate-up">
+              <div class="about-card-img">
+                <img src="about3.png" alt="Facial Therapy Session" loading="lazy">
+              </div>
+              <div class="about-card-footer">
+                <span>Call At: +(123) 456-789</span>
+              </div>
+            </div>
+
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- ==========================================
+         SIGNATURE TREATMENTS CAROUSEL
+         ========================================== -->
+    <section id="treatments" class="services-section section-pad">
+      <div class="container">
+        
+        <!-- Header: Eyebrow + Split Title/Description -->
+        <div class="services-header-split">
+          <div class="services-header-left">
+            <span class="eyebrow-badge-pill"><span class="badge-dot"></span> Signature Treatments</span>
+            <h2 class="section-heading">Discover our luxurious spa and wellness treatments</h2>
+          </div>
+          <div class="services-header-right">
+            <p class="services-header-desc">From therapeutic massages to holistic healing experiences, our treatments are carefully designed to relax the body, calm the mind, and restore inner balance.</p>
+            <div class="services-header-bottom-row">
+              <!-- Carousel arrows sit in header, right side -->
+              <div class="carousel-nav-controls" id="carousel-nav">
+                <button class="carousel-arrow prev" id="carousel-prev" aria-label="Previous treatments">
+                  <i class="fa-solid fa-arrow-left"></i>
+                </button>
+                <button class="carousel-arrow next" id="carousel-next" aria-label="Next treatments">
+                  <i class="fa-solid fa-arrow-right"></i>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Carousel Viewport Wrapper -->
+        <div class="treatments-carousel-viewport" id="treatments-carousel">
+          <div class="treatments-carousel-track" id="treatments-track">
+            
+            <!-- Card 1: Swedish Massage -->
+            <div class="treatment-slide-card" id="tc-swedish" style="--card-bg: url('treatment1.png')">
+              <div class="tc-bg-overlay"></div>
+              <div class="tc-content">
+                <span class="service-num">01</span>
+                <h3 class="service-title">Swedish Massage</h3>
+                <p class="service-desc">A gentle full-body massage that relieves stress, improves circulation, and promotes deep relaxation.</p>
+                <div class="service-card-bottom">
+                  <div class="service-icon-wrap">
+                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                      <path d="M12 2a5 5 0 0 0-5 5v1a3 3 0 0 0 3 3h4a3 3 0 0 0 3-3V7a5 5 0 0 0-5-5z"/>
+                    </svg>
+                  </div>
+                  <div class="tc-circle-img">
+                    <img src="treatment1.png" alt="Swedish Massage" loading="lazy">
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Card 2: Deep Tissue Therapy -->
+            <div class="treatment-slide-card" id="tc-deeptissue" style="--card-bg: url('treatment2.png')">
+              <div class="tc-bg-overlay"></div>
+              <div class="tc-content">
+                <span class="service-num">02</span>
+                <h3 class="service-title">Deep Tissue Therapy</h3>
+                <p class="service-desc">Focused therapeutic techniques designed to release muscle tension, reduce pain, and improve mobility.</p>
+                <div class="service-card-bottom">
+                  <div class="service-icon-wrap">
+                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                      <path d="M12 6a3 3 0 1 0 0-6 3 3 0 0 0 0 6zM18 19V13a6 6 0 0 0-12 0v6M2 20h20"/>
+                    </svg>
+                  </div>
+                  <div class="tc-circle-img">
+                    <img src="treatment2.png" alt="Deep Tissue Therapy" loading="lazy">
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Card 3: Aromatherapy Massage -->
+            <div class="treatment-slide-card" id="tc-aromatherapy" style="--card-bg: url('service1.png')">
+              <div class="tc-bg-overlay"></div>
+              <div class="tc-content">
+                <span class="service-num">03</span>
+                <h3 class="service-title">Aromatherapy Massage</h3>
+                <p class="service-desc">A soothing massage experience enhanced with essential oils that help calm the mind and restore emotional wellbeing.</p>
+                <div class="service-card-bottom">
+                  <div class="service-icon-wrap">
+                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                      <circle cx="12" cy="12" r="10"/>
+                      <path d="M12 8v8M8 12h8"/>
+                    </svg>
+                  </div>
+                  <div class="tc-circle-img">
+                    <img src="service1.png" alt="Aromatherapy Massage" loading="lazy">
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Card 4: Hot Stone Therapy -->
+            <div class="treatment-slide-card" id="tc-hotstone" style="--card-bg: url('service2.png')">
+              <div class="tc-bg-overlay"></div>
+              <div class="tc-content">
+                <span class="service-num">04</span>
+                <h3 class="service-title">Hot Stone Therapy</h3>
+                <p class="service-desc">Warm volcanic stones are used to ease muscle stiffness, improve blood flow, and create a deeply relaxing experience.</p>
+                <div class="service-card-bottom">
+                  <div class="service-icon-wrap">
+                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                      <ellipse cx="12" cy="12" rx="7" ry="5"/>
+                    </svg>
+                  </div>
+                  <div class="tc-circle-img">
+                    <img src="service2.png" alt="Hot Stone Therapy" loading="lazy">
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Card 5: Facial Rejuvenation -->
+            <div class="treatment-slide-card" id="tc-facial" style="--card-bg: url('treatment5.png')">
+              <div class="tc-bg-overlay"></div>
+              <div class="tc-content">
+                <span class="service-num">05</span>
+                <h3 class="service-title">Facial Rejuvenation</h3>
+                <p class="service-desc">A nourishing skincare treatment that cleanses, hydrates, and revitalizes your skin for a healthy natural glow.</p>
+                <div class="service-card-bottom">
+                  <div class="service-icon-wrap">
+                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                      <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+                    </svg>
+                  </div>
+                  <div class="tc-circle-img">
+                    <img src="treatment5.png" alt="Facial Rejuvenation" loading="lazy">
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Card 6: Ayurvedic Wellness -->
+            <div class="treatment-slide-card" id="tc-ayurvedic" style="--card-bg: url('treatment6.png')">
+              <div class="tc-bg-overlay"></div>
+              <div class="tc-content">
+                <span class="service-num">06</span>
+                <h3 class="service-title">Ayurvedic Wellness</h3>
+                <p class="service-desc">Traditional healing treatments inspired by Ayurveda that restore harmony between the mind, body, and spirit.</p>
+                <div class="service-card-bottom">
+                  <div class="service-icon-wrap">
+                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                      <path d="M12 2a10 10 0 1 0 10 10A10 10 0 0 0 12 2zm0 18a8 8 0 1 1 8-8 8 8 0 0 1-8 8z"/>
+                    </svg>
+                  </div>
+                  <div class="tc-circle-img">
+                    <img src="treatment6.png" alt="Ayurvedic Wellness" loading="lazy">
+                  </div>
+                </div>
+              </div>
+            </div>
+
+          </div>
+        </div>
+
+
+      </div>
+    </section>
+
+    <!-- ==========================================
+         WHY CHOOSE US SECTION
+         ========================================== -->
+    <section id="why-choose-us" class="why-section section-pad">
+      <div class="container">
+        <div class="why-grid">
+
+          <!-- LEFT: Image Montage -->
+          <div class="why-images-col">
+
+            <!-- Main image — tall rounded rect, upper right -->
+            <div class="why-img-main">
+              <img src="about1.png" alt="Serene spa portrait" loading="lazy">
+            </div>
+
+            <!-- Sub image — smaller rounded rect, overlapping bottom-left -->
+            <div class="why-img-sub">
+              <img src="treatment1.png" alt="Swedish massage relaxation" loading="lazy">
+            </div>
+
+            <!-- Decorative dot grid -->
+            <div class="why-dot-grid" aria-hidden="true"></div>
+
+          </div>
+
+          <!-- RIGHT: Content -->
+          <div class="why-content-col">
+
+            <span class="eyebrow-badge-pill"><span class="badge-dot"></span> Why Choose Us</span>
+
+            <h2 class="section-heading">The perfect destination for relaxation and rejuvenation</h2>
+
+            <p class="why-desc">From luxurious spa facilities to personalized wellness therapies, we create experiences that help you relax, restore balance, and reconnect with your inner wellbeing.</p>
+
+            <!-- Two-column info cards -->
+            <div class="why-cards-row">
+
+              <!-- Light feature card -->
+              <div class="why-feature-card" id="why-fc-1">
+                <h4 class="why-fc-title">Certified Spa Therapists</h4>
+                <p class="why-fc-desc">Our team of highly trained wellness professionals delivers personalized treatments with expertise, care, and attention to every detail.</p>
+                <div class="why-fc-bullet">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
+                    <path d="M12 2V22M2 12H22M5 5L19 19M19 5L5 19" stroke="var(--gold)" stroke-width="2.5" stroke-linecap="round"/>
+                  </svg>
+                  <span>Every session provides comfort</span>
+                </div>
+              </div>
+
+              <!-- Dark stats card -->
+              <div class="why-stats-card" id="why-sc-1">
+                <div class="why-stats-top">
+                  <span class="why-stat-num">15+</span>
+                  <div class="why-stat-label-wrap">
+                    <span>Years of</span>
+                    <span>Excellence</span>
+                  </div>
+                </div>
+                <div class="why-stats-icon">
+                  <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.7)" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+                  </svg>
+                </div>
+                <p class="why-stats-desc">With years of experience in spa &amp; our care</p>
+              </div>
+
+            </div>
+
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ==========================================
+         WELLNESS BENEFITS SECTION
+         ========================================== -->
+    <section id="programs" class="benefits-section section-pad">
+      <div class="container">
+        
+        <!-- Header: Eyebrow + Split Title/Description -->
+        <div class="services-header-split">
+          <div class="services-header-left">
+            <span class="eyebrow-badge-pill"><span class="badge-dot"></span> Wellness Benefits</span>
+            <h2 class="section-heading">Experience the true benefits of relaxation &amp; self care</h2>
+          </div>
+          <div class="services-header-right">
+            <p class="services-header-desc">Our wellness treatments are designed to reduce stress, improve circulation, promote healthy skin, and restore balance to your mind and body.</p>
+          </div>
+        </div>
+
+        <!-- 3-Column Grid -->
+        <div class="benefits-grid">
+
+          <!-- Card 1: Improved Skin Health -->
+          <div class="benefit-card animate-up" id="bc-skin">
+            <div class="benefit-icon">
+              <!-- Spa massage bed outline SVG -->
+              <svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M2 4v16M22 4v16M2 8h20M2 14h20M6 8v6M18 8v6"/>
+                <circle cx="6" cy="6" r="1.5"/>
+              </svg>
+            </div>
+            <h3 class="benefit-title">Improved Skin Health</h3>
+            <p class="benefit-desc">Professional spa treatments help nourish, hydrate, and rejuvenate your skin while improving overall skin texture and radiance.</p>
+            <div class="benefit-card-divider"></div>
+            <ul class="benefit-list">
+              <li>
+                <span class="benefit-check"><i class="fa-solid fa-check"></i></span>
+                <span>Deep cleansing and hydration</span>
+              </li>
+              <li>
+                <span class="benefit-check"><i class="fa-solid fa-check"></i></span>
+                <span>Improved skin texture and glow</span>
+              </li>
+              <li>
+                <span class="benefit-check"><i class="fa-solid fa-check"></i></span>
+                <span>Reduced dryness and dullness</span>
+              </li>
+              <li>
+                <span class="benefit-check"><i class="fa-solid fa-check"></i></span>
+                <span>Healthier and more radiant skin</span>
+              </li>
+            </ul>
+          </div>
+
+          <!-- Card 2: Deep Relaxation -->
+          <div class="benefit-card animate-up" id="bc-relax">
+            <div class="benefit-icon">
+              <!-- Relaxation hands outline SVG -->
+              <svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+                <path d="M8 11h8M12 7v8"/>
+              </svg>
+            </div>
+            <h3 class="benefit-title">Deep Relaxation</h3>
+            <p class="benefit-desc">Our therapeutic treatments help release tension, calm the mind, and create a sense of complete physical and emotional wellbeing.</p>
+            <div class="benefit-card-divider"></div>
+            <ul class="benefit-list">
+              <li>
+                <span class="benefit-check"><i class="fa-solid fa-check"></i></span>
+                <span>Relieves stress and anxiety</span>
+              </li>
+              <li>
+                <span class="benefit-check"><i class="fa-solid fa-check"></i></span>
+                <span>Reduces muscle tension</span>
+              </li>
+              <li>
+                <span class="benefit-check"><i class="fa-solid fa-check"></i></span>
+                <span>Promotes better sleep quality</span>
+              </li>
+              <li>
+                <span class="benefit-check"><i class="fa-solid fa-check"></i></span>
+                <span>Enhances overall wellbeing</span>
+              </li>
+            </ul>
+          </div>
+
+          <!-- Card 3: Working Hours (Solid dark background, light text) -->
+          <div class="benefit-card benefit-card-dark animate-up" id="bc-hours">
+            <div class="benefit-icon">
+              <!-- Clock outline SVG -->
+              <svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="12" cy="12" r="10"/>
+                <polyline points="12 6 12 12 16 14"/>
+              </svg>
+            </div>
+            <h3 class="benefit-title">Working Hours</h3>
+            <p class="benefit-desc">We welcome you to visit our luxury sanctuary during our operational hours below.</p>
+            <div class="benefit-card-divider"></div>
+            <ul class="hours-list">
+              <li>
+                <span class="day-name">Monday – Friday</span>
+                <span class="time-slot">10:00 AM – 5:00 PM</span>
+              </li>
+              <li>
+                <span class="day-name">Saturday</span>
+                <span class="time-slot">12:00 PM – 5:00 PM</span>
+              </li>
+              <li>
+                <span class="day-name">Sunday</span>
+                <span class="time-slot-highlight">By Appointment Only</span>
+              </li>
+            </ul>
+          </div>
+
+        </div>
+
+      </div>
+    </section>
+
+    <!-- ==========================================
+         CORE FEATURES SECTION
+         ========================================== -->
+    <section id="features" class="core-features-section section-pad">
+      <div class="container">
+        
+        <!-- Header Centered -->
+        <div class="features-header-center">
+          <span class="eyebrow-badge-pill"><span class="badge-dot"></span> Our core features</span>
+          <h2 class="section-heading">Premium features that enhance</h2>
+          <p class="features-header-desc">From skilled therapists to calming spa environments, our core features are designed to create a soothing and rejuvenating experience for every client.</p>
+        </div>
+
+        <div class="features-grid">
+          
+          <!-- LEFT: Image Montage -->
+          <div class="features-images-col">
+            
+            <!-- Main image (top right) -->
+            <div class="feat-img-main">
+              <img src="about3.png" alt="Facial treatment session" loading="lazy">
+            </div>
+
+            <!-- Sub image (bottom left) -->
+            <div class="feat-img-sub">
+              <img src="treatment1.png" alt="Serene Swedish massage relaxation" loading="lazy">
+            </div>
+
+
+
+            <!-- Decorative Leaf Art (left side backing) -->
+            <div class="feat-leaf-art">
+              <svg width="120" height="120" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M10 90C30 70 50 40 65 10" stroke="rgba(88, 94, 72, 0.12)" stroke-width="1.8" stroke-linecap="round"/>
+                <path d="M30 76C25 70 20 72 23 79C26 86 31 82 30 76Z" fill="rgba(88, 94, 72, 0.05)" stroke="rgba(88, 94, 72, 0.12)" stroke-width="0.8"/>
+                <path d="M48 57C43 51 38 53 41 60C44 67 49 63 48 57Z" fill="rgba(88, 94, 72, 0.05)" stroke="rgba(88, 94, 72, 0.12)" stroke-width="0.8"/>
+              </svg>
+            </div>
+
+          </div>
+
+          <!-- RIGHT: Accordion list -->
+          <div class="features-accordion-col">
+            <div class="features-accordion-card">
+              
+              <!-- Item 1 (Open by default) -->
+              <div class="feat-acc-item open" id="feat-item-1">
+                <button class="feat-acc-header" onclick="toggleFeat('feat-item-1')">
+                  <span class="feat-acc-title">01. Professional &amp; Certified Therapists</span>
+                  <span class="feat-acc-icon"><i class="fa-solid fa-chevron-down"></i></span>
+                </button>
+                <div class="feat-acc-body">
+                  <p class="feat-acc-text">Our experienced therapists provide expert care, personalize treatments to ensure a relaxing and effective our experience.</p>
+                  <ul class="feat-acc-bullets">
+                    <li><span class="bullet-star">★</span> Highly trained and certified professionals with expertise.</li>
+                    <li><span class="bullet-star">★</span> Dedicated providing personalized care, ensuring each treatment</li>
+                  </ul>
+                </div>
+              </div>
+
+              <!-- Item 2 -->
+              <div class="feat-acc-item" id="feat-item-2">
+                <button class="feat-acc-header" onclick="toggleFeat('feat-item-2')">
+                  <span class="feat-acc-title">02. Natural &amp; Skin-Friendly Products</span>
+                  <span class="feat-acc-icon"><i class="fa-solid fa-chevron-right"></i></span>
+                </button>
+                <div class="feat-acc-body">
+                  <p class="feat-acc-text">We select only organic, plant-based, and clinically tested skincare items to nourish and hydrate your skin naturally without irritation.</p>
+                  <ul class="feat-acc-bullets">
+                    <li><span class="bullet-star">★</span> 100% organic and skin-safe botanical ingredients.</li>
+                    <li><span class="bullet-star">★</span> Eco-friendly, chemical-free and sustainable products.</li>
+                  </ul>
+                </div>
+              </div>
+
+              <!-- Item 3 -->
+              <div class="feat-acc-item" id="feat-item-3">
+                <button class="feat-acc-header" onclick="toggleFeat('feat-item-3')">
+                  <span class="feat-acc-title">03. Calm &amp; Luxurious Environment</span>
+                  <span class="feat-acc-icon"><i class="fa-solid fa-chevron-right"></i></span>
+                </button>
+                <div class="feat-acc-body">
+                  <p class="feat-acc-text">Every room is acoustically insulated and features soft lighting, calming aromas, and comforting temperatures to promote absolute relaxation.</p>
+                  <ul class="feat-acc-bullets">
+                    <li><span class="bullet-star">★</span> Soundproof therapy suits and relaxing lounge areas.</li>
+                    <li><span class="bullet-star">★</span> Custom aromatherapy diffusers and soft ambient lighting.</li>
+                  </ul>
+                </div>
+              </div>
+
+              <!-- Item 4 -->
+              <div class="feat-acc-item" id="feat-item-4">
+                <button class="feat-acc-header" onclick="toggleFeat('feat-item-4')">
+                  <span class="feat-acc-title">04. Personalized our Treatments</span>
+                  <span class="feat-acc-icon"><i class="fa-solid fa-chevron-right"></i></span>
+                </button>
+                <div class="feat-acc-body">
+                  <p class="feat-acc-text">Every treatment begins with a quick private consultation to understand your physical needs and style preferences for a tailored session.</p>
+                  <ul class="feat-acc-bullets">
+                    <li><span class="bullet-star">★</span> Personal health assessment before each wellness package.</li>
+                    <li><span class="bullet-star">★</span> Tailored massage pressure and custom organic oil blends.</li>
+                  </ul>
+                </div>
+              </div>
+
+            </div>
+          </div>
+
+        </div>
+
+      </div>
+    </section>
+
+    <!-- ==========================================
+         PRICING PLANS SECTION
+         ========================================== -->
+    <section id="pricing" class="pricing-section section-pad">
+      <div class="container">
+        
+        <!-- Header Centered -->
+        <div class="pricing-header-center">
+          <span class="eyebrow-badge-pill"><span class="badge-dot"></span> Our Pricing Plans</span>
+          <h2 class="section-heading">Choose the perfect spa package</h2>
+          <p class="pricing-header-desc">Whether you're looking for a quick relaxation session or a complete our retreat, our flexible spa packages are designed to suit different preferences and lifestyles.</p>
+        </div>
+
+        <!-- Pricing Grid -->
+        <div class="pricing-grid">
+
+          <!-- Card 1: Basic Package -->
+          <div class="pricing-card animate-up" id="pc-basic">
+            <div class="pricing-card-top">
+              <div class="pricing-icon">
+                <!-- SVG spa items -->
+                <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M12 2a5 5 0 0 0-5 5v1a3 3 0 0 0 3 3h4a3 3 0 0 0 3-3V7a5 5 0 0 0-5-5z"/>
+                  <circle cx="12" cy="17" r="4"/>
+                </svg>
+              </div>
+              <h3 class="pricing-title">Basic Package</h3>
+              <p class="pricing-desc">Perfect for those looking for a quick and refreshing spa experience.</p>
+            </div>
+            <div class="pricing-price-row">
+              <span class="price-val">$199.00</span>
+              <span class="price-period">/Monthly</span>
+            </div>
+            <div class="pricing-divider"></div>
+            <div class="pricing-features-wrap">
+              <h4 class="features-title">What's included:</h4>
+              <ul class="features-list">
+                <li><span class="feature-star">★</span> Head &amp; Shoulder Therapy</li>
+                <li><span class="feature-star">★</span> 90-Minute Full Body Massage</li>
+                <li><span class="feature-star">★</span> Relax with soothing hot stone</li>
+              </ul>
+            </div>
+            <a href="#booking" class="btn btn-pill-dark pricing-btn">
+              <span>Get Started With Plan</span>
+              <span class="btn-arrow-circle"><i class="fa-solid fa-arrow-right"></i></span>
+            </a>
+          </div>
+
+          <!-- Card 2: Premium Package (Highlighted) -->
+          <div class="pricing-card pricing-featured animate-up" id="pc-premium">
+            <div class="pricing-card-top">
+              <div class="pricing-icon">
+                <!-- SVG massage outline -->
+                <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M12 6a3 3 0 1 0 0-6 3 3 0 0 0 0 6zM18 19V13a6 6 0 0 0-12 0v6M2 20h20"/>
+                </svg>
+              </div>
+              <h3 class="pricing-title">Premium Package</h3>
+              <p class="pricing-desc">Perfect for those looking for a quick and refreshing spa experience.</p>
+            </div>
+            <div class="pricing-price-row">
+              <span class="price-val">$299.00</span>
+              <span class="price-period">/Monthly</span>
+            </div>
+            <div class="pricing-divider"></div>
+            <div class="pricing-features-wrap">
+              <h4 class="features-title">What's included:</h4>
+              <ul class="features-list">
+                <li><span class="feature-star">★</span> Head &amp; Shoulder Therapy</li>
+                <li><span class="feature-star">★</span> 90-Minute Full Body Massage</li>
+                <li><span class="feature-star">★</span> Relax with soothing hot stone</li>
+              </ul>
+            </div>
+            <a href="#booking" class="btn btn-pill-dark pricing-btn">
+              <span>Get Started With Plan</span>
+              <span class="btn-arrow-circle"><i class="fa-solid fa-arrow-right"></i></span>
+            </a>
+          </div>
+
+          <!-- Card 3: Luxury Package -->
+          <div class="pricing-card animate-up" id="pc-luxury">
+            <div class="pricing-card-top">
+              <div class="pricing-icon">
+                <!-- SVG facial mask -->
+                <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+                </svg>
+              </div>
+              <h3 class="pricing-title">Luxury Package</h3>
+              <p class="pricing-desc">Perfect for those looking for a quick and refreshing spa experience.</p>
+            </div>
+            <div class="pricing-price-row">
+              <span class="price-val">$599.00</span>
+              <span class="price-period">/Monthly</span>
+            </div>
+            <div class="pricing-divider"></div>
+            <div class="pricing-features-wrap">
+              <h4 class="features-title">What's included:</h4>
+              <ul class="features-list">
+                <li><span class="feature-star">★</span> Head &amp; Shoulder Therapy</li>
+                <li><span class="feature-star">★</span> 90-Minute Full Body Massage</li>
+                <li><span class="feature-star">★</span> Relax with soothing hot stone</li>
+              </ul>
+            </div>
+            <a href="#booking" class="btn btn-pill-dark pricing-btn">
+              <span>Get Started With Plan</span>
+              <span class="btn-arrow-circle"><i class="fa-solid fa-arrow-right"></i></span>
+            </a>
+          </div>
+
+        </div>
+      </div>
+    </section>
+
+    <!-- ==========================================
+         OUR TESTIMONIALS SECTION
+         ========================================== -->
+    <section id="testimonials" class="testimonials-section section-pad">
+      <div class="container">
+        
+        <!-- Header Split -->
+        <div class="services-header-split">
+          <div class="services-header-left">
+            <span class="eyebrow-badge-pill"><span class="badge-dot"></span> Our Testimonials</span>
+            <h2 class="section-heading">What our clients say about their spa experience</h2>
+          </div>
+          <div class="services-header-right">
+            <p class="services-header-desc">Discover how our relaxing treatments and professional care have helped clients feel refreshed, rejuvenated, and balanced.</p>
+            <div class="carousel-nav-controls" id="testi-carousel-nav">
+              <button class="carousel-arrow prev" id="testi-prev" aria-label="Previous testimonials">
+                <i class="fa-solid fa-arrow-left"></i>
+              </button>
+              <button class="carousel-arrow next" id="testi-next" aria-label="Next testimonials">
+                <i class="fa-solid fa-arrow-right"></i>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Carousel Viewport Wrapper -->
+        <div class="testi-carousel-viewport" id="testi-carousel">
+          <div class="testi-carousel-track" id="testi-track">
+            
+            <!-- Card 1 -->
+            <div class="testi-card animate-up">
+              <div class="testi-profile">
+                <div class="testi-avatar">
+                  <img src="https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=800&q=80&auto=format&fit=crop" alt="Brooklyn Simmons" loading="lazy">
+                </div>
+                <div class="testi-meta">
+                  <h4 class="testi-name">Brooklyn Simmons</h4>
+                  <span class="testi-role">Wellness Client</span>
+                </div>
+              </div>
+              <div class="testi-stars">
+                <i class="fa-solid fa-star"></i>
+                <i class="fa-solid fa-star"></i>
+                <i class="fa-solid fa-star"></i>
+                <i class="fa-solid fa-star"></i>
+                <i class="fa-solid fa-star"></i>
+              </div>
+              <p class="testi-text">"I had an amazing experience at this spa. The atmosphere was calm and relaxing, &amp; the aromatherapy massage helped release all my stress."</p>
+            </div>
+
+            <!-- Card 2 -->
+            <div class="testi-card animate-up">
+              <div class="testi-profile">
+                <div class="testi-avatar">
+                  <img src="https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=800&q=80&auto=format&fit=crop" alt="Olivia Thompson" loading="lazy">
+                </div>
+                <div class="testi-meta">
+                  <h4 class="testi-name">Olivia Thompson</h4>
+                  <span class="testi-role">Regular Client</span>
+                </div>
+              </div>
+              <div class="testi-stars">
+                <i class="fa-solid fa-star"></i>
+                <i class="fa-solid fa-star"></i>
+                <i class="fa-solid fa-star"></i>
+                <i class="fa-solid fa-star"></i>
+                <i class="fa-solid fa-star"></i>
+              </div>
+              <p class="testi-text">"The therapists extremely professional &amp; attentive. My facial treatment made my skin feel smooth and glowing. I highly recommend this spa to anyone."</p>
+            </div>
+
+            <!-- Card 3 -->
+            <div class="testi-card animate-up">
+              <div class="testi-profile">
+                <div class="testi-avatar">
+                  <img src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=800&q=80&auto=format&fit=crop" alt="Sophia Martinez" loading="lazy">
+                </div>
+                <div class="testi-meta">
+                  <h4 class="testi-name">Sophia Martinez</h4>
+                  <span class="testi-role">Spa Guest</span>
+                </div>
+              </div>
+              <div class="testi-stars">
+                <i class="fa-solid fa-star"></i>
+                <i class="fa-solid fa-star"></i>
+                <i class="fa-solid fa-star"></i>
+                <i class="fa-solid fa-star"></i>
+                <i class="fa-solid fa-star"></i>
+              </div>
+              <p class="testi-text">"The hot stone therapy was one of the most relaxing experiences I've ever had. The staff made sure I was comfortable throughout the session."</p>
+            </div>
+
+            <!-- Card 4 -->
+            <div class="testi-card animate-up">
+              <div class="testi-profile">
+                <div class="testi-avatar">
+                  <img src="https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=800&q=80&auto=format&fit=crop" alt="Liam Henderson" loading="lazy">
+                </div>
+                <div class="testi-meta">
+                  <h4 class="testi-name">Liam Henderson</h4>
+                  <span class="testi-role">Wellness Client</span>
+                </div>
+              </div>
+              <div class="testi-stars">
+                <i class="fa-solid fa-star"></i>
+                <i class="fa-solid fa-star"></i>
+                <i class="fa-solid fa-star"></i>
+                <i class="fa-solid fa-star"></i>
+                <i class="fa-solid fa-star"></i>
+              </div>
+              <p class="testi-text">"The massage therapy here is top-notch. I've been to many spas around the world, but the level of care and peaceful vibe here is unmatched."</p>
+            </div>
+
+            <!-- Card 5 -->
+            <div class="testi-card animate-up">
+              <div class="testi-profile">
+                <div class="testi-avatar">
+                  <img src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=800&q=80&auto=format&fit=crop" alt="Ava Bennett" loading="lazy">
+                </div>
+                <div class="testi-meta">
+                  <h4 class="testi-name">Ava Bennett</h4>
+                  <span class="testi-role">Regular Client</span>
+                </div>
+              </div>
+              <div class="testi-stars">
+                <i class="fa-solid fa-star"></i>
+                <i class="fa-solid fa-star"></i>
+                <i class="fa-solid fa-star"></i>
+                <i class="fa-solid fa-star"></i>
+                <i class="fa-solid fa-star"></i>
+              </div>
+              <p class="testi-text">"Absolutely loved the facial and deep tissue session! It's my weekly sanctuary. The staff are so welcoming and the treatments are incredible."</p>
+            </div>
+
+            <!-- Card 6 -->
+            <div class="testi-card animate-up">
+              <div class="testi-profile">
+                <div class="testi-avatar">
+                  <img src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=800&q=80&auto=format&fit=crop" alt="Ethan Cooper" loading="lazy">
+                </div>
+                <div class="testi-meta">
+                  <h4 class="testi-name">Ethan Cooper</h4>
+                  <span class="testi-role">Spa Guest</span>
+                </div>
+              </div>
+              <div class="testi-stars">
+                <i class="fa-solid fa-star"></i>
+                <i class="fa-solid fa-star"></i>
+                <i class="fa-solid fa-star"></i>
+                <i class="fa-solid fa-star"></i>
+                <i class="fa-solid fa-star"></i>
+              </div>
+              <p class="testi-text">"A truly magical escape. The hot stone treatment is an absolute must-try. I left feeling completely stress-free and refreshed."</p>
+            </div>
+
+          </div>
+        </div>
+
+        <!-- Dots Container -->
+        <div class="testi-dots-container" id="testi-dots"></div>
+
+      </div>
+    </section>
+
+    <!-- ==========================================
+         FAQ ACCORDION SECTION
+         ========================================== -->
+    <section id="faq" class="faq-section section-pad">
+      <div class="container">
+        <div class="faq-grid">
+          
+          <!-- Left Column -->
+          <div class="faq-left-col">
+            <span class="eyebrow-badge-pill"><span class="badge-dot"></span> Frequently Asked Questions</span>
+            <h2 class="section-heading">Everything you should know about our treatments</h2>
+            
+            <!-- Contact Card at Bottom Left -->
+            <div class="faq-contact-card animate-up" id="faq-contact">
+              <div class="faq-card-header">
+                Contact Information
+              </div>
+              <div class="faq-card-body">
+                <div class="faq-phone-icon-wrap">
+                  <i class="fa-solid fa-phone"></i>
+                </div>
+                <div class="faq-phone-details">
+                  <span class="phone-label">Phone Number</span>
+                  <span class="phone-number">+(123) 456-789</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Right Column (Accordion List) -->
+          <div class="faq-right-col">
+            
+            <!-- Item 1 (Active by default) -->
+            <div class="faq-item open" id="faq-item-1">
+              <button class="faq-item-header" onclick="toggleFaq('faq-item-1')">
+                <span class="faq-item-title">1. What should I expect during my first spa visit?</span>
+                <span class="faq-toggle-icon"><i class="fa-solid fa-minus"></i></span>
+              </button>
+              <div class="faq-item-body">
+                <p class="faq-item-text">During your first visit, our team will welcome you and guide you through the spa facilities. A therapist will briefly discuss your needs and recommend treatments that suit your preferences.</p>
+              </div>
+            </div>
+
+            <!-- Item 2 -->
+            <div class="faq-item" id="faq-item-2">
+              <button class="faq-item-header" onclick="toggleFaq('faq-item-2')">
+                <span class="faq-item-title">2. Do I need to book an appointment in advance?</span>
+                <span class="faq-toggle-icon"><i class="fa-solid fa-plus"></i></span>
+              </button>
+              <div class="faq-item-body">
+                <p class="faq-item-text">Yes, we highly recommend booking in advance to ensure your preferred time slot and therapist are available. Walk-ins are subject to availability.</p>
+              </div>
+            </div>
+
+            <!-- Item 3 -->
+            <div class="faq-item" id="faq-item-3">
+              <button class="faq-item-header" onclick="toggleFaq('faq-item-3')">
+                <span class="faq-item-title">3. What should I wear during a spa treatment?</span>
+                <span class="faq-toggle-icon"><i class="fa-solid fa-plus"></i></span>
+              </button>
+              <div class="faq-item-body">
+                <p class="faq-item-text">We provide robes and slippers for your comfort. During treatments, you may undress to your comfort level; our therapists are trained in professional draping to respect your privacy.</p>
+              </div>
+            </div>
+
+            <!-- Item 4 -->
+            <div class="faq-item" id="faq-item-4">
+              <button class="faq-item-header" onclick="toggleFaq('faq-item-4')">
+                <span class="faq-item-title">4. How early should I arrive for my appointment?</span>
+                <span class="faq-toggle-icon"><i class="fa-solid fa-plus"></i></span>
+              </button>
+              <div class="faq-item-body">
+                <p class="faq-item-text">Please arrive 15 minutes before your scheduled appointment time. This allows you to complete any wellness intake forms, change comfortably, and start your session on time.</p>
+              </div>
+            </div>
+
+            <!-- Item 5 -->
+            <div class="faq-item" id="faq-item-5">
+              <button class="faq-item-header" onclick="toggleFaq('faq-item-5')">
+                <span class="faq-item-title">5. Are your spa products natural and safe for the skin?</span>
+                <span class="faq-toggle-icon"><i class="fa-solid fa-plus"></i></span>
+              </button>
+              <div class="faq-item-body">
+                <p class="faq-item-text">Absolutely. We use premium, organic, skin-safe wellness products formulated with botanical extracts to nourish, protect, and heal your skin naturally.</p>
+              </div>
+            </div>
+
+          </div>
+
+        </div>
+      </div>
+    </section>
+
+    <!-- ==========================================
+         CTA / BOOKING SECTION
+         ========================================== -->
+    <section id="contact" class="booking-section section-pad">
+      <div class="container">
+        <div class="booking-grid">
+          
+          <!-- Left Column -->
+          <div class="booking-left-col">
+            <span class="eyebrow-badge-pill"><span class="badge-dot"></span> Book An Appointment</span>
+            <h2 class="section-heading">Relax refresh rejuvenate with our spa treatments</h2>
+            <p class="booking-desc">Our professional therapists provide personalized treatments that help you relax, relieve stress, and restore balance to your mind and body.</p>
+            
+            <!-- Large Image Container with overlays -->
+            <div class="booking-image-wrap animate-up" id="booking-image">
+              <img src="treatment2.png" alt="Rejuvenating treatment session" loading="lazy">
+              
+              <!-- Floating info rows at the bottom -->
+              <div class="booking-floating-info">
+                <div class="floating-info-pill">
+                  <div class="pill-icon-circle"><i class="fa-solid fa-phone"></i></div>
+                  <div class="pill-text-details">
+                    <span class="pill-label">Contact Us!</span>
+                    <span class="pill-val">+(123) 456-789</span>
+                  </div>
+                </div>
+                <div class="floating-info-pill">
+                  <div class="pill-icon-circle"><i class="fa-solid fa-envelope"></i></div>
+                  <div class="pill-text-details">
+                    <span class="pill-label">Email Address</span>
+                    <span class="pill-val">info@domainname.com</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Right Column (Booking Form Card) -->
+          <div class="booking-right-col">
+            <div class="booking-form-card" id="booking-card">
+              <h3 class="form-card-title">Get In Touch</h3>
+              
+              <form class="booking-form" onsubmit="event.preventDefault(); alert('Booking request submitted! We will contact you soon.');">
+                
+                <div class="form-grid-2">
+                  <div class="form-group">
+                    <label for="bk-name" class="form-label">Full Name*</label>
+                    <input type="text" id="bk-name" class="form-input" placeholder="Enter Full Name" required>
+                  </div>
+                  <div class="form-group">
+                    <label for="bk-phone" class="form-label">Phone Number*</label>
+                    <input type="tel" id="bk-phone" class="form-input" placeholder="Enter Phone Number" required>
+                  </div>
+                </div>
+
+                <div class="form-grid-2">
+                  <div class="form-group">
+                    <label for="bk-email" class="form-label">Email Address*</label>
+                    <input type="email" id="bk-email" class="form-input" placeholder="Enter Email Address" required>
+                  </div>
+                  <div class="form-group">
+                    <label for="cta-bk-date" class="form-label">Select Date*</label>
+                    <input type="date" id="cta-bk-date" class="form-input" required>
+                  </div>
+                </div>
+
+                <div class="form-group">
+                  <label for="bk-msg" class="form-label">Message</label>
+                  <textarea id="bk-msg" class="form-textarea" placeholder="Any Additional Message" rows="5"></textarea>
+                </div>
+
+                <button type="submit" class="btn btn-pill-dark form-submit-btn">
+                  <span>Submit Message</span>
+                </button>
+
+              </form>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- ==========================================
+       FOOTER SECTION (Dark olive green)
+       ========================================== -->
+  <footer class="footer-section">
+    <div class="container">
+      
+      <!-- Top row: Heading -->
+      <div class="footer-top-row">
+        <h2 class="footer-top-heading">Your journey to relaxation balance and well being begins here</h2>
+      </div>
+
+      <div class="footer-divider-line"></div>
+
+      <!-- Columns Grid -->
+      <div class="footer-cols-grid">
+        
+        <!-- Col 1: Brand Info -->
+        <div class="footer-col brand-col">
+          <a href="#" class="footer-logo">
+            <div class="logo-icon">
+              <svg width="34" height="34" viewBox="0 0 40 40" fill="none">
+                <circle cx="20" cy="20" r="18" fill="white" fill-opacity="0.15" stroke="rgba(255,255,255,0.25)" stroke-width="1.2"/>
+                <path d="M20 9C13.8 9 9 13.8 9 20C9 23.8 11 27.2 14 29.2C14.6 29.6 15.4 29.2 15.4 28.5V25.2C15.4 24.5 14.9 23.9 14.2 23.7C10.8 23 9.2 20.2 9.2 17.5C9.2 12.8 13.3 9.1 18.7 9.1C24.1 9.1 28.2 12.8 28.2 17.5C28.2 21.1 25.1 24.2 21.4 24.9V28.5C21.4 29.2 22.2 29.6 22.8 29.2C25.8 27.2 27.8 23.8 27.8 20C27.8 13.8 23 9 20 9Z" fill="white"/>
+                <circle cx="20" cy="20" r="3" fill="var(--gold)"/>
+              </svg>
+            </div>
+            <span class="logo-text">Serenity</span>
+          </a>
+          <p class="brand-desc">Our spa and our center is dedicated to providing relaxing therapies that rejuvenate the body and calm the mind.</p>
+          <div class="footer-social-links">
+            <a href="#" aria-label="Facebook"><i class="fa-brands fa-facebook-f"></i></a>
+            <a href="#" aria-label="Dribbble"><i class="fa-brands fa-dribbble"></i></a>
+            <a href="#" aria-label="Instagram"><i class="fa-brands fa-instagram"></i></a>
+            <a href="#" aria-label="LinkedIn"><i class="fa-brands fa-linkedin-in"></i></a>
+          </div>
+        </div>
+
+        <!-- Col 2: Quick Links -->
+        <div class="footer-col">
+          <h4 class="footer-col-title">Quick Links</h4>
+          <ul class="footer-links-list">
+            <li><a href="#hero"><span class="link-star">★</span> Home</a></li>
+            <li><a href="#about"><span class="link-star">★</span> About</a></li>
+            <li><a href="#treatments"><span class="link-star">★</span> Treatments</a></li>
+            <li><a href="#programs"><span class="link-star">★</span> Wellness Programs</a></li>
+            <li><a href="#gallery"><span class="link-star">★</span> Gallery</a></li>
+            <li><a href="#pricing"><span class="link-star">★</span> Pricing</a></li>
+            <li><a href="#contact"><span class="link-star">★</span> Contact</a></li>
+          </ul>
+        </div>
+
+        <!-- Col 3: Services -->
+        <div class="footer-col">
+          <h4 class="footer-col-title">Our Services</h4>
+          <ul class="footer-links-list">
+            <li><a href="#treatments"><span class="link-star">★</span> Deep Tissue Massage</a></li>
+            <li><a href="#treatments"><span class="link-star">★</span> Hot Stone Therapy</a></li>
+            <li><a href="#treatments"><span class="link-star">★</span> Facial Skin Treatment</a></li>
+            <li><a href="#treatments"><span class="link-star">★</span> Body Scrub &amp; Detox</a></li>
+            <li><a href="#treatments"><span class="link-star">★</span> Aromatherapy Massage</a></li>
+          </ul>
+        </div>
+
+        <!-- Col 4: Contact Information -->
+        <div class="footer-col contact-col">
+          <h4 class="footer-col-title">Contact Information</h4>
+          
+          <div class="contact-info-block">
+            <span class="info-label">Our Address</span>
+            <span class="info-val">4517 Washington Ave. Manchester, Kentucky 39495</span>
+          </div>
+
+          <div class="contact-info-block">
+            <span class="info-label">Phone Number</span>
+            <span class="info-val">+(123) 456-789</span>
+          </div>
+        </div>
+
+      </div>
+
+      <div class="footer-divider-line"></div>
+
+      <!-- Bottom row -->
+      <div class="footer-bottom-bar">
+        <p class="copyright-text">Copyright &copy; 2026 Serenity. All Rights Reserved.</p>
+      </div>
+
+    </div>
+  </footer>
+
+</body>
+</html>

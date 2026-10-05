@@ -1,0 +1,15 @@
+{
+  "name": "financial-services-landing",
+  "private": true,
+  "version": "1.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite --host",
+    "build": "vite build",
+    "preview": "vite preview",
+    "copy-image": "node copy-image.js"
+  },
+  "devDependencies": {
+    "vite": "^5.2.0"
+  }
+}

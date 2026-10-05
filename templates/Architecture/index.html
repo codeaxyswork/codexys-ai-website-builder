@@ -1,0 +1,986 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>FORMA Studio — Premium Architecture & Design</title>
+  <meta name="description" content="FORMA Studio is a world-class architecture and design firm creating iconic spaces that inspire generations. Specializing in luxury residential, commercial, hospitality, and mixed-use developments." />
+  <meta name="keywords" content="architecture firm, luxury design, residential architecture, commercial architecture, interior design, urban planning" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;0,700;1,300;1,400&family=Inter:wght@300;400;500;600;700&family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+  <!-- ===== HEADER / NAV ===== -->
+  <header class="header" id="header">
+    <div class="header__inner">
+      <a href="#home" class="header__logo" id="logo-link">
+        <span class="logo__mark">F</span>
+        <span class="logo__text">FORMA <span class="logo__sub">STUDIO</span></span>
+      </a>
+
+      <nav class="header__nav" id="main-nav" aria-label="Main Navigation">
+        <ul class="nav__list">
+          <li><a href="#about" class="nav__link" id="nav-about">About</a></li>
+          <li><a href="#services" class="nav__link" id="nav-services">Services</a></li>
+          <li><a href="#projects" class="nav__link" id="nav-projects">Projects</a></li>
+          <li><a href="#process" class="nav__link" id="nav-process">Process</a></li>
+          <li><a href="#team" class="nav__link" id="nav-team">Team</a></li>
+          <li><a href="#gallery" class="nav__link" id="nav-gallery">Gallery</a></li>
+          <li><a href="#contact" class="nav__link" id="nav-contact">Contact</a></li>
+        </ul>
+      </nav>
+
+      <a href="#contact" class="btn btn--gold header__cta" id="header-cta">Start a Project</a>
+
+      <button class="hamburger" id="hamburger-btn" aria-label="Toggle Menu" aria-expanded="false">
+        <span></span><span></span><span></span>
+      </button>
+    </div>
+
+    <div class="mobile-menu" id="mobile-menu">
+      <ul class="mobile-menu__list">
+        <li><a href="#about" class="mobile-menu__link">About</a></li>
+        <li><a href="#services" class="mobile-menu__link">Services</a></li>
+        <li><a href="#projects" class="mobile-menu__link">Projects</a></li>
+        <li><a href="#process" class="mobile-menu__link">Process</a></li>
+        <li><a href="#team" class="mobile-menu__link">Team</a></li>
+        <li><a href="#gallery" class="mobile-menu__link">Gallery</a></li>
+        <li><a href="#contact" class="mobile-menu__link">Contact</a></li>
+        <li><a href="#contact" class="btn btn--primary">Start a Project</a></li>
+      </ul>
+    </div>
+  </header>
+
+  <!-- ===== HERO SECTION ===== -->
+  <section class="hero" id="home" aria-label="Hero">
+    <div class="hero__slider" id="hero-slider">
+
+      <div class="hero__slide hero__slide--active" data-index="0">
+        <div class="hero__slide-bg" style="background-image: url('images/hero_slide1.png');"></div>
+        <div class="hero__overlay"></div>
+        <div class="container">
+          <div class="hero__content">
+            <div class="hero__eyebrow reveal-up">Excellence in Architecture</div>
+            <h1 class="hero__title reveal-up delay-1">Designing Spaces That<br/><em>Inspire Generations</em></h1>
+            <p class="hero__desc reveal-up delay-2">Transforming ideas into iconic architectural landmarks through innovative design, thoughtful planning, and exceptional craftsmanship. We create timeless spaces that blend beauty, functionality, and sustainability.</p>
+            <div class="hero__actions reveal-up delay-3">
+              <a href="#projects" class="btn btn--gold" id="hero-view-work">View Our Work</a>
+              <a href="#about" class="btn btn--outline-light" id="hero-learn-more">Learn More</a>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="hero__slide" data-index="1">
+        <div class="hero__slide-bg" style="background-image: url('images/hero_slide2.png');"></div>
+        <div class="hero__overlay"></div>
+        <div class="container">
+          <div class="hero__content">
+            <div class="hero__eyebrow reveal-up">Luxury Residential Design</div>
+            <h1 class="hero__title reveal-up delay-1">Architecture<br/><em>Beyond Buildings</em></h1>
+            <p class="hero__desc reveal-up delay-2">Every project is a unique story. From luxury residences and commercial developments to hospitality and mixed-use projects, we design environments that enrich experiences and elevate everyday living.</p>
+            <div class="hero__actions reveal-up delay-3">
+              <a href="#projects" class="btn btn--gold">Explore Projects</a>
+              <a href="#services" class="btn btn--outline-light">Our Services</a>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="hero__slide" data-index="2">
+        <div class="hero__slide-bg" style="background-image: url('images/hero_slide3.png');"></div>
+        <div class="hero__overlay"></div>
+        <div class="container">
+          <div class="hero__content">
+            <div class="hero__eyebrow reveal-up">Innovation & Technology</div>
+            <h1 class="hero__title reveal-up delay-1">Where Vision<br/><em>Meets Innovation</em></h1>
+            <p class="hero__desc reveal-up delay-2">Combining creativity, technical expertise, and modern architectural principles to deliver spaces that stand out today and remain relevant for generations to come.</p>
+            <div class="hero__actions reveal-up delay-3">
+              <a href="#contact" class="btn btn--gold">Start Your Project</a>
+              <a href="#process" class="btn btn--outline-light">Our Process</a>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Slider Controls -->
+    <button class="hero__arrow hero__arrow--prev" id="hero-prev" aria-label="Previous Slide">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><polyline points="15 18 9 12 15 6"/></svg>
+    </button>
+    <button class="hero__arrow hero__arrow--next" id="hero-next" aria-label="Next Slide">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><polyline points="9 18 15 12 9 6"/></svg>
+    </button>
+
+    <!-- Pagination Dots -->
+    <div class="hero__dots" id="hero-dots" role="tablist">
+      <button class="hero__dot hero__dot--active" data-slide="0" aria-label="Slide 1" role="tab" aria-selected="true"></button>
+      <button class="hero__dot" data-slide="1" aria-label="Slide 2" role="tab" aria-selected="false"></button>
+      <button class="hero__dot" data-slide="2" aria-label="Slide 3" role="tab" aria-selected="false"></button>
+    </div>
+
+    <!-- Scroll Indicator -->
+    <div class="hero__scroll-indicator" id="hero-scroll">
+      <div class="scroll-line"></div>
+      <span>Scroll</span>
+    </div>
+  </section>
+
+  <!-- ===== ABOUT SECTION ===== -->
+  <section class="about section" id="about" aria-label="About Us">
+    <div class="container">
+      <div class="about__grid">
+        <div class="about__image-wrap reveal-left">
+          <img src="images/about.png" alt="FORMA Studio team collaborating on architectural projects" class="about__image" loading="lazy" />
+          <div class="about__badge">
+            <span class="badge__number">18</span>
+            <span class="badge__text">Years of<br/>Excellence</span>
+          </div>
+        </div>
+
+        <div class="about__content reveal-right">
+          <div class="section-eyebrow">Who We Are</div>
+          <h2 class="section-title">Creating Architecture<br/>That <em>Shapes The Future</em></h2>
+          <p class="about__lead">We are a passionate architecture and design firm dedicated to crafting exceptional spaces that inspire, connect, and endure.</p>
+          <p class="about__body">Our approach combines creativity, technical precision, and deep industry knowledge to deliver projects that exceed expectations. Every design is carefully developed to reflect the client's vision while ensuring functionality, sustainability, and long-term value.</p>
+          <p class="about__body">From luxury homes and commercial buildings to large-scale developments, we create architecture that leaves a lasting impression and enhances the way people live, work, and interact.</p>
+
+          <div class="about__pillars">
+            <div class="pillar">
+              <div class="pillar__icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
+              </div>
+              <div>
+                <div class="pillar__title">Innovative Design</div>
+                <div class="pillar__desc">Pushing boundaries with every project</div>
+              </div>
+            </div>
+            <div class="pillar">
+              <div class="pillar__icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+              </div>
+              <div>
+                <div class="pillar__title">Timely Delivery</div>
+                <div class="pillar__desc">On-time, on-budget, every time</div>
+              </div>
+            </div>
+            <div class="pillar">
+              <div class="pillar__icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+              </div>
+              <div>
+                <div class="pillar__title">Sustainable Approach</div>
+                <div class="pillar__desc">Responsible design for the future</div>
+              </div>
+            </div>
+          </div>
+
+          <a href="#contact" class="btn btn--dark" id="about-cta">Work With Us</a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== SERVICES SECTION ===== -->
+  <section class="services section section--gray" id="services" aria-label="Services">
+    <div class="container">
+      <div class="section-header reveal-up">
+        <div class="section-eyebrow">What We Offer</div>
+        <h2 class="section-title">Comprehensive<br/><em>Architectural Solutions</em></h2>
+        <p class="section-subtitle">From concept to completion, we provide end-to-end architectural services tailored to meet the unique needs of every project.</p>
+      </div>
+
+      <div class="services__grid">
+
+        <div class="service-card reveal-up" id="service-architectural-design">
+          <div class="service-card__icon-wrap">
+            <svg class="service-card__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 21V9"/></svg>
+          </div>
+          <h3 class="service-card__title">Architectural Design</h3>
+          <p class="service-card__desc">Innovative and functional architectural designs tailored to meet the unique requirements of residential, commercial, and institutional projects.</p>
+          <div class="service-card__number">01</div>
+        </div>
+
+        <div class="service-card reveal-up delay-1" id="service-interior-design">
+          <div class="service-card__icon-wrap">
+            <svg class="service-card__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M21 16V8a2 2 0 00-1-1.73l-7-4a2 2 0 00-2 0l-7 4A2 2 0 003 8v8a2 2 0 001 1.73l7 4a2 2 0 002 0l7-4A2 2 0 0021 16z"/></svg>
+          </div>
+          <h3 class="service-card__title">Interior Design</h3>
+          <p class="service-card__desc">Thoughtfully designed interiors that balance aesthetics, comfort, and practicality to create inspiring living and working environments.</p>
+          <div class="service-card__number">02</div>
+        </div>
+
+        <div class="service-card reveal-up delay-2" id="service-urban-planning">
+          <div class="service-card__icon-wrap">
+            <svg class="service-card__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 014 10 15.3 15.3 0 01-4 10 15.3 15.3 0 01-4-10 15.3 15.3 0 014-10z"/></svg>
+          </div>
+          <h3 class="service-card__title">Urban Planning</h3>
+          <p class="service-card__desc">Strategic planning solutions that support sustainable development and create thriving, well-connected communities.</p>
+          <div class="service-card__number">03</div>
+        </div>
+
+        <div class="service-card reveal-up" id="service-landscape">
+          <div class="service-card__icon-wrap">
+            <svg class="service-card__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M17 8C8 10 5.9 16.17 3.82 19.69L6 21l1-1 1 1 1-1 1 1 1-1 1 1 1-1 1 1 1-1 1 1"/><path d="M12 12c0-4-4.5-8-9.5-8"/><path d="M12 12c0-4 4.5-8 9.5-8"/></svg>
+          </div>
+          <h3 class="service-card__title">Landscape Architecture</h3>
+          <p class="service-card__desc">Beautiful outdoor environments designed to complement architecture and enhance the overall user experience.</p>
+          <div class="service-card__number">04</div>
+        </div>
+
+        <div class="service-card reveal-up delay-1" id="service-commercial">
+          <div class="service-card__icon-wrap">
+            <svg class="service-card__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+          </div>
+          <h3 class="service-card__title">Commercial Architecture</h3>
+          <p class="service-card__desc">Contemporary commercial spaces that strengthen brand identity, improve efficiency, and support business growth.</p>
+          <div class="service-card__number">05</div>
+        </div>
+
+        <div class="service-card reveal-up delay-2" id="service-residential">
+          <div class="service-card__icon-wrap">
+            <svg class="service-card__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3 22V8L12 2l9 6v14H3z"/><rect x="9" y="15" width="6" height="7"/></svg>
+          </div>
+          <h3 class="service-card__title">Residential Architecture</h3>
+          <p class="service-card__desc">Custom-designed homes that combine elegance, comfort, and functionality to reflect modern lifestyles and individual visions.</p>
+          <div class="service-card__number">06</div>
+        </div>
+
+        <div class="service-card reveal-up" id="service-renovation">
+          <div class="service-card__icon-wrap">
+            <svg class="service-card__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M14.7 6.3a1 1 0 000 1.4l1.6 1.6a1 1 0 001.4 0l3.77-3.77a6 6 0 01-7.94 7.94l-6.91 6.91a2.12 2.12 0 01-3-3l6.91-6.91a6 6 0 017.94-7.94l-3.76 3.76z"/></svg>
+          </div>
+          <h3 class="service-card__title">Renovation & Restoration</h3>
+          <p class="service-card__desc">Transforming existing structures while preserving their character and improving performance for today's needs.</p>
+          <div class="service-card__number">07</div>
+        </div>
+
+        <div class="service-card reveal-up delay-1" id="service-construction">
+          <div class="service-card__icon-wrap">
+            <svg class="service-card__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+          </div>
+          <h3 class="service-card__title">Construction Supervision</h3>
+          <p class="service-card__desc">Ensuring quality execution and seamless project delivery through professional oversight and coordination.</p>
+          <div class="service-card__number">08</div>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== PROJECTS SECTION ===== -->
+  <section class="projects section" id="projects" aria-label="Featured Projects">
+    <div class="container">
+      <div class="section-header reveal-up">
+        <div class="section-eyebrow">Our Portfolio</div>
+        <h2 class="section-title">Showcasing Excellence<br/><em>Through Design</em></h2>
+        <p class="section-subtitle">Our portfolio reflects a diverse range of projects that demonstrate creativity, innovation, and technical expertise.</p>
+      </div>
+    </div>
+
+    <div class="projects__masonry">
+
+      <div class="project-card project-card--large reveal-up" id="project-villa">
+        <div class="project-card__img-wrap">
+          <img src="images/project_villa.png" alt="Luxury Residential Villa" class="project-card__img" loading="lazy" />
+        </div>
+        <div class="project-card__overlay">
+          <div class="project-card__category">Residential</div>
+          <h3 class="project-card__title">Luxury Residential Villa</h3>
+          <p class="project-card__desc">A contemporary residence designed to maximize natural light, comfort, and visual connection with its surroundings.</p>
+          <a href="#contact" class="project-card__link">View Project <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg></a>
+        </div>
+      </div>
+
+      <div class="project-card reveal-up delay-1" id="project-corporate">
+        <div class="project-card__img-wrap">
+          <img src="images/project_corporate.png" alt="Corporate Headquarters" class="project-card__img" loading="lazy" />
+        </div>
+        <div class="project-card__overlay">
+          <div class="project-card__category">Commercial</div>
+          <h3 class="project-card__title">Corporate Headquarters</h3>
+          <p class="project-card__desc">A modern workplace environment focused on collaboration, productivity, and employee well-being.</p>
+          <a href="#contact" class="project-card__link">View Project <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg></a>
+        </div>
+      </div>
+
+      <div class="project-card reveal-up delay-2" id="project-hotel">
+        <div class="project-card__img-wrap">
+          <img src="images/project_hotel.png" alt="Boutique Hotel & Resort" class="project-card__img" loading="lazy" />
+        </div>
+        <div class="project-card__overlay">
+          <div class="project-card__category">Hospitality</div>
+          <h3 class="project-card__title">Boutique Hotel & Resort</h3>
+          <p class="project-card__desc">A sophisticated hospitality destination blending luxury, comfort, and architectural elegance.</p>
+          <a href="#contact" class="project-card__link">View Project <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg></a>
+        </div>
+      </div>
+
+      <div class="project-card project-card--large reveal-up" id="project-mixed">
+        <div class="project-card__img-wrap">
+          <img src="images/project_mixed.png" alt="Mixed Use Development" class="project-card__img" loading="lazy" />
+        </div>
+        <div class="project-card__overlay">
+          <div class="project-card__category">Mixed Use</div>
+          <h3 class="project-card__title">Mixed-Use Development</h3>
+          <p class="project-card__desc">An integrated development combining residential, commercial, and recreational spaces within a vibrant community.</p>
+          <a href="#contact" class="project-card__link">View Project <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg></a>
+        </div>
+      </div>
+
+      <div class="project-card reveal-up delay-1" id="project-apartments">
+        <div class="project-card__img-wrap">
+          <img src="images/project_apartments.png" alt="Modern Apartment Community" class="project-card__img" loading="lazy" />
+        </div>
+        <div class="project-card__overlay">
+          <div class="project-card__category">Residential</div>
+          <h3 class="project-card__title">Modern Apartment Community</h3>
+          <p class="project-card__desc">A thoughtfully planned residential development offering contemporary living spaces and premium amenities.</p>
+          <a href="#contact" class="project-card__link">View Project <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg></a>
+        </div>
+      </div>
+
+    </div>
+
+    <div class="projects__cta reveal-up">
+      <a href="#contact" class="btn btn--dark btn--lg" id="projects-cta">Start Your Project</a>
+    </div>
+  </section>
+
+  <!-- ===== PROCESS SECTION ===== -->
+  <section class="process section section--dark" id="process" aria-label="Design Process">
+    <div class="container">
+      <div class="section-header reveal-up">
+        <div class="section-eyebrow section-eyebrow--gold">How We Work</div>
+        <h2 class="section-title section-title--light">A Proven Process For<br/><em>Exceptional Results</em></h2>
+        <p class="section-subtitle">We guide your project through six structured phases, combining creative vision with technical precision.</p>
+      </div>
+
+      <div class="process__grid">
+
+        <div class="process__card reveal-up" id="process-step-1">
+          <div class="process__number">01</div>
+          <div class="process__phase">Phase 01</div>
+          <h3 class="process__title">Discovery &amp; Consultation</h3>
+          <p class="process__desc">Understanding project goals, requirements, vision, and expectations through detailed discussions and research.</p>
+        </div>
+
+        <div class="process__card reveal-up delay-1" id="process-step-2">
+          <div class="process__number">02</div>
+          <div class="process__phase">Phase 02</div>
+          <h3 class="process__title">Concept Development</h3>
+          <p class="process__desc">Transforming ideas into creative design concepts that establish the project's identity and direction.</p>
+        </div>
+
+        <div class="process__card reveal-up delay-2" id="process-step-3">
+          <div class="process__number">03</div>
+          <div class="process__phase">Phase 03</div>
+          <h3 class="process__title">Design Planning</h3>
+          <p class="process__desc">Developing detailed layouts, architectural drawings, and design solutions that align with project objectives.</p>
+        </div>
+
+        <div class="process__card reveal-up" id="process-step-4">
+          <div class="process__number">04</div>
+          <div class="process__phase">Phase 04</div>
+          <h3 class="process__title">Technical Documentation</h3>
+          <p class="process__desc">Preparing comprehensive construction documents, specifications, and technical details for execution.</p>
+        </div>
+
+        <div class="process__card reveal-up delay-1" id="process-step-5">
+          <div class="process__number">05</div>
+          <div class="process__phase">Phase 05</div>
+          <h3 class="process__title">Construction Management</h3>
+          <p class="process__desc">Collaborating with contractors and stakeholders to ensure quality, accuracy, and smooth project progress.</p>
+        </div>
+
+        <div class="process__card reveal-up delay-2" id="process-step-6">
+          <div class="process__number">06</div>
+          <div class="process__phase">Phase 06</div>
+          <h3 class="process__title">Project Completion</h3>
+          <p class="process__desc">Delivering a finished project that exceeds expectations and creates lasting value for generations to come.</p>
+        </div>
+
+      </div>
+    </div>
+  </section>
+  <!-- ===== WHY CHOOSE US SECTION ===== -->
+  <section class="why-us section section--gray" id="why-us" aria-label="Why Choose Us">
+    <div class="container">
+      <div class="section-header reveal-up">
+        <div class="section-eyebrow">Why Us</div>
+        <h2 class="section-title">Excellence In<br/><em>Every Detail</em></h2>
+      </div>
+
+      <div class="why-us__grid">
+
+        <div class="why-card reveal-up" id="why-innovative">
+          <div class="why-card__icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+          </div>
+          <h3 class="why-card__title">Innovative Design Approach</h3>
+          <p class="why-card__desc">Creating unique architectural solutions tailored to each project's goals and vision.</p>
+        </div>
+
+        <div class="why-card reveal-up delay-1" id="why-experienced">
+          <div class="why-card__icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/></svg>
+          </div>
+          <h3 class="why-card__title">Experienced Professionals</h3>
+          <p class="why-card__desc">A skilled team of architects, designers, and project specialists with extensive industry expertise.</p>
+        </div>
+
+        <div class="why-card reveal-up delay-2" id="why-sustainable">
+          <div class="why-card__icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+          </div>
+          <h3 class="why-card__title">Sustainable Design Principles</h3>
+          <p class="why-card__desc">Integrating environmentally responsible strategies that support long-term sustainability.</p>
+        </div>
+
+        <div class="why-card reveal-up" id="why-end-to-end">
+          <div class="why-card__icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+          </div>
+          <h3 class="why-card__title">End-to-End Solutions</h3>
+          <p class="why-card__desc">Managing every stage of the project from initial concept through successful completion.</p>
+        </div>
+
+        <div class="why-card reveal-up delay-1" id="why-client">
+          <div class="why-card__icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>
+          </div>
+          <h3 class="why-card__title">Client-Focused Process</h3>
+          <p class="why-card__desc">Building strong partnerships through transparency, communication, and collaboration.</p>
+        </div>
+
+        <div class="why-card reveal-up delay-2" id="why-quality">
+          <div class="why-card__icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M22 11.08V12a10 10 0 11-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+          </div>
+          <h3 class="why-card__title">Commitment to Quality</h3>
+          <p class="why-card__desc">Delivering exceptional craftsmanship and attention to detail in every project.</p>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== TEAM SECTION ===== -->
+  <section class="team section" id="team" aria-label="Our Team">
+    <div class="container">
+      <div class="section-header reveal-up">
+        <div class="section-eyebrow">Our People</div>
+        <h2 class="section-title">Meet The Creative Minds<br/><em>Behind Every Project</em></h2>
+        <p class="section-subtitle">Our team of talented architects, designers, planners, and project managers share a passion for creating extraordinary spaces.</p>
+      </div>
+
+      <div class="team__grid">
+
+        <div class="team-card reveal-up" id="team-member-1">
+          <div class="team-card__img-wrap">
+            <img src="images/team1.png" alt="James Chen — Principal Architect" class="team-card__img" loading="lazy" />
+            <div class="team-card__social">
+              <a href="#" class="team-card__social-link" aria-label="LinkedIn">
+                <svg viewBox="0 0 24 24" fill="currentColor"><path d="M16 8a6 6 0 016 6v7h-4v-7a2 2 0 00-2-2 2 2 0 00-2 2v7h-4v-7a6 6 0 016-6zM2 9h4v12H2z"/><circle cx="4" cy="4" r="2"/></svg>
+              </a>
+            </div>
+          </div>
+          <div class="team-card__info">
+            <h3 class="team-card__name">James Chen</h3>
+            <div class="team-card__role">Principal Architect</div>
+            <p class="team-card__bio">15+ years of experience in luxury residential and commercial architecture with award-winning projects across 3 continents.</p>
+          </div>
+        </div>
+
+        <div class="team-card reveal-up delay-1" id="team-member-2">
+          <div class="team-card__img-wrap">
+            <img src="images/team2.png" alt="Sarah Mitchell — Design Director" class="team-card__img" loading="lazy" />
+            <div class="team-card__social">
+              <a href="#" class="team-card__social-link" aria-label="LinkedIn">
+                <svg viewBox="0 0 24 24" fill="currentColor"><path d="M16 8a6 6 0 016 6v7h-4v-7a2 2 0 00-2-2 2 2 0 00-2 2v7h-4v-7a6 6 0 016-6zM2 9h4v12H2z"/><circle cx="4" cy="4" r="2"/></svg>
+              </a>
+            </div>
+          </div>
+          <div class="team-card__info">
+            <h3 class="team-card__name">Sarah Mitchell</h3>
+            <div class="team-card__role">Design Director</div>
+            <p class="team-card__bio">Specializing in interior and sustainable design, Sarah brings a visionary creative approach to every project she leads.</p>
+          </div>
+        </div>
+
+        <div class="team-card reveal-up delay-2" id="team-member-3">
+          <div class="team-card__img-wrap">
+            <img src="images/team3.png" alt="Marcus Reid — Project Director" class="team-card__img" loading="lazy" />
+            <div class="team-card__social">
+              <a href="#" class="team-card__social-link" aria-label="LinkedIn">
+                <svg viewBox="0 0 24 24" fill="currentColor"><path d="M16 8a6 6 0 016 6v7h-4v-7a2 2 0 00-2-2 2 2 0 00-2 2v7h-4v-7a6 6 0 016-6zM2 9h4v12H2z"/><circle cx="4" cy="4" r="2"/></svg>
+              </a>
+            </div>
+          </div>
+          <div class="team-card__info">
+            <h3 class="team-card__name">Marcus Reid</h3>
+            <div class="team-card__role">Project Director</div>
+            <p class="team-card__bio">Expert in large-scale development delivery with a track record of successfully managing complex multi-million dollar projects.</p>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== GALLERY SECTION ===== -->
+  <section class="gallery section section--gray" id="gallery" aria-label="Gallery">
+    <div class="container">
+      <div class="section-header reveal-up">
+        <div class="section-eyebrow">Visual Stories</div>
+        <h2 class="section-title">Exploring Architecture<br/><em>Through Visual Storytelling</em></h2>
+      </div>
+    </div>
+
+    <div class="gallery__masonry">
+      <div class="gallery__item gallery__item--tall reveal-up" id="gallery-item-1">
+        <img src="images/hero_slide1.png" alt="Iconic Architectural Landmark" class="gallery__img" loading="lazy" />
+        <div class="gallery__overlay">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/></svg>
+        </div>
+      </div>
+      <div class="gallery__item reveal-up delay-1" id="gallery-item-2">
+        <img src="images/project_villa.png" alt="Luxury Residential Villa" class="gallery__img" loading="lazy" />
+        <div class="gallery__overlay">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/></svg>
+        </div>
+      </div>
+      <div class="gallery__item reveal-up delay-2" id="gallery-item-3">
+        <img src="images/gallery_interior.png" alt="Premium Interior Design" class="gallery__img" loading="lazy" />
+        <div class="gallery__overlay">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/></svg>
+        </div>
+      </div>
+      <div class="gallery__item gallery__item--wide reveal-up" id="gallery-item-4">
+        <img src="images/project_hotel.png" alt="Luxury Hotel Resort" class="gallery__img" loading="lazy" />
+        <div class="gallery__overlay">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/></svg>
+        </div>
+      </div>
+      <div class="gallery__item reveal-up delay-1" id="gallery-item-5">
+        <img src="images/hero_slide2.png" alt="Villa Architecture" class="gallery__img" loading="lazy" />
+        <div class="gallery__overlay">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/></svg>
+        </div>
+      </div>
+      <div class="gallery__item reveal-up delay-2" id="gallery-item-6">
+        <img src="images/hero_slide3.png" alt="Corporate Tower" class="gallery__img" loading="lazy" />
+        <div class="gallery__overlay">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/></svg>
+        </div>
+      </div>
+      <div class="gallery__item gallery__item--tall reveal-up" id="gallery-item-7">
+        <img src="images/project_corporate.png" alt="Corporate Architecture" class="gallery__img" loading="lazy" />
+        <div class="gallery__overlay">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/></svg>
+        </div>
+      </div>
+      <div class="gallery__item reveal-up delay-1" id="gallery-item-8">
+        <img src="images/project_mixed.png" alt="Mixed Use Development" class="gallery__img" loading="lazy" />
+        <div class="gallery__overlay">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/></svg>
+        </div>
+      </div>
+      <div class="gallery__item reveal-up delay-2" id="gallery-item-9">
+        <img src="images/project_apartments.png" alt="Modern Apartments" class="gallery__img" loading="lazy" />
+        <div class="gallery__overlay">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/></svg>
+        </div>
+      </div>
+    </div>
+
+    <!-- Lightbox -->
+    <div class="lightbox" id="lightbox" role="dialog" aria-modal="true" aria-label="Image Lightbox">
+      <button class="lightbox__close" id="lightbox-close" aria-label="Close Lightbox">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+      <img src="" alt="" class="lightbox__img" id="lightbox-img" />
+    </div>
+  </section>
+
+  <!-- ===== REVIEWS SECTION ===== -->
+  <section class="reviews section--dark" id="reviews" aria-label="Client Reviews">
+    <div class="reviews__inner">
+
+      <div class="reviews__sidebar reveal-left">
+        <div class="section-eyebrow section-eyebrow--gold">Testimonials</div>
+        <h2 class="section-title section-title--light">What Our<br/><em>Clients Say</em></h2>
+        <p class="reviews__sub">Hear directly from the clients who trusted us to shape their most important spaces.</p>
+        <div class="reviews__nav">
+          <button class="reviews__nav-btn" id="reviews-prev" aria-label="Previous review">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><polyline points="15 18 9 12 15 6"/></svg>
+          </button>
+          <span class="reviews__counter"><span id="reviews-current">01</span>&nbsp;/&nbsp;<span id="reviews-total">03</span></span>
+          <button class="reviews__nav-btn" id="reviews-next" aria-label="Next review">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><polyline points="9 18 15 12 9 6"/></svg>
+          </button>
+        </div>
+      </div>
+
+      <div class="reviews__stage reveal-right">
+        <div class="reviews__track" id="reviews-track">
+
+          <div class="review-slide review-slide--active" id="review-1">
+            <div class="review-slide__big-quote">&ldquo;</div>
+            <blockquote class="review-slide__text">Our experience was outstanding from concept to completion. The team understood our vision perfectly and delivered a home that exceeded our expectations in every possible way.</blockquote>
+            <div class="review-slide__author">
+              <div class="review-slide__avatar">JD</div>
+              <div class="review-slide__info">
+                <div class="review-slide__name">Jonathan &amp; Diana Hart</div>
+                <div class="review-slide__project">Luxury Residential Villa &mdash; Dubai</div>
+              </div>
+              <div class="review-slide__stars">&#9733;&#9733;&#9733;&#9733;&#9733;</div>
+            </div>
+          </div>
+
+          <div class="review-slide" id="review-2">
+            <div class="review-slide__big-quote">&ldquo;</div>
+            <blockquote class="review-slide__text">The professionalism, creativity, and attention to detail were exceptional. The final result has completely transformed the way we work and interact within our space.</blockquote>
+            <div class="review-slide__author">
+              <div class="review-slide__avatar">MC</div>
+              <div class="review-slide__info">
+                <div class="review-slide__name">Michael Carter</div>
+                <div class="review-slide__project">Corporate Headquarters &mdash; London</div>
+              </div>
+              <div class="review-slide__stars">&#9733;&#9733;&#9733;&#9733;&#9733;</div>
+            </div>
+          </div>
+
+          <div class="review-slide" id="review-3">
+            <div class="review-slide__big-quote">&ldquo;</div>
+            <blockquote class="review-slide__text">Their ability to combine functionality with beautiful design made our project a complete success. The team's dedication and expertise are truly second to none.</blockquote>
+            <div class="review-slide__author">
+              <div class="review-slide__avatar">AL</div>
+              <div class="review-slide__info">
+                <div class="review-slide__name">Alexandra Lim</div>
+                <div class="review-slide__project">Boutique Hotel &amp; Resort &mdash; Singapore</div>
+              </div>
+              <div class="review-slide__stars">&#9733;&#9733;&#9733;&#9733;&#9733;</div>
+            </div>
+          </div>
+
+        </div>
+        <div class="reviews__progress">
+          <div class="reviews__progress-bar" id="reviews-progress-bar"></div>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ===== FAQ SECTION ===== -->
+  <section class="faq section" id="faq" aria-label="Frequently Asked Questions">
+    <div class="container">
+      <div class="faq__layout">
+
+        <div class="faq__heading-col reveal-left">
+          <div class="section-eyebrow">FAQ</div>
+          <h2 class="section-title">Common<br/><em>Questions</em></h2>
+          <p class="faq__desc">Everything you need to know about working with us. Can't find an answer? <a href="#contact" class="faq__contact-link">Get in touch</a>.</p>
+          <div class="faq__stat-row">
+            <div class="faq__stat">
+              <span class="faq__stat-num">250+</span>
+              <span class="faq__stat-label">Projects Delivered</span>
+            </div>
+            <div class="faq__stat">
+              <span class="faq__stat-num">18+</span>
+              <span class="faq__stat-label">Years Experience</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="faq__accordion reveal-right">
+
+          <div class="faq__item" id="faq-item-1">
+            <button class="faq__question" aria-expanded="false" aria-controls="faq-answer-1">
+              <span class="faq__q-num">01</span>
+              <span class="faq__q-text">What types of projects do you specialize in?</span>
+              <span class="faq__toggle">
+                <svg class="faq__icon-plus" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                <svg class="faq__icon-minus" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="5" y1="12" x2="19" y2="12"/></svg>
+              </span>
+            </button>
+            <div class="faq__answer" id="faq-answer-1" role="region">
+              <p>We work on residential, commercial, hospitality, mixed-use, and institutional projects of varying scales and complexities. Our diverse portfolio spans luxury villas, corporate headquarters, boutique hotels, apartment communities, and large-scale urban developments.</p>
+            </div>
+          </div>
+
+          <div class="faq__item" id="faq-item-2">
+            <button class="faq__question" aria-expanded="false" aria-controls="faq-answer-2">
+              <span class="faq__q-num">02</span>
+              <span class="faq__q-text">Do you provide interior design services?</span>
+              <span class="faq__toggle">
+                <svg class="faq__icon-plus" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                <svg class="faq__icon-minus" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="5" y1="12" x2="19" y2="12"/></svg>
+              </span>
+            </button>
+            <div class="faq__answer" id="faq-answer-2" role="region">
+              <p>Yes. We offer comprehensive interior design solutions that complement our architectural services. Our interior design team works closely with clients to create cohesive spaces that balance aesthetics, comfort, and functionality.</p>
+            </div>
+          </div>
+
+          <div class="faq__item" id="faq-item-3">
+            <button class="faq__question" aria-expanded="false" aria-controls="faq-answer-3">
+              <span class="faq__q-num">03</span>
+              <span class="faq__q-text">Can you manage the construction phase?</span>
+              <span class="faq__toggle">
+                <svg class="faq__icon-plus" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                <svg class="faq__icon-minus" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="5" y1="12" x2="19" y2="12"/></svg>
+              </span>
+            </button>
+            <div class="faq__answer" id="faq-answer-3" role="region">
+              <p>Yes. We provide construction supervision and project coordination to ensure quality and successful execution. Our team works alongside contractors and subcontractors to maintain the highest standards throughout the build process.</p>
+            </div>
+          </div>
+
+          <div class="faq__item" id="faq-item-4">
+            <button class="faq__question" aria-expanded="false" aria-controls="faq-answer-4">
+              <span class="faq__q-num">04</span>
+              <span class="faq__q-text">Do you work on renovation projects?</span>
+              <span class="faq__toggle">
+                <svg class="faq__icon-plus" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                <svg class="faq__icon-minus" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="5" y1="12" x2="19" y2="12"/></svg>
+              </span>
+            </button>
+            <div class="faq__answer" id="faq-answer-4" role="region">
+              <p>Absolutely. We specialize in renovations, restorations, and adaptive reuse projects. We approach each renovation with careful consideration for preserving the building's character while incorporating modern improvements and contemporary design elements.</p>
+            </div>
+          </div>
+
+          <div class="faq__item" id="faq-item-5">
+            <button class="faq__question" aria-expanded="false" aria-controls="faq-answer-5">
+              <span class="faq__q-num">05</span>
+              <span class="faq__q-text">How long does a typical project take?</span>
+              <span class="faq__toggle">
+                <svg class="faq__icon-plus" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                <svg class="faq__icon-minus" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="5" y1="12" x2="19" y2="12"/></svg>
+              </span>
+            </button>
+            <div class="faq__answer" id="faq-answer-5" role="region">
+              <p>Project timelines vary depending on size, scope, and complexity. A detailed schedule is established during project planning. Smaller residential projects may take 6&ndash;12 months, while larger commercial or mixed-use developments can span 2&ndash;4 years.</p>
+            </div>
+          </div>
+
+          <div class="faq__item" id="faq-item-6">
+            <button class="faq__question" aria-expanded="false" aria-controls="faq-answer-6">
+              <span class="faq__q-num">06</span>
+              <span class="faq__q-text">Do you incorporate sustainable design practices?</span>
+              <span class="faq__toggle">
+                <svg class="faq__icon-plus" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                <svg class="faq__icon-minus" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="5" y1="12" x2="19" y2="12"/></svg>
+              </span>
+            </button>
+            <div class="faq__answer" id="faq-answer-6" role="region">
+              <p>Yes. Sustainability is a core part of our design philosophy. We integrate passive design strategies, renewable energy systems, sustainable materials, and green building certifications (LEED, BREEAM) to create environmentally responsible solutions whenever possible.</p>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== CTA SECTION ===== -->
+  <section class="cta-section" id="cta" aria-label="Call to Action">
+    <div class="cta-section__bg" style="background-image: url('images/cta_bg.png');"></div>
+    <div class="cta-section__overlay"></div>
+    <div class="cta-section__content reveal-up">
+      <div class="section-eyebrow section-eyebrow--gold">Get Started Today</div>
+      <h2 class="cta-section__title">Let's Create Something<br/><em>Extraordinary Together</em></h2>
+      <p class="cta-section__desc">Whether you're planning a luxury residence, commercial development, hospitality destination, or large-scale architectural project, our team is ready to transform your vision into an exceptional reality.</p>
+      <a href="#contact" class="btn btn--gold btn--lg" id="cta-start-project">Start Your Project Today</a>
+    </div>
+  </section>
+
+  <!-- ===== CONTACT SECTION ===== -->
+  <section class="contact section" id="contact" aria-label="Contact Us">
+    <div class="container">
+      <div class="contact__grid">
+
+        <div class="contact__info reveal-left">
+          <div class="section-eyebrow">Get In Touch</div>
+          <h2 class="section-title">Begin Your<br/><em>Architectural Journey</em></h2>
+          <p class="contact__intro">Ready to discuss your next project? Our team is here to guide you through every stage of the process, from initial ideas to final completion.</p>
+
+          <div class="contact__details">
+            <div class="contact-detail" id="contact-phone">
+              <div class="contact-detail__icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07A19.5 19.5 0 013.07 9.81a19.79 19.79 0 01-3.07-8.63A2 2 0 012 0h3a2 2 0 012 1.72c.127.96.361 1.903.7 2.81a2 2 0 01-.45 2.11L6.09 7.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0122 16.92z"/></svg>
+              </div>
+              <div>
+                <div class="contact-detail__label">Phone</div>
+                <a href="tel:+1234567890" class="contact-detail__value">+1 (234) 567-8900</a>
+              </div>
+            </div>
+
+            <div class="contact-detail" id="contact-email">
+              <div class="contact-detail__icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+              </div>
+              <div>
+                <div class="contact-detail__label">Email</div>
+                <a href="mailto:hello@formastudio.com" class="contact-detail__value">hello@formastudio.com</a>
+              </div>
+            </div>
+
+            <div class="contact-detail" id="contact-location">
+              <div class="contact-detail__icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg>
+              </div>
+              <div>
+                <div class="contact-detail__label">Office</div>
+                <div class="contact-detail__value">123 Design Avenue, Suite 400<br/>New York, NY 10001</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="contact__form-wrap reveal-right">
+          <form class="contact__form" id="contact-form" novalidate>
+            <div class="form__row">
+              <div class="form__group">
+                <label for="form-name" class="form__label">Full Name</label>
+                <input type="text" id="form-name" name="name" class="form__input" placeholder="Your full name" required autocomplete="name" />
+              </div>
+              <div class="form__group">
+                <label for="form-email" class="form__label">Email Address</label>
+                <input type="email" id="form-email" name="email" class="form__input" placeholder="your@email.com" required autocomplete="email" />
+              </div>
+            </div>
+            <div class="form__row">
+              <div class="form__group">
+                <label for="form-phone" class="form__label">Phone Number</label>
+                <input type="tel" id="form-phone" name="phone" class="form__input" placeholder="+1 (000) 000-0000" autocomplete="tel" />
+              </div>
+              <div class="form__group">
+                <label for="form-type" class="form__label">Project Type</label>
+                <select id="form-type" name="project_type" class="form__input form__select">
+                  <option value="" disabled selected>Select project type</option>
+                  <option value="residential">Residential Architecture</option>
+                  <option value="commercial">Commercial Architecture</option>
+                  <option value="interior">Interior Design</option>
+                  <option value="hospitality">Hospitality</option>
+                  <option value="mixed-use">Mixed-Use Development</option>
+                  <option value="renovation">Renovation & Restoration</option>
+                  <option value="other">Other</option>
+                </select>
+              </div>
+            </div>
+            <div class="form__group">
+              <label for="form-message" class="form__label">Project Description</label>
+              <textarea id="form-message" name="message" class="form__input form__textarea" placeholder="Tell us about your project, goals, and vision..." required rows="5"></textarea>
+            </div>
+            <div class="form__submit-row">
+              <button type="submit" class="btn btn--gold btn--full" id="form-submit">
+                <span>Send Message</span>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+              </button>
+              <div class="form__success" id="form-success" role="alert" aria-live="polite" style="display:none;">
+                ✓ Thank you! We'll get back to you within 24 hours.
+              </div>
+            </div>
+          </form>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== FOOTER ===== -->
+  <footer class="footer" id="footer" role="contentinfo">
+    <div class="container">
+      <div class="footer__top">
+
+        <div class="footer__brand">
+          <a href="#home" class="footer__logo">
+            <span class="logo__mark">F</span>
+            <span class="logo__text">FORMA <span class="logo__sub">STUDIO</span></span>
+          </a>
+          <p class="footer__tagline">Building exceptional spaces through innovation, creativity, and architectural excellence. Delivering meaningful design solutions that inspire communities and create lasting value for generations to come.</p>
+          <div class="footer__social">
+            <a href="#" class="footer__social-link" aria-label="Facebook" id="social-facebook">
+              <svg viewBox="0 0 24 24" fill="currentColor"><path d="M18 2h-3a5 5 0 00-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 011-1h3z"/></svg>
+            </a>
+            <a href="#" class="footer__social-link" aria-label="Instagram" id="social-instagram">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2" y="2" width="20" height="20" rx="5"/><path d="M16 11.37A4 4 0 1112.63 8 4 4 0 0116 11.37z"/><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"/></svg>
+            </a>
+            <a href="#" class="footer__social-link" aria-label="LinkedIn" id="social-linkedin">
+              <svg viewBox="0 0 24 24" fill="currentColor"><path d="M16 8a6 6 0 016 6v7h-4v-7a2 2 0 00-2-2 2 2 0 00-2 2v7h-4v-7a6 6 0 016-6zM2 9h4v12H2z"/><circle cx="4" cy="4" r="2"/></svg>
+            </a>
+            <a href="#" class="footer__social-link" aria-label="Pinterest" id="social-pinterest">
+              <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.373 0 0 5.373 0 12c0 5.084 3.163 9.426 7.627 11.174-.105-.949-.2-2.405.042-3.441.218-.937 1.407-5.965 1.407-5.965s-.359-.719-.359-1.782c0-1.668.967-2.914 2.171-2.914 1.023 0 1.518.769 1.518 1.69 0 1.029-.655 2.568-.994 3.995-.283 1.194.599 2.169 1.777 2.169 2.133 0 3.772-2.249 3.772-5.495 0-2.873-2.064-4.882-5.012-4.882-3.414 0-5.418 2.561-5.418 5.207 0 1.031.397 2.138.893 2.738a.36.36 0 01.083.345l-.333 1.36c-.053.22-.174.267-.402.161-1.499-.698-2.436-2.889-2.436-4.649 0-3.785 2.75-7.262 7.929-7.262 4.163 0 7.398 2.967 7.398 6.931 0 4.136-2.607 7.464-6.227 7.464-1.216 0-2.359-.632-2.75-1.378l-.748 2.853c-.271 1.043-1.002 2.35-1.492 3.146C9.57 23.812 10.763 24 12 24c6.627 0 12-5.373 12-12S18.627 0 12 0z"/></svg>
+            </a>
+          </div>
+        </div>
+
+        <div class="footer__nav-group">
+          <h4 class="footer__heading">Quick Links</h4>
+          <ul class="footer__links">
+            <li><a href="#home" class="footer__link">Home</a></li>
+            <li><a href="#about" class="footer__link">About Us</a></li>
+            <li><a href="#services" class="footer__link">Services</a></li>
+            <li><a href="#projects" class="footer__link">Projects</a></li>
+            <li><a href="#gallery" class="footer__link">Gallery</a></li>
+            <li><a href="#contact" class="footer__link">Contact</a></li>
+          </ul>
+        </div>
+
+        <div class="footer__nav-group">
+          <h4 class="footer__heading">Services</h4>
+          <ul class="footer__links">
+            <li><a href="#services" class="footer__link">Architectural Design</a></li>
+            <li><a href="#services" class="footer__link">Interior Design</a></li>
+            <li><a href="#services" class="footer__link">Urban Planning</a></li>
+            <li><a href="#services" class="footer__link">Landscape Architecture</a></li>
+            <li><a href="#services" class="footer__link">Renovation & Restoration</a></li>
+            <li><a href="#services" class="footer__link">Construction Supervision</a></li>
+          </ul>
+        </div>
+
+        <div class="footer__nav-group">
+          <h4 class="footer__heading">Contact Info</h4>
+          <div class="footer__contact">
+            <div class="footer__contact-item">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07A19.5 19.5 0 013.07 9.81a19.79 19.79 0 01-3.07-8.63A2 2 0 012 0h3a2 2 0 012 1.72c.127.96.361 1.903.7 2.81a2 2 0 01-.45 2.11L6.09 7.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0122 16.92z"/></svg>
+              <a href="tel:+1234567890">+1 (234) 567-8900</a>
+            </div>
+            <div class="footer__contact-item">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+              <a href="mailto:hello@formastudio.com">hello@formastudio.com</a>
+            </div>
+            <div class="footer__contact-item">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg>
+              <span>123 Design Avenue, Suite 400<br/>New York, NY 10001</span>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <div class="footer__bottom">
+        <p class="footer__copy">© 2026 FORMA Studio. All Rights Reserved.</p>
+        <div class="footer__legal">
+          <a href="#" class="footer__legal-link">Privacy Policy</a>
+          <a href="#" class="footer__legal-link">Terms of Service</a>
+        </div>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Back to Top -->
+  <button class="back-to-top" id="back-to-top" aria-label="Back to Top">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="18 15 12 9 6 15"/></svg>
+  </button>
+
+  <script src="script.js"></script>
+</body>
+</html>

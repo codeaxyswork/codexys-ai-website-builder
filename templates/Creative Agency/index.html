@@ -1,0 +1,1030 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AETERNA | Premium Creative & Digital Innovation Agency</title>
+    
+    <!-- SEO Meta Tags -->
+    <meta name="description" content="We create bold brands, exceptional digital experiences, and high-performance digital products that drive growth. Multidisciplinary design, strategy, and technology agency.">
+    <meta name="keywords" content="creative agency, digital agency, branding, UI UX design, website development, product design, strategy">
+    <meta name="author" content="AETERNA Creative Agency">
+    
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://aeterna-agency.com/">
+    <meta property="og:title" content="AETERNA | Premium Creative & Digital Innovation Agency">
+    <meta property="og:description" content="We create bold brands, exceptional digital experiences, and high-performance digital products that drive growth.">
+    <meta property="og:image" content="assets/hero_abstract.png">
+
+    <!-- Twitter -->
+    <meta property="twitter:card" content="summary_large_image">
+    <meta property="twitter:url" content="https://aeterna-agency.com/">
+    <meta property="twitter:title" content="AETERNA | Premium Creative & Digital Innovation Agency">
+    <meta property="twitter:description" content="We create bold brands, exceptional digital experiences, and high-performance digital products that drive growth.">
+    <meta property="twitter:image" content="assets/hero_abstract.png">
+
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Syne:wght@500;600;700;800&display=swap" rel="stylesheet">
+    
+    <!-- FontAwesome 6 CDN -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Local Stylesheet -->
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <!-- Scroll Progress Indicator -->
+    <div id="scroll-progress" aria-hidden="true"></div>
+
+    <!-- Custom Cursor follower -->
+    <div class="custom-cursor" id="cursor" aria-hidden="true">
+        <div class="custom-cursor-dot"></div>
+        <div class="custom-cursor-circle"></div>
+    </div>
+
+    <!-- Header Navigation -->
+    <header class="header" id="main-header">
+        <div class="header-container">
+            <a href="#home" class="logo" id="header-logo">
+                AETERNA<span class="logo-dot">.</span>
+            </a>
+            
+            <nav class="nav-menu" id="nav-menu-desktop" aria-label="Desktop navigation">
+                <ul>
+                    <li><a href="#home" class="nav-link active">Home</a></li>
+                    <li><a href="#about" class="nav-link">About Us</a></li>
+                    <li><a href="#services" class="nav-link">Services</a></li>
+                    <li><a href="#work" class="nav-link">Our Work</a></li>
+                    <li><a href="#contact" class="nav-link">Contact</a></li>
+                </ul>
+            </nav>
+
+            <div class="header-cta-group">
+                <a href="#contact" class="btn btn-magnetic btn-nav-cta" id="header-cta-btn">
+                    Let's Talk <i class="fa-solid fa-arrow-right-long icon-arrow"></i>
+                </a>
+                
+                <button class="hamburger" id="hamburger-btn" aria-label="Toggle Navigation Menu" aria-expanded="false" aria-controls="mobile-overlay">
+                    <span class="hamburger-line line-top"></span>
+                    <span class="hamburger-line line-mid"></span>
+                    <span class="hamburger-line line-bot"></span>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Mobile Navigation Overlay -->
+    <div class="mobile-overlay" id="mobile-overlay" aria-hidden="true">
+        <div class="mobile-overlay-bg"></div>
+        <div class="mobile-overlay-container">
+            <nav class="mobile-nav" aria-label="Mobile navigation">
+                <ul>
+                    <li><a href="#home" class="mobile-nav-link" id="mob-link-home">Home</a></li>
+                    <li><a href="#about" class="mobile-nav-link" id="mob-link-about">About Us</a></li>
+                    <li><a href="#services" class="mobile-nav-link" id="mob-link-services">Services</a></li>
+                    <li><a href="#work" class="mobile-nav-link" id="mob-link-work">Our Work</a></li>
+                    <li><a href="#contact" class="mobile-nav-link" id="mob-link-contact">Contact</a></li>
+                </ul>
+            </nav>
+            <div class="mobile-nav-footer">
+                <div class="mobile-nav-cta-wrapper">
+                    <a href="#contact" class="btn btn-primary btn-magnetic" id="mob-cta-btn">Start Your Project</a>
+                </div>
+                <div class="mobile-socials">
+                    <a href="https://linkedin.com" target="_blank" rel="noopener" aria-label="LinkedIn"><i class="fa-brands fa-linkedin-in"></i></a>
+                    <a href="https://instagram.com" target="_blank" rel="noopener" aria-label="Instagram"><i class="fa-brands fa-instagram"></i></a>
+                    <a href="https://facebook.com" target="_blank" rel="noopener" aria-label="Facebook"><i class="fa-brands fa-facebook-f"></i></a>
+                    <a href="https://behance.net" target="_blank" rel="noopener" aria-label="Behance"><i class="fa-brands fa-behance"></i></a>
+                    <a href="https://dribbble.com" target="_blank" rel="noopener" aria-label="Dribbble"><i class="fa-brands fa-dribbble"></i></a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Content Wrapper -->
+    <main id="main-content">
+
+        <!-- Hero Section -->
+        <section class="hero-section" id="home">
+            <div class="hero-bg-parallax" style="background-image: url('assets/hero_abstract.png');"></div>
+            <div class="hero-overlay"></div>
+            
+            <div class="container hero-container">
+                <div class="hero-content">
+                    <div class="hero-badge reveal-item" id="hero-badge-elem">
+                        <span class="badge-dot"></span> Creative Design & Digital Innovation
+                    </div>
+                    
+                    <h1 class="hero-title text-reveal" id="hero-title-elem">
+                        We Create Bold Brands, Exceptional Experiences, & Digital Products
+                    </h1>
+                    
+                    <p class="hero-desc reveal-item" id="hero-desc-elem">
+                        We help startups, businesses, and ambitious brands transform ideas into powerful digital experiences through branding, design, strategy, and technology.
+                    </p>
+                    
+                    <div class="hero-btns reveal-item" id="hero-btns-elem">
+                        <a href="#contact" class="btn btn-primary btn-magnetic" id="hero-btn-primary">
+                            <span>Start Your Project</span>
+                        </a>
+                        <a href="#work" class="btn btn-outline btn-magnetic" id="hero-btn-secondary">
+                            <span>View Our Work</span>
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Floating Abstract Shapes for depth -->
+            <div class="floating-shape shape-1" aria-hidden="true"></div>
+            <div class="floating-shape shape-2" aria-hidden="true"></div>
+            
+            <!-- Scroll Indicator -->
+            <div class="scroll-indicator" id="hero-scroll-indicator">
+                <span class="scroll-mouse">
+                    <span class="scroll-wheel"></span>
+                </span>
+                <span class="scroll-text">Scroll Down</span>
+            </div>
+        </section>
+
+        <!-- About Us Section -->
+        <section class="about-section" id="about">
+            <div class="container">
+                <div class="about-grid">
+                    <div class="about-content-col scroll-reveal-left">
+                        <div class="section-tag">About Us</div>
+                        <h2 class="section-title title-highlight">Creative Thinking Meets Strategic Execution</h2>
+                        <p class="about-text-p1">
+                            We are a multidisciplinary creative agency passionate about building brands, crafting digital experiences, and helping businesses stand out in a competitive world.
+                        </p>
+                        <p class="about-text-p2">
+                            Through a blending of artistic vision and engineered solutions, we produce digital systems that do more than simply function—they speak, connect, and elevate your brand's narrative.
+                        </p>
+                        
+                        <div class="vision-mission-grid">
+                            <div class="vm-card">
+                                <div class="vm-icon"><i class="fa-solid fa-eye"></i></div>
+                                <h3>Our Vision</h3>
+                                <p>To become a globally recognized creative agency that empowers brands through innovation, design excellence, and transformative digital experiences.</p>
+                            </div>
+                            <div class="vm-card">
+                                <div class="vm-icon"><i class="fa-solid fa-bullseye"></i></div>
+                                <h3>Our Mission</h3>
+                                <p>To help businesses communicate their value through meaningful branding, engaging digital experiences, and strategic creative solutions.</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="about-visual-col scroll-reveal-right">
+                        <div class="about-img-wrapper magnetic-parent">
+                            <img src="assets/about_studio.png" alt="Creative studio workspace" class="about-main-img" id="about-img">
+                            <div class="about-visual-badge" id="about-badge">
+                                <span class="badge-num">8+</span>
+                                <span class="badge-txt">Years of<br>Disruption</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Interactive Counter Section -->
+                <div class="counter-grid scroll-reveal-up" id="counter-row">
+                    <div class="counter-card" id="counter-box-1">
+                        <div class="counter-number" data-target="250">0</div>
+                        <div class="counter-label">Projects Delivered</div>
+                    </div>
+                    <div class="counter-card" id="counter-box-2">
+                        <div class="counter-number" data-target="120">0</div>
+                        <div class="counter-label">Happy Clients</div>
+                    </div>
+                    <div class="counter-card" id="counter-box-3">
+                        <div class="counter-number" data-target="8">0</div>
+                        <div class="counter-label">Years Experience</div>
+                    </div>
+                    <div class="counter-card" id="counter-box-4">
+                        <div class="counter-number" data-target="15">0</div>
+                        <div class="counter-label">Creative Experts</div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Services Section -->
+        <section class="services-section" id="services">
+            <div class="container">
+                <div class="section-header-center scroll-reveal-up">
+                    <div class="section-tag-center">Services</div>
+                    <h2 class="section-title">What We Do</h2>
+                    <p class="section-subtitle">We design and build bespoke digital solutions that capture attention, engage users, and achieve strategic brand outcomes.</p>
+                </div>
+
+                <div class="services-grid">
+                    <!-- Service 1 -->
+                    <div class="service-card scroll-reveal-card" id="service-card-1">
+                        <div class="service-icon-wrapper">
+                            <i class="fa-solid fa-gem"></i>
+                        </div>
+                        <h3 class="service-card-title">Branding & Identity</h3>
+                        <p class="service-card-desc">Establishing robust visual guidelines, logos, brand books, and strategic tone of voice to anchor your brand identity.</p>
+                        <ul class="service-list">
+                            <li><i class="fa-solid fa-check"></i> Logo Design & Systems</li>
+                            <li><i class="fa-solid fa-check"></i> Brand Strategy & Guide</li>
+                            <li><i class="fa-solid fa-check"></i> Graphic Assets & Typography</li>
+                        </ul>
+                        <div class="service-arrow">
+                            <i class="fa-solid fa-arrow-right"></i>
+                        </div>
+                    </div>
+                    
+                    <!-- Service 2 -->
+                    <div class="service-card scroll-reveal-card" id="service-card-2">
+                        <div class="service-icon-wrapper">
+                            <i class="fa-solid fa-compass"></i>
+                        </div>
+                        <h3 class="service-card-title">UI UX Design</h3>
+                        <p class="service-card-desc">Mapping intuitive user journeys, interactive wireframes, and gorgeous visual user interfaces for digital products.</p>
+                        <ul class="service-list">
+                            <li><i class="fa-solid fa-check"></i> Wireframing & Prototyping</li>
+                            <li><i class="fa-solid fa-check"></i> Visual Interface Design</li>
+                            <li><i class="fa-solid fa-check"></i> User Testing & Research</li>
+                        </ul>
+                        <div class="service-arrow">
+                            <i class="fa-solid fa-arrow-right"></i>
+                        </div>
+                    </div>
+
+                    <!-- Service 3 -->
+                    <div class="service-card scroll-reveal-card" id="service-card-3">
+                        <div class="service-icon-wrapper">
+                            <i class="fa-solid fa-laptop-code"></i>
+                        </div>
+                        <h3 class="service-card-title">Website Design</h3>
+                        <p class="service-card-desc">Creating stunning layouts optimized for engagement, conversion, and device flexibility, completely customized for you.</p>
+                        <ul class="service-list">
+                            <li><i class="fa-solid fa-check"></i> High-End Layout Concepts</li>
+                            <li><i class="fa-solid fa-check"></i> Responsive Web Layouts</li>
+                            <li><i class="fa-solid fa-check"></i> Interaction Micro-Animations</li>
+                        </ul>
+                        <div class="service-arrow">
+                            <i class="fa-solid fa-arrow-right"></i>
+                        </div>
+                    </div>
+
+                    <!-- Service 4 -->
+                    <div class="service-card scroll-reveal-card" id="service-card-4">
+                        <div class="service-icon-wrapper">
+                            <i class="fa-solid fa-code"></i>
+                        </div>
+                        <h3 class="service-card-title">Website Development</h3>
+                        <p class="service-card-desc">Writing high-performance clean code using modern standard structures for lightning-fast loads and accessibility.</p>
+                        <ul class="service-list">
+                            <li><i class="fa-solid fa-check"></i> Frontend & Backend Systems</li>
+                            <li><i class="fa-solid fa-check"></i> CMS Integration & Custom Code</li>
+                            <li><i class="fa-solid fa-check"></i> SEO & Speed Optimization</li>
+                        </ul>
+                        <div class="service-arrow">
+                            <i class="fa-solid fa-arrow-right"></i>
+                        </div>
+                    </div>
+
+                    <!-- Service 5 -->
+                    <div class="service-card scroll-reveal-card" id="service-card-5">
+                        <div class="service-icon-wrapper">
+                            <i class="fa-solid fa-chart-simple"></i>
+                        </div>
+                        <h3 class="service-card-title">Digital Marketing</h3>
+                        <p class="service-card-desc">Driving growth, organic visibility, search rankings, and multi-channel campaign strategies that scale conversion.</p>
+                        <ul class="service-list">
+                            <li><i class="fa-solid fa-check"></i> SEO Audits & Management</li>
+                            <li><i class="fa-solid fa-check"></i> Paid Advertising Campaigns</li>
+                            <li><i class="fa-solid fa-check"></i> Social Media Growth</li>
+                        </ul>
+                        <div class="service-arrow">
+                            <i class="fa-solid fa-arrow-right"></i>
+                        </div>
+                    </div>
+
+                    <!-- Service 6 -->
+                    <div class="service-card scroll-reveal-card" id="service-card-6">
+                        <div class="service-icon-wrapper">
+                            <i class="fa-solid fa-pen-nib"></i>
+                        </div>
+                        <h3 class="service-card-title">Creative Content</h3>
+                        <p class="service-card-desc">Producing engaging storytelling, professional copywriting, dynamic video content, and graphic visual designs.</p>
+                        <ul class="service-list">
+                            <li><i class="fa-solid fa-check"></i> Professional Copywriting</li>
+                            <li><i class="fa-solid fa-check"></i> Motion Graphics & Video</li>
+                            <li><i class="fa-solid fa-check"></i> Photography & Illustration</li>
+                        </ul>
+                        <div class="service-arrow">
+                            <i class="fa-solid fa-arrow-right"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Selected Works Section -->
+        <section class="work-section" id="work">
+            <div class="container-fluid">
+                <div class="container">
+                    <div class="section-header-left scroll-reveal-up">
+                        <div class="section-tag">Portfolio</div>
+                        <h2 class="section-title">Selected Works</h2>
+                        <p class="section-subtitle">Explore a curated catalog of brand experiences, custom applications, and strategic digital campaigns we have proudly launched.</p>
+                    </div>
+
+                    <!-- Portfolio Filter Controls -->
+                    <div class="portfolio-filters scroll-reveal-up" id="portfolio-filter-row">
+                        <button class="filter-btn active" data-filter="all" id="filter-all">All Projects</button>
+                        <button class="filter-btn" data-filter="branding" id="filter-branding">Branding</button>
+                        <button class="filter-btn" data-filter="website-design" id="filter-webdesign">Website Design</button>
+                        <button class="filter-btn" data-filter="web-dev" id="filter-webdev">Web Development</button>
+                        <button class="filter-btn" data-filter="mobile" id="filter-mobile">Mobile Apps</button>
+                        <button class="filter-btn" data-filter="marketing" id="filter-marketing">Marketing</button>
+                        <button class="filter-btn" data-filter="product" id="filter-product">Product Design</button>
+                    </div>
+                </div>
+
+                <!-- Masonry Gallery -->
+                <div class="portfolio-grid scroll-reveal-up" id="portfolio-masonry">
+                    <!-- Project 1: Branding -->
+                    <div class="portfolio-item branding product" data-category="branding">
+                        <div class="portfolio-card">
+                            <div class="portfolio-img-wrapper">
+                                <img src="assets/portfolio_branding.png" alt="AURA Branding Mockup" class="portfolio-img">
+                                <div class="portfolio-hover-overlay">
+                                    <div class="portfolio-actions">
+                                        <button class="btn-lightbox" aria-label="Zoom project image" data-img="assets/portfolio_branding.png" data-title="AURA Luxury Branding" data-desc="Complete stationery, minimalist design guidelines, and package mockup for a premium organic cosmetic label."><i class="fa-solid fa-expand"></i></button>
+                                        <a href="#contact" class="btn-project-link" aria-label="Request details"><i class="fa-solid fa-arrow-up-right-from-square"></i></a>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="portfolio-info">
+                                <span class="project-tag">Branding / Product</span>
+                                <h3 class="project-title">AURA Luxury Branding</h3>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Project 2: Web Design & Web Dev -->
+                    <div class="portfolio-item website-design web-dev" data-category="website-design">
+                        <div class="portfolio-card">
+                            <div class="portfolio-img-wrapper">
+                                <img src="assets/portfolio_web_design.png" alt="Neon Arcade Web Design Mockup" class="portfolio-img">
+                                <div class="portfolio-hover-overlay">
+                                    <div class="portfolio-actions">
+                                        <button class="btn-lightbox" aria-label="Zoom project image" data-img="assets/portfolio_web_design.png" data-title="Neon Arcade Platform" data-desc="Responsive interactive gaming platform and community dashboard layout focusing on high-frame-rate aesthetics."><i class="fa-solid fa-expand"></i></button>
+                                        <a href="#contact" class="btn-project-link" aria-label="Request details"><i class="fa-solid fa-arrow-up-right-from-square"></i></a>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="portfolio-info">
+                                <span class="project-tag">Website Design / Dev</span>
+                                <h3 class="project-title">Neon Arcade Platform</h3>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Project 3: Mobile Apps -->
+                    <div class="portfolio-item mobile" data-category="mobile">
+                        <div class="portfolio-card">
+                            <div class="portfolio-img-wrapper">
+                                <img src="assets/portfolio_mobile.png" alt="Velocity Mobile App Interface" class="portfolio-img">
+                                <div class="portfolio-hover-overlay">
+                                    <div class="portfolio-actions">
+                                        <button class="btn-lightbox" aria-label="Zoom project image" data-img="assets/portfolio_mobile.png" data-title="Velocity Fitness Tracker" data-desc="Modern high-performance fitness tracker mobile app. Featuring rich metrics, custom dashboards, and user health tracking."><i class="fa-solid fa-expand"></i></button>
+                                        <a href="#contact" class="btn-project-link" aria-label="Request details"><i class="fa-solid fa-arrow-up-right-from-square"></i></a>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="portfolio-info">
+                                <span class="project-tag">Mobile App / UI UX</span>
+                                <h3 class="project-title">Velocity Fitness Tracker</h3>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Project 4: Product Design -->
+                    <div class="portfolio-item product" data-category="product">
+                        <div class="portfolio-card">
+                            <div class="portfolio-img-wrapper">
+                                <img src="assets/portfolio_product.png" alt="Nexus AR Headset Product Design" class="portfolio-img">
+                                <div class="portfolio-hover-overlay">
+                                    <div class="portfolio-actions">
+                                        <button class="btn-lightbox" aria-label="Zoom project image" data-img="assets/portfolio_product.png" data-title="Nexus AR Headset" data-desc="Sleek next-gen industrial augmented reality headset styling, focusing on lightweight frame architecture and lime-glow status rings."><i class="fa-solid fa-expand"></i></button>
+                                        <a href="#contact" class="btn-project-link" aria-label="Request details"><i class="fa-solid fa-arrow-up-right-from-square"></i></a>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="portfolio-info">
+                                <span class="project-tag">Product Design / 3D</span>
+                                <h3 class="project-title">Nexus AR Headset</h3>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Lightbox Gallery Modal -->
+        <div class="lightbox-modal" id="lightbox-modal" aria-hidden="true" role="dialog">
+            <div class="lightbox-close" id="lightbox-close-btn">&times;</div>
+            <div class="lightbox-content">
+                <button class="lightbox-nav lightbox-prev" id="lightbox-prev-btn" aria-label="Previous work"><i class="fa-solid fa-chevron-left"></i></button>
+                <div class="lightbox-image-container">
+                    <img src="" alt="Project high-res preview" id="lightbox-img">
+                </div>
+                <button class="lightbox-nav lightbox-next" id="lightbox-next-btn" aria-label="Next work"><i class="fa-solid fa-chevron-right"></i></button>
+            </div>
+            <div class="lightbox-details">
+                <h4 id="lightbox-title">Project Title</h4>
+                <p id="lightbox-desc">Project description and context detail.</p>
+            </div>
+        </div>
+
+        <!-- Team Section -->
+        <section class="team-section">
+            <div class="container">
+                <div class="section-header-center scroll-reveal-up">
+                    <div class="section-tag-center">Our Team</div>
+                    <h2 class="section-title">Meet The Creative Minds</h2>
+                    <p class="section-subtitle">Our interdisciplinary experts bring artistic innovation and strategic direction to every digital experience we craft.</p>
+                </div>
+
+                <div class="team-grid">
+                    <!-- Member 1 -->
+                    <div class="team-card scroll-reveal-card" id="team-card-1">
+                        <div class="team-img-wrapper">
+                            <img src="assets/team_director.png" alt="Evelyn Vane" class="team-img">
+                            <div class="team-social-overlay">
+                                <a href="https://linkedin.com" target="_blank" rel="noopener" aria-label="Evelyn Vane LinkedIn"><i class="fa-brands fa-linkedin-in"></i></a>
+                                <a href="https://dribbble.com" target="_blank" rel="noopener" aria-label="Evelyn Vane Dribbble"><i class="fa-brands fa-dribbble"></i></a>
+                                <a href="https://instagram.com" target="_blank" rel="noopener" aria-label="Evelyn Vane Instagram"><i class="fa-brands fa-instagram"></i></a>
+                            </div>
+                        </div>
+                        <div class="team-info">
+                            <h3 class="team-name">Evelyn Vane</h3>
+                            <span class="team-role">Founder / Creative Director</span>
+                        </div>
+                    </div>
+
+                    <!-- Member 2 -->
+                    <div class="team-card scroll-reveal-card" id="team-card-2">
+                        <div class="team-img-wrapper">
+                            <img src="assets/team_art.png" alt="Marcus Thorne" class="team-img">
+                            <div class="team-social-overlay">
+                                <a href="https://linkedin.com" target="_blank" rel="noopener" aria-label="Marcus Thorne LinkedIn"><i class="fa-brands fa-linkedin-in"></i></a>
+                                <a href="https://behance.net" target="_blank" rel="noopener" aria-label="Marcus Thorne Behance"><i class="fa-brands fa-behance"></i></a>
+                                <a href="https://instagram.com" target="_blank" rel="noopener" aria-label="Marcus Thorne Instagram"><i class="fa-brands fa-instagram"></i></a>
+                            </div>
+                        </div>
+                        <div class="team-info">
+                            <h3 class="team-name">Marcus Thorne</h3>
+                            <span class="team-role">Art Director & Lead UI</span>
+                        </div>
+                    </div>
+
+                    <!-- Member 3 (Join Careers Card) -->
+                    <div class="team-careers-card scroll-reveal-card" id="team-card-careers">
+                        <div class="careers-card-content">
+                            <div class="careers-badge">Hiring</div>
+                            <h3>Join Our Creative Journey</h3>
+                            <p>We are always looking for talented designers, developers, and strategists passionate about innovation.</p>
+                            <a href="#careers-anchor" class="btn btn-outline btn-magnetic" id="team-careers-btn">View Positions</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Our Clients Section -->
+        <section class="clients-section">
+            <div class="container">
+                <div class="section-header-center scroll-reveal-up">
+                    <div class="section-tag-center">Our Clients</div>
+                    <h2 class="section-title">Trusted By Leading Brands</h2>
+                    <p class="section-subtitle">We are proud to collaborate with startups, growing businesses, and established organizations across multiple industries.</p>
+                </div>
+            </div>
+
+            <!-- Infinite Logo Carousel (Inline SVGs to prevent layout wrapping) -->
+            <div class="logo-marquee-wrapper scroll-reveal-up" id="logo-carousel">
+                <div class="logo-marquee-track">
+                    <!-- Set 1 -->
+                    <div class="marquee-item">
+                        <svg class="client-logo-svg" viewBox="0 0 130 30" fill="currentColor">
+                            <path d="M10 24 L20 6 L30 24 Z" fill="var(--color-accent)"/>
+                            <text x="40" y="20" fill="currentColor" font-family="var(--font-heading)" font-weight="800" font-size="15" letter-spacing="1.5">APEX</text>
+                        </svg>
+                    </div>
+                    <div class="marquee-item">
+                        <svg class="client-logo-svg" viewBox="0 0 130 30" fill="currentColor">
+                            <path d="M10 15 C10 8, 5 15, 15 15 C25 15, 20 22, 15 15 Z" stroke="var(--color-accent)" stroke-width="2.5" fill="none"/>
+                            <circle cx="15" cy="15" r="4" fill="var(--color-accent)"/>
+                            <text x="38" y="20" fill="currentColor" font-family="var(--font-heading)" font-weight="800" font-size="14" letter-spacing="1.5">VORTEX</text>
+                        </svg>
+                    </div>
+                    <div class="marquee-item">
+                        <svg class="client-logo-svg" viewBox="0 0 130 30" fill="currentColor">
+                            <circle cx="15" cy="15" r="8" stroke="var(--color-accent)" stroke-width="2" fill="none"/>
+                            <circle cx="20" cy="15" r="5" stroke="currentColor" stroke-width="1.5" fill="none"/>
+                            <text x="38" y="20" fill="currentColor" font-family="var(--font-heading)" font-weight="800" font-size="14" letter-spacing="1">SORA UX</text>
+                        </svg>
+                    </div>
+                    <div class="marquee-item">
+                        <svg class="client-logo-svg" viewBox="0 0 130 30" fill="currentColor">
+                            <circle cx="15" cy="15" r="9" fill="currentColor"/>
+                            <circle cx="20" cy="15" r="9" fill="var(--color-bg-primary)"/>
+                            <text x="38" y="20" fill="currentColor" font-family="var(--font-heading)" font-weight="800" font-size="14" letter-spacing="1.5">ECLIPSE</text>
+                        </svg>
+                    </div>
+                    <div class="marquee-item">
+                        <svg class="client-logo-svg" viewBox="0 0 130 30" fill="currentColor">
+                            <path d="M5 15 H25 M15 5 V25 M8 8 L22 22 M8 22 L22 8" stroke="var(--color-accent)" stroke-width="2"/>
+                            <text x="38" y="20" fill="currentColor" font-family="var(--font-heading)" font-weight="800" font-size="14" letter-spacing="1.5">NEXUS</text>
+                        </svg>
+                    </div>
+                    <div class="marquee-item">
+                        <svg class="client-logo-svg" viewBox="0 0 130 30" fill="currentColor">
+                            <path d="M6 22 L15 8 L24 22 M15 8 V24" stroke="var(--color-accent)" stroke-width="2" fill="none"/>
+                            <text x="38" y="20" fill="currentColor" font-family="var(--font-heading)" font-weight="800" font-size="14" letter-spacing="1.5">ZENITH</text>
+                        </svg>
+                    </div>
+                    
+                    <!-- Set 2 (for seamless loop) -->
+                    <div class="marquee-item">
+                        <svg class="client-logo-svg" viewBox="0 0 130 30" fill="currentColor">
+                            <path d="M10 24 L20 6 L30 24 Z" fill="var(--color-accent)"/>
+                            <text x="40" y="20" fill="currentColor" font-family="var(--font-heading)" font-weight="800" font-size="15" letter-spacing="1.5">APEX</text>
+                        </svg>
+                    </div>
+                    <div class="marquee-item">
+                        <svg class="client-logo-svg" viewBox="0 0 130 30" fill="currentColor">
+                            <path d="M10 15 C10 8, 5 15, 15 15 C25 15, 20 22, 15 15 Z" stroke="var(--color-accent)" stroke-width="2.5" fill="none"/>
+                            <circle cx="15" cy="15" r="4" fill="var(--color-accent)"/>
+                            <text x="38" y="20" fill="currentColor" font-family="var(--font-heading)" font-weight="800" font-size="14" letter-spacing="1.5">VORTEX</text>
+                        </svg>
+                    </div>
+                    <div class="marquee-item">
+                        <svg class="client-logo-svg" viewBox="0 0 130 30" fill="currentColor">
+                            <circle cx="15" cy="15" r="8" stroke="var(--color-accent)" stroke-width="2" fill="none"/>
+                            <circle cx="20" cy="15" r="5" stroke="currentColor" stroke-width="1.5" fill="none"/>
+                            <text x="38" y="20" fill="currentColor" font-family="var(--font-heading)" font-weight="800" font-size="14" letter-spacing="1">SORA UX</text>
+                        </svg>
+                    </div>
+                    <div class="marquee-item">
+                        <svg class="client-logo-svg" viewBox="0 0 130 30" fill="currentColor">
+                            <circle cx="15" cy="15" r="9" fill="currentColor"/>
+                            <circle cx="20" cy="15" r="9" fill="var(--color-bg-primary)"/>
+                            <text x="38" y="20" fill="currentColor" font-family="var(--font-heading)" font-weight="800" font-size="14" letter-spacing="1.5">ECLIPSE</text>
+                        </svg>
+                    </div>
+                    <div class="marquee-item">
+                        <svg class="client-logo-svg" viewBox="0 0 130 30" fill="currentColor">
+                            <path d="M5 15 H25 M15 5 V25 M8 8 L22 22 M8 22 L22 8" stroke="var(--color-accent)" stroke-width="2"/>
+                            <text x="38" y="20" fill="currentColor" font-family="var(--font-heading)" font-weight="800" font-size="14" letter-spacing="1.5">NEXUS</text>
+                        </svg>
+                    </div>
+                    <div class="marquee-item">
+                        <svg class="client-logo-svg" viewBox="0 0 130 30" fill="currentColor">
+                            <path d="M6 22 L15 8 L24 22 M15 8 V24" stroke="var(--color-accent)" stroke-width="2" fill="none"/>
+                            <text x="38" y="20" fill="currentColor" font-family="var(--font-heading)" font-weight="800" font-size="14" letter-spacing="1.5">ZENITH</text>
+                        </svg>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Client Showcase Grid -->
+            <div class="container" style="margin-top: 80px;">
+                <div class="client-grid scroll-reveal-up">
+                    <!-- Client 1 -->
+                    <div class="client-card scroll-reveal-card">
+                        <div class="client-card-header">
+                            <span class="client-logo-inline"><i class="fa-solid fa-atom"></i> APEX</span>
+                            <span class="client-industry">Fintech</span>
+                        </div>
+                        <div class="client-card-body">
+                            <h3 class="client-showcase-title">Next-Gen Wealth Management</h3>
+                            <p class="client-showcase-desc">We engineered a high-fidelity visual design system and responsive dashboard interface, helping Apex increase customer retention by 35% within the first quarter.</p>
+                        </div>
+                        <div class="client-card-footer">
+                            <span class="client-metric"><span class="metric-num">+35%</span> Retention Growth</span>
+                        </div>
+                    </div>
+
+                    <!-- Client 2 -->
+                    <div class="client-card scroll-reveal-card">
+                        <div class="client-card-header">
+                            <span class="client-logo-inline"><i class="fa-solid fa-tornado"></i> VORTEX</span>
+                            <span class="client-industry">SaaS Platform</span>
+                        </div>
+                        <div class="client-card-body">
+                            <h3 class="client-showcase-title">SaaS Brand System & Identity</h3>
+                            <p class="client-showcase-desc">Aeterna crafted a premium dark luxury visual identity, website layout, and brand strategy book that enabled Vortex to successfully close their $12M Series A funding round.</p>
+                        </div>
+                        <div class="client-card-footer">
+                            <span class="client-metric"><span class="metric-num">$12M</span> Funding Raised</span>
+                        </div>
+                    </div>
+
+                    <!-- Client 3 -->
+                    <div class="client-card scroll-reveal-card">
+                        <div class="client-card-header">
+                            <span class="client-logo-inline"><i class="fa-solid fa-sun-plant-wilt"></i> SORA UX</span>
+                            <span class="client-industry">E-commerce</span>
+                        </div>
+                        <div class="client-card-body">
+                            <h3 class="client-showcase-title">Interactive Shopping Flows</h3>
+                            <p class="client-showcase-desc">We reimagined the user experience journey and checkout flows, integrating smooth GSAP micro-interactions that resulted in a 50% increase in complete orders.</p>
+                        </div>
+                        <div class="client-card-footer">
+                            <span class="client-metric"><span class="metric-num">+50%</span> Checkout Conversions</span>
+                        </div>
+                    </div>
+
+                    <!-- Client 4 -->
+                    <div class="client-card scroll-reveal-card">
+                        <div class="client-card-header">
+                            <span class="client-logo-inline"><i class="fa-solid fa-circle-nodes"></i> NEXUS</span>
+                            <span class="client-industry">Deep Tech</span>
+                        </div>
+                        <div class="client-card-body">
+                            <h3 class="client-showcase-title">AR Hardware Visualizations</h3>
+                            <p class="client-showcase-desc">Designed high-end industrial product visualizations and interactive 3D mockups for their augmented reality glasses, aligning with their luxury positioning.</p>
+                        </div>
+                        <div class="client-card-footer">
+                            <span class="client-metric"><span class="metric-num">3D</span> AR Product Interface</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Careers Section -->
+        <section class="careers-section" id="careers-anchor">
+            <div class="container">
+                <div class="careers-banner scroll-reveal-up">
+                    <div class="careers-banner-content">
+                        <div class="section-tag">Careers</div>
+                        <h2 class="section-title">Grow Your Career With Aeterna</h2>
+                        <p class="careers-desc">We foster a culture of creative freedom, technical excellence, and constant experimentation. Discover your next design challenge with us.</p>
+                        
+                        <div class="openings-list">
+                            <div class="opening-item">
+                                <div class="opening-details">
+                                    <h4>Senior UI UX Designer</h4>
+                                    <span>Full-Time / Remote Friendly</span>
+                                </div>
+                                <a href="#contact" class="btn-opening-apply btn-magnetic">Apply <i class="fa-solid fa-arrow-right"></i></a>
+                            </div>
+                            <div class="opening-item">
+                                <div class="opening-details">
+                                    <h4>Frontend Engineer (GSAP / React)</h4>
+                                    <span>Full-Time / Hybrid (London / NYC)</span>
+                                </div>
+                                <a href="#contact" class="btn-opening-apply btn-magnetic">Apply <i class="fa-solid fa-arrow-right"></i></a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Reviews / Testimonials Section -->
+        <section class="reviews-section">
+            <div class="container">
+                <div class="section-header-center scroll-reveal-up">
+                    <div class="section-tag-center">Reviews</div>
+                    <h2 class="section-title">What Our Clients Say</h2>
+                </div>
+
+                <div class="testimonial-slider-container scroll-reveal-up" id="testimonial-slider-box">
+                    <div class="testimonial-slider" id="testimonial-slider">
+                        <!-- Slide 1 -->
+                        <div class="testimonial-slide active">
+                            <div class="quote-icon"><i class="fa-solid fa-quote-left"></i></div>
+                            <p class="testimonial-text">
+                                "Working with Aeterna was transformative. Their visual designs are outstanding, and their ability to execute interactive frontend systems helped us increase our conversions by 45%. Highly recommended for brands that want to lead."
+                            </p>
+                            <div class="client-meta">
+                                <div class="client-avatar">
+                                    <span>AM</span>
+                                </div>
+                                <div class="client-info">
+                                    <h4 class="client-name">Alexander Moore</h4>
+                                    <span class="client-role">Founder, Aura Finance</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Slide 2 -->
+                        <div class="testimonial-slide">
+                            <div class="quote-icon"><i class="fa-solid fa-quote-left"></i></div>
+                            <p class="testimonial-text">
+                                "The level of creativity and engineering quality they brought to our product launch was unmatched. From layout planning to responsive GSAP scroll animations, they created a premium aesthetic that aligned with our brand strategy."
+                            </p>
+                            <div class="client-meta">
+                                <div class="client-avatar">
+                                    <span>SK</span>
+                                </div>
+                                <div class="client-info">
+                                    <h4 class="client-name">Sarah Jenkins</h4>
+                                    <span class="client-role">Product Marketing VP, Nexus AR</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Slide 3 -->
+                        <div class="testimonial-slide">
+                            <div class="quote-icon"><i class="fa-solid fa-quote-left"></i></div>
+                            <p class="testimonial-text">
+                                "We needed a website design that broke away from boring corporate grids. Aeterna delivered a custom immersive layout with smooth scroll experiences that wowed our board members and customers alike. Excellent storytelling."
+                            </p>
+                            <div class="client-meta">
+                                <div class="client-avatar">
+                                    <span>DL</span>
+                                </div>
+                                <div class="client-info">
+                                    <h4 class="client-name">Daniel Lin</h4>
+                                    <span class="client-role">Co-Founder, Vortex Systems</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Slider Controls -->
+                    <div class="slider-controls">
+                        <button class="slider-btn prev-btn btn-magnetic" id="testimonial-prev-btn" aria-label="Previous testimonial"><i class="fa-solid fa-chevron-left"></i></button>
+                        <div class="slider-indicators" id="testimonial-indicators">
+                            <span class="indicator active" data-slide="0"></span>
+                            <span class="indicator" data-slide="1"></span>
+                            <span class="indicator" data-slide="2"></span>
+                        </div>
+                        <button class="slider-btn next-btn btn-magnetic" id="testimonial-next-btn" aria-label="Next testimonial"><i class="fa-solid fa-chevron-right"></i></button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- FAQ Section -->
+        <section class="faq-section">
+            <div class="container">
+                <div class="section-header-center scroll-reveal-up">
+                    <div class="section-tag-center">FAQ</div>
+                    <h2 class="section-title">Frequently Asked Questions</h2>
+                </div>
+
+                <div class="faq-accordion-container scroll-reveal-up" id="faq-accordion-box">
+                    <!-- FAQ 1 -->
+                    <div class="faq-item">
+                        <button class="faq-trigger" id="faq-trig-1" aria-expanded="false" aria-controls="faq-panel-1">
+                            <span class="faq-question">What services does your agency offer?</span>
+                            <span class="faq-icon-status"><i class="fa-solid fa-plus"></i></span>
+                        </button>
+                        <div class="faq-panel" id="faq-panel-1" role="region" aria-labelledby="faq-trig-1">
+                            <div class="faq-content">
+                                <p>We offer full-service digital production including Branding & Brand Strategy, UI UX Interface Design, Custom High-Performance Website Design, Frontend and Backend Development, Digital Growth Marketing, and Video & Copywriting Content Production.</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- FAQ 2 -->
+                    <div class="faq-item">
+                        <button class="faq-trigger" id="faq-trig-2" aria-expanded="false" aria-controls="faq-panel-2">
+                            <span class="faq-question">How long does a typical website design project take?</span>
+                            <span class="faq-icon-status"><i class="fa-solid fa-plus"></i></span>
+                        </button>
+                        <div class="faq-panel" id="faq-panel-2" role="region" aria-labelledby="faq-trig-2">
+                            <div class="faq-content">
+                                <p>A bespoke website design project typically spans 4 to 8 weeks depending on the complexity of layouts, database integrations, animation requirements, and visual asset generation. We start with wireframes, visual styling direction, and move through production and quality testing.</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- FAQ 3 -->
+                    <div class="faq-item">
+                        <button class="faq-trigger" id="faq-trig-3" aria-expanded="false" aria-controls="faq-panel-3">
+                            <span class="faq-question">Do you work with startups or global enterprise companies?</span>
+                            <span class="faq-icon-status"><i class="fa-solid fa-plus"></i></span>
+                        </button>
+                        <div class="faq-panel" id="faq-panel-3" role="region" aria-labelledby="faq-trig-3">
+                            <div class="faq-content">
+                                <p>We work across the spectrum! We help ambitious pre-seed startups establish their brand foundations and build MVPs, while also collaborating with leading enterprise organizations to redesign digital workflows, scale search rankings, and design hardware/software mockups.</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- FAQ 4 -->
+                    <div class="faq-item">
+                        <button class="faq-trigger" id="faq-trig-4" aria-expanded="false" aria-controls="faq-panel-4">
+                            <span class="faq-question">What technologies do you use for development?</span>
+                            <span class="faq-icon-status"><i class="fa-solid fa-plus"></i></span>
+                        </button>
+                        <div class="faq-panel" id="faq-panel-4" role="region" aria-labelledby="faq-trig-4">
+                            <div class="faq-content">
+                                <p>We build our interactive websites with standard semantic HTML5, high-performance vanilla CSS/SCSS layouts, and Javascript powered by GSAP (GreenSock Animation Platform) for buttery-smooth micro-animations. For larger app builds we integrate React, Next.js, and headless CMS services.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- CTA Section -->
+        <section class="cta-section">
+            <div class="container">
+                <div class="cta-box scroll-reveal-up">
+                    <h2 class="cta-title">Ready To Build<br>Something Extraordinary?</h2>
+                    <p class="cta-desc">Let's collaborate to create impactful digital experiences that elevate your brand and accelerate growth.</p>
+                    <a href="#contact" class="btn btn-primary btn-magnetic" id="cta-action-btn">Start Your Project</a>
+                </div>
+            </div>
+        </section>
+
+        <!-- Contact Form Section -->
+        <section class="contact-section" id="contact">
+            <div class="container">
+                <div class="contact-grid">
+                    <!-- Info Column -->
+                    <div class="contact-info-col scroll-reveal-left">
+                        <div class="section-tag">Get In Touch</div>
+                        <h2 class="section-title">Let's Start A Conversation</h2>
+                        <p class="contact-intro">Have a project in mind, want to partner, or simply looking to talk design strategy? Reach out to our team today.</p>
+                        
+                        <div class="contact-methods">
+                            <div class="method-item">
+                                <div class="method-icon"><i class="fa-solid fa-envelope"></i></div>
+                                <div class="method-details">
+                                    <span>Write Us</span>
+                                    <a href="mailto:hello@aeterna-agency.com" class="method-link">hello@aeterna-agency.com</a>
+                                </div>
+                            </div>
+                            <div class="method-item">
+                                <div class="method-icon"><i class="fa-solid fa-phone"></i></div>
+                                <div class="method-details">
+                                    <span>Call Us</span>
+                                    <a href="tel:+18005550199" class="method-link">+1 (800) 555-0199</a>
+                                </div>
+                            </div>
+                            <div class="method-item">
+                                <div class="method-icon"><i class="fa-solid fa-location-dot"></i></div>
+                                <div class="method-details">
+                                    <span>Visit Us</span>
+                                    <p class="method-link">45 Old Street, London, EC1V 9HX, UK</p>
+                                </div>
+                            </div>
+                        </div>
+
+
+                    </div>
+
+                    <!-- Form Column -->
+                    <div class="contact-form-col scroll-reveal-right">
+                        <form id="contact-form" class="contact-form" novalidate>
+                            
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <input type="text" id="form-name" class="form-control" placeholder=" " required>
+                                    <label for="form-name" class="form-label">Full Name *</label>
+                                    <span class="form-error-msg" id="name-error">Please enter your name</span>
+                                </div>
+                            </div>
+
+                            <div class="form-row split">
+                                <div class="form-group">
+                                    <input type="email" id="form-email" class="form-control" placeholder=" " required>
+                                    <label for="form-email" class="form-label">Email Address *</label>
+                                    <span class="form-error-msg" id="email-error">Please enter a valid email</span>
+                                </div>
+                                <div class="form-group">
+                                    <input type="tel" id="form-phone" class="form-control" placeholder=" ">
+                                    <label for="form-phone" class="form-label">Phone Number</label>
+                                </div>
+                            </div>
+
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <input type="text" id="form-company" class="form-control" placeholder=" ">
+                                    <label for="form-company" class="form-label">Company Name</label>
+                                </div>
+                            </div>
+
+                            <div class="form-row">
+                                <div class="form-group select-group">
+                                    <select id="form-service" class="form-control select-control" required>
+                                        <option value="" disabled selected hidden></option>
+                                        <option value="branding">Branding & Identity</option>
+                                        <option value="uiux">UI UX Design</option>
+                                        <option value="webdesign">Website Design</option>
+                                        <option value="development">Website Development</option>
+                                        <option value="marketing">Digital Marketing</option>
+                                        <option value="content">Creative Content</option>
+                                    </select>
+                                    <label for="form-service" class="form-label select-label">Service Required *</label>
+                                    <span class="form-error-msg" id="service-error">Please select a service</span>
+                                    <i class="fa-solid fa-chevron-down select-arrow"></i>
+                                </div>
+                            </div>
+
+                            <div class="form-row">
+                                <div class="form-group budget-group">
+                                    <span class="budget-label">Project Budget (USD): <span id="budget-value">$50,000+</span></span>
+                                    <input type="range" id="form-budget" min="5000" max="100000" step="5000" value="50000" class="budget-slider">
+                                    <div class="budget-ticks">
+                                        <span>$5k</span>
+                                        <span>$25k</span>
+                                        <span>$50k</span>
+                                        <span>$75k</span>
+                                        <span>$100k+</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <textarea id="form-message" class="form-control textarea-control" placeholder=" " required></textarea>
+                                    <label for="form-message" class="form-label">Project Message *</label>
+                                    <span class="form-error-msg" id="message-error">Please write your project scope</span>
+                                </div>
+                            </div>
+
+                            <button type="submit" class="btn btn-primary btn-magnetic btn-submit" id="form-submit-btn">
+                                <span>Send Message <i class="fa-solid fa-paper-plane icon-plane"></i></span>
+                            </button>
+
+                            <!-- Success Dialog State -->
+                            <div class="form-success-banner" id="form-success">
+                                <div class="success-icon"><i class="fa-solid fa-circle-check"></i></div>
+                                <h4>Message Sent Successfully!</h4>
+                                <p>Thank you for reaching out. A partner from Aeterna will review your project scope and reply within 24 business hours.</p>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Footer Section -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-top">
+                <div class="footer-brand-col">
+                    <a href="#home" class="logo" id="footer-logo">AETERNA<span class="logo-dot">.</span></a>
+                    <p class="footer-tagline">We create bold brands, exceptional experiences, and digital products that drive growth.</p>
+                    <div class="footer-social-links">
+                        <a href="https://linkedin.com" target="_blank" rel="noopener" aria-label="LinkedIn"><i class="fa-brands fa-linkedin-in"></i></a>
+                        <a href="https://instagram.com" target="_blank" rel="noopener" aria-label="Instagram"><i class="fa-brands fa-instagram"></i></a>
+                        <a href="https://facebook.com" target="_blank" rel="noopener" aria-label="Facebook"><i class="fa-brands fa-facebook-f"></i></a>
+                        <a href="https://behance.net" target="_blank" rel="noopener" aria-label="Behance"><i class="fa-brands fa-behance"></i></a>
+                        <a href="https://dribbble.com" target="_blank" rel="noopener" aria-label="Dribbble"><i class="fa-brands fa-dribbble"></i></a>
+                    </div>
+                </div>
+                
+                <div class="footer-links-col">
+                    <h4>Quick Links</h4>
+                    <ul>
+                        <li><a href="#home">Home</a></li>
+                        <li><a href="#about">About Us</a></li>
+                        <li><a href="#services">Services</a></li>
+                        <li><a href="#work">Our Work</a></li>
+                        <li><a href="#contact">Contact</a></li>
+                    </ul>
+                </div>
+
+                <div class="footer-links-col">
+                    <h4>Our Services</h4>
+                    <ul>
+                        <li><a href="#services">Branding</a></li>
+                        <li><a href="#services">UI UX Design</a></li>
+                        <li><a href="#services">Website Design</a></li>
+                        <li><a href="#services">Website Development</a></li>
+                        <li><a href="#services">Digital Marketing</a></li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="footer-bottom">
+                <p class="copyright">&copy; 2026 AETERNA Creative Agency. All Rights Reserved. Private Policy.</p>
+                <button class="btn-scroll-top btn-magnetic" id="back-to-top" aria-label="Scroll back to top">
+                    <i class="fa-solid fa-arrow-up"></i>
+                </button>
+            </div>
+        </div>
+    </footer>
+
+    <!-- GSAP CDN Libraries -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
+    
+    <!-- Lenis Smooth Scroll CDN -->
+    <script src="https://unpkg.com/@studio-freight/lenis@1.0.34/dist/lenis.min.js"></script>
+
+    <!-- Custom Interaction Javascript -->
+    <script src="script.js"></script>
+</body>
+</html>

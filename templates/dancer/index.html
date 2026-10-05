@@ -1,0 +1,701 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Elena Rostova | Soloist & Contemporary Dancer Portfolio</title>
+    <meta name="description" content="Official portfolio of Elena Rostova, premier soloist and contemporary choreographer. Discover her dance styles, performance journey, awards, and upcoming workshops.">
+    <!-- FontAwesome for Premium Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Custom Style -->
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <!-- Header Navigation -->
+    <header>
+        <div class="nav-container">
+            <a href="#hero" class="logo">ELENA<span>.</span></a>
+            <!-- Hamburger button -->
+            <button class="hamburger" id="hamburger" aria-label="Toggle Menu" aria-expanded="false">
+                <span class="ham-line"></span>
+                <span class="ham-line"></span>
+                <span class="ham-line"></span>
+            </button>
+        </div>
+    </header>
+
+    <!-- Dark backdrop -->
+    <div class="nav-backdrop" id="navBackdrop"></div>
+
+    <!-- Right-side drawer -->
+    <div class="nav-drawer" id="navDrawer">
+        <!-- Close button -->
+        <button class="nav-close" id="navClose" aria-label="Close Menu">
+            <span></span><span></span>
+        </button>
+
+        <!-- Nav links -->
+        <nav class="drawer-nav">
+            <ul>
+                <li><a href="#hero"         class="drawer-link" data-num="01">Home</a></li>
+                <li><a href="#about"        class="drawer-link" data-num="02">About Me</a></li>
+                <li><a href="#styles"       class="drawer-link" data-num="03">Dance Styles</a></li>
+                <li><a href="#journey"      class="drawer-link" data-num="04">Journey</a></li>
+                <li><a href="#awards"       class="drawer-link" data-num="05">Awards</a></li>
+                <li><a href="#gallery"      class="drawer-link" data-num="06">Gallery</a></li>
+                <li><a href="#video"        class="drawer-link" data-num="07">Videos</a></li>
+                <li><a href="#workshops"    class="drawer-link" data-num="08">Workshops</a></li>
+                <li><a href="#testimonials" class="drawer-link" data-num="09">Reviews</a></li>
+                <li><a href="#contact"      class="drawer-link" data-num="10">Contact</a></li>
+            </ul>
+        </nav>
+
+        <!-- Social + email footer -->
+        <div class="drawer-footer">
+            <div class="drawer-socials">
+                <a href="#" aria-label="Instagram"><i class="fa-brands fa-instagram"></i></a>
+                <a href="#" aria-label="YouTube"><i class="fa-brands fa-youtube"></i></a>
+                <a href="#" aria-label="Facebook"><i class="fa-brands fa-facebook-f"></i></a>
+                <a href="#" aria-label="Vimeo"><i class="fa-brands fa-vimeo-v"></i></a>
+            </div>
+            <a href="mailto:booking@elenarostova.com" class="drawer-email">booking@elenarostova.com</a>
+        </div>
+    </div>
+
+    <section id="hero">
+        <div class="hero-slider">
+            <!-- Slide 1 -->
+            <div class="hero-slide active">
+                <div class="hero-grid">
+                    <div class="hero-left">
+                        <div class="hero-the-line">
+                            <span>the</span>
+                            <div class="line"></div>
+                        </div>
+                        <h1 class="hero-main-title">Artistic Modern<br><span>& Solo Performances.</span></h1>
+                        <div class="hero-with-line">
+                            <span>with Elena Rostova</span>
+                            <div class="line"></div>
+                        </div>
+                        <div class="hero-cta">
+                            <a href="#about" class="btn btn-primary">Discover More</a>
+                        </div>
+                    </div>
+                    <div class="hero-right">
+                        <div class="hero-artwork-container">
+                            <img src="blue_splash_dark.png" alt="Glowing Ink Splash" class="ink-splash">
+                            <img src="1.png" alt="Elena Rostova Dancer" class="dancer-cutout">
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Slide 2 -->
+            <div class="hero-slide">
+                <div class="hero-grid">
+                    <div class="hero-left">
+                        <div class="hero-the-line">
+                            <span>the</span>
+                            <div class="line"></div>
+                        </div>
+                        <h1 class="hero-main-title">Expressive Mudras<br><span>& Divine Movements.</span></h1>
+                        <div class="hero-with-line">
+                            <span>Storytelling through dance</span>
+                            <div class="line"></div>
+                        </div>
+                        <div class="hero-cta">
+                            <a href="#contact" class="btn btn-primary">Book Performance</a>
+                        </div>
+                    </div>
+                    <div class="hero-right">
+                        <div class="hero-artwork-container">
+                            <img src="blue_splash_dark.png" alt="Glowing Ink Splash" class="ink-splash">
+                            <img src="2.png" alt="Elena Rostova Dancer" class="dancer-cutout">
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Slide 3 -->
+            <div class="hero-slide">
+                <div class="hero-grid">
+                    <div class="hero-left">
+                        <div class="hero-the-line">
+                            <span>the</span>
+                            <div class="line"></div>
+                        </div>
+                        <h1 class="hero-main-title">Rhythmic Energy<br><span>& Dynamic Presence.</span></h1>
+                        <div class="hero-with-line">
+                            <span>Captivating global stages</span>
+                            <div class="line"></div>
+                        </div>
+                        <div class="hero-cta">
+                            <a href="#workshops" class="btn btn-primary">Join Workshops</a>
+                        </div>
+                    </div>
+                    <div class="hero-right">
+                        <div class="hero-artwork-container">
+                            <img src="blue_splash_dark.png" alt="Glowing Ink Splash" class="ink-splash">
+                            <img src="3.png" alt="Elena Rostova Dancer" class="dancer-cutout">
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="hero-side-text">Elena Portfolio</div>
+        
+        <!-- Hero Slider indicators (Vertical dots on the right) -->
+        <div class="hero-scroll-dots">
+            <span class="hero-dot active" data-idx="0"></span>
+            <span class="hero-dot" data-idx="1"></span>
+            <span class="hero-dot" data-idx="2"></span>
+        </div>
+    </section>
+
+    <!-- 2. About Me Section -->
+    <section id="about">
+        <div class="container">
+            <div class="editorial-about-wrapper">
+                <!-- Left Offset Portrait (B&W) -->
+                <div class="editorial-portrait reveal">
+                    <img src="2.jpg" alt="Elena Rostova Portrait" class="editorial-img-one">
+                </div>
+
+                <!-- Overlapping Typography Display -->
+                <div class="editorial-typography reveal">
+                    <h2 class="editorial-main-title">
+                        Dance<br>
+                        to expose<br>
+                        your<br>
+                        brill<span>iancy</span>
+                    </h2>
+                </div>
+
+                <!-- Small Right Description -->
+                <div class="editorial-desc reveal">
+                    <p>
+                        Elena is an award-winning soloist merging classical ballet discipline with the fluid, raw expression of contemporary movement. She translates complex human narratives into breathtaking physical motion, redefining the traditional limits of space, energy, and form.
+                    </p>
+                </div>
+                
+                <!-- Bottom Offset Portrait (B&W landscape pose) -->
+                <div class="editorial-bottom-portrait reveal">
+                    <img src="4.png" alt="Elena Rostova Motion" class="editorial-img-two">
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 3. Dance Styles Section -->
+    <section id="styles">
+        <div class="container">
+            <div class="styles-slider-wrapper">
+                
+                <div class="styles-slides-container">
+                    
+                    <!-- Slide 1 -->
+                    <div class="styles-slide active" data-slide="0">
+                        <div class="styles-slide-content">
+                            <div class="styles-info-col reveal">
+                                <span class="styles-slide-num">01</span>
+                                <h3 class="styles-slide-title">Classical<br>Ballet</h3>
+                                <p class="styles-slide-desc">
+                                    The foundation of structure, absolute alignment, and timeless poise. Blending traditional posture with high athletic control.
+                                </p>
+                                <div class="styles-slider-nav">
+                                    <span class="styles-nav-dot active" data-go="0">01</span>
+                                    <span class="styles-nav-sep">/</span>
+                                    <span class="styles-nav-dot" data-go="1">02</span>
+                                    <span class="styles-nav-sep">/</span>
+                                    <span class="styles-nav-dot" data-go="2">03</span>
+                                    <span class="styles-nav-sep">/</span>
+                                    <span class="styles-nav-dot" data-go="3">04</span>
+                                </div>
+                            </div>
+                            <div class="styles-img-col reveal">
+                                <img src="1.png" alt="Classical Ballet" class="styles-slide-img">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Slide 2 -->
+                    <div class="styles-slide" data-slide="1">
+                        <div class="styles-slide-content">
+                            <div class="styles-info-col">
+                                <span class="styles-slide-num">02</span>
+                                <h3 class="styles-slide-title">Contemporary<br>Dance</h3>
+                                <p class="styles-slide-desc">
+                                    Classic Dance is a hot style of dance peppered with classic dance hall. Student should with an open mind and ready to be challenged the mind alone freshness.
+                                </p>
+                                <div class="styles-slider-nav">
+                                    <span class="styles-nav-dot" data-go="0">01</span>
+                                    <span class="styles-nav-sep">/</span>
+                                    <span class="styles-nav-dot active" data-go="1">02</span>
+                                    <span class="styles-nav-sep">/</span>
+                                    <span class="styles-nav-dot" data-go="2">03</span>
+                                    <span class="styles-nav-sep">/</span>
+                                    <span class="styles-nav-dot" data-go="3">04</span>
+                                </div>
+                            </div>
+                            <div class="styles-img-col">
+                                <img src="3.png" alt="Contemporary" class="styles-slide-img">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Slide 3 -->
+                    <div class="styles-slide" data-slide="2">
+                        <div class="styles-slide-content">
+                            <div class="styles-info-col">
+                                <span class="styles-slide-num">03</span>
+                                <h3 class="styles-slide-title">Neoclassical<br>Ballet</h3>
+                                <p class="styles-slide-desc">
+                                    Bridging classical heritage with dynamic, athletic modern concepts. Pushing speed, energy, and physical constraints.
+                                </p>
+                                <div class="styles-slider-nav">
+                                    <span class="styles-nav-dot" data-go="0">01</span>
+                                    <span class="styles-nav-sep">/</span>
+                                    <span class="styles-nav-dot" data-go="1">02</span>
+                                    <span class="styles-nav-sep">/</span>
+                                    <span class="styles-nav-dot active" data-go="2">03</span>
+                                    <span class="styles-nav-sep">/</span>
+                                    <span class="styles-nav-dot" data-go="3">04</span>
+                                </div>
+                            </div>
+                            <div class="styles-img-col">
+                                <img src="4.png" alt="Neoclassical" class="styles-slide-img">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Slide 4 -->
+                    <div class="styles-slide" data-slide="3">
+                        <div class="styles-slide-content">
+                            <div class="styles-info-col">
+                                <span class="styles-slide-num">04</span>
+                                <h3 class="styles-slide-title">Choreography<br>Design</h3>
+                                <p class="styles-slide-desc">
+                                    Translating internal conflicts into beautiful, structured stage designs. Shaping physical space and light with dancer motion.
+                                </p>
+                                <div class="styles-slider-nav">
+                                    <span class="styles-nav-dot" data-go="0">01</span>
+                                    <span class="styles-nav-sep">/</span>
+                                    <span class="styles-nav-dot" data-go="1">02</span>
+                                    <span class="styles-nav-sep">/</span>
+                                    <span class="styles-nav-dot" data-go="2">03</span>
+                                    <span class="styles-nav-sep">/</span>
+                                    <span class="styles-nav-dot active" data-go="3">04</span>
+                                </div>
+                            </div>
+                            <div class="styles-img-col">
+                                <img src="2.png" alt="Choreography" class="styles-slide-img">
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+
+            </div>
+        </div>
+    </section>
+
+    <!-- 4. Performance Journey Section -->
+    <section id="journey">
+        <div class="container">
+            <div class="section-header reveal">
+                <span class="section-subtitle">Chronology</span>
+                <h2 class="section-title">chronology of motion</h2>
+            </div>
+            
+            <div class="timeline">
+                <!-- Item 1 -->
+                <div class="timeline-item reveal">
+                    <div class="timeline-dot"></div>
+                    <div class="timeline-year">2024 - Present</div>
+                    <h3 class="timeline-title">Principal Soloist</h3>
+                    <p class="timeline-desc">Leading performances with the Royal Contemporary Dance Troupe, headlining tours in London and Tokyo.</p>
+                </div>
+                
+                <!-- Item 2 -->
+                <div class="timeline-item reveal">
+                    <div class="timeline-dot"></div>
+                    <div class="timeline-year">2022 - 2024</div>
+                    <h3 class="timeline-title">Choreographer in Residence</h3>
+                    <p class="timeline-desc">Designed original contemporary showcases for the Paris Opera Ballet, culminating in the award-winning solo 'Breathe'.</p>
+                </div>
+                
+                <!-- Item 3 -->
+                <div class="timeline-item reveal">
+                    <div class="timeline-dot"></div>
+                    <div class="timeline-year">2020 - 2022</div>
+                    <h3 class="timeline-title">European Tour</h3>
+                    <p class="timeline-desc">Performed critically acclaimed solo recitals across Berlin, Vienna, and Milan, emphasizing improvisational contemporary formats.</p>
+                </div>
+                
+                <!-- Item 4 -->
+                <div class="timeline-item reveal">
+                    <div class="timeline-dot"></div>
+                    <div class="timeline-year">2016 - 2020</div>
+                    <h3 class="timeline-title">BFA in Dance</h3>
+                    <p class="timeline-desc">Graduated with top honors from The Juilliard School, studying under legendary classical and modern masters.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 5. Awards & Recognition Section -->
+    <section id="awards">
+        <div class="container">
+            <div class="section-header reveal">
+                <span class="section-subtitle">Accolades</span>
+                <h2 class="section-title">laurels & achievements</h2>
+            </div>
+            
+            <div class="awards-editorial">
+
+                <!-- Award 1 -->
+                <div class="award-editorial-item reveal">
+                    <div class="award-editorial-num">01</div>
+                    <div class="award-editorial-body">
+                        <span class="award-editorial-tag">Prix de Lausanne</span>
+                        <h3 class="award-editorial-title">Grand Prix<br>Winner</h3>
+                        <div class="award-editorial-meta">
+                            <span class="award-editorial-year">2020</span>
+                            <span class="award-editorial-org">Contemporary Dance Competition</span>
+                        </div>
+                    </div>
+                    <div class="award-editorial-line"></div>
+                </div>
+
+                <!-- Award 2 -->
+                <div class="award-editorial-item reveal">
+                    <div class="award-editorial-num">02</div>
+                    <div class="award-editorial-body">
+                        <span class="award-editorial-tag">National Dance Awards UK</span>
+                        <h3 class="award-editorial-title">Outstanding<br>Soloist</h3>
+                        <div class="award-editorial-meta">
+                            <span class="award-editorial-year">2022</span>
+                            <span class="award-editorial-org">London, United Kingdom</span>
+                        </div>
+                    </div>
+                    <div class="award-editorial-line"></div>
+                </div>
+
+                <!-- Award 3 -->
+                <div class="award-editorial-item reveal">
+                    <div class="award-editorial-num">03</div>
+                    <div class="award-editorial-body">
+                        <span class="award-editorial-tag">European Dance Magazine</span>
+                        <h3 class="award-editorial-title">Choreographer<br>of the Year</h3>
+                        <div class="award-editorial-meta">
+                            <span class="award-editorial-year">2023</span>
+                            <span class="award-editorial-org">Critic's Choice Award</span>
+                        </div>
+                    </div>
+                    <div class="award-editorial-line"></div>
+                </div>
+
+                <!-- Award 4 -->
+                <div class="award-editorial-item reveal">
+                    <div class="award-editorial-num">04</div>
+                    <div class="award-editorial-body">
+                        <span class="award-editorial-tag">Juilliard School</span>
+                        <h3 class="award-editorial-title">Emerging<br>Artist Prize</h3>
+                        <div class="award-editorial-meta">
+                            <span class="award-editorial-year">2019</span>
+                            <span class="award-editorial-org">Dance Division, New York</span>
+                        </div>
+                    </div>
+                    <div class="award-editorial-line"></div>
+                </div>
+
+            </div>
+        </div>
+    </section>
+
+    <!-- 6. Gallery Section -->
+    <section id="gallery">
+        <!-- Instagram handle header -->
+        <div class="gallery-header reveal">
+            <span class="gallery-instagram-handle">Instagram Gallery &nbsp;@helo.dancer</span>
+        </div>
+
+        <!-- Carousel container -->
+        <div class="gallery-carousel-outer">
+            <div class="gallery-carousel-track" id="galleryTrack">
+                <!-- Slide 1 -->
+                <div class="gallery-carousel-slide gallery-item">
+                    <img src="1.jpg" alt="Stage Performance">
+                    <div class="gallery-overlay"><span>Stage Performance</span></div>
+                </div>
+                <!-- Slide 2 -->
+                <div class="gallery-carousel-slide gallery-item">
+                    <img src="2.jpg" alt="Contemporary Flow">
+                    <div class="gallery-overlay"><span>Contemporary Flow</span></div>
+                </div>
+                <!-- Slide 3 -->
+                <div class="gallery-carousel-slide gallery-item">
+                    <img src="3.jpg" alt="Classical Pose">
+                    <div class="gallery-overlay"><span>Classical Pose</span></div>
+                </div>
+                <!-- Slide 4 -->
+                <div class="gallery-carousel-slide gallery-item">
+                    <img src="4.jpg" alt="Dramatic Spotlight">
+                    <div class="gallery-overlay"><span>Dramatic Spotlight</span></div>
+                </div>
+            </div>
+
+            <!-- Prev / Next arrows -->
+            <button class="gallery-arrow gallery-arrow-prev" id="galleryPrev" aria-label="Previous">
+                <i class="fa-solid fa-chevron-left"></i>
+            </button>
+            <button class="gallery-arrow gallery-arrow-next" id="galleryNext" aria-label="Next">
+                <i class="fa-solid fa-chevron-right"></i>
+            </button>
+        </div>
+
+        <!-- Dot indicators -->
+        <div class="gallery-dots" id="galleryDots">
+            <span class="gallery-dot active" data-idx="0"></span>
+            <span class="gallery-dot" data-idx="1"></span>
+            <span class="gallery-dot" data-idx="2"></span>
+            <span class="gallery-dot" data-idx="3"></span>
+        </div>
+    </section>
+
+    <!-- 7. Video Performances Section -->
+    <section id="video">
+        <!-- Full-bleed cinematic hero — no text -->
+        <div class="video-hero reveal">
+            <img src="video_hero.png" alt="Stage on Film">
+            <div class="video-hero-vignette"></div>
+            <button class="video-hero-play" aria-label="Play video">
+                <i class="fa-solid fa-play"></i>
+            </button>
+        </div>
+    </section>
+
+    <!-- 8. Workshops & Classes Section -->
+    <section id="workshops">
+        <div class="container">
+
+            <!-- Top split: heading left + description right -->
+            <div class="edu-header reveal">
+                <div class="edu-heading-block">
+                    <span class="section-subtitle">Education</span>
+                    <h2 class="edu-big-title">Start your<br>dancing life<br>with the plan</h2>
+                </div>
+                <div class="edu-heading-desc">
+                    <div class="edu-divider"></div>
+                    <p>Student should come with an open mind and be ready to be challenged. Each class builds structure, poise, and timeless form.</p>
+                </div>
+            </div>
+
+            <!-- Row table -->
+            <div class="edu-table">
+
+                <!-- Row 01 -->
+                <div class="edu-row reveal">
+                    <span class="edu-num">01</span>
+                    <div class="edu-class">
+                        <h3>Contemporary<br>Fluidity Masterclass</h3>
+                        <span>Intermediate · Advanced</span>
+                    </div>
+                    <div class="edu-meta">
+                        <p><i class="fa-regular fa-clock"></i> Saturdays, 10:00 – 12:30</p>
+                        <p><i class="fa-solid fa-location-dot"></i> Studio Alpha, Paris</p>
+                    </div>
+                    <div class="edu-status open">Open</div>
+                    <a href="#contact" class="edu-btn">Get started</a>
+                </div>
+
+                <!-- Row 02 -->
+                <div class="edu-row reveal">
+                    <span class="edu-num">02</span>
+                    <div class="edu-class">
+                        <h3>Classical Ballet<br>&amp; Pointe Technique</h3>
+                        <span>All Levels Welcome</span>
+                    </div>
+                    <div class="edu-meta">
+                        <p><i class="fa-regular fa-clock"></i> Mon &amp; Wed, 6:00 PM</p>
+                        <p><i class="fa-solid fa-location-dot"></i> Studio Alpha, Paris</p>
+                    </div>
+                    <div class="edu-status open">Open</div>
+                    <a href="#contact" class="edu-btn">Get started</a>
+                </div>
+
+                <!-- Row 03 -->
+                <div class="edu-row reveal">
+                    <span class="edu-num">03</span>
+                    <div class="edu-class">
+                        <h3>Choreographic<br>Improv Intensive</h3>
+                        <span>Advanced Soloists</span>
+                    </div>
+                    <div class="edu-meta">
+                        <p><i class="fa-regular fa-clock"></i> July 24–26, Full-day</p>
+                        <p><i class="fa-solid fa-location-dot"></i> Grand Theatre, Milan</p>
+                    </div>
+                    <div class="edu-status sold-out">Sold Out</div>
+                    <a href="#contact" class="edu-btn disabled">Waitlist</a>
+                </div>
+
+            </div>
+        </div>
+    </section>
+
+
+    <!-- 9. Testimonials Section -->
+    <section id="testimonials">
+        <div class="container testimonial-container">
+            <h2 class="testimonial-header">YES! CLIENTS<br>TRUST ME</h2>
+            
+            <div class="testimonial-wrapper">
+                <!-- Left: Tilted Image -->
+                <div class="testimonial-image-wrapper reveal">
+                    <img src="2.jpg" alt="Elena Rostova Portrait" class="testimonial-img">
+                </div>
+
+                <!-- Center: Quote Area -->
+                <div class="testimonial-quote-area reveal">
+                    <div class="quote-symbol">“</div>
+                    <div class="testimonial-slides">
+                        <!-- Slide 1 -->
+                        <div class="testimonial-slide active" data-idx="0">
+                            <p class="testimonial-text">An extraordinary artist who transcends the boundaries of physical performance. Elena commands the stage and commands your soul with effortless elegance.</p>
+                            <h4 class="testimonial-author">Le Monde</h4>
+                            <span class="testimonial-role">French Daily Newspaper</span>
+                        </div>
+                        <!-- Slide 2 -->
+                        <div class="testimonial-slide" data-idx="1">
+                            <p class="testimonial-text">Rostova bridges classical discipline with raw, modern honesty in a way few others can. A stunning breath of fresh air for contemporary dance.</p>
+                            <h4 class="testimonial-author">The New York Times</h4>
+                            <span class="testimonial-role">American National Newspaper</span>
+                        </div>
+                        <!-- Slide 3 -->
+                        <div class="testimonial-slide" data-idx="2">
+                            <p class="testimonial-text">A mesmerizing dancer whose speed, grace, and theatrical intelligence are unmatched in her generation. A true force of nature on stage.</p>
+                            <h4 class="testimonial-author">Dance Magazine</h4>
+                            <span class="testimonial-role">Monthly Performing Arts Publication</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Right: Vertical Navigation Indicator -->
+                <div class="testimonial-nav reveal">
+                    <div class="testimonial-nav-item active" data-idx="0">01</div>
+                    <div class="testimonial-nav-item" data-idx="1">02</div>
+                    <div class="testimonial-nav-item" data-idx="2">03</div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+
+
+    <!-- 10. Contact Section -->
+    <section id="contact">
+        <div class="contact-split">
+
+            <!-- Left: Statement panel -->
+            <div class="contact-left reveal">
+                <div class="contact-left-inner">
+                    <span class="contact-eyebrow">Reach Out</span>
+                    <h2 class="contact-headline">Let's<br><em>create</em><br>together.</h2>
+                    <p class="contact-subtext">Available for stage performances, choreographic collaborations, workshops, and creative direction across Europe and beyond.</p>
+                    <div class="contact-details-stack">
+                        <a href="mailto:booking@elenarostova.com" class="contact-detail-row">
+                            <i class="fa-solid fa-envelope"></i>
+                            <span>booking@elenarostova.com</span>
+                        </a>
+                        <a href="tel:+33123456789" class="contact-detail-row">
+                            <i class="fa-solid fa-phone"></i>
+                            <span>+33 1 2345 6789</span>
+                        </a>
+                        <div class="contact-detail-row">
+                            <i class="fa-solid fa-location-dot"></i>
+                            <span>Paris &amp; Milan, European Union</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right: Form panel -->
+            <div class="contact-right reveal">
+                <div class="contact-right-inner">
+                    <p class="contact-form-heading">Send a message</p>
+                    <form class="contact-form" onsubmit="event.preventDefault(); alert('Message sent successfully!');">
+                        <div class="form-group-row">
+                            <div class="form-group">
+                                <input type="text" id="name" class="form-input" placeholder=" " required>
+                                <label for="name" class="form-label">Full Name</label>
+                            </div>
+                            <div class="form-group">
+                                <input type="email" id="email" class="form-input" placeholder=" " required>
+                                <label for="email" class="form-label">Email Address</label>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <input type="text" id="subject" class="form-input" placeholder=" " required>
+                            <label for="subject" class="form-label">Subject</label>
+                        </div>
+                        <div class="form-group">
+                            <textarea id="message" class="form-input" rows="5" placeholder=" " required style="resize:none;"></textarea>
+                            <label for="message" class="form-label">Message</label>
+                        </div>
+                        <button type="submit" class="btn btn-primary">Send Message &nbsp;→</button>
+                    </form>
+                </div>
+            </div>
+
+        </div>
+    </section>
+
+    <!-- 11. Footer Section -->
+    <footer>
+        <!-- Big CTA statement -->
+        <div class="footer-cta">
+            <h2 class="footer-cta-title">Let's start your<br>dance now!</h2>
+            <div class="footer-chevron">
+                <i class="fa-solid fa-chevron-down"></i>
+            </div>
+            <a href="mailto:booking@elenarostova.com" class="footer-email">booking@elenarostova.com</a>
+            <div class="footer-socials">
+                <a href="#">Facebook</a>
+                <a href="#">Instagram</a>
+                <a href="#">YouTube</a>
+            </div>
+        </div>
+
+        <!-- Bottom bar -->
+        <div class="footer-bar">
+            <p class="footer-copy">&copy; 2025 – 2026 by <strong>Elena Rostova</strong></p>
+            <p class="footer-hours">Mon – Sat, 9:00 am – 6:00 pm</p>
+            <nav class="footer-nav">
+                <a href="#about">About</a>
+                <a href="#workshops">Classes</a>
+                <a href="#gallery">Gallery</a>
+                <a href="#contact">Contact</a>
+            </nav>
+        </div>
+
+        <!-- Scroll to top -->
+        <button class="scroll-top" id="scrollTop" aria-label="Scroll to top">
+            <i class="fa-solid fa-arrow-up"></i>
+        </button>
+    </footer>
+
+
+    <!-- Image Lightbox Modal -->
+    <div class="lightbox" aria-hidden="true" role="dialog">
+        <div class="lightbox-content">
+            <button class="lightbox-close" aria-label="Close Gallery">&times;</button>
+            <img class="lightbox-img" src="" alt="Enlarged Image">
+        </div>
+    </div>
+
+    <!-- Application Script -->
+    <script src="app.js"></script>
+</body>
+</html>

@@ -1,0 +1,988 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Lumière | Premium Unisex Beauty Salon</title>
+  <meta name="description" content="Experience premium beauty, grooming, and wellness services. Expert hair, skin, makeup, and grooming for men and women in a luxurious environment.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400;1,500&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+  <!-- NAVBAR -->
+  <nav class="navbar" id="navbar">
+    <div class="nav-container">
+      <a href="#" class="nav-logo">
+        <span class="logo-serif">Lumière</span>
+        <span class="logo-dot"></span>
+      </a>
+      <ul class="nav-links" id="nav-links">
+        <li><a href="#hero" class="nav-link" id="nl-home">Home</a></li>
+        <li><a href="#about" class="nav-link" id="nl-about">About Us</a></li>
+        <li><a href="#services" class="nav-link" id="nl-services">Services</a></li>
+        <li><a href="#experts" class="nav-link" id="nl-experts">Our Experts</a></li>
+        <li><a href="#gallery" class="nav-link" id="nl-gallery">Gallery</a></li>
+        <li><a href="#pricing" class="nav-link" id="nl-pricing">Pricing</a></li>
+        <li><a href="#testimonials" class="nav-link" id="nl-testimonials">Testimonials</a></li>
+        <li><a href="#contact" class="nav-link" id="nl-contact">Contact Us</a></li>
+      </ul>
+      <a href="#booking" class="nav-book-btn" id="nav-book">Book Now</a>
+      <button class="hamburger" id="hamburger" aria-label="Toggle menu">
+        <span></span><span></span><span></span>
+      </button>
+    </div>
+  </nav>
+
+  <main>
+
+    <!-- ═══════════════════════════════════════════
+         HERO SECTION — Full Screen Slider
+    ═══════════════════════════════════════════ -->
+    <section id="hero" class="hero-section">
+      <!-- Background layers per slide -->
+      <div class="hero-bgs">
+        <div class="hero-bg-layer active" id="hbg-0" style="background-image:url('hero-makeup-pinkish.png')"></div>
+        <div class="hero-bg-layer" id="hbg-1" style="background-image:url('https://images.unsplash.com/photo-1522337360788-8b13dee7a37e?w=1900&q=85&auto=format&fit=crop')"></div>
+        <div class="hero-bg-layer" id="hbg-2" style="background-image:url('https://images.unsplash.com/photo-1503951914875-452162b0f3f1?w=1900&q=85&auto=format&fit=crop')"></div>
+      </div>
+      <div class="hero-dark-overlay"></div>
+
+      <div class="hero-inner">
+        <!-- Slides -->
+        <div class="hero-slides" id="hero-slides">
+          <div class="hero-slide active" id="hs-0">
+            <p class="slide-eyebrow">Welcome to Lumière Salon</p>
+            <h1 class="slide-heading">Beauty Beyond<br><em>Expectations</em></h1>
+            <p class="slide-body">Experience premium beauty, grooming, and wellness services designed to help you look and feel your absolute best.</p>
+            <div class="slide-actions">
+              <a href="#booking" class="btn btn-gold" id="hero-book-1">
+                <i class="fa-solid fa-calendar-check"></i> Book Appointment
+              </a>
+              <a href="#services" class="btn btn-ghost" id="hero-explore-1">
+                Explore Services <i class="fa-solid fa-arrow-right"></i>
+              </a>
+            </div>
+          </div>
+          <div class="hero-slide" id="hs-1">
+            <p class="slide-eyebrow">Personalized Beauty</p>
+            <h1 class="slide-heading">Your Style.<br><em>Your Confidence.</em></h1>
+            <p class="slide-body">From modern haircuts to luxurious skincare treatments, we create personalized beauty experiences for every client.</p>
+            <div class="slide-actions">
+              <a href="#pricing" class="btn btn-gold" id="hero-view-1">
+                <i class="fa-solid fa-gem"></i> View Packages
+              </a>
+              <a href="#contact" class="btn btn-ghost" id="hero-contact-1">
+                Contact Us <i class="fa-solid fa-arrow-right"></i>
+              </a>
+            </div>
+          </div>
+          <div class="hero-slide" id="hs-2">
+            <p class="slide-eyebrow">For Men &amp; Women</p>
+            <h1 class="slide-heading">Luxury Beauty<br><em>For Everyone</em></h1>
+            <p class="slide-body">A premium unisex salon offering expert hair, skin, makeup, and grooming services in a relaxing environment.</p>
+            <div class="slide-actions">
+              <a href="#booking" class="btn btn-gold" id="hero-book-2">
+                <i class="fa-solid fa-star"></i> Book Now
+              </a>
+              <a href="#gallery" class="btn btn-ghost" id="hero-gallery-1">
+                Our Gallery <i class="fa-solid fa-arrow-right"></i>
+              </a>
+            </div>
+          </div>
+        </div>
+
+        <!-- Slider Controls -->
+        <div class="hero-controls">
+          <div class="slide-dots">
+            <button class="sdot active" data-slide="0" id="sdot-0" aria-label="Slide 1"></button>
+            <button class="sdot" data-slide="1" id="sdot-1" aria-label="Slide 2"></button>
+            <button class="sdot" data-slide="2" id="sdot-2" aria-label="Slide 3"></button>
+          </div>
+          <div class="slide-counter">
+            <span class="slide-cur" id="slide-cur">01</span>
+            <span class="slide-sep">/</span>
+            <span class="slide-total">03</span>
+          </div>
+        </div>
+
+        <!-- Floating Glassmorphism Stats -->
+        <div class="hero-stats-bento">
+          <div class="hero-stat-card">
+            <span class="hero-stat-num">10+</span>
+            <span class="hero-stat-label">Years of Experience</span>
+          </div>
+          <div class="hero-stat-card">
+            <span class="hero-stat-num">5,000+</span>
+            <span class="hero-stat-label">Happy Clients</span>
+          </div>
+          <div class="hero-stat-card hero-stat-accent">
+            <span class="hero-stat-num">20+</span>
+            <span class="hero-stat-label">Beauty Specialists</span>
+          </div>
+          <div class="hero-stat-card">
+            <span class="hero-stat-num">15+</span>
+            <span class="hero-stat-label">Premium Services</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="scroll-cue">
+        <span>Scroll</span>
+        <div class="scroll-bar"></div>
+      </div>
+    </section>
+
+    <!-- ═══════════════════════════════════════════
+         ABOUT SECTION — Bento 2-Col
+    ═══════════════════════════════════════════ -->
+    <section id="about" class="about-section section-pad">
+      <div class="container">
+        <div class="about-bento">
+
+          <!-- Left: Image -->
+          <div class="about-img-cell">
+            <div class="about-img-wrap">
+              <img src="https://images.unsplash.com/photo-1560066984-138dadb4c035?w=900&q=85&auto=format&fit=crop" alt="Premium Salon Experience" loading="lazy">
+            </div>
+            <div class="about-img-stat">
+              <span class="ais-num">5,000+</span>
+              <span class="ais-label">Happy Clients</span>
+            </div>
+          </div>
+
+          <!-- Right: Content -->
+          <div class="about-content-cell">
+            <span class="eyebrow-badge">About Us</span>
+            <h2 class="section-heading">Where Beauty Meets<br><em>Expertise</em></h2>
+            <p class="body-text">At our salon, beauty is more than a service. It is an experience designed around your unique personality and style. Our team of experienced beauty professionals combines creativity, skill, and premium products to deliver exceptional results.</p>
+            <p class="body-text">Whether you are preparing for a special occasion, seeking a complete makeover, or maintaining your regular beauty routine, we are committed to helping you look and feel your best.</p>
+
+            <div class="highlights-grid">
+              <div class="hi-item"><i class="fa-solid fa-circle-check"></i><span>Experienced Beauty Professionals</span></div>
+              <div class="hi-item"><i class="fa-solid fa-circle-check"></i><span>Premium Quality Products</span></div>
+              <div class="hi-item"><i class="fa-solid fa-circle-check"></i><span>Modern Equipment &amp; Techniques</span></div>
+              <div class="hi-item"><i class="fa-solid fa-circle-check"></i><span>Hygienic &amp; Comfortable Environment</span></div>
+              <div class="hi-item"><i class="fa-solid fa-circle-check"></i><span>Personalized Consultations</span></div>
+              <div class="hi-item"><i class="fa-solid fa-circle-check"></i><span>Affordable Luxury Services</span></div>
+            </div>
+
+            <a href="#booking" class="btn btn-accent" id="about-book">
+              Book a Consultation <i class="fa-solid fa-arrow-right"></i>
+            </a>
+          </div>
+
+        </div>
+      </div>
+    </section>
+
+    <!-- ═══════════════════════════════════════════
+         SERVICES SECTION — Tabbed Bento Grid
+    ═══════════════════════════════════════════ -->
+    <section id="services" class="services-section section-pad">
+      <div class="container">
+        <div class="section-hdr text-center">
+          <span class="eyebrow-badge">What We Offer</span>
+          <h2 class="section-heading">Premium Services<br><em>For Everyone</em></h2>
+          <p class="section-sub">Expert beauty and grooming treatments tailored for both men and women.</p>
+        </div>
+
+        <!-- Tab Switcher -->
+        <div class="svc-tabs">
+          <button class="svc-tab active" data-tab="women" id="tab-women">
+            <i class="fa-solid fa-venus"></i> For Women
+          </button>
+          <button class="svc-tab" data-tab="men" id="tab-men">
+            <i class="fa-solid fa-mars"></i> For Men
+          </button>
+        </div>
+
+        <!-- Women Panel -->
+        <div class="svc-panel active" id="panel-women">
+          <div class="svc-bento">
+            <div class="svc-card">
+              <div class="svc-icon"><i class="fa-solid fa-scissors"></i></div>
+              <h3 class="svc-name">Hair Styling &amp; Haircuts</h3>
+              <p class="svc-desc">Precision cuts, trendy hairstyles, blow drying, curling, straightening, and special occasion styling.</p>
+            </div>
+            <div class="svc-card">
+              <div class="svc-icon"><i class="fa-solid fa-palette"></i></div>
+              <h3 class="svc-name">Hair Coloring</h3>
+              <p class="svc-desc">Global coloring, highlights, balayage, ombre, root touch-ups, and color correction services.</p>
+            </div>
+            <div class="svc-card svc-featured">
+              <div class="svc-icon"><i class="fa-solid fa-ring"></i></div>
+              <h3 class="svc-name">Bridal Makeup</h3>
+              <p class="svc-desc">Complete bridal beauty packages including makeup, hairstyling, and pre-bridal treatments.</p>
+            </div>
+            <div class="svc-card">
+              <div class="svc-icon"><i class="fa-solid fa-leaf"></i></div>
+              <h3 class="svc-name">Facial &amp; Skin Care</h3>
+              <p class="svc-desc">Hydrating facials, anti-aging treatments, brightening facials, and skin rejuvenation therapies.</p>
+            </div>
+            <div class="svc-card">
+              <div class="svc-icon"><i class="fa-solid fa-hand"></i></div>
+              <h3 class="svc-name">Nail Care</h3>
+              <p class="svc-desc">Manicure, pedicure, nail extensions, nail art, and nail strengthening treatments.</p>
+            </div>
+            <div class="svc-card">
+              <div class="svc-icon"><i class="fa-solid fa-wand-magic-sparkles"></i></div>
+              <h3 class="svc-name">Beauty &amp; Makeup</h3>
+              <p class="svc-desc">Party makeup, engagement makeup, reception makeup, and professional beauty consultations.</p>
+            </div>
+            <div class="svc-card">
+              <div class="svc-icon"><i class="fa-solid fa-spa"></i></div>
+              <h3 class="svc-name">Hair Spa &amp; Treatments</h3>
+              <p class="svc-desc">Keratin treatment, smoothening, hair botox, scalp therapy, and nourishing hair spa treatments.</p>
+            </div>
+            <div class="svc-card">
+              <div class="svc-icon"><i class="fa-solid fa-feather-pointed"></i></div>
+              <h3 class="svc-name">Waxing &amp; Threading</h3>
+              <p class="svc-desc">Professional waxing, threading, and grooming services for smooth and flawless skin.</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Men Panel -->
+        <div class="svc-panel" id="panel-men">
+          <div class="svc-bento">
+            <div class="svc-card">
+              <div class="svc-icon"><i class="fa-solid fa-scissors"></i></div>
+              <h3 class="svc-name">Haircuts &amp; Styling</h3>
+              <p class="svc-desc">Classic cuts, modern fades, beard styling, and personalized grooming services.</p>
+            </div>
+            <div class="svc-card svc-featured">
+              <div class="svc-icon"><i class="fa-solid fa-user-tie"></i></div>
+              <h3 class="svc-name">Beard Grooming</h3>
+              <p class="svc-desc">Beard trimming, shaping, styling, and premium beard care treatments.</p>
+            </div>
+            <div class="svc-card">
+              <div class="svc-icon"><i class="fa-solid fa-palette"></i></div>
+              <h3 class="svc-name">Hair Coloring</h3>
+              <p class="svc-desc">Grey coverage, fashion coloring, highlights, and customized hair color solutions.</p>
+            </div>
+            <div class="svc-card">
+              <div class="svc-icon"><i class="fa-solid fa-face-smile"></i></div>
+              <h3 class="svc-name">Men's Facials</h3>
+              <p class="svc-desc">Deep cleansing facials, anti-tan treatments, skin hydration, and rejuvenation therapies.</p>
+            </div>
+            <div class="svc-card">
+              <div class="svc-icon"><i class="fa-solid fa-hands"></i></div>
+              <h3 class="svc-name">Head Massage &amp; Hair Spa</h3>
+              <p class="svc-desc">Relaxing scalp massage, dandruff treatments, and hair strengthening therapies.</p>
+            </div>
+            <div class="svc-card">
+              <div class="svc-icon"><i class="fa-solid fa-gem"></i></div>
+              <h3 class="svc-name">Grooming Packages</h3>
+              <p class="svc-desc">Complete grooming sessions including haircut, beard trim, facial, and styling.</p>
+            </div>
+            <div class="svc-card">
+              <div class="svc-icon"><i class="fa-solid fa-droplet"></i></div>
+              <h3 class="svc-name">Skin Care Treatments</h3>
+              <p class="svc-desc">Acne control treatments, skin brightening, anti-aging solutions, and professional skincare.</p>
+            </div>
+            <div class="svc-card">
+              <div class="svc-icon"><i class="fa-solid fa-spa"></i></div>
+              <h3 class="svc-name">Premium Spa Experience</h3>
+              <p class="svc-desc">Stress-relief treatments, wellness therapies, and luxury relaxation services.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ═══════════════════════════════════════════
+         WHY CHOOSE US — 3-Col Bento
+    ═══════════════════════════════════════════ -->
+    <section id="why-us" class="why-section section-pad">
+      <div class="container">
+        <div class="section-hdr text-center">
+          <span class="eyebrow-badge">Why Us</span>
+          <h2 class="section-heading">Beauty Experts<br><em>You Can Trust</em></h2>
+        </div>
+        <div class="why-bento">
+          <!-- Left column: 2 cards -->
+          <div class="why-col">
+            <div class="why-card" id="why-cert">
+              <div class="why-icon"><i class="fa-solid fa-certificate"></i></div>
+              <h3 class="why-title">Certified Professionals</h3>
+              <p class="why-desc">Highly trained beauty and grooming specialists with years of expertise.</p>
+            </div>
+            <div class="why-card" id="why-prod">
+              <div class="why-icon"><i class="fa-solid fa-bottle-droplet"></i></div>
+              <h3 class="why-title">Premium Products</h3>
+              <p class="why-desc">Only trusted and internationally recognized brands for every treatment.</p>
+            </div>
+          </div>
+          <!-- Center: arched image -->
+          <div class="why-center">
+            <div class="why-img-wrap">
+              <img src="https://images.unsplash.com/photo-1595425970377-c9703cf48b6d?w=800&q=85&auto=format&fit=crop" alt="Beauty Expert at Work" loading="lazy">
+            </div>
+          </div>
+          <!-- Right column: 2 cards -->
+          <div class="why-col">
+            <div class="why-card" id="why-pers">
+              <div class="why-icon"><i class="fa-solid fa-comments"></i></div>
+              <h3 class="why-title">Personalized Service</h3>
+              <p class="why-desc">Customized treatments based on your individual needs and preferences.</p>
+            </div>
+            <div class="why-card" id="why-env">
+              <div class="why-icon"><i class="fa-solid fa-shield-halved"></i></div>
+              <h3 class="why-title">Comfortable Environment</h3>
+              <p class="why-desc">Relaxing, hygienic, and welcoming atmosphere at every visit.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ═══════════════════════════════════════════
+         FEATURED TREATMENTS — Alternating Cards
+    ═══════════════════════════════════════════ -->
+    <section id="treatments" class="treatments-section section-pad">
+      <div class="container">
+        <div class="section-hdr text-center">
+          <span class="eyebrow-badge">Signature Services</span>
+          <h2 class="section-heading">Featured<br><em>Treatments</em></h2>
+        </div>
+        <div class="treatments-list">
+
+          <div class="treat-card">
+            <div class="treat-img">
+              <img src="https://images.unsplash.com/photo-1521590832167-7bcbfaa6381f?w=800&q=85&auto=format&fit=crop" alt="Keratin Hair Treatment" loading="lazy">
+            </div>
+            <div class="treat-info">
+              <span class="treat-num">01</span>
+              <h3 class="treat-name">Keratin Hair Treatment</h3>
+              <p class="treat-desc">Restore smoothness, shine, and strength to your hair with our professional keratin solutions.</p>
+              <a href="#booking" class="btn btn-outline-dark" id="treat-book-1">Book Now <i class="fa-solid fa-arrow-right"></i></a>
+            </div>
+          </div>
+
+          <div class="treat-card treat-rev">
+            <div class="treat-img">
+              <img src="https://images.unsplash.com/photo-1522337360788-8b13dee7a37e?w=800&q=85&auto=format&fit=crop" alt="Luxury Hair Spa" loading="lazy">
+            </div>
+            <div class="treat-info">
+              <span class="treat-num">02</span>
+              <h3 class="treat-name">Luxury Hair Spa</h3>
+              <p class="treat-desc">Deep nourishment and rejuvenation for healthier, stronger hair.</p>
+              <a href="#booking" class="btn btn-outline-dark" id="treat-book-2">Book Now <i class="fa-solid fa-arrow-right"></i></a>
+            </div>
+          </div>
+
+          <div class="treat-card">
+            <div class="treat-img">
+              <img src="https://images.unsplash.com/photo-1512290923902-8a9f81dc236c?w=800&q=85&auto=format&fit=crop" alt="Advanced Skin Therapy" loading="lazy">
+            </div>
+            <div class="treat-info">
+              <span class="treat-num">03</span>
+              <h3 class="treat-name">Advanced Skin Therapy</h3>
+              <p class="treat-desc">Refresh your skin with customized facial and skincare treatments.</p>
+              <a href="#booking" class="btn btn-outline-dark" id="treat-book-3">Book Now <i class="fa-solid fa-arrow-right"></i></a>
+            </div>
+          </div>
+
+          <div class="treat-card treat-rev">
+            <div class="treat-img">
+              <img src="https://images.unsplash.com/photo-1519741497674-611481863552?w=800&q=85&auto=format&fit=crop" alt="Bridal Beauty Package" loading="lazy">
+            </div>
+            <div class="treat-info">
+              <span class="treat-num">04</span>
+              <h3 class="treat-name">Bridal Beauty Package</h3>
+              <p class="treat-desc">Complete bridal makeup, hairstyling, skincare, and beauty consultation.</p>
+              <a href="#booking" class="btn btn-outline-dark" id="treat-book-4">Book Now <i class="fa-solid fa-arrow-right"></i></a>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </section>
+
+    <!-- ═══════════════════════════════════════════
+         OUR EXPERTS — 4-Col Bento
+    ═══════════════════════════════════════════ -->
+    <section id="experts" class="experts-section section-pad">
+      <div class="container">
+        <div class="section-hdr text-center">
+          <span class="eyebrow-badge">The Team</span>
+          <h2 class="section-heading">Meet Our<br><em>Experts</em></h2>
+        </div>
+        <div class="experts-bento">
+
+          <div class="expert-card" id="ec-emma">
+            <div class="expert-photo">
+              <img src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=500&q=85&auto=format&fit=crop" alt="Emma Johnson" loading="lazy">
+            </div>
+            <div class="expert-info">
+              <h3 class="expert-name">Emma Johnson</h3>
+              <span class="expert-role">Senior Hair Stylist</span>
+              <p class="expert-bio">Specialist in hair transformations, coloring, and advanced styling techniques.</p>
+            </div>
+          </div>
+
+          <div class="expert-card" id="ec-sophia">
+            <div class="expert-photo">
+              <img src="https://images.unsplash.com/photo-1580489944761-15a19d654956?w=500&q=85&auto=format&fit=crop" alt="Sophia Williams" loading="lazy">
+            </div>
+            <div class="expert-info">
+              <h3 class="expert-name">Sophia Williams</h3>
+              <span class="expert-role">Beauty &amp; Skincare Expert</span>
+              <p class="expert-bio">Focused on skincare solutions and advanced facial treatments.</p>
+            </div>
+          </div>
+
+          <div class="expert-card" id="ec-daniel">
+            <div class="expert-photo">
+              <img src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=500&q=85&auto=format&fit=crop" alt="Daniel Thomas" loading="lazy">
+            </div>
+            <div class="expert-info">
+              <h3 class="expert-name">Daniel Thomas</h3>
+              <span class="expert-role">Men's Grooming Specialist</span>
+              <p class="expert-bio">Expert in modern haircuts, beard styling, and grooming services.</p>
+            </div>
+          </div>
+
+          <div class="expert-card" id="ec-olivia">
+            <div class="expert-photo">
+              <img src="https://images.unsplash.com/photo-1573497019940-1c28c88b4f3e?w=500&q=85&auto=format&fit=crop" alt="Olivia Brown" loading="lazy">
+            </div>
+            <div class="expert-info">
+              <h3 class="expert-name">Olivia Brown</h3>
+              <span class="expert-role">Professional Makeup Artist</span>
+              <p class="expert-bio">Specialized in bridal, party, and event makeup.</p>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </section>
+
+    <!-- ═══════════════════════════════════════════
+         GALLERY — Bento Masonry (Explicit Placement)
+    ═══════════════════════════════════════════ -->
+    <section id="gallery" class="gallery-section section-pad">
+      <div class="container">
+        <div class="section-hdr text-center">
+          <span class="eyebrow-badge">Our Portfolio</span>
+          <h2 class="section-heading">Our Work Speaks<br><em>For Itself</em></h2>
+          <p class="section-sub">Explore stunning transformations, creative hairstyles, professional makeup artistry, skincare treatments, premium grooming services, and luxury salon experiences.</p>
+        </div>
+        <div class="gallery-bento" id="gallery-bento">
+          <!-- nth-child(1): col 1, rows 1–2 (tall) -->
+          <div class="gb-item" data-index="0">
+            <img src="https://images.unsplash.com/photo-1503951914875-452162b0f3f1?w=700&q=85&auto=format&fit=crop" alt="Men's Grooming" loading="lazy">
+            <div class="gb-overlay">
+              <span class="gb-cat">Men's Grooming</span>
+              <h4 class="gb-title">Hot Razor Shave</h4>
+            </div>
+          </div>
+          <!-- nth-child(2): col 2, row 1 -->
+          <div class="gb-item" data-index="1">
+            <img src="https://images.unsplash.com/photo-1560066984-138dadb4c035?w=700&q=85&auto=format&fit=crop" alt="Balayage Color" loading="lazy">
+            <div class="gb-overlay">
+              <span class="gb-cat">Hair Color</span>
+              <h4 class="gb-title">Bespoke Balayage</h4>
+            </div>
+          </div>
+          <!-- nth-child(3): col 3, row 1 -->
+          <div class="gb-item" data-index="2">
+            <img src="https://images.unsplash.com/photo-1522337360788-8b13dee7a37e?w=700&q=85&auto=format&fit=crop" alt="Hair Styling" loading="lazy">
+            <div class="gb-overlay">
+              <span class="gb-cat">Styling</span>
+              <h4 class="gb-title">Editorial Blowout</h4>
+            </div>
+          </div>
+          <!-- nth-child(4): col 2–3, row 2 (wide) -->
+          <div class="gb-item" data-index="3">
+            <img src="https://images.unsplash.com/photo-1562322140-8baeececf3df?w=1000&q=85&auto=format&fit=crop" alt="Precision Cut" loading="lazy">
+            <div class="gb-overlay">
+              <span class="gb-cat">Precision Cut</span>
+              <h4 class="gb-title">Scissor Artistry</h4>
+            </div>
+          </div>
+          <!-- nth-child(5): col 1, row 3 -->
+          <div class="gb-item" data-index="4">
+            <img src="https://images.unsplash.com/photo-1512290923902-8a9f81dc236c?w=700&q=85&auto=format&fit=crop" alt="Skin Care" loading="lazy">
+            <div class="gb-overlay">
+              <span class="gb-cat">Skin Care</span>
+              <h4 class="gb-title">Oxygen Facial</h4>
+            </div>
+          </div>
+          <!-- nth-child(6): col 2–3, row 3 (wide) -->
+          <div class="gb-item" data-index="5">
+            <img src="https://images.unsplash.com/photo-1519415510236-718bdfcd89c8?w=1000&q=85&auto=format&fit=crop" alt="Scalp Spa" loading="lazy">
+            <div class="gb-overlay">
+              <span class="gb-cat">Scalp Spa</span>
+              <h4 class="gb-title">Luxury Scalp Ritual</h4>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ═══════════════════════════════════════════
+         PRICING — 3-Col Bento
+    ═══════════════════════════════════════════ -->
+    <section id="pricing" class="pricing-section section-pad">
+      <div class="container">
+        <div class="section-hdr text-center">
+          <span class="eyebrow-badge">Transparent Pricing</span>
+          <h2 class="section-heading">Pricing<br><em>Plans</em></h2>
+          <p class="section-sub">Clear, honest pricing for every budget and beauty need.</p>
+        </div>
+        <div class="pricing-bento">
+
+          <div class="pricing-card" id="pc-essential">
+            <span class="pricing-tier">Essential</span>
+            <h3 class="pricing-name">Essential Care</h3>
+            <div class="pricing-amount">
+              <span class="pa-from">Starting from</span>
+              <span class="pa-price">₹999</span>
+            </div>
+            <ul class="pricing-list">
+              <li><i class="fa-solid fa-check"></i> Haircut</li>
+              <li><i class="fa-solid fa-check"></i> Hair Wash</li>
+              <li><i class="fa-solid fa-check"></i> Basic Styling</li>
+              <li><i class="fa-solid fa-check"></i> Consultation</li>
+            </ul>
+            <a href="#booking" class="btn btn-outline-dark" id="book-essential">Book Now</a>
+          </div>
+
+          <div class="pricing-card pricing-featured" id="pc-premium">
+            <span class="pricing-pop-badge">Most Popular</span>
+            <span class="pricing-tier">Premium</span>
+            <h3 class="pricing-name">Premium Beauty</h3>
+            <div class="pricing-amount">
+              <span class="pa-from">Starting from</span>
+              <span class="pa-price">₹2,499</span>
+            </div>
+            <ul class="pricing-list">
+              <li><i class="fa-solid fa-check"></i> Hair Spa</li>
+              <li><i class="fa-solid fa-check"></i> Facial Treatment</li>
+              <li><i class="fa-solid fa-check"></i> Hair Styling</li>
+              <li><i class="fa-solid fa-check"></i> Beauty Consultation</li>
+            </ul>
+            <a href="#booking" class="btn btn-white" id="book-premium">Book Now</a>
+          </div>
+
+          <div class="pricing-card" id="pc-luxury">
+            <span class="pricing-tier">Luxury</span>
+            <h3 class="pricing-name">Luxury Experience</h3>
+            <div class="pricing-amount">
+              <span class="pa-from">Starting from</span>
+              <span class="pa-price">₹4,999</span>
+            </div>
+            <ul class="pricing-list">
+              <li><i class="fa-solid fa-check"></i> Premium Facial</li>
+              <li><i class="fa-solid fa-check"></i> Hair Spa</li>
+              <li><i class="fa-solid fa-check"></i> Styling Session</li>
+              <li><i class="fa-solid fa-check"></i> Makeup Service</li>
+              <li><i class="fa-solid fa-check"></i> Priority Appointment</li>
+            </ul>
+            <a href="#booking" class="btn btn-outline-dark" id="book-luxury">Book Now</a>
+          </div>
+
+        </div>
+      </div>
+    </section>
+
+    <!-- ═══════════════════════════════════════════
+         TESTIMONIALS — 3-Col Bento
+    ═══════════════════════════════════════════ -->
+    <section id="testimonials" class="testi-section section-pad">
+      <div class="container">
+        <div class="section-hdr text-center">
+          <span class="eyebrow-badge">Client Stories</span>
+          <h2 class="section-heading">What Our Clients<br><em>Say</em></h2>
+        </div>
+        <div class="testi-carousel-viewport">
+          <div class="testi-carousel-track" id="testi-track">
+
+            <!-- Card 1 -->
+            <div class="testi-card" id="tc-sarah">
+              <div class="testi-stars">
+                <i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i>
+              </div>
+              <p class="testi-quote">"The staff is incredibly professional and friendly. My hair transformation exceeded all expectations."</p>
+              <div class="testi-author">
+                <div class="testi-avatar">S</div>
+                <span class="testi-name">Sarah M.</span>
+              </div>
+            </div>
+
+            <!-- Card 2 -->
+            <div class="testi-card testi-dark" id="tc-rahul">
+              <div class="testi-stars">
+                <i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i>
+              </div>
+              <p class="testi-quote">"Excellent service, beautiful salon atmosphere, and amazing results every time."</p>
+              <div class="testi-author">
+                <div class="testi-avatar">R</div>
+                <span class="testi-name">Rahul K.</span>
+              </div>
+            </div>
+
+            <!-- Card 3 -->
+            <div class="testi-card" id="tc-anjali">
+              <div class="testi-stars">
+                <i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i>
+              </div>
+              <p class="testi-quote">"The bridal package was outstanding. I felt confident and beautiful on my special day."</p>
+              <div class="testi-author">
+                <div class="testi-avatar">A</div>
+                <span class="testi-name">Anjali P.</span>
+              </div>
+            </div>
+
+            <!-- Card 4 -->
+            <div class="testi-card testi-dark" id="tc-michael">
+              <div class="testi-stars">
+                <i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i>
+              </div>
+              <p class="testi-quote">"Best men's editorial grooming in the city. The beard shaping and styling is exceptionally precise."</p>
+              <div class="testi-author">
+                <div class="testi-avatar">M</div>
+                <span class="testi-name">Michael S.</span>
+              </div>
+            </div>
+
+            <!-- Card 5 -->
+            <div class="testi-card" id="tc-priya">
+              <div class="testi-stars">
+                <i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i>
+              </div>
+              <p class="testi-quote">"The advanced skin therapies did wonders for my skin. Highly recommend their personalized facials."</p>
+              <div class="testi-author">
+                <div class="testi-avatar">P</div>
+                <span class="testi-name">Priya D.</span>
+              </div>
+            </div>
+
+            <!-- Card 6 -->
+            <div class="testi-card testi-dark" id="tc-vikram">
+              <div class="testi-stars">
+                <i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i>
+              </div>
+              <p class="testi-quote">"Very professional team and clean, relaxing atmosphere. The luxury hair spa is a must-try ritual."</p>
+              <div class="testi-author">
+                <div class="testi-avatar">V</div>
+                <span class="testi-name">Vikram R.</span>
+              </div>
+            </div>
+
+          </div>
+        </div>
+
+        <!-- Carousel Navigation Controls -->
+        <div class="testi-carousel-controls">
+          <button class="testi-arrow prev" id="testi-prev" aria-label="Previous testimonials">
+            <i class="fa-solid fa-arrow-left"></i>
+          </button>
+          <div class="testi-dots" id="testi-dots"></div>
+          <button class="testi-arrow next" id="testi-next" aria-label="Next testimonials">
+            <i class="fa-solid fa-arrow-right"></i>
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <!-- ═══════════════════════════════════════════
+         FAQ — Accordion with split layout
+    ═══════════════════════════════════════════ -->
+    <section id="faq" class="faq-section section-pad">
+      <div class="container">
+        <div class="faq-bento">
+          <div class="faq-left">
+            <span class="eyebrow-badge">FAQ</span>
+            <h2 class="section-heading">Common<br><em>Questions</em></h2>
+            <p class="body-text">Everything you need to know before your visit to Lumière Salon.</p>
+            <a href="#contact" class="btn btn-accent" id="faq-cta">Get in Touch</a>
+          </div>
+          <div class="faq-right">
+            
+            <div class="faq-item" id="faq-1">
+              <button class="faq-q" id="faq-btn-1" onclick="toggleFaq('faq-1')">
+                <span>Do I need an appointment?</span>
+                <span class="faq-btn-icon"><i class="fa-solid fa-plus"></i></span>
+              </button>
+              <div class="faq-a">
+                <div class="faq-a-inner">
+                  <p>Appointments are recommended, but walk-ins are welcome based on availability.</p>
+                </div>
+              </div>
+            </div>
+
+            <div class="faq-item" id="faq-2">
+              <button class="faq-q" id="faq-btn-2" onclick="toggleFaq('faq-2')">
+                <span>What products do you use?</span>
+                <span class="faq-btn-icon"><i class="fa-solid fa-plus"></i></span>
+              </button>
+              <div class="faq-a">
+                <div class="faq-a-inner">
+                  <p>We use premium salon-grade products from trusted professional brands.</p>
+                </div>
+              </div>
+            </div>
+
+            <div class="faq-item" id="faq-3">
+              <button class="faq-q" id="faq-btn-3" onclick="toggleFaq('faq-3')">
+                <span>Do you offer bridal packages?</span>
+                <span class="faq-btn-icon"><i class="fa-solid fa-plus"></i></span>
+              </button>
+              <div class="faq-a">
+                <div class="faq-a-inner">
+                  <p>Yes, we provide customized bridal beauty and makeup packages.</p>
+                </div>
+              </div>
+            </div>
+
+            <div class="faq-item" id="faq-4">
+              <button class="faq-q" id="faq-btn-4" onclick="toggleFaq('faq-4')">
+                <span>Are services available for both men and women?</span>
+                <span class="faq-btn-icon"><i class="fa-solid fa-plus"></i></span>
+              </button>
+              <div class="faq-a">
+                <div class="faq-a-inner">
+                  <p>Yes, we are a full-service unisex salon catering to all.</p>
+                </div>
+              </div>
+            </div>
+
+            <div class="faq-item" id="faq-5">
+              <button class="faq-q" id="faq-btn-5" onclick="toggleFaq('faq-5')">
+                <span>Do you offer consultations?</span>
+                <span class="faq-btn-icon"><i class="fa-solid fa-plus"></i></span>
+              </button>
+              <div class="faq-a">
+                <div class="faq-a-inner">
+                  <p>Yes, consultations are available before all major treatments.</p>
+                </div>
+              </div>
+            </div>
+
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ═══════════════════════════════════════════
+         CTA SECTION — Dark Bento
+    ═══════════════════════════════════════════ -->
+    <section class="cta-section" id="booking">
+      <div class="container">
+        <div class="cta-bento">
+          
+          <div class="cta-content">
+            <span class="eyebrow-badge badge-light">Book Today</span>
+            <h2 class="cta-heading">Ready For Your Next<br><em>Transformation?</em></h2>
+            <p class="cta-sub">Experience expert beauty care, personalized service, and premium treatments designed just for you.</p>
+            
+            <div class="cta-benefits">
+              <div class="ctab-item"><i class="fa-solid fa-check text-gold"></i> <span>Priority instant booking confirmation</span></div>
+              <div class="ctab-item"><i class="fa-solid fa-check text-gold"></i> <span>No credit card required online</span></div>
+              <div class="ctab-item"><i class="fa-solid fa-check text-gold"></i> <span>Free consultations with stylists</span></div>
+            </div>
+          </div>
+
+          <div class="cta-form-box">
+            <h3 class="ctaf-title">Request Appointment</h3>
+            <p class="ctaf-sub">Select your service and preferred date. We'll confirm shortly.</p>
+            
+            <form id="cta-booking-form" class="cta-booking-form" onsubmit="event.preventDefault(); alert('Booking confirmed! We will contact you shortly.'); this.reset();">
+              <div class="form-row">
+                <div class="form-group">
+                  <label for="cta-bk-name">Full Name</label>
+                  <input type="text" id="cta-bk-name" required placeholder="Your name">
+                </div>
+                <div class="form-group">
+                  <label for="cta-bk-phone">Phone</label>
+                  <input type="tel" id="cta-bk-phone" required placeholder="+91 00000 00000">
+                </div>
+              </div>
+              
+              <div class="form-group">
+                <label for="cta-bk-service">Select Service</label>
+                <select id="cta-bk-service" required>
+                  <option value="">Choose service...</option>
+                  <option>Hair Styling &amp; Haircuts</option>
+                  <option>Hair Coloring</option>
+                  <option>Bridal Makeup</option>
+                  <option>Facial &amp; Skin Care</option>
+                  <option>Hair Spa &amp; Treatments</option>
+                  <option>Men's Grooming</option>
+                  <option>Nail Care</option>
+                  <option>Keratin Treatment</option>
+                  <option>Other</option>
+                </select>
+              </div>
+              
+              <div class="form-row">
+                <div class="form-group">
+                  <label for="cta-bk-date">Preferred Date</label>
+                  <input type="date" id="cta-bk-date" required>
+                </div>
+                <div class="form-group">
+                  <label for="cta-bk-time">Preferred Time</label>
+                  <select id="cta-bk-time">
+                    <option>9:00 AM</option><option>10:00 AM</option><option>11:00 AM</option>
+                    <option>12:00 PM</option><option>1:00 PM</option><option>2:00 PM</option>
+                    <option>3:00 PM</option><option>4:00 PM</option><option>5:00 PM</option>
+                    <option>6:00 PM</option><option>7:00 PM</option>
+                  </select>
+                </div>
+              </div>
+              
+              <button type="submit" class="btn btn-gold btn-full" id="cta-bk-submit">
+                <i class="fa-solid fa-calendar-check"></i> Book Appointment Now
+              </button>
+            </form>
+          </div>
+
+        </div>
+      </div>
+    </section>
+
+    <!-- ═══════════════════════════════════════════
+         CONTACT SECTION — Bento Grid
+    ═══════════════════════════════════════════ -->
+    <section id="contact" class="contact-section section-pad">
+      <div class="container">
+        <div class="section-hdr text-center">
+          <span class="eyebrow-badge">Contact</span>
+          <h2 class="section-heading">Get In<br><em>Touch</em></h2>
+        </div>
+        <div class="contact-bento">
+
+          <!-- Info Cards Bento -->
+          <div class="contact-info-bento">
+            <div class="ci-card" id="ci-address">
+              <div class="ci-icon"><i class="fa-solid fa-location-dot"></i></div>
+              <span class="ci-label">Address</span>
+              <span class="ci-value">123 Beauty Avenue, City Center</span>
+            </div>
+            <div class="ci-card ci-accent" id="ci-phone">
+              <div class="ci-icon"><i class="fa-solid fa-phone"></i></div>
+              <span class="ci-label">Phone</span>
+              <a href="tel:+919876543210" class="ci-value">+91 98765 43210</a>
+            </div>
+            <div class="ci-card" id="ci-email">
+              <div class="ci-icon"><i class="fa-solid fa-envelope"></i></div>
+              <span class="ci-label">Email</span>
+              <a href="mailto:hello@yoursalon.com" class="ci-value">hello@yoursalon.com</a>
+            </div>
+            <div class="ci-card ci-dark" id="ci-hours">
+              <div class="ci-icon"><i class="fa-regular fa-clock"></i></div>
+              <span class="ci-label">Working Hours</span>
+              <span class="ci-value">Mon–Sat: 9:00 AM – 8:00 PM<br>Sunday: 10:00 AM – 6:00 PM</span>
+            </div>
+          </div>
+
+          <!-- Contact Form -->
+          <div class="contact-form-box">
+            <h3 class="cf-heading">Send Us a Message</h3>
+            <form id="contact-form" class="contact-form" onsubmit="event.preventDefault(); alert('Message sent! We will contact you shortly.'); this.reset();">
+              <div class="form-row">
+                <div class="form-group">
+                  <label for="cf-name">Full Name</label>
+                  <input type="text" id="cf-name" required placeholder="Your name">
+                </div>
+                <div class="form-group">
+                  <label for="cf-phone">Phone</label>
+                  <input type="tel" id="cf-phone" placeholder="+91 00000 00000">
+                </div>
+              </div>
+              <div class="form-group">
+                <label for="cf-email">Email</label>
+                <input type="email" id="cf-email" required placeholder="you@email.com">
+              </div>
+              <div class="form-group">
+                <label for="cf-service">Service</label>
+                <select id="cf-service">
+                  <option value="">Select a service...</option>
+                  <option>Hair Styling &amp; Haircuts</option>
+                  <option>Hair Coloring</option>
+                  <option>Bridal Makeup</option>
+                  <option>Facial &amp; Skin Care</option>
+                  <option>Hair Spa &amp; Treatments</option>
+                  <option>Men's Grooming</option>
+                  <option>Nail Care</option>
+                  <option>Other</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label for="cf-msg">Message</label>
+                <textarea id="cf-msg" rows="4" placeholder="Tell us about your appointment..."></textarea>
+              </div>
+              <button type="submit" class="btn btn-accent btn-full" id="cf-submit">
+                Send Message <i class="fa-solid fa-paper-plane"></i>
+              </button>
+            </form>
+          </div>
+
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- FOOTER -->
+  <footer class="site-footer">
+    <div class="container footer-grid">
+      <div class="footer-brand">
+        <div class="footer-logo">Lumière</div>
+        <p class="footer-tagline">Beauty. Style. Confidence.</p>
+        <p class="footer-about">Delivering premium beauty and grooming experiences that help every client look and feel their absolute best.</p>
+        <div class="footer-socials">
+          <a href="#" class="fsoc" aria-label="Instagram"><i class="fa-brands fa-instagram"></i></a>
+          <a href="#" class="fsoc" aria-label="Facebook"><i class="fa-brands fa-facebook-f"></i></a>
+          <a href="#" class="fsoc" aria-label="YouTube"><i class="fa-brands fa-youtube"></i></a>
+          <a href="https://wa.me/919876543210" class="fsoc" aria-label="WhatsApp"><i class="fa-brands fa-whatsapp"></i></a>
+        </div>
+      </div>
+      <div class="footer-col">
+        <h4 class="footer-col-title">Quick Links</h4>
+        <ul class="footer-links">
+          <li><a href="#hero">Home</a></li>
+          <li><a href="#about">About Us</a></li>
+          <li><a href="#services">Services</a></li>
+          <li><a href="#gallery">Gallery</a></li>
+          <li><a href="#pricing">Pricing</a></li>
+          <li><a href="#contact">Contact Us</a></li>
+        </ul>
+      </div>
+      <div class="footer-col">
+        <h4 class="footer-col-title">Services</h4>
+        <ul class="footer-links">
+          <li><a href="#services">Women's Beauty Services</a></li>
+          <li><a href="#services">Men's Grooming Services</a></li>
+          <li><a href="#treatments">Bridal Makeup</a></li>
+          <li><a href="#treatments">Hair Treatments</a></li>
+          <li><a href="#treatments">Facial &amp; Skin Care</a></li>
+        </ul>
+      </div>
+      <div class="footer-col">
+        <h4 class="footer-col-title">Contact</h4>
+        <ul class="footer-contact">
+          <li><i class="fa-solid fa-phone"></i> +91 98765 43210</li>
+          <li><i class="fa-solid fa-envelope"></i> hello@yoursalon.com</li>
+          <li><i class="fa-solid fa-location-dot"></i> 123 Beauty Avenue, City Center</li>
+        </ul>
+      </div>
+    </div>
+    <div class="footer-bar">
+      <div class="container">
+        <p>© 2026 Premium Unisex Salon. All Rights Reserved.</p>
+      </div>
+    </div>
+  </footer>
+
+
+
+  <script src="scripts.js"></script>
+</body>
+</html>

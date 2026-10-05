@@ -1,0 +1,1348 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>APEX PERFORMANCE | Premium Fitness, Sports Performance & Recovery Hub</title>
+  <meta name="description" content="Transform your body and mind at APEX Performance. Discover elite training, boutique classes, customized coaching, and a premium recovery hub designed to elevate your life.">
+  
+  <!-- CSS Stylesheets -->
+  <link rel="stylesheet" href="style.css">
+  
+  <!-- Lucide Icons CDN -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+<body>
+
+  <!-- Background Glowing Circles -->
+  <div class="glow-blur glow-blue" style="top: 10%; left: 5%;"></div>
+  <div class="glow-blur glow-purple" style="top: 30%; right: 5%;"></div>
+  <div class="glow-blur glow-cyan" style="top: 60%; left: 10%;"></div>
+  <div class="glow-blur glow-orange" style="top: 85%; right: 10%;"></div>
+
+  <!-- ==========================================
+     1. FLOATING GLASS NAVIGATION (HEADER)
+     ========================================== -->
+  <header class="header-nav" id="header">
+    <div class="nav-container">
+      <a href="#home" class="logo" id="nav-logo">
+        <i data-lucide="activity" style="color: var(--color-primary);"></i>
+        APEX<span>PERFORMANCE</span>
+      </a>
+      <nav>
+        <ul class="nav-menu" id="nav-menu">
+          <li><a href="#about" class="nav-link">About Us</a></li>
+          <li><a href="#programs" class="nav-link">Programs</a></li>
+          <li><a href="#trainers" class="nav-link">Trainers</a></li>
+          <li><a href="#pricing" class="nav-link">Pricing</a></li>
+          <li><a href="#contact" class="nav-link">Contact</a></li>
+          <li class="mobile-cta-only">
+            <a href="#contact" class="neon-glow-btn" style="padding: 0.75rem 1.5rem; font-size: 0.8rem;">Start Transformation</a>
+          </li>
+        </ul>
+      </nav>
+      <div style="display: flex; align-items: center; gap: 1rem;">
+        <a href="#contact" class="neon-glow-btn desktop-cta" id="header-cta">
+          Start Your Transformation
+          <i data-lucide="arrow-right"></i>
+        </a>
+        <button class="mobile-toggle" id="mobile-toggle" aria-label="Toggle menu">
+          <i data-lucide="menu" size="28" id="menu-icon"></i>
+        </button>
+      </div>
+    </div>
+    <!-- Scroll Progress Bar -->
+    <div class="scroll-progress-bar" id="scroll-progress"></div>
+  </header>
+
+  <!-- ==========================================
+     2. HERO SECTION
+     ========================================== -->
+  <section class="hero" id="home">
+    <div class="container">
+      <div class="hero-grid">
+        <div class="hero-content reveal">
+          <span class="section-badge">ELITE FITNESS EXPERIENCE</span>
+          <h1 class="hero-title">
+            <span class="hero-title-line line-1">Transform Your Body.</span>
+            <span class="hero-title-line line-2">Elevate Your Mind.</span>
+            <span class="hero-title-line line-3">Redefine Your Limits.</span>
+          </h1>
+          <p class="hero-desc">
+            Achieve your fitness goals with expert coaching, cutting-edge training programs, premium recovery facilities, and a supportive community built to help you succeed.
+          </p>
+          <div class="hero-actions">
+            <a href="#contact" class="neon-glow-btn" id="hero-join-btn">
+              Join Today
+              <i data-lucide="chevrons-right"></i>
+            </a>
+            <a href="#programs" class="btn-secondary" id="hero-programs-btn">
+              View Programs
+            </a>
+          </div>
+        </div>
+        
+        <div class="hero-visual reveal delay-1">
+          <div class="hero-img-wrapper">
+            <img src="images/hero_athlete.png" alt="Athlete training with battle ropes at APEX Performance" class="hero-img">
+            
+            <!-- Floating Widgets -->
+            <div class="stat-widget stat-widget-1" id="widget-transformed">
+              <div class="stat-widget-icon"><i data-lucide="users"></i></div>
+              <div>
+                <span class="stat-widget-num">12,000+</span>
+                <span class="stat-widget-lbl">Members Transformed</span>
+              </div>
+            </div>
+            
+            <div class="stat-widget stat-widget-2" id="widget-coaches">
+              <div class="stat-widget-icon"><i data-lucide="award"></i></div>
+              <div>
+                <span class="stat-widget-num">50+</span>
+                <span class="stat-widget-lbl">Certified Coaches</span>
+              </div>
+            </div>
+            
+            <div class="stat-widget stat-widget-3" id="widget-programs">
+              <div class="stat-widget-icon"><i data-lucide="flame"></i></div>
+              <div>
+                <span class="stat-widget-num">15+</span>
+                <span class="stat-widget-lbl">Specialized Programs</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ==========================================
+     3. FITNESS IMPACT STATS (HORIZONTAL RUNNERS)
+     ========================================== -->
+  <section class="impact-stats" id="impact-stats">
+    <div class="container">
+      <div class="stats-container">
+        <div class="stat-item reveal">
+          <div class="stat-number text-gradient" data-target="12000">0</div>
+          <div class="stat-label">Active Members</div>
+        </div>
+        <div class="stat-item reveal delay-1">
+          <div class="stat-number text-gradient-cyan" data-target="500000">0</div>
+          <div class="stat-label">Workout Sessions Completed</div>
+        </div>
+        <div class="stat-item reveal delay-2">
+          <div class="stat-number text-gradient-lime" data-target="50">0</div>
+          <div class="stat-label">Expert Trainers</div>
+        </div>
+        <div class="stat-item reveal delay-3">
+          <div class="stat-number text-gradient" data-target="15">0</div>
+          <div class="stat-label">Fitness Programs</div>
+        </div>
+        <div class="stat-item reveal delay-4">
+          <div class="stat-number text-gradient-cyan" data-target="98">0</div>
+          <div class="stat-label">Success Rate</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ==========================================
+     4. ABOUT US (EDITORIAL OVERLAPPING)
+     ========================================== -->
+  <section class="section-padding" id="about">
+    <div class="container">
+      <div class="about-grid">
+        <div class="about-visual reveal">
+          <div class="about-glow"></div>
+          <div class="about-img-1">
+            <img src="images/about_us_gym.png" alt="Premium gym floor at APEX" class="about-img">
+          </div>
+          <div class="about-img-2">
+            <img src="images/gallery_3.png" alt="Strength zone barbell training" class="about-img">
+          </div>
+        </div>
+        
+        <div class="about-content reveal delay-1">
+          <span class="section-badge">ABOUT US</span>
+          <h2 class="section-title">More Than A Gym.<br>A Community <span class="text-gradient">Built For Growth.</span></h2>
+          <p class="about-content-text">
+            We believe fitness is more than physical transformation. It is about building confidence, improving health, creating discipline, and becoming the best version of yourself. Our state-of-the-art facility, expert trainers, and supportive environment help members achieve sustainable results and lifelong wellness.
+          </p>
+          <div class="about-highlights">
+            <div class="about-hl-item">
+              <div class="about-hl-icon"><i data-lucide="shield-check" size="24"></i></div>
+              <div>
+                <h4 class="about-hl-title">Premium Access</h4>
+                <p class="about-hl-desc">Get access to premium zones including high-end weight zones and our modern sauna/recovery hub.</p>
+              </div>
+            </div>
+            <div class="about-hl-item">
+              <div class="about-hl-icon"><i data-lucide="heart" size="24"></i></div>
+              <div>
+                <h4 class="about-hl-title">Transformational Culture</h4>
+                <p class="about-hl-desc">Surround yourself with like-minded athletes committed to pushing limits every single day.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ==========================================
+     5. PROGRAMS (HORIZONTAL SHOWCASE)
+     ========================================== -->
+  <section class="section-padding programs" id="programs">
+    <div class="container">
+      <div class="section-header reveal">
+        <span class="section-badge">OUR PROGRAMS</span>
+        <h2 class="section-title">Programs Designed <span class="text-gradient-cyan">Around Your Goals</span></h2>
+        <p class="section-desc">Unlock your absolute potential with our specialized, high-performance training methods tailored to your individual routine.</p>
+      </div>
+      
+      <div class="programs-showcase">
+        <!-- Program 1 -->
+        <div class="program-panel reveal" id="prog-strength">
+          <span class="program-num">01</span>
+          <div class="program-info">
+            <span class="program-tag">Athletic Power</span>
+            <h3>Strength Training</h3>
+          </div>
+          <p class="program-desc">Build foundational muscle mass, increase power output, and optimize athletic biomechanics with professional coaching.</p>
+          <div class="program-action">
+            <i data-lucide="plus"></i>
+          </div>
+          <div class="program-details">
+            <div class="details-grid">
+              <div class="details-features">
+                <div class="details-feature-item">
+                  <i data-lucide="check-circle" size="18"></i>
+                  Olympic Weightlifting Platforms & Power Racks
+                </div>
+                <div class="details-feature-item">
+                  <i data-lucide="check-circle" size="18"></i>
+                  Custom Hypertrophy & Strength Program Design
+                </div>
+                <div class="details-feature-item">
+                  <i data-lucide="check-circle" size="18"></i>
+                  Weekly Force Production Assessment
+                </div>
+              </div>
+              <div class="details-meta">
+                <div class="meta-box">
+                  <span class="meta-box-title">Duration</span>
+                  <span class="meta-box-value">60-75 Mins</span>
+                </div>
+                <div class="meta-box">
+                  <span class="meta-box-title">Intensity</span>
+                  <span class="meta-box-value">High / Advanced</span>
+                </div>
+                <div class="meta-box">
+                  <span class="meta-box-title">Class Limit</span>
+                  <span class="meta-box-value">12 Athletes</span>
+                </div>
+                <div class="meta-box">
+                  <span class="meta-box-title">Trainer Mode</span>
+                  <span class="meta-box-value">1-on-1 / Small Group</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Program 2 -->
+        <div class="program-panel reveal" id="prog-weight">
+          <span class="program-num">02</span>
+          <div class="program-info">
+            <span class="program-tag">Fat Loss & Conditioning</span>
+            <h3>Weight Loss Programs</h3>
+          </div>
+          <p class="program-desc">High-energy conditioning workouts integrated with metabolic coaching to burn fat efficiently and sustainably.</p>
+          <div class="program-action">
+            <i data-lucide="plus"></i>
+          </div>
+          <div class="program-details">
+            <div class="details-grid">
+              <div class="details-features">
+                <div class="details-feature-item">
+                  <i data-lucide="check-circle" size="18"></i>
+                  Heart-Rate Monitored Metabolic Conditioning
+                </div>
+                <div class="details-feature-item">
+                  <i data-lucide="check-circle" size="18"></i>
+                  Comprehensive Biweekly Body Composition Scans
+                </div>
+                <div class="details-feature-item">
+                  <i data-lucide="check-circle" size="18"></i>
+                  Personalized Nutrition Blueprints & Guide
+                </div>
+              </div>
+              <div class="details-meta">
+                <div class="meta-box">
+                  <span class="meta-box-title">Duration</span>
+                  <span class="meta-box-value">45-60 Mins</span>
+                </div>
+                <div class="meta-box">
+                  <span class="meta-box-title">Intensity</span>
+                  <span class="meta-box-value">Varies</span>
+                </div>
+                <div class="meta-box">
+                  <span class="meta-box-title">Class Limit</span>
+                  <span class="meta-box-value">15 Athletes</span>
+                </div>
+                <div class="meta-box">
+                  <span class="meta-box-title">Trainer Mode</span>
+                  <span class="meta-box-value">Group / Dedicated Coach</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Program 3 -->
+        <div class="program-panel reveal" id="prog-functional">
+          <span class="program-num">03</span>
+          <div class="program-info">
+            <span class="program-tag">Mobility & Durability</span>
+            <h3>Functional Fitness</h3>
+          </div>
+          <p class="program-desc">Improve your joint mobility, dynamic flexibility, core stability, and total-body coordination for optimal life movement.</p>
+          <div class="program-action">
+            <i data-lucide="plus"></i>
+          </div>
+          <div class="program-details">
+            <div class="details-grid">
+              <div class="details-features">
+                <div class="details-feature-item">
+                  <i data-lucide="check-circle" size="18"></i>
+                  Kettlebell & Suspension-Based Training Blocks
+                </div>
+                <div class="details-feature-item">
+                  <i data-lucide="check-circle" size="18"></i>
+                  Joint Health & Pre-habilitation Work
+                </div>
+                <div class="details-feature-item">
+                  <i data-lucide="check-circle" size="18"></i>
+                  Postural Alignment Assessments
+                </div>
+              </div>
+              <div class="details-meta">
+                <div class="meta-box">
+                  <span class="meta-box-title">Duration</span>
+                  <span class="meta-box-value">60 Mins</span>
+                </div>
+                <div class="meta-box">
+                  <span class="meta-box-title">Intensity</span>
+                  <span class="meta-box-value">Moderate</span>
+                </div>
+                <div class="meta-box">
+                  <span class="meta-box-title">Class Limit</span>
+                  <span class="meta-box-value">20 Athletes</span>
+                </div>
+                <div class="meta-box">
+                  <span class="meta-box-title">Trainer Mode</span>
+                  <span class="meta-box-value">Group Classes</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Program 4 -->
+        <div class="program-panel reveal" id="prog-group">
+          <span class="program-num">04</span>
+          <div class="program-info">
+            <span class="program-tag">High Intensity Community</span>
+            <h3>Group Fitness Classes</h3>
+          </div>
+          <p class="program-desc">Dynamic, high-energy group environments designed to keep motivation levels high and ensure accountability.</p>
+          <div class="program-action">
+            <i data-lucide="plus"></i>
+          </div>
+          <div class="program-details">
+            <div class="details-grid">
+              <div class="details-features">
+                <div class="details-feature-item">
+                  <i data-lucide="check-circle" size="18"></i>
+                  Vibrant Music & DJ Integrated Special Events
+                </div>
+                <div class="details-feature-item">
+                  <i data-lucide="check-circle" size="18"></i>
+                  Cardio Kickboxing, HIIT, & Cycle Studios
+                </div>
+                <div class="details-feature-item">
+                  <i data-lucide="check-circle" size="18"></i>
+                  Community Challenges & Team Leaderboards
+                </div>
+              </div>
+              <div class="details-meta">
+                <div class="meta-box">
+                  <span class="meta-box-title">Duration</span>
+                  <span class="meta-box-value">50 Mins</span>
+                </div>
+                <div class="meta-box">
+                  <span class="meta-box-title">Intensity</span>
+                  <span class="meta-box-value">Energetic</span>
+                </div>
+                <div class="meta-box">
+                  <span class="meta-box-title">Class Limit</span>
+                  <span class="meta-box-value">25 Athletes</span>
+                </div>
+                <div class="meta-box">
+                  <span class="meta-box-title">Trainer Mode</span>
+                  <span class="meta-box-value">Coach-Led Group</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Program 5 -->
+        <div class="program-panel reveal" id="prog-personal">
+          <span class="program-num">05</span>
+          <div class="program-info">
+            <span class="program-tag">Bespoke Guidance</span>
+            <h3>Personal Training</h3>
+          </div>
+          <p class="program-desc">Elite 1-on-1 coaching focusing on customized programming, injury rehabilitation, nutrition planning, and accountability.</p>
+          <div class="program-action">
+            <i data-lucide="plus"></i>
+          </div>
+          <div class="program-details">
+            <div class="details-grid">
+              <div class="details-features">
+                <div class="details-feature-item">
+                  <i data-lucide="check-circle" size="18"></i>
+                  Completely Tailored Program to Your Biometrics
+                </div>
+                <div class="details-feature-item">
+                  <i data-lucide="check-circle" size="18"></i>
+                  Dedicated Elite Coach Assignment & Chat Support
+                </div>
+                <div class="details-feature-item">
+                  <i data-lucide="check-circle" size="18"></i>
+                  Premium Recovery & Tissue Work Sessions
+                </div>
+              </div>
+              <div class="details-meta">
+                <div class="meta-box">
+                  <span class="meta-box-title">Duration</span>
+                  <span class="meta-box-value">60 Mins</span>
+                </div>
+                <div class="meta-box">
+                  <span class="meta-box-title">Intensity</span>
+                  <span class="meta-box-value">Customized</span>
+                </div>
+                <div class="meta-box">
+                  <span class="meta-box-title">Class Limit</span>
+                  <span class="meta-box-value">1-on-1 Exclusive</span>
+                </div>
+                <div class="meta-box">
+                  <span class="meta-box-title">Trainer Mode</span>
+                  <span class="meta-box-value">Private Coaching</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Program 6 -->
+        <div class="program-panel reveal" id="prog-sports">
+          <span class="program-num">06</span>
+          <div class="program-info">
+            <span class="program-tag">Elite Performance</span>
+            <h3>Sports Performance</h3>
+          </div>
+          <p class="program-desc">Advanced velocity based conditioning, acceleration mechanics, and reactive agility drills for competitive athletes.</p>
+          <div class="program-action">
+            <i data-lucide="plus"></i>
+          </div>
+          <div class="program-details">
+            <div class="details-grid">
+              <div class="details-features">
+                <div class="details-feature-item">
+                  <i data-lucide="check-circle" size="18"></i>
+                  Force Plate & Velocity Tracking Software (VBT)
+                </div>
+                <div class="details-feature-item">
+                  <i data-lucide="check-circle" size="18"></i>
+                  Speed, Agility, and Quickness (SAQ) Drills
+                </div>
+                <div class="details-feature-item">
+                  <i data-lucide="check-circle" size="18"></i>
+                  Injury Prevention & Athletic Screening Blocks
+                </div>
+              </div>
+              <div class="details-meta">
+                <div class="meta-box">
+                  <span class="meta-box-title">Duration</span>
+                  <span class="meta-box-value">90 Mins</span>
+                </div>
+                <div class="meta-box">
+                  <span class="meta-box-title">Intensity</span>
+                  <span class="meta-box-value">Extreme</span>
+                </div>
+                <div class="meta-box">
+                  <span class="meta-box-title">Class Limit</span>
+                  <span class="meta-box-value">8 Athletes</span>
+                </div>
+                <div class="meta-box">
+                  <span class="meta-box-title">Trainer Mode</span>
+                  <span class="meta-box-value">Athletic Coach</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- ==========================================
+     6. WHY TRAIN WITH US (ZIG-ZAG STORYTELLING)
+     ========================================== -->
+  <section class="section-padding" id="why-us">
+    <div class="container">
+      <div class="section-header reveal">
+        <span class="section-badge">THE APEX DIFFERENCE</span>
+        <h2 class="section-title">The Difference Is<br><span class="text-gradient">In The Experience</span></h2>
+      </div>
+      
+      <div class="why-us-stacked-accordion">
+        <!-- Card 1 -->
+        <div class="accordion-card" data-card="1">
+          <div class="accordion-card-header">
+            <h3>Expert Coaching & Premium Equipment</h3>
+            <span class="accordion-card-num">/01</span>
+          </div>
+          <div class="accordion-card-body">
+            <p class="accordion-card-desc">
+              Work with elite certified professionals dedicated to mapping your athletic progress. Our state-of-the-art facility features industry-leading Keiser, Eleiko, and Technogym gear alongside advanced velocity tracking software.
+            </p>
+            <div class="accordion-sub-cards">
+              <!-- Sub Card 1 -->
+              <div class="accordion-sub-card">
+                <img src="images/gallery_4.png" alt="Sprinting on indoor track">
+                <div class="sub-card-badges">
+                  <span class="sub-card-badge">CSCS Coaching</span>
+                  <span class="sub-card-badge">Velocity Mapping</span>
+                  <span class="sub-card-badge">Power Labs</span>
+                </div>
+              </div>
+              <!-- Sub Card 2 -->
+              <div class="accordion-sub-card">
+                <img src="images/gallery_1.png" alt="Eleiko equipment training">
+                <div class="sub-card-badges">
+                  <span class="sub-card-badge">Eleiko Gear</span>
+                  <span class="sub-card-badge">Keiser Sensors</span>
+                  <span class="sub-card-badge">Technogym</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Card 2 -->
+        <div class="accordion-card" data-card="2">
+          <div class="accordion-card-header">
+            <h3>Personalized Programs & Community</h3>
+            <span class="accordion-card-num">/02</span>
+          </div>
+          <div class="accordion-card-body">
+            <p class="accordion-card-desc">
+              Your body is unique. Our coaches craft individualized recovery schemes, training frequencies, and custom nutritional menus. We combine this with a strong, highly supportive culture that motivates you to push boundaries.
+            </p>
+            <div class="accordion-sub-cards">
+              <!-- Sub Card 1 -->
+              <div class="accordion-sub-card">
+                <img src="images/gallery_1.png" alt="Dynamic group fitness class">
+                <div class="sub-card-badges">
+                  <span class="sub-card-badge">Community</span>
+                  <span class="sub-card-badge">Apex Squad</span>
+                  <span class="sub-card-badge">Weekly Challenges</span>
+                </div>
+              </div>
+              <!-- Sub Card 2 -->
+              <div class="accordion-sub-card">
+                <img src="images/gallery_3.png" alt="Custom meal prep and nutrition consultation">
+                <div class="sub-card-badges">
+                  <span class="sub-card-badge">Custom Workouts</span>
+                  <span class="sub-card-badge">Active Rest</span>
+                  <span class="sub-card-badge">Nutritional Menus</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Card 3 -->
+        <div class="accordion-card" data-card="3">
+          <div class="accordion-card-header">
+            <h3>Proven Results & Modern Facility</h3>
+            <span class="accordion-card-num">/03</span>
+          </div>
+          <div class="accordion-card-body">
+            <p class="accordion-card-desc">
+              From body recomposition to competitive athletic readiness, our training system is backed by data. Enjoy our sleek architectural layouts, glass-walled studios, acoustic engineering, and high-performance recovery rooms.
+            </p>
+            <div class="accordion-sub-cards">
+              <!-- Sub Card 1 -->
+              <div class="accordion-sub-card">
+                <img src="images/gallery_2.png" alt="Sleek wellness and recovery room">
+                <div class="sub-card-badges">
+                  <span class="sub-card-badge">Cold Plunge</span>
+                  <span class="sub-card-badge">Finnish Sauna</span>
+                  <span class="sub-card-badge">Cryotherapy</span>
+                </div>
+              </div>
+              <!-- Sub Card 2 -->
+              <div class="accordion-sub-card">
+                <img src="images/gallery_3.png" alt="Modern locker rooms">
+                <div class="sub-card-badges">
+                  <span class="sub-card-badge">12,000+ Milestones</span>
+                  <span class="sub-card-badge">Luxury Locker Rooms</span>
+                  <span class="sub-card-badge">Organic Spa</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ==========================================
+     7. TRAINERS (MAGAZINE STYLE)
+     ========================================== -->
+  <section class="section-padding trainers" id="trainers">
+    <div class="container">
+      <div class="section-header reveal">
+        <span class="section-badge">ELITE COACHING STAFF</span>
+        <h2 class="section-title">Coaches Behind <span class="text-gradient">The Transformations</span></h2>
+        <p class="section-desc">Our certified performance specialists hold elite credentials in strength, sports conditioning, dynamic recovery, and sports nutrition science.</p>
+      </div>
+      
+      <div class="trainers-grid">
+        <!-- Trainer 1 -->
+        <div class="trainer-card reveal" id="trainer-marcus">
+          <img src="images/trainer_1.png" alt="Marcus Vance, Head of Sports Performance" class="trainer-img">
+          <div class="trainer-overlay">
+            <span class="trainer-role">Head of Sports Performance</span>
+            <h3 class="trainer-name">Marcus Vance</h3>
+            <p class="trainer-bio">Marcus is a former collegiate athlete and CSCS coach specializing in explosive velocity profiles and structural joint durability.</p>
+            <div class="trainer-socials">
+              <a href="#" class="trainer-social-link" aria-label="Marcus Instagram"><i data-lucide="instagram" size="16"></i></a>
+              <a href="#" class="trainer-social-link" aria-label="Marcus Twitter"><i data-lucide="twitter" size="16"></i></a>
+              <a href="#" class="trainer-social-link" aria-label="Marcus LinkedIn"><i data-lucide="linkedin" size="16"></i></a>
+            </div>
+          </div>
+        </div>
+
+        <!-- Trainer 2 -->
+        <div class="trainer-card reveal delay-1" id="trainer-sarah">
+          <img src="images/trainer_2.png" alt="Sarah Jenkins, Director of Functional Training" class="trainer-img">
+          <div class="trainer-overlay">
+            <span class="trainer-role">Director of Functional Fitness</span>
+            <h3 class="trainer-name">Sarah Jenkins</h3>
+            <p class="trainer-bio">Sarah has over 10 years of experience in kinetic mobility, pre-hab, and high-intensity metabolic conditioning.</p>
+            <div class="trainer-socials">
+              <a href="#" class="trainer-social-link" aria-label="Sarah Instagram"><i data-lucide="instagram" size="16"></i></a>
+              <a href="#" class="trainer-social-link" aria-label="Sarah Twitter"><i data-lucide="twitter" size="16"></i></a>
+              <a href="#" class="trainer-social-link" aria-label="Sarah LinkedIn"><i data-lucide="linkedin" size="16"></i></a>
+            </div>
+          </div>
+        </div>
+
+        <!-- Trainer 3 -->
+        <div class="trainer-card reveal delay-2" id="trainer-alex">
+          <!-- Reusing trainer 1 for template visual completeness, styled differently -->
+          <img src="images/transformation_after.png" alt="Alex Rivera, Elite Personal Coach" class="trainer-img" style="object-position: center 20%;">
+          <div class="trainer-overlay">
+            <span class="trainer-role">Elite Personal Coach</span>
+            <h3 class="trainer-name">Alex Rivera</h3>
+            <p class="trainer-bio">Alex is an expert in hypertrophy systems, sports nutrition, and high-performance lifestyle transformations.</p>
+            <div class="trainer-socials">
+              <a href="#" class="trainer-social-link" aria-label="Alex Instagram"><i data-lucide="instagram" size="16"></i></a>
+              <a href="#" class="trainer-social-link" aria-label="Alex Twitter"><i data-lucide="twitter" size="16"></i></a>
+              <a href="#" class="trainer-social-link" aria-label="Alex LinkedIn"><i data-lucide="linkedin" size="16"></i></a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ==========================================
+     8. PRICING (GLASSMORPHIC CARDS)
+     ========================================== -->
+  <section class="section-padding" id="pricing">
+    <div class="container">
+      <div class="section-header reveal" style="text-align: center; margin-bottom: 4rem;">
+        <span class="section-badge">MEMBERSHIP PACKAGES</span>
+        <h2 class="section-title" style="margin: 0 auto 1.5rem auto;">Membership Plans <span class="text-gradient-lime">For Every Lifestyle</span></h2>
+        <p class="section-desc" style="margin-left: auto; margin-right: auto;">Unlock full access to our facility, trainers, and recovery suites. Choose a tier suited to your athletic vision.</p>
+      </div>
+      
+      <div class="pricing-grid">
+        <!-- Tier 1 -->
+        <div class="pricing-card reveal" id="tier-essential">
+          <div class="pricing-header">
+            <h3 class="pricing-name">Essential</h3>
+            <p class="pricing-desc">Perfect for structured general conditioning and group session workouts.</p>
+            <div class="pricing-price">$149<span>/ month</span></div>
+          </div>
+          <ul class="pricing-features">
+            <li class="pricing-feat-item"><i data-lucide="check"></i>Full gym floor access</li>
+            <li class="pricing-feat-item"><i data-lucide="check"></i>15+ group classes per month</li>
+            <li class="pricing-feat-item"><i data-lucide="check"></i>Locker room & organic amenities</li>
+            <li class="pricing-feat-item"><i data-lucide="check"></i>Complimentary initial body scan</li>
+            <li class="pricing-feat-item muted"><i data-lucide="x"></i>Sauna & cold plunge recovery</li>
+            <li class="pricing-feat-item muted"><i data-lucide="x"></i>1-on-1 coaching consultations</li>
+          </ul>
+          <a href="#contact" class="btn-secondary pricing-btn" id="btn-essential-select">Select Essential</a>
+        </div>
+
+        <!-- Tier 2 (Featured) -->
+        <div class="pricing-card featured reveal delay-1" id="tier-performance">
+          <span class="featured-tag">Most Popular</span>
+          <div class="pricing-header">
+            <h3 class="pricing-name">Performance</h3>
+            <p class="pricing-desc">For athletes wanting premium class access and advanced programming support.</p>
+            <div class="pricing-price">$249<span>/ month</span></div>
+          </div>
+          <ul class="pricing-features">
+            <li class="pricing-feat-item"><i data-lucide="check"></i>Unlimited gym & studio access</li>
+            <li class="pricing-feat-item"><i data-lucide="check"></i>Unlimited boutique group classes</li>
+            <li class="pricing-feat-item"><i data-lucide="check"></i>Sauna & cold plunge recovery hub</li>
+            <li class="pricing-feat-item"><i data-lucide="check"></i>Biweekly InBody composition scans</li>
+            <li class="pricing-feat-item"><i data-lucide="check"></i>1 monthly personal training check-in</li>
+            <li class="pricing-feat-item muted"><i data-lucide="x"></i>Unlimited private coaching</li>
+          </ul>
+          <a href="#contact" class="neon-glow-btn pricing-btn" id="btn-performance-select">Select Performance</a>
+        </div>
+
+        <!-- Tier 3 -->
+        <div class="pricing-card reveal delay-2" id="tier-elite">
+          <div class="pricing-header">
+            <h3 class="pricing-name">Elite</h3>
+            <p class="pricing-desc">The ultimate lifestyle solution with personal coaching and complete recovery access.</p>
+            <div class="pricing-price">$499<span>/ month</span></div>
+          </div>
+          <ul class="pricing-features">
+            <li class="pricing-feat-item"><i data-lucide="check"></i>Full access to all global locations</li>
+            <li class="pricing-feat-item"><i data-lucide="check"></i>Unlimited group classes & workshops</li>
+            <li class="pricing-feat-item"><i data-lucide="check"></i>Full recovery hub access (sauna, cold plunge, compression)</li>
+            <li class="pricing-feat-item"><i data-lucide="check"></i>Weekly biometrics & nutritional updates</li>
+            <li class="pricing-feat-item"><i data-lucide="check"></i>4 personal training sessions/month</li>
+            <li class="pricing-feat-item"><i data-lucide="check"></i>Private lockers & laundry services</li>
+          </ul>
+          <a href="#contact" class="btn-secondary pricing-btn" id="btn-elite-select">Select Elite</a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ==========================================
+     9. OUR TEAM (COLLAGE)
+     ========================================== -->
+  <section class="section-padding team-collage" id="team">
+    <div class="container">
+      <div class="section-header reveal">
+        <span class="section-badge">APEX SPECIALISTS</span>
+        <h2 class="section-title">The People Powering <span class="text-gradient">Every Success Story</span></h2>
+        <p class="section-desc">Our team includes physical recovery guides, clinical nutritionists, performance specialists, and hospitality staff coordinate to provide a seamless lifestyle experience.</p>
+      </div>
+      
+      <div class="collage-grid">
+        <!-- Collage 1 (Featured large) -->
+        <div class="collage-item square-large reveal">
+          <img src="images/about_us_gym.png" alt="APEX community workspace" class="collage-img">
+          <div class="collage-info">
+            <div class="collage-name">The APEX Club Floor</div>
+            <div class="collage-role">Modern Workspace & Cafe</div>
+          </div>
+        </div>
+
+        <!-- Collage 2 (Tall) -->
+        <div class="collage-item row-2 reveal delay-1">
+          <img src="images/trainer_2.png" alt="Sarah instructing an athlete" class="collage-img">
+          <div class="collage-info">
+            <div class="collage-name">Sarah Jenkins</div>
+            <div class="collage-role">Movement Mechanics Specialist</div>
+          </div>
+        </div>
+
+        <!-- Collage 3 -->
+        <div class="collage-item reveal delay-2">
+          <img src="images/gallery_2.png" alt="Member in recovery plunge pool" class="collage-img">
+          <div class="collage-info">
+            <div class="collage-name">Recovery Plunges</div>
+            <div class="collage-role">Hydrotherapy Zones</div>
+          </div>
+        </div>
+
+        <!-- Collage 4 -->
+        <div class="collage-item reveal delay-3">
+          <img src="images/gallery_3.png" alt="Lifting platform sessions" class="collage-img">
+          <div class="collage-info">
+            <div class="collage-name">Strength Platforms</div>
+            <div class="collage-role">Barbell Training Zone</div>
+          </div>
+        </div>
+
+        <!-- Collage 5 (Wide) -->
+        <div class="collage-item col-2 reveal delay-1">
+          <img src="images/gallery_1.png" alt="Group classes cheering" class="collage-img">
+          <div class="collage-info">
+            <div class="collage-name">Apex Class Community</div>
+            <div class="collage-role">High-Energy Group Training</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ==========================================
+     10. GALLERY (MASONRY & LIGHTBOX)
+     ========================================== -->
+  <section class="section-padding" id="gallery">
+    <div class="container">
+      <div class="section-header reveal" style="text-align: center; margin-bottom: 3rem;">
+        <span class="section-badge">INSIDE THE APEX</span>
+        <h2 class="section-title" style="margin: 0 auto 1.5rem auto;">Experience <span class="text-gradient">The Energy</span></h2>
+        <p class="section-desc" style="margin-left: auto; margin-right: auto;">Explore our elite facility zones, intense workout sessions, recovery spaces, and community events.</p>
+      </div>
+
+      <!-- Category Filter Bar -->
+      <div class="gallery-filter-bar reveal">
+        <button class="filter-btn active" data-filter="all">All Photos</button>
+        <button class="filter-btn" data-filter="facilities">Gym Facilities</button>
+        <button class="filter-btn" data-filter="training">Training Sessions</button>
+        <button class="filter-btn" data-filter="recovery">Recovery & Wellness</button>
+        <button class="filter-btn" data-filter="classes">Group Classes</button>
+      </div>
+
+      <!-- Masonry Grid -->
+      <div class="gallery-masonry reveal delay-1">
+        <!-- Item 1 -->
+        <div class="gallery-item" data-category="facilities">
+          <img src="images/about_us_gym.png" alt="Apex Cardio and Weight Zone" class="gallery-item-img">
+          <div class="gallery-item-overlay">
+            <div class="gallery-zoom-icon"><i data-lucide="zoom-in"></i></div>
+            <div class="gallery-item-title">Cardio & Weight Zone</div>
+            <div class="gallery-item-cat">Gym Facilities</div>
+          </div>
+        </div>
+
+        <!-- Item 2 -->
+        <div class="gallery-item" data-category="training">
+          <img src="images/hero_athlete.png" alt="High Intensity Battle Rope Training" class="gallery-item-img">
+          <div class="gallery-item-overlay">
+            <div class="gallery-zoom-icon"><i data-lucide="zoom-in"></i></div>
+            <div class="gallery-item-title">Battle Rope Blast</div>
+            <div class="gallery-item-cat">Training Sessions</div>
+          </div>
+        </div>
+
+        <!-- Item 3 -->
+        <div class="gallery-item" data-category="recovery">
+          <img src="images/gallery_2.png" alt="Recovery Ice Bath Zone" class="gallery-item-img">
+          <div class="gallery-item-overlay">
+            <div class="gallery-zoom-icon"><i data-lucide="zoom-in"></i></div>
+            <div class="gallery-item-title">Cold Plunge Suite</div>
+            <div class="gallery-item-cat">Recovery & Wellness</div>
+          </div>
+        </div>
+
+        <!-- Item 4 -->
+        <div class="gallery-item" data-category="classes">
+          <img src="images/gallery_1.png" alt="Dynamic Group Circuit Training" class="gallery-item-img">
+          <div class="gallery-item-overlay">
+            <div class="gallery-zoom-icon"><i data-lucide="zoom-in"></i></div>
+            <div class="gallery-item-title">Metabolic Conditioning</div>
+            <div class="gallery-item-cat">Group Classes</div>
+          </div>
+        </div>
+
+        <!-- Item 5 -->
+        <div class="gallery-item" data-category="training">
+          <img src="images/gallery_3.png" alt="Barbell Squat Setup Eleiko Plates" class="gallery-item-img">
+          <div class="gallery-item-overlay">
+            <div class="gallery-zoom-icon"><i data-lucide="zoom-in"></i></div>
+            <div class="gallery-item-title">Olympic Strength Rack</div>
+            <div class="gallery-item-cat">Training Sessions</div>
+          </div>
+        </div>
+
+        <!-- Item 6 -->
+        <div class="gallery-item" data-category="facilities">
+          <img src="images/gallery_4.png" alt="Sprinting on indoor athletic turf track" class="gallery-item-img">
+          <div class="gallery-item-overlay">
+            <div class="gallery-zoom-icon"><i data-lucide="zoom-in"></i></div>
+            <div class="gallery-item-title">Agility Turf Track</div>
+            <div class="gallery-item-cat">Gym Facilities</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ==========================================
+     LIGHTBOX CONTAINER (DYNAMIC POPUP)
+     ========================================== -->
+  <div class="lightbox" id="lightbox">
+    <button class="lightbox-close" id="lightbox-close" aria-label="Close Lightbox">×</button>
+    <div class="lightbox-content">
+      <img src="" alt="" class="lightbox-img" id="lightbox-img">
+      <div class="lightbox-caption">
+        <h4 class="lightbox-caption-title" id="lightbox-title"></h4>
+        <span class="lightbox-caption-cat" id="lightbox-cat"></span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==========================================
+     11. MEMBER TRANSFORMATIONS (BEFORE/AFTER SLIDER)
+     ========================================== -->
+  <section class="section-padding transformations" id="transformations">
+    <div class="container">
+      <div class="trans-container">
+        <div class="trans-content reveal">
+          <span class="section-badge">REAL TRANSFORMATIONS</span>
+          <h3>Real People.<br><span class="text-gradient">Real Results.</span></h3>
+          <p class="trans-desc">
+            Review the progress metrics of our members. With expert guidance, structured strength programs, and custom macronutrient support, our community delivers sustainable fitness milestones.
+          </p>
+          <div class="trans-stats">
+            <div class="trans-stat-box fat-loss">
+              <div class="stat-header">
+                <i data-lucide="flame" class="stat-icon"></i>
+                <span class="trans-stat-val">-18 lbs</span>
+              </div>
+              <span class="trans-stat-lbl">Avg. Fat Loss (8 Wks)</span>
+            </div>
+            
+            <div class="trans-stat-box strength-gain">
+              <div class="stat-header">
+                <i data-lucide="zap" class="stat-icon"></i>
+                <span class="trans-stat-val">+12%</span>
+              </div>
+              <span class="trans-stat-lbl">Avg. Strength Gain</span>
+            </div>
+          </div>
+        </div>
+        
+        <div class="reveal delay-1">
+          <!-- Comparison Slider Frame -->
+          <div class="comparison-slider-wrapper">
+            <div class="comparison-slider" id="comparison-slider">
+              <!-- Before Image (Bottom) -->
+              <img src="images/transformation_before.png" alt="Before training at APEX" class="slider-img before">
+              
+              <!-- After Image (Top, resized dynamically by width) -->
+              <img src="images/transformation_after.png" alt="After training at APEX" class="slider-img after" id="after-img">
+              
+              <!-- Slider Handle -->
+              <div class="slider-handle" id="slider-handle">
+                <div class="slider-handle-button">
+                  <i data-lucide="arrow-left-right" size="18"></i>
+                </div>
+              </div>
+              
+              <!-- Badges -->
+              <span class="slider-badge badge-before">Before (Week 1)</span>
+              <span class="slider-badge badge-after">After (Week 12)</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ==========================================
+     12. REVIEWS (TESTIMONIAL CAROUSEL)
+     ========================================== -->
+  <section class="section-padding" id="reviews">
+    <div class="container">
+      <div class="section-header reveal" style="text-align: center;">
+        <span class="section-badge">MEMBER FEEDBACK</span>
+        <h2 class="section-title" style="margin: 0 auto;">What Our Members <span class="text-gradient">Are Saying</span></h2>
+      </div>
+      
+      <div class="reviews-carousel-wrapper reveal delay-1">
+        <!-- Slide 1 -->
+        <div class="review-slide active" data-slide="0">
+          <div class="review-quote-icon"><i data-lucide="quote" size="64"></i></div>
+          <blockquote class="review-text">
+            "The trainers are incredibly supportive and helped me achieve results I never thought possible. The dynamic environment keeps me motivated every single day."
+          </blockquote>
+          <div class="review-author">
+            <img src="images/trainer_2.png" alt="Amanda K., APEX Member" class="review-author-img">
+            <div>
+              <span class="review-author-name">Amanda K.</span>
+              <span class="review-author-title">Member Since 2024 | Fat Loss Program</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Slide 2 -->
+        <div class="review-slide" data-slide="1">
+          <div class="review-quote-icon"><i data-lucide="quote" size="64"></i></div>
+          <blockquote class="review-text">
+            "The facility is modern, clean, and packed with everything needed to succeed. Having a recovery plunge pool and sauna post-workout is a game changer."
+          </blockquote>
+          <div class="review-author">
+            <img src="images/trainer_1.png" alt="David L., APEX Member" class="review-author-img">
+            <div>
+              <span class="review-author-name">David L.</span>
+              <span class="review-author-title">Member Since 2025 | Sports Performance</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Slide 3 -->
+        <div class="review-slide" data-slide="2">
+          <div class="review-quote-icon"><i data-lucide="quote" size="64"></i></div>
+          <blockquote class="review-text">
+            "The community atmosphere keeps me motivated every day. It's not just a training floor; it's a team of people committed to helping you improve."
+          </blockquote>
+          <div class="review-author">
+            <!-- Using after image for complete avatars -->
+            <img src="images/transformation_after.png" alt="Sarah M., APEX Member" class="review-author-img">
+            <div>
+              <span class="review-author-name">Sarah M.</span>
+              <span class="review-author-title">Member Since 2024 | Strength Training</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Slide 4 -->
+        <div class="review-slide" data-slide="3">
+          <div class="review-quote-icon"><i data-lucide="quote" size="64"></i></div>
+          <blockquote class="review-text">
+            "This has completely changed my approach to fitness and wellness. The tracking metrics keep me accountable, and my endurance has doubled."
+          </blockquote>
+          <div class="review-author">
+            <img src="images/trainer_1.png" alt="James P., APEX Member" class="review-author-img">
+            <div>
+              <span class="review-author-name">James P.</span>
+              <span class="review-author-title">Member Since 2023 | Functional Fitness</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Carousel Nav Buttons -->
+        <button class="carousel-nav-btn carousel-btn-prev" id="carousel-prev" aria-label="Previous Review">
+          <i data-lucide="chevron-left"></i>
+        </button>
+        <button class="carousel-nav-btn carousel-btn-next" id="carousel-next" aria-label="Next Review">
+          <i data-lucide="chevron-right"></i>
+        </button>
+        
+        <!-- Dot Indicators -->
+        <div class="carousel-dots" id="carousel-dots">
+          <span class="carousel-dot active" data-index="0"></span>
+          <span class="carousel-dot" data-index="1"></span>
+          <span class="carousel-dot" data-index="2"></span>
+          <span class="carousel-dot" data-index="3"></span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ==========================================
+     13. FAQ (ACCORDION)
+     ========================================== -->
+  <section class="section-padding faq" id="faq">
+    <div class="container">
+      <div class="section-header reveal" style="text-align: center;">
+        <span class="section-badge">FREQUENTLY ASKED QUESTIONS</span>
+        <h2 class="section-title" style="margin: 0 auto 1.5rem auto;">Common <span class="text-gradient">Questions</span></h2>
+        <p class="section-desc" style="margin-left: auto; margin-right: auto;">Everything you need to know about starting your fitness journey with APEX.</p>
+      </div>
+      
+      <div class="faq-list reveal delay-1">
+        <!-- FAQ 1 -->
+        <div class="faq-item">
+          <button class="faq-question-btn">
+            Do I need previous gym experience?
+            <span class="faq-icon-wrapper"><i data-lucide="plus" size="20"></i></span>
+          </button>
+          <div class="faq-answer">
+            <div class="faq-answer-inner">
+              No. Our programs are designed to accommodate all fitness levels, from absolute beginners to elite athletes. Our certified coaches screen and scale all weights and movements to match your current ability levels.
+            </div>
+          </div>
+        </div>
+
+        <!-- FAQ 2 -->
+        <div class="faq-item">
+          <button class="faq-question-btn">
+            Are personal trainers available?
+            <span class="faq-icon-wrapper"><i data-lucide="plus" size="20"></i></span>
+          </button>
+          <div class="faq-answer">
+            <div class="faq-answer-inner">
+              Yes. Certified personal coaches are available for dedicated 1-on-1 private training. You can choose a coach that fits your specific athletic goal (strength training, body composition, athletic performance, or dynamic recovery).
+            </div>
+          </div>
+        </div>
+
+        <!-- FAQ 3 -->
+        <div class="faq-item">
+          <button class="faq-question-btn">
+            Do you offer nutrition guidance?
+            <span class="faq-icon-wrapper"><i data-lucide="plus" size="20"></i></span>
+          </button>
+          <div class="faq-answer">
+            <div class="faq-answer-inner">
+              Yes. All membership tiers have access to generalized nutrition materials, and our Performance and Elite tiers include direct metabolic composition assessments and tailored nutritional programming.
+            </div>
+          </div>
+        </div>
+
+        <!-- FAQ 4 -->
+        <div class="faq-item">
+          <button class="faq-question-btn">
+            Can I try before joining?
+            <span class="faq-icon-wrapper"><i data-lucide="plus" size="20"></i></span>
+          </button>
+          <div class="faq-answer">
+            <div class="faq-answer-inner">
+              Yes. We offer free trial sessions, initial coaching assessments, and facility walkthroughs. Simply fill out our contact form, select "Book a Trial", and we'll book your initial slot.
+            </div>
+          </div>
+        </div>
+
+        <!-- FAQ 5 -->
+        <div class="faq-item">
+          <button class="faq-question-btn">
+            What programs are available?
+            <span class="faq-icon-wrapper"><i data-lucide="plus" size="20"></i></span>
+          </button>
+          <div class="faq-answer">
+            <div class="faq-answer-inner">
+              We provide six primary specialized disciplines: Strength Training, Weight Loss Programs, Functional Fitness, Group Classes, 1-on-1 Personal Coaching, and Advanced Sports Performance facilities.
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ==========================================
+     14. CTA SECTION (FULL WIDTH IMMERSIVE)
+     ========================================== -->
+  <section class="cta-section" id="cta" style="background-image: url('images/hero_athlete.png');">
+    <div class="cta-overlay"></div>
+    <div class="container" style="position: relative; z-index: 5;">
+      <div class="cta-content reveal">
+        <span class="section-badge" style="border-color: var(--color-highlight); color: var(--color-highlight); background: rgba(163, 230, 53, 0.1);">REDESIGN YOUR LIMITS</span>
+        <h2 class="cta-title">Your Strongest Version<br><span class="text-gradient-lime">Starts Here</span></h2>
+        <p class="cta-desc">
+          Join an energetic fitness community dedicated to helping you achieve extraordinary results through expert guidance, premium recovery zones, and unwavering support.
+        </p>
+        <div class="cta-actions">
+          <a href="#contact" class="neon-glow-btn" style="box-shadow: 0 4px 20px rgba(163, 230, 53, 0.3);" id="cta-join-btn">
+            Start Today
+            <i data-lucide="chevron-right"></i>
+          </a>
+          <a href="#contact" class="btn-secondary" style="border-color: #fff; color: #fff;" id="cta-trial-btn">
+            Book A Free Trial
+          </a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ==========================================
+     15. CONTACT FORM (SPLIT-SCREEN SCREEN)
+     ========================================== -->
+  <section class="section-padding contact" id="contact">
+    <div class="container">
+      <div class="contact-grid">
+        <div class="contact-info reveal">
+          <div>
+            <span class="section-badge">GET IN TOUCH</span>
+            <h2 class="section-title">Let's Start Your<br><span class="text-gradient">Fitness Journey</span></h2>
+            <p class="section-desc" style="max-width: 450px;">
+              Ready to take the first step? Complete the form to coordinate a consultation, schedule a trial workout, or choose your plan.
+            </p>
+          </div>
+          
+
+        </div>
+
+        <div class="contact-form-panel reveal delay-1">
+          <h3 class="form-title">Coordinate Your Plan</h3>
+          <p class="form-subtitle">Complete your details to start the onboarding assessment.</p>
+          
+          <form class="contact-form" id="contact-form" novalidate>
+            <div class="form-row">
+              <div class="form-group">
+                <input type="text" id="form-name" class="form-input" placeholder=" " required>
+                <label for="form-name" class="form-label">Full Name</label>
+                <div class="form-feedback error" id="name-error">Please enter your name.</div>
+              </div>
+              
+              <div class="form-group">
+                <input type="email" id="form-email" class="form-input" placeholder=" " required>
+                <label for="form-email" class="form-label">Email Address</label>
+                <div class="form-feedback error" id="email-error">Please enter a valid email address.</div>
+              </div>
+            </div>
+
+            <div class="form-row">
+              <div class="form-group">
+                <input type="tel" id="form-phone" class="form-input" placeholder=" " required>
+                <label for="form-phone" class="form-label">Phone Number</label>
+                <div class="form-feedback error" id="phone-error">Please enter your phone number.</div>
+              </div>
+              
+              <div class="form-group select-wrapper">
+                <select id="form-goal" class="form-select" required>
+                  <option value="" disabled selected hidden></option>
+                  <option value="strength">Build Muscle & Strength</option>
+                  <option value="fat-loss">Weight Loss & Tone</option>
+                  <option value="mobility">Improve Mobility & Health</option>
+                  <option value="athletic">Sports Performance</option>
+                  <option value="other">General Fitness</option>
+                </select>
+                <label for="form-goal" class="form-label">Fitness Goal</label>
+                <div class="form-feedback error" id="goal-error">Please choose a fitness goal.</div>
+              </div>
+            </div>
+
+            <div class="form-group select-wrapper">
+              <select id="form-program" class="form-select" required>
+                <option value="" disabled selected hidden></option>
+                <option value="strength-train">Strength Training</option>
+                <option value="weight-loss">Weight Loss Programs</option>
+                <option value="functional">Functional Fitness</option>
+                <option value="group-classes">Group Fitness Classes</option>
+                <option value="personal-coaching">Personal Training</option>
+                <option value="sports-perf">Sports Performance</option>
+              </select>
+              <label for="form-program" class="form-label">Preferred Program</label>
+              <div class="form-feedback error" id="program-error">Please select a program.</div>
+            </div>
+
+            <div class="form-group">
+              <textarea id="form-message" class="form-textarea" placeholder=" " required></textarea>
+              <label for="form-message" class="form-label">Tell Us About Yourself</label>
+              <div class="form-feedback error" id="message-error">Please enter a short message.</div>
+            </div>
+
+            <button type="submit" class="neon-glow-btn" style="width: 100%; justify-content: center; padding: 1.25rem;" id="form-submit-btn">
+              Get Started
+              <i data-lucide="send" size="18"></i>
+            </button>
+            <div class="form-feedback success" id="form-success-msg" style="text-align: center; margin-top: 1rem;">
+              <i data-lucide="check-circle" size="18" style="vertical-align: middle; margin-right: 0.5rem;"></i>
+              Transformation request sent! Our coaches will contact you within 24 hours.
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ==========================================
+     16. FOOTER
+     ========================================== -->
+  <footer class="footer" id="footer">
+    <div class="container">
+      <div class="footer-grid">
+        <div class="footer-brand">
+          <a href="#home" class="logo" style="margin-bottom: 1.5rem;">
+            <i data-lucide="activity" style="color: var(--color-primary);"></i>
+            APEX<span>PERFORMANCE</span>
+          </a>
+          <p class="footer-brand-desc">
+            An elite performance and recovery brand merging strength training, custom recovery methods, and nutrition science.
+          </p>
+          <div class="footer-socials">
+            <a href="#" class="footer-social-btn" aria-label="Instagram">
+              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="2" y="2" width="20" height="20" rx="5" ry="5"></rect>
+                <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path>
+                <line x1="17.5" y1="6.5" x2="17.51" y2="6.5"></line>
+              </svg>
+            </a>
+            <a href="#" class="footer-social-btn" aria-label="Facebook">
+              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"></path>
+              </svg>
+            </a>
+            <a href="#" class="footer-social-btn" aria-label="YouTube">
+              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M22.54 6.42a2.78 2.78 0 0 0-1.94-2C18.88 4 12 4 12 4s-6.88 0-8.6.46a2.78 2.78 0 0 0-1.94 2A29 29 0 0 0 1 11.75a29 29 0 0 0 .46 5.33A2.78 2.78 0 0 0 3.4 19c1.72.46 8.6.46 8.6.46s6.88 0 8.6-.46a2.78 2.78 0 0 0 1.94-2 29 29 0 0 0 .46-5.25 29 29 0 0 0-.46-5.33z"></path>
+                <polygon points="9.75 15.02 15.5 11.75 9.75 8.48 9.75 15.02"></polygon>
+              </svg>
+            </a>
+            <a href="#" class="footer-social-btn" aria-label="TikTok">
+              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M9 12a4 4 0 1 0 4 4V4a5 5 0 0 0 5 5"></path>
+              </svg>
+            </a>
+          </div>
+        </div>
+
+        <div>
+          <h4 class="footer-title">Quick Links</h4>
+          <ul class="footer-links">
+            <li><a href="#about" class="footer-link">About Us</a></li>
+            <li><a href="#programs" class="footer-link">Programs</a></li>
+            <li><a href="#trainers" class="footer-link">Trainers</a></li>
+            <li><a href="#pricing" class="footer-link">Pricing</a></li>
+            <li><a href="#contact" class="footer-link">Contact</a></li>
+          </ul>
+        </div>
+
+        <div>
+          <h4 class="footer-title">Programs</h4>
+          <ul class="footer-links">
+            <li><a href="#programs" class="footer-link">Strength Training</a></li>
+            <li><a href="#programs" class="footer-link">Weight Loss</a></li>
+            <li><a href="#programs" class="footer-link">Personal Training</a></li>
+            <li><a href="#programs" class="footer-link">Group Classes</a></li>
+            <li><a href="#programs" class="footer-link">Functional Fitness</a></li>
+            <li><a href="#programs" class="footer-link">Sports Performance</a></li>
+          </ul>
+        </div>
+
+        <div>
+          <h4 class="footer-title">Reach Us</h4>
+          <ul class="footer-contact-list">
+            <li class="footer-contact-item">
+              <i data-lucide="map-pin" size="18"></i>
+              <span>800 Performance Way, Suite 10, New York, NY 10001</span>
+            </li>
+            <li class="footer-contact-item">
+              <i data-lucide="phone" size="18"></i>
+              <span>+1 (800) 555-APEX</span>
+            </li>
+            <li class="footer-contact-item">
+              <i data-lucide="mail" size="18"></i>
+              <span>transform@apexperformance.com</span>
+            </li>
+            <li class="footer-contact-item">
+              <i data-lucide="clock" size="18"></i>
+              <span>Mon-Fri: 5:00 AM - 10:00 PM<br>Sat-Sun: 7:00 AM - 8:00 PM</span>
+            </li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="footer-bottom">
+        <p class="footer-copy">© 2026 APEX Performance. All Rights Reserved.</p>
+
+      </div>
+    </div>
+  </footer>
+
+  <!-- Main JavaScript File -->
+  <script src="main.js"></script>
+</body>
+</html>

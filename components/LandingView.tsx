@@ -41,6 +41,7 @@ import { SUPPORTED_LANGUAGES, getLanguageConfig } from "@/lib/multilingual";
 import { HeroAIBackground } from "./HeroAIBackground";
 import { Footer } from "@/components/Footer";
 import { PLANS } from "@/lib/constants";
+import { AIBuiltTemplatesShowcase } from "./AIBuiltTemplatesShowcase";
 
 const FAQ_ITEMS = [
   {
@@ -848,6 +849,8 @@ export function LandingView({
         </div>
       </section>
 
+      {/* SECTION 4: AI BUILT TEMPLATES SHOWCASE */}
+      <AIBuiltTemplatesShowcase />
 
       {/* SECTION 5: AI EDITING SHOWCASE */}
       <section className="py-24 px-6 sm:px-12 bg-gradient-to-b from-slate-50 via-purple-50/20 to-slate-50 border-b border-slate-200/80 relative overflow-hidden">

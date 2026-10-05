@@ -1,0 +1,942 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Aurelia Finance | Premium Wealth Management & Bespoke Lending Solutions</title>
+  <meta name="description" content="Aurelia Finance is a premier financial institution offering customized lending, banking, investment, insurance, and business solutions designed for lasting stability.">
+  
+  <!-- Preconnect & Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  
+  <!-- Phosphor Icons (Feather-like Premium Icons) -->
+  <script src="https://unpkg.com/@phosphor-icons/web"></script>
+  
+  <!-- Core Stylesheet -->
+  <link rel="stylesheet" href="./src/style.css">
+</head>
+<body>
+
+  <!-- 1. Header & Navigation -->
+  <header id="site-header" class="site-header">
+    <div class="header-container">
+      <a href="#home" class="logo" id="header-logo">
+        <span class="logo-accent">AURELIA</span>
+        <span class="logo-sub">FINANCE</span>
+      </a>
+      
+      <nav class="nav-menu" id="nav-menu">
+        <ul class="nav-list">
+          <li><a href="#home" class="nav-link active">Home</a></li>
+          <li><a href="#about" class="nav-link">About Us</a></li>
+          <li><a href="#ecosystem" class="nav-link">Solutions</a></li>
+          <li><a href="#loans" class="nav-link">Loans</a></li>
+          <li><a href="#contact" class="nav-link">Contact</a></li>
+        </ul>
+      </nav>
+
+      <div class="header-actions">
+        <a href="#contact" class="cta-button primary-cta" id="nav-cta">Apply Now</a>
+        <button class="mobile-toggle" id="mobile-toggle" aria-label="Toggle Menu">
+          <i class="ph ph-list menu-icon"></i>
+          <i class="ph ph-x close-icon"></i>
+        </button>
+      </div>
+    </div>
+    
+    <!-- Mobile Menu Overlay -->
+    <div class="mobile-nav-overlay" id="mobile-overlay">
+      <ul class="mobile-nav-list">
+        <li><a href="#home" class="mobile-link">Home</a></li>
+        <li><a href="#about" class="mobile-link">About Us</a></li>
+        <li><a href="#ecosystem" class="mobile-link">Solutions</a></li>
+        <li><a href="#loans" class="mobile-link">Loans</a></li>
+        <li><a href="#contact" class="mobile-link">Contact</a></li>
+        <li><a href="#contact" class="cta-button primary-cta mobile-cta">Apply Now</a></li>
+      </ul>
+    </div>
+  </header>
+
+  <!-- 2. Hero Slider -->
+  <section id="home" class="hero-slider-section">
+    <div class="slider-container" id="hero-slider">
+      
+      <!-- Slide 1 -->
+      <div class="slide active" data-index="0">
+        <div class="slide-bg" style="background-image: linear-gradient(rgba(17, 22, 37, 0.4), rgba(17, 22, 37, 0.7)), url('./public/assets/hero_slide_1.png');"></div>
+        <div class="slide-content container">
+          <span class="slide-badge reveal-item">Trusted Financial Solutions</span>
+          <h1 class="slide-title reveal-item">Financial Support Designed Around Your Goals</h1>
+          <p class="slide-desc reveal-item">Helping individuals, families, and businesses achieve financial confidence through innovative banking, lending, and wealth-building solutions.</p>
+          <div class="slide-actions reveal-item">
+            <a href="#contact" class="cta-button gold-cta">Apply Now</a>
+            <a href="#ecosystem" class="cta-button outline-white-cta">Explore Solutions</a>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Slide 2 -->
+      <div class="slide" data-index="1">
+        <div class="slide-bg" style="background-image: linear-gradient(rgba(17, 22, 37, 0.45), rgba(17, 22, 37, 0.75)), url('https://images.unsplash.com/photo-1557804506-669a67965ba0?auto=format&fit=crop&w=1920&q=80');"></div>
+        <div class="slide-content container">
+          <span class="slide-badge reveal-item">Business Growth Financing</span>
+          <h1 class="slide-title reveal-item">Funding Solutions That Help Businesses Move Forward</h1>
+          <p class="slide-desc reveal-item">Access flexible financing, working capital support, and growth-focused lending solutions designed for ambitious businesses.</p>
+          <div class="slide-actions reveal-item">
+            <a href="#loans" class="cta-button gold-cta">Business Loans</a>
+            <a href="#contact" class="cta-button outline-white-cta">Talk To An Expert</a>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Slide 3 -->
+      <div class="slide" data-index="2">
+        <div class="slide-bg" style="background-image: linear-gradient(rgba(17, 22, 37, 0.45), rgba(17, 22, 37, 0.75)), url('https://images.unsplash.com/photo-1556911220-e15b29be8c8f?auto=format&fit=crop&w=1920&q=80');"></div>
+        <div class="slide-content container">
+          <span class="slide-badge reveal-item">Home & Personal Finance</span>
+          <h1 class="slide-title reveal-item">Helping You Achieve Life's Biggest Milestones</h1>
+          <p class="slide-desc reveal-item">From home ownership and education to personal aspirations, we provide flexible financial solutions that support your journey.</p>
+          <div class="slide-actions reveal-item">
+            <a href="#loans" class="cta-button gold-cta">View Loan Options</a>
+            <a href="#contact" class="cta-button outline-white-cta">Get Started</a>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Slider Navigation -->
+      <div class="slider-controls">
+        <button class="control-btn prev-btn" id="prev-slide" aria-label="Previous Slide">
+          <i class="ph ph-caret-left"></i>
+        </button>
+        <div class="slider-dots" id="slider-dots">
+          <!-- Dots generated dynamically in main.js -->
+        </div>
+        <button class="control-btn next-btn" id="next-slide" aria-label="Next Slide">
+          <i class="ph ph-caret-right"></i>
+        </button>
+      </div>
+      
+    </div>
+  </section>
+
+  <!-- 3. Financial Snapshot (Stats - No Cards) -->
+  <section class="snapshot-section scroll-reveal" id="snapshot">
+    <div class="container">
+      <div class="snapshot-header text-center">
+        <span class="section-badge">Performance Snapshot</span>
+        <h2 class="section-title text-dark">Financial Strength Backed By Trust</h2>
+      </div>
+      <div class="stats-row">
+        <div class="stat-col" id="stat-customers">
+          <div class="stat-number" data-target="50000">0</div>
+          <div class="stat-label">Customers Served</div>
+        </div>
+        <div class="stat-divider"></div>
+        <div class="stat-col" id="stat-loans">
+          <div class="stat-number" data-target="500">0</div>
+          <div class="stat-label">Loans Processed</div>
+        </div>
+        <div class="stat-divider"></div>
+        <div class="stat-col" id="stat-years">
+          <div class="stat-number" data-target="15">0</div>
+          <div class="stat-label">Years Of Experience</div>
+        </div>
+        <div class="stat-divider"></div>
+        <div class="stat-col" id="stat-satisfaction">
+          <div class="stat-number" data-target="98">0</div>
+          <div class="stat-label">Customer Satisfaction</div>
+        </div>
+        <div class="stat-divider"></div>
+        <div class="stat-col" id="stat-specialists">
+          <div class="stat-number" data-target="150">0</div>
+          <div class="stat-label">Financial Specialists</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 4, 5, 6. About Us, Vision & Mission (Split Screen Layout) -->
+  <section id="about" class="about-section scroll-reveal">
+    <div class="container-fluid split-layout">
+      <!-- Image side -->
+      <div class="split-image-container">
+        <div class="split-image" style="background-image: url('https://images.unsplash.com/photo-1454165804606-c3d57bc86b40?auto=format&fit=crop&w=1200&q=80');"></div>
+        <div class="split-image-overlay"></div>
+      </div>
+      
+      <!-- Content side -->
+      <div class="split-content-container">
+        <span class="section-badge">Bespoke Governance</span>
+        <h2 class="section-title text-dark">Building Financial Confidence Through Trusted Solutions</h2>
+        <p class="about-lead text-muted">We provide comprehensive financial services designed to help people and businesses manage, grow, and protect their financial future. Through responsible lending, expert advisory, and innovative financial products, we empower customers to make confident financial decisions.</p>
+        <p class="about-body text-muted">Our commitment to transparency, integrity, and customer success has helped thousands of individuals and organizations achieve their goals while building long-term financial stability.</p>
+        
+        <!-- Tabbed Vision & Mission Panels -->
+        <div class="about-tab-container">
+          <div class="tab-triggers">
+            <button class="tab-trigger active" data-tab="vision">Our Vision</button>
+            <button class="tab-trigger" data-tab="mission">Our Mission</button>
+          </div>
+          
+          <div class="tab-contents">
+            <div class="tab-content active" id="tab-vision">
+              <p class="tab-desc">To become the preferred financial partner for individuals and businesses by delivering innovative solutions, trusted expertise, and exceptional customer experiences.</p>
+            </div>
+            <div class="tab-content" id="tab-mission">
+              <p class="tab-desc">To provide accessible financial products and personalized guidance that help customers achieve growth, stability, and long-term financial success.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 7. Financial Solutions Ecosystem (Spatial Split Hub - No Cards) -->
+  <section id="ecosystem" class="ecosystem-section scroll-reveal">
+    <div class="container">
+      <div class="ecosystem-header text-center">
+        <span class="section-badge">Comprehensive Solutions</span>
+        <h2 class="section-title text-dark">Everything You Need Under One Financial Partner</h2>
+        <p class="section-subtitle text-muted">Hover or tap on our specialized offerings to load their custom frameworks inside the central hub.</p>
+      </div>
+
+      <div class="ecosystem-spatial-hub">
+        
+        <!-- Left Side: Nodes 01 - 03 -->
+        <div class="spatial-nodes-col spatial-left-col">
+          
+          <!-- Node 1 -->
+          <button class="spatial-node active" data-index="0" aria-label="Personal Banking">
+            <div class="node-icon-wrapper">
+              <i class="ph ph-user-circle"></i>
+            </div>
+            <div class="node-text-wrapper">
+              <span class="node-index">01</span>
+              <h3 class="node-title">Personal Banking</h3>
+            </div>
+            <div class="node-connector-line">
+              <div class="connector-glow-dot"></div>
+            </div>
+          </button>
+
+          <!-- Node 2 -->
+          <button class="spatial-node" data-index="1" aria-label="Business Banking">
+            <div class="node-icon-wrapper">
+              <i class="ph ph-briefcase-metal"></i>
+            </div>
+            <div class="node-text-wrapper">
+              <span class="node-index">02</span>
+              <h3 class="node-title">Business Banking</h3>
+            </div>
+            <div class="node-connector-line">
+              <div class="connector-glow-dot"></div>
+            </div>
+          </button>
+
+          <!-- Node 3 -->
+          <button class="spatial-node" data-index="2" aria-label="Investments">
+            <div class="node-icon-wrapper">
+              <i class="ph ph-chart-line-up"></i>
+            </div>
+            <div class="node-text-wrapper">
+              <span class="node-index">03</span>
+              <h3 class="node-title">Investments</h3>
+            </div>
+            <div class="node-connector-line">
+              <div class="connector-glow-dot"></div>
+            </div>
+          </button>
+
+        </div>
+
+        <!-- Center: Interactive Dashboard Viewport -->
+        <div class="spatial-hub-center">
+          <div class="hub-center-ring"></div>
+          <div class="hub-center-glow"></div>
+          
+          <div class="hub-viewport-content" id="hub-viewport">
+            <div class="viewport-inner">
+              <span class="viewport-badge">Premium Offering</span>
+              <h3 class="viewport-title" id="viewport-title">Personal Banking</h3>
+              <p class="viewport-desc" id="viewport-desc">Everyday banking solutions designed for convenience and security. Access checking accounts, savings accounts, digital transactions, and premium reward schemes customized to support your daily flow.</p>
+              
+              <div class="viewport-divider"></div>
+              
+              <ul class="viewport-features" id="viewport-features">
+                <li><i class="ph ph-circle-wavy-check"></i> Yield-maximized checking</li>
+                <li><i class="ph ph-circle-wavy-check"></i> Bespoke titanium credit options</li>
+                <li><i class="ph ph-circle-wavy-check"></i> Zero fee international transfers</li>
+              </ul>
+              
+              <div class="viewport-action">
+                <a href="#contact" class="cta-button primary-cta viewport-cta">Learn More <i class="ph ph-arrow-right"></i></a>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Right Side: Nodes 04 - 06 -->
+        <div class="spatial-nodes-col spatial-right-col">
+          
+          <!-- Node 4 -->
+          <button class="spatial-node" data-index="3" aria-label="Wealth Management">
+            <div class="node-connector-line">
+              <div class="connector-glow-dot"></div>
+            </div>
+            <div class="node-icon-wrapper">
+              <i class="ph ph-crown"></i>
+            </div>
+            <div class="node-text-wrapper">
+              <span class="node-index">04</span>
+              <h3 class="node-title">Wealth Management</h3>
+            </div>
+          </button>
+
+          <!-- Node 5 -->
+          <button class="spatial-node" data-index="4" aria-label="Insurance Solutions">
+            <div class="node-connector-line">
+              <div class="connector-glow-dot"></div>
+            </div>
+            <div class="node-icon-wrapper">
+              <i class="ph ph-shield-check"></i>
+            </div>
+            <div class="node-text-wrapper">
+              <span class="node-index">05</span>
+              <h3 class="node-title">Insurance Solutions</h3>
+            </div>
+          </button>
+
+          <!-- Node 6 -->
+          <button class="spatial-node" data-index="5" aria-label="Digital Banking">
+            <div class="node-connector-line">
+              <div class="connector-glow-dot"></div>
+            </div>
+            <div class="node-icon-wrapper">
+              <i class="ph ph-device-mobile"></i>
+            </div>
+            <div class="node-text-wrapper">
+              <span class="node-index">06</span>
+              <h3 class="node-title">Digital Banking</h3>
+            </div>
+          </button>
+
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- 8. Featured Loan Solutions (Expanding Visual Panels - No Cards) -->
+  <section id="loans" class="loans-section scroll-reveal">
+    <div class="container-fluid no-padding">
+      <div class="container">
+        <div class="loans-header text-center">
+          <span class="section-badge">Bespoke Lending</span>
+          <h2 class="section-title text-dark">Flexible Financing For Every Stage Of Life</h2>
+          <p class="section-subtitle text-muted">Hover or tap on our key loan programs to inspect funding capacities and customized structures.</p>
+        </div>
+      </div>
+
+      <!-- Large Expanding visual panels -->
+      <div class="expanding-panels-container" id="expanding-panels">
+        
+        <!-- Panel 1 -->
+        <div class="expanding-panel active" style="background-image: linear-gradient(rgba(17,22,37,0.25), rgba(17,22,37,0.85)), url('https://images.unsplash.com/photo-1560518883-ce09059eeffa?auto=format&fit=crop&w=800&q=80');">
+          <div class="panel-collapsed-title">Home Loans</div>
+          <div class="panel-content-expanded">
+            <span class="panel-badge">Mortgages</span>
+            <h3 class="panel-title">Home Loans</h3>
+            <p class="panel-desc">Helping families achieve home ownership through flexible, customized mortgage solutions tailored to your unique financial timeline.</p>
+            <a href="#contact" class="panel-link">Inquire Now <i class="ph ph-arrow-right"></i></a>
+          </div>
+        </div>
+
+        <!-- Panel 2 -->
+        <div class="expanding-panel" style="background-image: linear-gradient(rgba(17,22,37,0.25), rgba(17,22,37,0.85)), url('https://images.unsplash.com/photo-1454165804606-c3d57bc86b40?auto=format&fit=crop&w=800&q=80');">
+          <div class="panel-collapsed-title">Business Loans</div>
+          <div class="panel-content-expanded">
+            <span class="panel-badge">Enterprise Growth</span>
+            <h3 class="panel-title">Business Loans</h3>
+            <p class="panel-desc">Funding designed to support business growth, expansion, hardware procurement, and operational liquid requirements.</p>
+            <a href="#contact" class="panel-link">Inquire Now <i class="ph ph-arrow-right"></i></a>
+          </div>
+        </div>
+
+        <!-- Panel 3 -->
+        <div class="expanding-panel" style="background-image: linear-gradient(rgba(17,22,37,0.25), rgba(17,22,37,0.85)), url('https://images.unsplash.com/photo-1554224155-8d04cb21cd6c?auto=format&fit=crop&w=800&q=80');">
+          <div class="panel-collapsed-title">Personal Loans</div>
+          <div class="panel-content-expanded">
+            <span class="panel-badge">Fluid Credit</span>
+            <h3 class="panel-title">Personal Loans</h3>
+            <p class="panel-desc">Fast and convenient financing designed with customizable parameters to bridge life's immediate liquidity needs smoothly.</p>
+            <a href="#contact" class="panel-link">Inquire Now <i class="ph ph-arrow-right"></i></a>
+          </div>
+        </div>
+
+        <!-- Panel 4 -->
+        <div class="expanding-panel" style="background-image: linear-gradient(rgba(17,22,37,0.25), rgba(17,22,37,0.85)), url('https://images.unsplash.com/photo-1533473359331-0135ef1b58bf?auto=format&fit=crop&w=800&q=80');">
+          <div class="panel-collapsed-title">Vehicle Loans</div>
+          <div class="panel-content-expanded">
+            <span class="panel-badge">Mobility Finance</span>
+            <h3 class="panel-title">Vehicle Loans</h3>
+            <p class="panel-desc">Affordable, custom financing programs for premium personal transport and corporate commercial fleets.</p>
+            <a href="#contact" class="panel-link">Inquire Now <i class="ph ph-arrow-right"></i></a>
+          </div>
+        </div>
+
+        <!-- Panel 5 -->
+        <div class="expanding-panel" style="background-image: linear-gradient(rgba(17,22,37,0.25), rgba(17,22,37,0.85)), url('https://images.unsplash.com/photo-1523050854058-8df90110c9f1?auto=format&fit=crop&w=800&q=80');">
+          <div class="panel-collapsed-title">Education Loans</div>
+          <div class="panel-content-expanded">
+            <span class="panel-badge">Academic Investment</span>
+            <h3 class="panel-title">Education Loans</h3>
+            <p class="panel-desc">Supporting academic and professional advancement at premier global universities, with deferred flexible repayment layouts.</p>
+            <a href="#contact" class="panel-link">Inquire Now <i class="ph ph-arrow-right"></i></a>
+          </div>
+        </div>
+
+        <!-- Panel 6 -->
+        <div class="expanding-panel" style="background-image: linear-gradient(rgba(17,22,37,0.25), rgba(17,22,37,0.85)), url('https://images.unsplash.com/photo-1582407947304-fd86f028f716?auto=format&fit=crop&w=800&q=80');">
+          <div class="panel-collapsed-title">Property Loans</div>
+          <div class="panel-content-expanded">
+            <span class="panel-badge">Asset Monetization</span>
+            <h3 class="panel-title">Loan Against Property</h3>
+            <p class="panel-desc">Unlock the value of your high-yield assets with secure, long-term lending options structured for maximum equity release.</p>
+            <a href="#contact" class="panel-link">Inquire Now <i class="ph ph-arrow-right"></i></a>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- 9. Why Choose Us (Editorial Layout - No Cards) -->
+  <section class="why-us-section scroll-reveal">
+    <div class="container">
+      <div class="why-us-layout">
+        <!-- Left Side Statement -->
+        <div class="why-us-statement">
+          <span class="section-badge">Why Aurelia</span>
+          <h2 class="editorial-heading text-dark">A Financial Partner You Can Trust</h2>
+          <p class="why-us-lead text-muted">We combine institutional security, market expertise, and modern fintech velocity to deliver a sophisticated financial environment for our partners.</p>
+          <div class="why-us-graphic-wrapper">
+            <div class="why-us-glow"></div>
+            <div class="why-us-tagline">
+              <span class="accent-number">100%</span>
+              <span class="accent-text">Dedicated to Capital Integrity & Protection</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Right Side Vertical Benefits List -->
+        <div class="why-us-benefits">
+          
+          <div class="benefit-item">
+            <div class="benefit-number">01</div>
+            <div class="benefit-body">
+              <h3 class="benefit-title">Fast Approvals</h3>
+              <p class="benefit-desc">Efficient, streamlined digital vetting structures designed to save your enterprise and family valuable time.</p>
+            </div>
+          </div>
+
+          <div class="benefit-item">
+            <div class="benefit-number">02</div>
+            <div class="benefit-body">
+              <h3 class="benefit-title">Competitive Rates</h3>
+              <p class="benefit-desc">Optimized, market-leading yields and borrowing conditions structured for maximum financial return and value.</p>
+            </div>
+          </div>
+
+          <div class="benefit-item">
+            <div class="benefit-number">03</div>
+            <div class="benefit-body">
+              <h3 class="benefit-title">Personalized Service</h3>
+              <p class="benefit-desc">Exclusive wealth and asset advisors aligned with your unique personal objectives and lifestyle milestones.</p>
+            </div>
+          </div>
+
+          <div class="benefit-item">
+            <div class="benefit-number">04</div>
+            <div class="benefit-body">
+              <h3 class="benefit-title">Transparent Policies</h3>
+              <p class="benefit-desc">Clear communication channels with absolute fee visibility, eliminating unexpected transactional fees or conditions.</p>
+            </div>
+          </div>
+
+          <div class="benefit-item">
+            <div class="benefit-number">05</div>
+            <div class="benefit-body">
+              <h3 class="benefit-title">Secure Transactions</h3>
+              <p class="benefit-desc">Advanced multi-tier military-grade security frameworks protecting assets and compliance records flawlessly.</p>
+            </div>
+          </div>
+
+          <div class="benefit-item">
+            <div class="benefit-number">06</div>
+            <div class="benefit-body">
+              <h3 class="benefit-title">Long-Term Support</h3>
+              <p class="benefit-desc">Dedicated institutional assistance supporting your financial operations and legacy plans through generational timelines.</p>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 10. Customer Journey (Horizontal Timeline - No Cards) -->
+  <section class="journey-section scroll-reveal">
+    <div class="container">
+      <div class="journey-header text-center">
+        <span class="section-badge">How It Works</span>
+        <h2 class="section-title text-dark">Simple, Transparent, And Efficient</h2>
+        <p class="section-subtitle text-muted">A clear, phased methodology leading you from onboarding directly to activation and capital growth.</p>
+      </div>
+
+      <div class="timeline-wrapper">
+        <!-- Connecting Timeline Line -->
+        <div class="timeline-line">
+          <div class="timeline-progress" id="timeline-progress"></div>
+        </div>
+
+        <div class="timeline-scroll-container" id="timeline-scroll">
+          
+          <!-- Step 1 -->
+          <div class="timeline-step" data-step="1">
+            <div class="timeline-marker">
+              <span class="step-num">1</span>
+            </div>
+            <div class="timeline-content">
+              <h3 class="step-title">Choose Solution</h3>
+              <p class="step-desc">Select from our extensive banking, personal lending, or wealth advisory ecosystems tailored for you.</p>
+            </div>
+          </div>
+
+          <!-- Step 2 -->
+          <div class="timeline-step" data-step="2">
+            <div class="timeline-marker">
+              <span class="step-num">2</span>
+            </div>
+            <div class="timeline-content">
+              <h3 class="step-title">Submit Application</h3>
+              <p class="step-desc">Complete a simplified online verification process requiring minimal documentation and zero fuss.</p>
+            </div>
+          </div>
+
+          <!-- Step 3 -->
+          <div class="timeline-step" data-step="3">
+            <div class="timeline-marker">
+              <span class="step-num">3</span>
+            </div>
+            <div class="timeline-content">
+              <h3 class="step-title">Verification & Review</h3>
+              <p class="step-desc">Our smart credit engines and wealth experts inspect configurations to align on ideal rates.</p>
+            </div>
+          </div>
+
+          <!-- Step 4 -->
+          <div class="timeline-step" data-step="4">
+            <div class="timeline-marker">
+              <span class="step-num">4</span>
+            </div>
+            <div class="timeline-content">
+              <h3 class="step-title">Approval Process</h3>
+              <p class="step-desc">Receive definitive confirmation, digital documentation files, and transparent agreements.</p>
+            </div>
+          </div>
+
+          <!-- Step 5 -->
+          <div class="timeline-step" data-step="5">
+            <div class="timeline-marker">
+              <span class="step-num">5</span>
+            </div>
+            <div class="timeline-content">
+              <h3 class="step-title">Funding & Activation</h3>
+              <p class="step-desc">Direct deployment of funding or active management triggers for your investment profile.</p>
+            </div>
+          </div>
+
+          <!-- Step 6 -->
+          <div class="timeline-step" data-step="6">
+            <div class="timeline-marker">
+              <span class="step-num">6</span>
+            </div>
+            <div class="timeline-content">
+              <h3 class="step-title">Ongoing Support</h3>
+              <p class="step-desc">Receive continuous, highly attentive guidance from dedicated managers throughout your lifecycle.</p>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 11. Industry Trust (Logo Wall) -->
+  <section class="trust-section scroll-reveal">
+    <div class="container">
+      <div class="trust-wrapper text-center">
+        <h3 class="trust-heading">Trusted By Individuals, Families, And Businesses</h3>
+        <p class="trust-subtitle text-muted">Built on trust, reliability, and an unwavering commitment to helping customers achieve their financial goals.</p>
+        
+        <!-- Logo Scroll Container -->
+        <div class="logo-marquee-container">
+          <div class="logo-marquee">
+            <!-- Set 1 -->
+            <div class="logo-item"><i class="ph ph-bank"></i> Banking Partners</div>
+            <div class="logo-item"><i class="ph ph-buildings"></i> Financial Institutions</div>
+            <div class="logo-item"><i class="ph ph-certificate"></i> ISO Certified</div>
+            <div class="logo-item"><i class="ph ph-files"></i> SEC Compliant</div>
+            <div class="logo-item"><i class="ph ph-handshake"></i> Strategic Partners</div>
+            <div class="logo-item"><i class="ph ph-shield-check"></i> FDIC Insured</div>
+            
+            <!-- Set 2 (Duplicated for infinite scroll marquee) -->
+            <div class="logo-item"><i class="ph ph-bank"></i> Banking Partners</div>
+            <div class="logo-item"><i class="ph ph-buildings"></i> Financial Institutions</div>
+            <div class="logo-item"><i class="ph ph-certificate"></i> ISO Certified</div>
+            <div class="logo-item"><i class="ph ph-files"></i> SEC Compliant</div>
+            <div class="logo-item"><i class="ph ph-handshake"></i> Strategic Partners</div>
+            <div class="logo-item"><i class="ph ph-shield-check"></i> FDIC Insured</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 12. Reviews (Large Testimonial Slider) -->
+  <section class="reviews-section scroll-reveal">
+    <div class="container">
+      <div class="reviews-wrapper">
+        <div class="review-quote-mark">“</div>
+        <span class="section-badge text-center">Client Testimonials</span>
+        <h2 class="section-title text-dark text-center">What Our Customers Say</h2>
+        
+        <div class="testimonial-slider" id="testimonial-slider">
+          
+          <!-- Slide 1 -->
+          <div class="testimonial-slide active">
+            <p class="testimonial-text">"The entire process was transparent, efficient, and professional."</p>
+            <div class="testimonial-author">
+              <span class="author-name">David Thorne</span>
+              <span class="author-role">Founder, Thorne Capital</span>
+            </div>
+          </div>
+
+          <!-- Slide 2 -->
+          <div class="testimonial-slide">
+            <p class="testimonial-text">"Their advisors helped us secure the right funding solution for our business."</p>
+            <div class="testimonial-author">
+              <span class="author-name">Elena Rostova</span>
+              <span class="author-role">Director of Operations, VeloTech</span>
+            </div>
+          </div>
+
+          <!-- Slide 3 -->
+          <div class="testimonial-slide">
+            <p class="testimonial-text">"Excellent service and a customer-first approach from start to finish."</p>
+            <div class="testimonial-author">
+              <span class="author-name">Marcus Vance</span>
+              <span class="author-role">Private Wealth Client</span>
+            </div>
+          </div>
+
+          <!-- Slide 4 -->
+          <div class="testimonial-slide">
+            <p class="testimonial-text">"A trusted financial partner that consistently delivers value."</p>
+            <div class="testimonial-author">
+              <span class="author-name">Aaliyah Jordan</span>
+              <span class="author-role">Real Estate Investor</span>
+            </div>
+          </div>
+
+        </div>
+
+        <div class="testimonial-controls">
+          <button class="test-control-btn" id="prev-testimonial" aria-label="Previous Testimonial">
+            <i class="ph ph-arrow-left"></i>
+          </button>
+          <div class="testimonial-indicators" id="testimonial-dots">
+            <!-- Dynamic dots -->
+          </div>
+          <button class="test-control-btn" id="next-testimonial" aria-label="Next Testimonial">
+            <i class="ph ph-arrow-right"></i>
+          </button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 13. FAQ (Accordion) -->
+  <section class="faq-section scroll-reveal">
+    <div class="container">
+      <div class="faq-header text-center">
+        <span class="section-badge">Client Support</span>
+        <h2 class="section-title text-dark">Frequently Asked Questions</h2>
+        <p class="section-subtitle text-muted">Find quick answers to common queries regarding accounts, lending pathways, and application phases.</p>
+      </div>
+
+      <div class="faq-accordion-wrapper">
+        
+        <!-- Accordion Item 1 -->
+        <div class="faq-item">
+          <button class="faq-trigger" aria-expanded="false">
+            <span class="faq-question">What financial services do you provide?</span>
+            <span class="faq-icon-box"><i class="ph ph-plus"></i></span>
+          </button>
+          <div class="faq-panel">
+            <div class="faq-content">
+              <p>We offer banking, lending, investment, insurance, and wealth management solutions. Each branch of our ecosystem is customizable and overseen by dedicated specialists.</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Accordion Item 2 -->
+        <div class="faq-item">
+          <button class="faq-trigger" aria-expanded="false">
+            <span class="faq-question">What types of loans are available?</span>
+            <span class="faq-icon-box"><i class="ph ph-plus"></i></span>
+          </button>
+          <div class="faq-panel">
+            <div class="faq-content">
+              <p>Our portfolio includes personal, home, business, education, vehicle, and secured loan products (like loans against property). We also handle structured corporate financing programs.</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Accordion Item 3 -->
+        <div class="faq-item">
+          <button class="faq-trigger" aria-expanded="false">
+            <span class="faq-question">How long does approval take?</span>
+            <span class="faq-icon-box"><i class="ph ph-plus"></i></span>
+          </button>
+          <div class="faq-panel">
+            <div class="faq-content">
+              <p>Approval timelines depend on the specific product and documentation requirements. Personal and smaller business liquid loans can complete within 24 to 48 hours, while complex property or corporate financing may take longer for detailed asset vetting.</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Accordion Item 4 -->
+        <div class="faq-item">
+          <button class="faq-trigger" aria-expanded="false">
+            <span class="faq-question">Can businesses apply for financing?</span>
+            <span class="faq-icon-box"><i class="ph ph-plus"></i></span>
+          </button>
+          <div class="faq-panel">
+            <div class="faq-content">
+              <p>Yes, we support startups, SMEs, and established global enterprises. We provide working capital, lines of credit, development loans, and custom growth-focused credit structures.</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Accordion Item 5 -->
+        <div class="faq-item">
+          <button class="faq-trigger" aria-expanded="false">
+            <span class="faq-question">Is the application process online?</span>
+            <span class="faq-icon-box"><i class="ph ph-plus"></i></span>
+          </button>
+          <div class="faq-panel">
+            <div class="faq-content">
+              <p>Yes, our entire system is digitally integrated. Applications can be completed online via our secure forms, including electronic submission of verification documentation and identity checks.</p>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- 14. CTA Section -->
+  <section class="cta-banner-section scroll-reveal">
+    <div class="container">
+      <div class="cta-banner-content text-center">
+        <div class="cta-banner-glow"></div>
+        <span class="cta-badge">Take Control of Your Assets</span>
+        <h2 class="cta-heading">Ready To Take The Next Financial Step?</h2>
+        <p class="cta-description">Discover financial solutions designed around your goals and backed by trusted expertise.</p>
+        <div class="cta-actions">
+          <a href="#contact" class="cta-button gold-cta">Apply Now</a>
+          <a href="#contact" class="cta-button outline-white-cta">Speak To An Advisor</a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 15. Contact Form (Modern Split Screen) -->
+  <section id="contact" class="contact-section scroll-reveal">
+    <div class="container">
+      <div class="contact-split-layout">
+        
+        <!-- Left details panel -->
+        <div class="contact-info-panel">
+          <span class="section-badge">Get In Touch</span>
+          <h2 class="editorial-heading text-white">Let's Discuss Your Financial Goals</h2>
+          <p class="contact-lead text-muted">Arrange a private consultation with one of our certified asset advisors or commercial credit officers.</p>
+          
+          <div class="contact-trust-note">
+            <i class="ph ph-lock-key"></i>
+            <span>All inquiries are treated with strict confidentiality under non-disclosure frameworks.</span>
+          </div>
+        </div>
+
+        <!-- Right form panel -->
+        <div class="contact-form-panel">
+          <form class="consultation-form" id="consultation-form">
+            <div class="form-grid">
+              
+              <div class="form-group floating-group">
+                <input type="text" id="fullname" name="fullname" class="form-input" placeholder=" " required>
+                <label for="fullname" class="form-label">Full Name</label>
+              </div>
+
+              <div class="form-group floating-group">
+                <input type="email" id="email" name="email" class="form-input" placeholder=" " required>
+                <label for="email" class="form-label">Email Address</label>
+              </div>
+
+              <div class="form-group floating-group">
+                <input type="tel" id="phone" name="phone" class="form-input" placeholder=" " required>
+                <label for="phone" class="form-label">Phone Number</label>
+              </div>
+
+              <div class="form-group select-group">
+                <select id="service" name="service" class="form-input select-input" required>
+                  <option value="" disabled selected hidden></option>
+                  <option value="personal-banking">Personal Banking</option>
+                  <option value="business-banking">Business Banking</option>
+                  <option value="investments">Investments</option>
+                  <option value="wealth-management">Wealth Management</option>
+                  <option value="insurance">Insurance Solutions</option>
+                  <option value="digital-banking">Digital Banking</option>
+                </select>
+                <label for="service" class="form-label select-label">Service Interested In</label>
+                <i class="ph ph-caret-down select-caret"></i>
+              </div>
+
+              <div class="form-group select-group">
+                <select id="loantype" name="loantype" class="form-input select-input">
+                  <option value="" disabled selected hidden></option>
+                  <option value="none">No Financing Needed</option>
+                  <option value="home">Home Loans</option>
+                  <option value="business">Business Loans</option>
+                  <option value="personal">Personal Loans</option>
+                  <option value="vehicle">Vehicle Loans</option>
+                  <option value="education">Education Loans</option>
+                  <option value="property">Loan Against Property</option>
+                </select>
+                <label for="loantype" class="form-label select-label">Loan Type</label>
+                <i class="ph ph-caret-down select-caret"></i>
+              </div>
+
+              <div class="form-group floating-group">
+                <input type="text" id="requirement" name="requirement" class="form-input" placeholder=" ">
+                <label for="requirement" class="form-label">Funding Requirement ($)</label>
+              </div>
+
+              <div class="form-group full-width floating-group">
+                <textarea id="message" name="message" class="form-input text-area-input" rows="4" placeholder=" " required></textarea>
+                <label for="message" class="form-label">Message</label>
+              </div>
+
+            </div>
+
+            <button type="submit" class="submit-button" id="submit-consultation">
+              <span>Request Consultation</span>
+              <i class="ph ph-arrow-right"></i>
+            </button>
+            <div class="form-status" id="form-status"></div>
+          </form>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- 16. Footer -->
+  <footer class="site-footer">
+    <div class="container footer-grid">
+      
+      <!-- Column 1: Info -->
+      <div class="footer-col footer-info">
+        <a href="#home" class="footer-logo">
+          <span class="logo-accent">AURELIA</span>
+          <span class="logo-sub">FINANCE</span>
+        </a>
+        <p class="footer-about text-muted">Helping individuals and businesses achieve financial confidence through trusted, luxury-tier financial solutions and bespoke asset advisory services.</p>
+        <div class="footer-socials">
+          <a href="https://linkedin.com" target="_blank" rel="noopener" aria-label="LinkedIn"><i class="ph ph-linkedin-logo"></i></a>
+          <a href="https://facebook.com" target="_blank" rel="noopener" aria-label="Facebook"><i class="ph ph-facebook-logo"></i></a>
+          <a href="https://instagram.com" target="_blank" rel="noopener" aria-label="Instagram"><i class="ph ph-instagram-logo"></i></a>
+          <a href="https://x.com" target="_blank" rel="noopener" aria-label="X"><i class="ph ph-twitter-logo"></i></a>
+        </div>
+      </div>
+
+      <!-- Column 2: Quick Links -->
+      <div class="footer-col">
+        <h4 class="footer-heading">Quick Links</h4>
+        <ul class="footer-links">
+          <li><a href="#home">Home</a></li>
+          <li><a href="#about">About Us</a></li>
+          <li><a href="#ecosystem">Solutions</a></li>
+          <li><a href="#loans">Loans</a></li>
+          <li><a href="#contact">Contact</a></li>
+        </ul>
+      </div>
+
+      <!-- Column 3: Services -->
+      <div class="footer-col">
+        <h4 class="footer-heading">Financial Services</h4>
+        <ul class="footer-links">
+          <li><a href="#ecosystem">Personal Banking</a></li>
+          <li><a href="#ecosystem">Business Banking</a></li>
+          <li><a href="#ecosystem">Investments</a></li>
+          <li><a href="#ecosystem">Wealth Management</a></li>
+          <li><a href="#ecosystem">Insurance</a></li>
+        </ul>
+      </div>
+
+      <!-- Column 4: Loan Solutions -->
+      <div class="footer-col">
+        <h4 class="footer-heading">Loan Solutions</h4>
+        <ul class="footer-links">
+          <li><a href="#loans">Personal Loans</a></li>
+          <li><a href="#loans">Home Loans</a></li>
+          <li><a href="#loans">Business Loans</a></li>
+          <li><a href="#loans">Vehicle Loans</a></li>
+          <li><a href="#loans">Education Loans</a></li>
+        </ul>
+      </div>
+
+      <!-- Column 5: Contact Info -->
+      <div class="footer-col footer-contact">
+        <h4 class="footer-heading">Contact Information</h4>
+        <ul class="footer-links contact-info-list">
+          <li><i class="ph ph-map-pin"></i> 75 Luxury Avenue, NY 10005</li>
+          <li><i class="ph ph-phone"></i> +1 (800) 555-8800</li>
+          <li><i class="ph ph-envelope"></i> advisory@aureliafinance.com</li>
+        </ul>
+      </div>
+
+    </div>
+
+    <!-- Bottom Copyright -->
+    <div class="footer-bottom">
+      <div class="container footer-bottom-inner">
+        <p class="copyright-text">&copy; 2026 Aurelia Finance Company. All Rights Reserved. Institutional products are subject to regulatory disclosures.</p>
+        <div class="footer-legal-links">
+          <a href="#">Privacy Policy</a>
+          <span class="legal-divider">|</span>
+          <a href="#">Terms & Conditions</a>
+          <span class="legal-divider">|</span>
+          <a href="#">Disclosures</a>
+        </div>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Core Script File -->
+  <script src="./src/main.js"></script>
+</body>
+</html>

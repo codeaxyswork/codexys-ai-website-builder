@@ -1,0 +1,829 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Aria Veda | Somatic Yoga & Mindfulness Studio</title>
+  <meta name="description" content="Experience world-class private yoga coaching, corporate wellness programs, and luxury mindfulness retreats with Aria Veda. Reconnect mind, body, and soul.">
+  
+  <!-- Google Fonts (Restraint & Yoku Overhaul) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Marcellus&family=Sora:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  
+  <!-- Custom Styles -->
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+  <!-- Floating Glass Header (Preserved Exactly) -->
+  <header id="main-header" class="site-header">
+    <div class="header-container">
+      <a href="#" class="logo">
+        <span class="logo-text">ARIA VEDA</span>
+        <span class="logo-subtext">Soma & Soul</span>
+      </a>
+      
+      <nav class="nav-menu" id="nav-menu">
+        <div class="nav-fullscreen-container">
+          <div class="nav-links-column">
+            <a href="#home" class="nav-link active">Home</a>
+            <a href="#about" class="nav-link">About Me</a>
+            <a href="#programs" class="nav-link">Programs</a>
+            <a href="#private" class="nav-link">Private Sessions</a>
+            <a href="#testimonials" class="nav-link">Success Stories</a>
+            <a href="#gallery" class="nav-link">Gallery</a>
+            <a href="#contact" class="nav-link">Contact Us</a>
+            <a href="#booking-modal" class="btn btn-accent mobile-menu-cta open-booking-btn">Book a Session</a>
+          </div>
+          <div class="nav-info-column">
+            <div class="nav-info-section">
+              <h5 class="info-label font-alt">Shala Retreats</h5>
+              <p class="info-text">Zurich Lakefront, Switzerland</p>
+              <p class="info-text">Amalfi Cliffside, Italy</p>
+            </div>
+            <div class="nav-info-section">
+              <h5 class="info-label font-alt">Inquiries</h5>
+              <p class="info-text">concierge@ariaveda.com</p>
+              <p class="info-text">+41 44 200 9000</p>
+            </div>
+            <div class="nav-info-section">
+              <h5 class="info-label font-alt">Social Sanctuary</h5>
+              <div class="nav-socials">
+                <a href="#" aria-label="Instagram"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"/><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"/></svg></a>
+                <a href="#" aria-label="YouTube"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M22.54 6.42a2.78 2.78 0 0 0-1.94-2C18.88 4 12 4 12 4s-6.88 0-8.6.46a2.78 2.78 0 0 0-1.94 2A29 29 0 0 0 1 11.75a29 29 0 0 0 .46 5.33A2.78 2.78 0 0 0 3.4 19c1.72.46 8.6.46 8.6.46s6.88 0 8.6-.46a2.78 2.78 0 0 0 1.94-2 29 29 0 0 0 .46-5.25 29 29 0 0 0-.46-5.33z"/><polygon points="9.75 15.02 15.5 11.75 9.75 8.48 9.75 15.02"/></svg></a>
+                <a href="#" aria-label="Pinterest"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M8 22c.62-1.04 1.36-2.31 1.63-3.69l1.1-6.1c-.34-.65-.53-1.48-.53-2.33 0-2.18 1.25-3.8 2.8-3.8 1.32 0 1.96.99 1.96 2.18 0 1.33-.85 3.32-1.28 5.16-.36 1.54.77 2.8 2.3 2.8 2.76 0 4.6-3.56 4.6-7.78 0-3.21-2.15-5.6-6.13-5.6-4.54 0-7.39 3.38-7.39 7.18 0 1.3.38 2.22.98 2.94.27.33.31.46.21.84l-.32 1.22c-.15.58-.51.78-1.04.56C4 16.5 2 13 2 9.5 2 4.25 6.25 1 11.5 1 17 1 21 4.5 21 9.5c0 5.5-3.05 9.5-7.5 9.5-1.47 0-2.85-.8-3.32-1.69l-.98 3.7c-.36 1.34-1.07 2.68-1.65 3.69z"/></svg></a>
+              </div>
+            </div>
+          </div>
+        </div>
+      </nav>
+
+      <div class="header-actions">
+        <a href="#booking-modal" class="btn btn-primary open-booking-btn" id="header-cta-btn">Book a Session</a>
+        <button class="menu-toggle" id="menu-toggle" aria-label="Toggle Menu">
+          <span></span>
+          <span></span>
+          <span></span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Restored Original Full-Screen Hero Slider Section -->
+  <section id="home" class="hero-section">
+    <!-- Floating Golden Particles for Luxury Retreat Vibe -->
+    <div class="gold-particles-container">
+      <span class="particle p-1"></span>
+      <span class="particle p-2"></span>
+      <span class="particle p-3"></span>
+      <span class="particle p-4"></span>
+      <span class="particle p-5"></span>
+    </div>
+
+    <div class="hero-slider" id="hero-slider">
+      <!-- Slide 1 -->
+      <div class="slide active" data-slide="1">
+        <div class="slide-bg" style="background-image: linear-gradient(rgba(30, 42, 39, 0.45), rgba(30, 42, 39, 0.65)), url('https://images.unsplash.com/photo-1544367567-0f2fcb009e0b?q=80&w=2000&auto=format&fit=crop');"></div>
+        <div class="slide-content">
+          <span class="slide-tag font-alt">Exclusive Mindfulness</span>
+          <h1 class="slide-title">A Sanctuary for the Soul</h1>
+          <p class="slide-desc">Experience luxury yoga & wellness retreats designed to restore balance, ignite vitality, and awaken deep inner harmony in the world's most serene destinations.</p>
+          <div class="slide-actions">
+            <a href="#programs" class="btn btn-outline-white">Explore Retreats</a>
+            <a href="#booking-modal" class="btn btn-accent open-booking-btn">Begin Journey</a>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Slide 2 -->
+      <div class="slide" data-slide="2">
+        <div class="slide-bg" style="background-image: linear-gradient(rgba(30, 42, 39, 0.45), rgba(30, 42, 39, 0.65)), url('https://images.unsplash.com/photo-1545205597-3d9d02c29597?q=80&w=2000&auto=format&fit=crop');"></div>
+        <div class="slide-content">
+          <span class="slide-tag font-alt">Bespoke Guidance</span>
+          <h1 class="slide-title">Awaken Your Inner Flow</h1>
+          <p class="slide-desc">Deepen your practice with personalized one-to-one sequencing, posture refinement, and mindful alignment designed exclusively for your unique body and goals.</p>
+          <div class="slide-actions">
+            <a href="#private" class="btn btn-outline-white">Private Mentorship</a>
+            <a href="#booking-modal" class="btn btn-accent open-booking-btn">Reserve Space</a>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Slide 3 -->
+      <div class="slide" data-slide="3">
+        <div class="slide-bg" style="background-image: linear-gradient(rgba(30, 42, 39, 0.45), rgba(30, 42, 39, 0.65)), url('https://images.unsplash.com/photo-1506126613408-eca07ce68773?q=80&w=2000&auto=format&fit=crop');"></div>
+        <div class="slide-content">
+          <span class="slide-tag font-alt">Corporate Wellness</span>
+          <h1 class="slide-title">The Art of Conscious Living</h1>
+          <p class="slide-desc">Elevate your team's collective focus, stress resilience, and mental clarity through signature executive wellness seminars and corporate yoga plans.</p>
+          <div class="slide-actions">
+            <a href="#contact" class="btn btn-outline-white">Corporate Packages</a>
+            <a href="#booking-modal" class="btn btn-accent open-booking-btn">Connect With Us</a>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Slider Navigation Controls -->
+    <div class="slider-controls">
+      <button class="slide-control-btn prev-btn" id="prev-slide" aria-label="Previous Slide">
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
+      </button>
+      <div class="slider-dots" id="slider-dots">
+        <span class="dot active" data-slide-index="0"></span>
+        <span class="dot" data-slide-index="1"></span>
+        <span class="dot" data-slide-index="2"></span>
+      </div>
+      <button class="slide-control-btn next-btn" id="next-slide" aria-label="Next Slide">
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
+      </button>
+    </div>
+
+    <!-- Glass Panel Split Transition Panels Overlay -->
+    <div class="glass-transition-overlay" id="glass-transition-overlay">
+      <div class="glass-panel"></div>
+      <div class="glass-panel"></div>
+      <div class="glass-panel"></div>
+      <div class="glass-panel"></div>
+    </div>
+  </section>
+
+  <!-- About Section (Restraint Intersecting Images) -->
+  <section id="about" class="about-section section-padding">
+    <div class="container">
+      <div class="about-grid">
+        <div class="about-image-overlap">
+          <img src="https://images.unsplash.com/photo-1594381898411-846e7d193883?q=80&w=800&auto=format&fit=crop" alt="Aria Veda practicing yoga" class="about-img-main">
+          <img src="https://images.unsplash.com/photo-1544367567-0f2fcb009e0b?q=80&w=800&auto=format&fit=crop" alt="Aria Veda yoga details" class="about-img-sub">
+        </div>
+        <div class="about-content">
+          <span class="section-badge">About Aria Veda</span>
+          <h2>Transforming lives through <span>yoga and meditation</span></h2>
+          <p class="about-story">Aria is an E-RYT 500 Certified Yoga Therapist and Somatic Alignment Specialist. Dedicated to sharing anatomical precision refined for premium wellness, her client list includes top-tier executives, athletes, and creative professionals who seek presence and physical restore amidst noise.</p>
+          
+          <div class="about-benefits-list">
+            <!-- Benefit 1 -->
+            <div class="benefit-item">
+              <span class="benefit-num">I</span>
+              <div>
+                <h4 class="benefit-title">Biomechanical Alignment</h4>
+                <p class="benefit-desc">Decompress joints, correct skeletal rotations, and open muscular lines through precise posture sequences.</p>
+              </div>
+            </div>
+            <!-- Benefit 2 -->
+            <div class="benefit-item">
+              <span class="benefit-num">II</span>
+              <div>
+                <h4 class="benefit-title">Vagal Tone Calming</h4>
+                <p class="benefit-desc">Trigger immediate parasympathetic system calming through customized diaphragmatic breath extensions.</p>
+              </div>
+            </div>
+            <!-- Benefit 3 -->
+            <div class="benefit-item">
+              <span class="benefit-num">III</span>
+              <div>
+                <h4 class="benefit-title">Conscious Mindful Flow</h4>
+                <p class="benefit-desc">Calm cardiovascular speed and establish complete somatic awareness and mental focus.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <hr class="editorial-divider">
+
+  <!-- Programs Section (Yoku Curved Cards & Tags) -->
+  <section id="programs" class="programs-section section-padding">
+    <div class="container">
+      <div class="section-header-block text-center">
+        <span class="section-badge">Curated Offerings</span>
+        <h2>Curated <span>Programs</span></h2>
+        <p class="section-subtitle">Deliberately sequenced pathways to restore flexibility, physiological stability, and focus.</p>
+      </div>
+
+      <div class="programs-grid">
+        <!-- Program 1 -->
+        <div class="program-card">
+          <div class="program-card-img-wrapper">
+            <img src="https://images.unsplash.com/photo-1518611012118-696072aa579a?q=80&w=600&auto=format&fit=crop" alt="Vinyasa Flow Session" class="program-card-img">
+          </div>
+          <div class="program-card-content">
+            <span class="program-tag">Foundation</span>
+            <h3 class="program-card-title">Beginner Yoga</h3>
+            <p class="program-card-desc">An elegant foundation course focusing on postural alignment checkpoints, diaphragmatic breath flows, and somatic stability.</p>
+            <a href="#booking-modal" class="btn btn-text open-booking-btn">Reserve Spot <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg></a>
+          </div>
+        </div>
+
+        <!-- Program 2 -->
+        <div class="program-card">
+          <div class="program-card-img-wrapper">
+            <img src="https://images.unsplash.com/photo-1506126613408-eca07ce68773?q=80&w=600&auto=format&fit=crop" alt="Mindfulness & Restorative Session" class="program-card-img">
+          </div>
+          <div class="program-card-content">
+            <span class="program-tag">Restoration</span>
+            <h3 class="program-card-title">Mindfulness Sessions</h3>
+            <p class="program-card-desc">Restorative yin postures and joint decompression sequences paired with live acoustic sound bath frequency integrations.</p>
+            <a href="#booking-modal" class="btn btn-text open-booking-btn">Reserve Spot <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg></a>
+          </div>
+        </div>
+
+        <!-- Program 3 (Anchored for #private nav link) -->
+        <div class="program-card" id="private">
+          <div class="program-card-img-wrapper">
+            <img src="https://images.unsplash.com/photo-1599447421416-3414500d18a5?q=80&w=600&auto=format&fit=crop" alt="1-on-1 private coaching" class="program-card-img">
+          </div>
+          <div class="program-card-content">
+            <span class="program-tag">Bespoke</span>
+            <h3 class="program-card-title">Private Coaching</h3>
+            <p class="program-card-desc">Highly custom therapeutic sequences and biomechanical auditing in our Lake Zurich studio shala or in your residence.</p>
+            <a href="#booking-modal" class="btn btn-text open-booking-btn">Reserve Spot <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg></a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <hr class="editorial-divider">
+
+  <!-- Why Choose Us Section (Yoku Circle Indicators) -->
+  <section class="why-choose-section section-padding">
+    <div class="container">
+      <div class="section-header-block text-center">
+        <span class="section-badge">Our Pillars</span>
+        <h2>Why Choose <span>Soma & Soul</span></h2>
+        <p class="section-subtitle">Dedicated to standard-setting instruction, somatic alignment, and physical clarity.</p>
+      </div>
+
+      <div class="why-choose-grid">
+        <!-- Pillar 1 -->
+        <div class="why-card">
+          <div class="why-card-icon">
+            <svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="7"></circle><polyline points="8.21 13.89 7 23 12 20 17 23 15.79 13.88"></polyline></svg>
+          </div>
+          <h3 class="why-card-title">Certified Trainer</h3>
+          <p class="why-card-desc">Advanced certified certifications with studies in traditional shalas of Mysore and Rishikesh.</p>
+        </div>
+
+        <!-- Pillar 2 -->
+        <div class="why-card">
+          <div class="why-card-icon">
+            <svg viewBox="0 0 24 24"><path d="M12 2a10 10 0 1 0 10 10A10 10 0 0 0 12 2zm0 16a6 6 0 1 1 6-6 6 6 0 0 1-6 6zm0-8a2 2 0 1 0 2 2 2 2 0 0 0-2-2z"></path></svg>
+          </div>
+          <h3 class="why-card-title">Personalized Flow</h3>
+          <p class="why-card-desc">Every movement is adjusted based on your physical range check, skeletal rotations, and targets.</p>
+        </div>
+
+        <!-- Pillar 3 -->
+        <div class="why-card">
+          <div class="why-card-icon">
+            <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+          </div>
+          <h3 class="why-card-title">Flexible Schedules</h3>
+          <p class="why-card-desc">Book in-studio live classes, lake shore sessions, online streams, or private residency sequences.</p>
+        </div>
+
+        <!-- Pillar 4 -->
+        <div class="why-card">
+          <div class="why-card-icon">
+            <svg viewBox="0 0 24 24"><path d="M12 22a10 10 0 1 0-10-10 10 10 0 0 0 10 10z"></path><path d="M12 2c0 0 3 5 3 10s-3 10-3 10"></path><path d="M12 2c0 0-3 5-3 10s3 10 3 10"></path><path d="M2 12c0 0 5 3 10 3s10-3 10-3"></path><path d="M2 12c0 0 5-3 10-3s10 3 10 3"></path></svg>
+          </div>
+          <h3 class="why-card-title">Holistic Wellness</h3>
+          <p class="why-card-desc">Calibrate posture dynamics, master pranayama breathing, and soothe sympathetic system fatigue.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Featured Experience Section (Floating panel) -->
+  <section class="experience-section section-padding" style="background-image: url('https://images.unsplash.com/photo-1520250497591-112f2f40a3f4?q=80&w=2000&auto=format&fit=crop');">
+    <div class="experience-overlay"></div>
+    <div class="experience-card-wrapper">
+      <h2 class="experience-title">Bespoke Amalfi Cliffside Retreat</h2>
+      <p class="experience-text">Immerse yourself in a signature 5-day somatic renewal experience on the coast of Italy. Deepen alignment, restore focus, and live mindfully.</p>
+      <a href="#booking-modal" class="btn btn-accent open-booking-btn">Reserve Shala Slot</a>
+    </div>
+  </section>
+
+  <!-- Instructor Section (Deep Green background, curved corner border crop) -->
+  <section id="instructor" class="instructor-section section-padding">
+    <div class="container">
+      <div class="instructor-grid">
+        <div class="instructor-image-wrapper">
+          <img src="https://images.unsplash.com/photo-1545205597-3d9d02c29597?q=80&w=800&auto=format&fit=crop" alt="Aria Veda portrait" class="instructor-img">
+        </div>
+        <div class="instructor-content">
+          <span class="section-badge">Master Instructor</span>
+          <h2>Aria Veda: <span>Soma & Soul</span></h2>
+          <p class="instructor-bio">Aria spent a decade studying traditional alignment and breathing physiology. She views yoga not as a simple sport, but as a path to somatic balance. Her coaching merges physical corrections with nervous system regulation tools, creating a premium, focused space for deep recovery.</p>
+          
+          <div class="instructor-creds">
+            <div class="cred-item">
+              <span class="cred-dot"></span>
+              <span>Advanced E-RYT 500 Certified Yoga Therapist</span>
+            </div>
+            <div class="cred-item">
+              <span class="cred-dot"></span>
+              <span>Pranayama Master (Trained in Mysore & Rishikesh)</span>
+            </div>
+            <div class="cred-item">
+              <span class="cred-dot"></span>
+              <span>Certified Restorative Sound Bowl Practitioner</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <hr class="editorial-divider">
+
+  <!-- Testimonials Section (White curved cards with gold leaf quote layouts) -->
+  <section id="testimonials" class="testimonials-section section-padding">
+    <div class="container">
+      <div class="section-header-block text-center">
+        <span class="section-badge">Student Journeys</span>
+        <h2>Student <span>Transformations</span></h2>
+        <p class="section-subtitle">Real feedback from clients who have restored physical movement and found cognitive stillness.</p>
+      </div>
+
+      <div class="testimonials-carousel-wrapper">
+        <div class="testimonials-carousel-track">
+          <!-- Testimonial 1 -->
+          <div class="testimonial-card">
+            <p class="testimonial-quote">Working with Aria has completely rewritten my relationship with my body. After years of running a demanding corporate tech firm, I had chronic back tension and constant mental chatter. The somatic sessions dissolved my stiffness and restored my energy.</p>
+            <div class="testimonial-author">
+              <img src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?q=80&w=150&auto=format&fit=crop" alt="Sarah J." class="author-img">
+              <div class="author-info">
+                <span class="author-name">Sarah Jenkins</span>
+                <span class="author-title">CEO & Tech Founder</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Testimonial 2 -->
+          <div class="testimonial-card">
+            <p class="testimonial-quote">Aria's luxury retreat in Amalfi was hands down the most rejuvenating week of my life. The blend of stunning organic meals, silent sunrise meditation overlooking the sea, and Aria's incredible anatomical precision during flow left me feeling entirely reborn.</p>
+            <div class="testimonial-author">
+              <img src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?q=80&w=150&auto=format&fit=crop" alt="Marcus V." class="author-img">
+              <div class="author-info">
+                <span class="author-name">Marcus Vance</span>
+                <span class="author-title">Fine Art Curator</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Testimonial 3 -->
+          <div class="testimonial-card">
+            <p class="testimonial-quote">The level of knowledge Aria brings to breathwork is unmatched. As an athlete, I was looking to expand my lung capacity and clear post-exercise fatigue. Her personalized therapeutic breath program has improved my cardiovascular recovery rates by over 18%.</p>
+            <div class="testimonial-author">
+              <img src="https://images.unsplash.com/photo-1544005313-94ddf0286df2?q=80&w=150&auto=format&fit=crop" alt="Elena R." class="author-img">
+              <div class="author-info">
+                <span class="author-name">Elena Rostova</span>
+                <span class="author-title">Professional Dressage Rider</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Testimonial 4 -->
+          <div class="testimonial-card">
+            <p class="testimonial-quote">As a researcher studying brain plasticity, I wanted a practice that targets the central nervous system directly. Aria's integration of vagus nerve exercises and breath holds is physiologically profound. It has significantly lowered my morning cortisol rates.</p>
+            <div class="testimonial-author">
+              <img src="https://images.unsplash.com/photo-1622253692010-333f2da6031d?q=80&w=150&auto=format&fit=crop" alt="Dr. Alistair V." class="author-img">
+              <div class="author-info">
+                <span class="author-name">Dr. Alistair Vance</span>
+                <span class="author-title">Neuroscientist</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Testimonial 5 -->
+          <div class="testimonial-card">
+            <p class="testimonial-quote">Repetitive strain from hours of piano performance left me with severe wrist stiffness and shoulder fatigue. Aria designed a custom wrist decompression sequence that has kept me pain-free for two concert seasons. Her anatomical precision is unmatched.</p>
+            <div class="testimonial-author">
+              <img src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?q=80&w=150&auto=format&fit=crop" alt="Sophia M." class="author-img">
+              <div class="author-info">
+                <span class="author-name">Sophia Moretti</span>
+                <span class="author-title">Classical Pianist</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Carousel Controls -->
+        <div class="testimonials-carousel-controls">
+          <button class="carousel-control-btn prev-testimonial" aria-label="Previous Testimonial">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
+          </button>
+          <div class="carousel-dots testimonial-dots">
+            <span class="dot active" data-index="0"></span>
+            <span class="dot" data-index="1"></span>
+            <span class="dot" data-index="2"></span>
+            <span class="dot" data-index="3"></span>
+            <span class="dot" data-index="4"></span>
+          </div>
+          <button class="carousel-control-btn next-testimonial" aria-label="Next Testimonial">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
+          </button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <hr class="editorial-divider">
+
+  <!-- Photo Gallery Section (Asymmetric Collage Layout) -->
+  <section id="gallery" class="gallery-section section-padding">
+    <div class="container">
+      <div class="section-header-block text-center">
+        <span class="section-badge">Visual Sanctuary</span>
+        <h2>Our Visual <span>Sanctuary</span></h2>
+        <p class="section-subtitle">Glimpses into our quiet shala spaces, alignment highlights, and retreat destinations.</p>
+      </div>
+
+      <div class="gallery-grid">
+        <!-- Gallery Item 1 (Wide Landscape) -->
+        <div class="gallery-item col-span-2" data-lightbox-index="0">
+          <img src="https://images.unsplash.com/photo-1545205597-3d9d02c29597?q=80&w=1000&auto=format&fit=crop" alt="Amalfi Sea-View Shala" class="gallery-img">
+          <div class="gallery-overlay">
+            <span class="gallery-cat">Retreats</span>
+            <h4 class="gallery-title">Amalfi Sea-View Shala</h4>
+          </div>
+        </div>
+
+        <!-- Gallery Item 2 (Tall Portrait) -->
+        <div class="gallery-item row-span-2" data-lightbox-index="1">
+          <img src="https://images.unsplash.com/photo-1544367567-0f2fcb009e0b?q=80&w=800&auto=format&fit=crop" alt="Dancer Pose at Sunrise" class="gallery-img">
+          <div class="gallery-overlay">
+            <span class="gallery-cat">Asanas</span>
+            <h4 class="gallery-title">Dancer Pose at Sunrise</h4>
+          </div>
+        </div>
+
+        <!-- Gallery Item 3 (Standard) -->
+        <div class="gallery-item" data-lightbox-index="2">
+          <img src="https://images.unsplash.com/photo-1506126613408-eca07ce68773?q=80&w=600&auto=format&fit=crop" alt="Morning Sound Bath" class="gallery-img">
+          <div class="gallery-overlay">
+            <span class="gallery-cat">Meditation</span>
+            <h4 class="gallery-title">Morning Sound Bath</h4>
+          </div>
+        </div>
+
+        <!-- Gallery Item 4 (Standard) -->
+        <div class="gallery-item" data-lightbox-index="3">
+          <img src="https://images.unsplash.com/photo-1599447421416-3414500d18a5?q=80&w=600&auto=format&fit=crop" alt="Postural Sequencing" class="gallery-img">
+          <div class="gallery-overlay">
+            <span class="gallery-cat">Asanas</span>
+            <h4 class="gallery-title">Postural Sequencing</h4>
+          </div>
+        </div>
+
+        <!-- Gallery Item 5 (Standard) -->
+        <div class="gallery-item" data-lightbox-index="4">
+          <img src="https://images.unsplash.com/photo-1540555700478-4be289fbecef?q=80&w=600&auto=format&fit=crop" alt="Organic Wellness Retreat" class="gallery-img">
+          <div class="gallery-overlay">
+            <span class="gallery-cat">Retreats</span>
+            <h4 class="gallery-title">Organic Wellness Retreat</h4>
+          </div>
+        </div>
+
+        <!-- Gallery Item 6 (Wide Landscape) -->
+        <div class="gallery-item col-span-2" data-lightbox-index="5">
+          <img src="https://images.unsplash.com/photo-1518241353330-0f7941c2d9b5?q=80&w=1000&auto=format&fit=crop" alt="Pranayama Shala, Switzerland" class="gallery-img">
+          <div class="gallery-overlay">
+            <span class="gallery-cat">Meditation</span>
+            <h4 class="gallery-title">Pranayama Shala, Switzerland</h4>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <hr class="editorial-divider">
+
+  <!-- FAQ Section (Yoku-Style Rounded Cards Accordion) -->
+  <section id="faq" class="faq-section section-padding">
+    <div class="container">
+      <div class="section-header-block text-center">
+        <span class="section-badge">Clarity</span>
+        <h2>Frequently Asked <span>Questions</span></h2>
+        <p class="section-subtitle">Everything you need to know about starting your yoga path with Aria.</p>
+      </div>
+
+      <div class="faq-wrapper">
+        <!-- FAQ 1 -->
+        <div class="faq-item">
+          <button class="faq-question">
+            <span class="faq-title">I am a complete beginner. Can I join your classes or retreats?</span>
+            <span class="faq-icon"></span>
+          </button>
+          <div class="faq-answer">
+            <div class="faq-answer-inner">
+              <p>Yes. Aria modifies posture sequences to fit all body stiffness levels, skill levels, and fitness background. For beginners, we recommend booking a private intake session first, allowing us to perform a postural check prior to group sequences.</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- FAQ 2 -->
+        <div class="faq-item">
+          <button class="faq-question">
+            <span class="faq-title">What props or items do I need to bring?</span>
+            <span class="faq-icon"></span>
+          </button>
+          <div class="faq-answer">
+            <div class="faq-answer-inner">
+              <p>We provide all premium somatic tools—including organic cotton blankets, bolsters, cork blocks, straps, lavender eye pillows, and high-traction ecological mats. You only need to wear comfortable, breathable clothing.</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- FAQ 3 -->
+        <div class="faq-item">
+          <button class="faq-question">
+            <span class="faq-title">How are private 1-on-1 programs structured?</span>
+            <span class="faq-icon"></span>
+          </button>
+          <div class="faq-answer">
+            <div class="faq-answer-inner">
+              <p>Our private program begins with an intake session analyzing your posture, joint range-of-motion, breath volume, and daily stress factors. From there, Aria designs a bespoke syllabus containing customized postures, breath exercises, and meditation flows, adjusted session-by-session to fit your recovery rate.</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- FAQ 4 -->
+        <div class="faq-item">
+          <button class="faq-question">
+            <span class="faq-title">Do you offer corporate wellness program customizations?</span>
+            <span class="faq-icon"></span>
+          </button>
+          <div class="faq-answer">
+            <div class="faq-answer-inner">
+              <p>Yes. We custom-build corporate packages based on team sizes, targets, and locations. Programs range from virtual diaphragmatic breathing classes to quarterly on-site posture adjustment seminars for high-stress executives.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <hr class="editorial-divider">
+
+  <!-- Contact Us Section (Curved Form Card) -->
+  <section id="contact" class="contact-section section-padding">
+    <div class="container">
+      <div class="contact-grid">
+        <div class="contact-info">
+          <span class="section-badge">Connect</span>
+          <h2>Inquire & <span>Reserve</span></h2>
+          <p class="contact-lead">Have questions regarding private coaching, corporate inquiries, or retreat waitlists? Let us assist your path.</p>
+          
+          <div class="contact-details">
+            <!-- Phone -->
+            <div class="contact-detail-item">
+              <div class="detail-icon">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+              </div>
+              <div>
+                <h4 class="detail-title">Concierge Desk</h4>
+                <p class="detail-value">+41 44 200 9000</p>
+              </div>
+            </div>
+
+            <!-- Email -->
+            <div class="contact-detail-item">
+              <div class="detail-icon">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+              </div>
+              <div>
+                <h4 class="detail-title">Email Inquiries</h4>
+                <p class="detail-value">concierge@ariaveda.com</p>
+              </div>
+            </div>
+
+            <!-- Address -->
+            <div class="contact-detail-item">
+              <div class="detail-icon">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+              </div>
+              <div>
+                <h4 class="detail-title">Shala Sanctuary</h4>
+                <p class="detail-value">Seestrasse 142, Küsnacht (Zurich Lakefront), Switzerland</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="contact-form-card">
+          <h3 class="form-title">Send a Message</h3>
+          <p class="form-subtitle">Fill out your details below and our team will get back to you within 24 hours.</p>
+          <form id="contact-form" class="contact-form">
+            <div class="form-row">
+              <div class="form-group">
+                <label for="contact-name">Your Name</label>
+                <input type="text" id="contact-name" name="name" required placeholder="Elena Rostova">
+              </div>
+              <div class="form-group">
+                <label for="contact-email">Email Address</label>
+                <input type="email" id="contact-email" name="email" required placeholder="elena@example.com">
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label for="contact-interest">Program of Interest</label>
+              <select id="contact-interest" name="interest">
+                <option value="private">Private Coaching</option>
+                <option value="retreat">Luxury Retreats</option>
+                <option value="beginner">Beginner Yoga</option>
+                <option value="mindfulness">Mindfulness Sessions</option>
+                <option value="general">General Inquiry</option>
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label for="contact-message">Your Message</label>
+              <textarea id="contact-message" name="message" rows="4" required placeholder="Please describe your background in yoga, injuries, and goals..."></textarea>
+            </div>
+
+            <button type="submit" class="btn btn-primary btn-block">Submit Inquiry</button>
+            <div class="form-status" id="form-status"></div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- CTA Banner Section -->
+  <section class="cta-banner-section">
+    <div class="container">
+      <div class="cta-banner-icon">
+        <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 20A7 7 0 0 1 9.8 6.1C15.5 5 17 4.48 19 2c1 2 2 3.58 1 9.2a7 7 0 0 1-9 8.8Z"/><path d="M19 2c-2.26 4.33-5.27 7.14-8 10"/></svg>
+      </div>
+      <h2 class="cta-banner-title">Begin Your Wellness Journey Today</h2>
+      <p class="cta-banner-subtitle">Enter a sanctuary of alignment and inner focus. Schedule a custom consultation or book your studio session.</p>
+      <a href="#booking-modal" class="btn btn-accent open-booking-btn">Book Consultation</a>
+    </div>
+  </section>
+
+  <!-- Elegant Footer -->
+  <footer class="site-footer">
+    <div class="container footer-top">
+      <div class="footer-brand">
+        <a href="#" class="logo">
+          <span class="logo-text">ARIA VEDA</span>
+          <span class="logo-subtext">Soma & Soul</span>
+        </a>
+        <p class="brand-desc">A premium sanctuary for somatic physical precision, breathing physiology, and mental quietude.</p>
+        <div class="social-links">
+          <a href="#" aria-label="Instagram"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"/><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"/></svg></a>
+          <a href="#" aria-label="YouTube"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M22.54 6.42a2.78 2.78 0 0 0-1.94-2C18.88 4 12 4 12 4s-6.88 0-8.6.46a2.78 2.78 0 0 0-1.94 2A29 29 0 0 0 1 11.75a29 29 0 0 0 .46 5.33A2.78 2.78 0 0 0 3.4 19c1.72.46 8.6.46 8.6.46s6.88 0 8.6-.46a2.78 2.78 0 0 0 1.94-2 29 29 0 0 0 .46-5.25 29 29 0 0 0-.46-5.33z"/><polygon points="9.75 15.02 15.5 11.75 9.75 8.48 9.75 15.02"/></svg></a>
+          <a href="#" aria-label="Pinterest"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M8 22c.62-1.04 1.36-2.31 1.63-3.69l1.1-6.1c-.34-.65-.53-1.48-.53-2.33 0-2.18 1.25-3.8 2.8-3.8 1.32 0 1.96.99 1.96 2.18 0 1.33-.85 3.32-1.28 5.16-.36 1.54.77 2.8 2.3 2.8 2.76 0 4.6-3.56 4.6-7.78 0-3.21-2.15-5.6-6.13-5.6-4.54 0-7.39 3.38-7.39 7.18 0 1.3.38 2.22.98 2.94.27.33.31.46.21.84l-.32 1.22c-.15.58-.51.78-1.04.56C4 16.5 2 13 2 9.5 2 4.25 6.25 1 11.5 1 17 1 21 4.5 21 9.5c0 5.5-3.05 9.5-7.5 9.5-1.47 0-2.85-.8-3.32-1.69l-.98 3.7c-.36 1.34-1.07 2.68-1.65 3.69z"/></svg></a>
+        </div>
+      </div>
+
+      <div class="footer-links">
+        <h4 class="footer-title">Quick Links</h4>
+        <ul class="footer-links-list">
+          <li><a href="#home">Home</a></li>
+          <li><a href="#about">About Me</a></li>
+          <li><a href="#programs">Programs</a></li>
+          <li><a href="#testimonials">Success Stories</a></li>
+          <li><a href="#gallery">Gallery</a></li>
+          <li><a href="#contact">Contact Us</a></li>
+        </ul>
+      </div>
+
+      <div class="footer-links">
+        <h4 class="footer-title">Programs</h4>
+        <ul class="footer-links-list">
+          <li><a href="#programs">Beginner Yoga</a></li>
+          <li><a href="#programs">Mindfulness Sessions</a></li>
+          <li><a href="#private">Private Coaching</a></li>
+          <li><a href="#home">Lake Zurich Live Flows</a></li>
+        </ul>
+      </div>
+
+      <div class="footer-contact-info">
+        <h4 class="footer-title">Contact Us</h4>
+        <ul class="footer-contact-list">
+          <li class="footer-contact-item">
+            <span class="contact-item-title">Concierge Desk</span>
+            <a href="tel:+41442009000" class="contact-item-value">+41 44 200 9000</a>
+          </li>
+          <li class="footer-contact-item">
+            <span class="contact-item-title">Email Inquiries</span>
+            <a href="mailto:concierge@ariaveda.com" class="contact-item-value">concierge@ariaveda.com</a>
+          </li>
+          <li class="footer-contact-item">
+            <span class="contact-item-title">Shala Sanctuary</span>
+            <span class="contact-item-value">Seestrasse 142, Küsnacht (Zurich Lakefront), Switzerland</span>
+          </li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="container footer-bottom">
+      <p class="copyright-text">&copy; 2026 Aria Veda Soma & Soul. All rights reserved.</p>
+    </div>
+  </footer>
+
+  <!-- Unified Modal for Booking & Class Booking -->
+  <div class="modal-backdrop" id="booking-modal">
+    <div class="modal-container">
+      <button class="modal-close" id="close-booking-modal" aria-label="Close modal">&times;</button>
+      <h3 class="modal-title">Reserve Your Practice</h3>
+      <p class="modal-desc">Select your date, program, and details to schedule a premium session. Our desk will contact you to finalize timing.</p>
+      
+      <form id="modal-booking-form" class="modal-form">
+        <!-- Interactive Form Step tracker visual -->
+        <div class="modal-form-steps-indicator">
+          <span class="step-num active" data-form-step="1">1. Program</span>
+          <span class="step-num" data-form-step="2">2. Timing</span>
+          <span class="step-num" data-form-step="3">3. Personal</span>
+        </div>
+
+        <!-- Form Step 1 -->
+        <div class="form-step-section active" data-form-step="1">
+          <div class="form-group">
+            <label for="booking-type">Select Class / Session</label>
+            <select id="booking-type" name="bookingType" required>
+              <option value="">-- Select Option --</option>
+              <option value="private-1on1">Private Coaching</option>
+              <option value="sunrise-vinyasa">Beginner Yoga Class</option>
+              <option value="yin-sound">Mindfulness Sessions</option>
+              <option value="retreat-amalfi">Amalfi Retreat Waitlist</option>
+            </select>
+          </div>
+          <button type="button" class="btn btn-accent modal-next-btn" style="margin-top: 1rem;">Next Step</button>
+        </div>
+
+        <!-- Form Step 2 -->
+        <div class="form-step-section" data-form-step="2">
+          <div class="form-row">
+            <div class="form-group">
+              <label for="booking-date">Preferred Date</label>
+              <input type="date" id="booking-date" name="date" required>
+            </div>
+            <div class="form-group">
+              <label for="booking-time">Preferred Time</label>
+              <select id="booking-time" name="time" required>
+                <option value="morning">Morning (07:00 - 11:00)</option>
+                <option value="afternoon">Afternoon (12:00 - 15:00)</option>
+                <option value="evening">Evening (16:00 - 19:30)</option>
+              </select>
+            </div>
+          </div>
+          <div class="form-actions-row">
+            <button type="button" class="btn btn-outline modal-prev-btn">Back</button>
+            <button type="button" class="btn btn-accent modal-next-btn">Next Step</button>
+          </div>
+        </div>
+
+        <!-- Form Step 3 -->
+        <div class="form-step-section" data-form-step="3">
+          <div class="form-row">
+            <div class="form-group">
+              <label for="booking-name">Full Name</label>
+              <input type="text" id="booking-name" name="name" required placeholder="Elena Rostova">
+            </div>
+            <div class="form-group">
+              <label for="booking-email">Email Address</label>
+              <input type="email" id="booking-email" name="email" required placeholder="elena@example.com">
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="booking-notes">Special Requests / Goals</label>
+            <textarea id="booking-notes" name="notes" rows="2" placeholder="Let us know about goals or postural tightness..."></textarea>
+          </div>
+
+          <div class="form-actions-row">
+            <button type="button" class="btn btn-outline modal-prev-btn">Back</button>
+            <button type="submit" class="btn btn-accent">Request Booking</button>
+          </div>
+        </div>
+
+        <div class="form-status" id="modal-form-status"></div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Fullscreen Lightbox Modal -->
+  <div class="modal-backdrop" id="lightbox-modal">
+    <div class="lightbox-container">
+      <button class="modal-close" id="close-lightbox-modal" aria-label="Close lightbox">&times;</button>
+      <button class="lightbox-arrow prev-arrow" id="prev-lightbox-btn" aria-label="Previous image">&#8249;</button>
+      <div class="lightbox-image-wrapper">
+        <img src="" id="lightbox-img" alt="Enlarged retreat scene">
+        <div class="lightbox-caption" id="lightbox-caption">Amalfi Sea-View Shala</div>
+      </div>
+      <button class="lightbox-arrow next-arrow" id="next-lightbox-btn" aria-label="Next image">&#8250;</button>
+    </div>
+  </div>
+
+  <!-- Custom Scripts -->
+  <script src="scripts.js"></script>
+</body>
+</html>

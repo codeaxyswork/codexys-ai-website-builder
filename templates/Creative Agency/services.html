@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Our Services | AETERNA Creative Agency</title>
+    <meta name="description" content="Explore AETERNA's premium services: Branding, UI UX Design, Web Design, Web Development, Digital Marketing, and Creative Content.">
+    
+    <!-- Google Fonts & FontAwesome -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Syne:wght@500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <!-- Scroll Progress Indicator -->
+    <div id="scroll-progress" aria-hidden="true"></div>
+
+    <!-- Custom Cursor Follower -->
+    <div class="custom-cursor" id="cursor" aria-hidden="true">
+        <div class="custom-cursor-dot"></div>
+        <div class="custom-cursor-circle"></div>
+    </div>
+
+    <!-- Header Navigation -->
+    <header class="header sticky" id="main-header">
+        <div class="header-container">
+            <a href="index.html" class="logo" id="header-logo">
+                AETERNA<span class="logo-dot">.</span>
+            </a>
+            
+            <nav class="nav-menu" id="nav-menu-desktop" aria-label="Desktop navigation">
+                <ul>
+                    <li><a href="index.html" class="nav-link">Home</a></li>
+                    <li><a href="about.html" class="nav-link">About Us</a></li>
+                    <li><a href="services.html" class="nav-link active">Services</a></li>
+                    <li><a href="index.html#work" class="nav-link">Our Work</a></li>
+                    <li><a href="index.html#contact" class="nav-link">Contact</a></li>
+                </ul>
+            </nav>
+
+            <div class="header-cta-group">
+                <a href="index.html#contact" class="btn btn-magnetic btn-nav-cta" id="header-cta-btn">
+                    Let's Talk <i class="fa-solid fa-arrow-right-long icon-arrow"></i>
+                </a>
+                
+                <button class="hamburger" id="hamburger-btn" aria-label="Toggle Navigation Menu" aria-expanded="false" aria-controls="mobile-overlay">
+                    <span class="hamburger-line line-top"></span>
+                    <span class="hamburger-line line-mid"></span>
+                    <span class="hamburger-line line-bot"></span>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Mobile Navigation Overlay -->
+    <div class="mobile-overlay" id="mobile-overlay" aria-hidden="true">
+        <div class="mobile-overlay-bg"></div>
+        <div class="mobile-overlay-container">
+            <nav class="mobile-nav" aria-label="Mobile navigation">
+                <ul>
+                    <li><a href="index.html" class="mobile-nav-link">Home</a></li>
+                    <li><a href="about.html" class="mobile-nav-link">About Us</a></li>
+                    <li><a href="services.html" class="mobile-nav-link">Services</a></li>
+                    <li><a href="index.html#work" class="mobile-nav-link">Our Work</a></li>
+                    <li><a href="index.html#contact" class="mobile-nav-link">Contact</a></li>
+                </ul>
+            </nav>
+            <div class="mobile-nav-footer">
+                <div class="mobile-nav-cta-wrapper">
+                    <a href="index.html#contact" class="btn btn-primary btn-magnetic">Start Your Project</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Content Wrapper -->
+    <main>
+        <!-- Page Banner -->
+        <section class="services-hero">
+            <div class="container">
+                <div class="section-header-center scroll-reveal-up" style="margin-bottom: 0;">
+                    <div class="section-tag-center">Services</div>
+                    <h1 class="section-title title-highlight" style="font-size: 64px;">What We Do</h1>
+                    <p class="section-subtitle">We design and build bespoke digital solutions that capture attention, engage users, and achieve strategic brand outcomes.</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Detailed Services Presentation -->
+        <section class="services-detail-section" style="padding-top: 0;">
+            <div class="container">
+                <div class="services-detail-list">
+                    
+                    <!-- Service 1 -->
+                    <div class="service-detail-item scroll-reveal-up">
+                        <div class="service-detail-info">
+                            <div class="service-detail-icon"><i class="fa-solid fa-gem"></i></div>
+                            <h2>Branding & Identity</h2>
+                            <p class="service-detail-text">
+                                We establish robust visual systems that anchor your brand story. Through strategic research and creative design, we build identities that resonate with your target audience and stand the test of time.
+                            </p>
+                            <ul class="service-detail-bullet-list">
+                                <li><i class="fa-solid fa-check"></i> Logo Systems & Typography Guidelines</li>
+                                <li><i class="fa-solid fa-check"></i> Corporate Brand Books & Assets</li>
+                                <li><i class="fa-solid fa-check"></i> Brand Strategy & Tone of Voice Development</li>
+                                <li><i class="fa-solid fa-check"></i> Package & Marketing Material Design</li>
+                            </ul>
+                            <div class="service-meta-badges">
+                                <span class="meta-badge"><i class="fa-regular fa-clock"></i> 4-6 Weeks Timeline</span>
+                                <span class="meta-badge"><i class="fa-regular fa-circle-play"></i> Custom Mockups Included</span>
+                            </div>
+                        </div>
+                        <div class="service-detail-visual">
+                            <div class="service-visual-box" style="background-image: url('assets/portfolio_branding.png');"></div>
+                        </div>
+                    </div>
+
+                    <!-- Service 2 -->
+                    <div class="service-detail-item scroll-reveal-up reverse">
+                        <div class="service-detail-info">
+                            <div class="service-detail-icon"><i class="fa-solid fa-compass"></i></div>
+                            <h2>UI UX Design</h2>
+                            <p class="service-detail-text">
+                                We map intuitive user journeys and gorgeous interfaces that bridge the gap between complexity and clarity. Our design process places user satisfaction at the center of every layout, wireframe, and interaction.
+                            </p>
+                            <ul class="service-detail-bullet-list">
+                                <li><i class="fa-solid fa-check"></i> Comprehensive User Research & Auditing</li>
+                                <li><i class="fa-solid fa-check"></i> Interactive High-Fidelity Wireframes</li>
+                                <li><i class="fa-solid fa-check"></i> Visual Mockups & Digital Product Styling</li>
+                                <li><i class="fa-solid fa-check"></i> Prototyping & Usability Verification</li>
+                            </ul>
+                            <div class="service-meta-badges">
+                                <span class="meta-badge"><i class="fa-regular fa-clock"></i> 3-5 Weeks Timeline</span>
+                                <span class="meta-badge"><i class="fa-solid fa-mobile-screen-button"></i> Mobile & Desktop Systems</span>
+                            </div>
+                        </div>
+                        <div class="service-detail-visual">
+                            <div class="service-visual-box" style="background-image: url('assets/portfolio_mobile.png');"></div>
+                        </div>
+                    </div>
+
+                    <!-- Service 3 -->
+                    <div class="service-detail-item scroll-reveal-up">
+                        <div class="service-detail-info">
+                            <div class="service-detail-icon"><i class="fa-solid fa-laptop-code"></i></div>
+                            <h2>Website Design</h2>
+                            <p class="service-detail-text">
+                                Creating stunning responsive website layouts that capture attention, convey value, and drive conversions. We combine asymmetrical luxury design with clean user experience to keep your site fresh and engaging.
+                            </p>
+                            <ul class="service-detail-bullet-list">
+                                <li><i class="fa-solid fa-check"></i> Bespoke Layout Concepts</li>
+                                <li><i class="fa-solid fa-check"></i> Fully Responsive Grids & Spacing</li>
+                                <li><i class="fa-solid fa-check"></i> Immersive Micro-Animations</li>
+                                <li><i class="fa-solid fa-check"></i> Landing Page Layout Optimization</li>
+                            </ul>
+                            <div class="service-meta-badges">
+                                <span class="meta-badge"><i class="fa-regular fa-clock"></i> 2-4 Weeks Timeline</span>
+                                <span class="meta-badge"><i class="fa-solid fa-display"></i> Custom Interactive Mockups</span>
+                            </div>
+                        </div>
+                        <div class="service-detail-visual">
+                            <div class="service-visual-box" style="background-image: url('assets/portfolio_web_design.png');"></div>
+                        </div>
+                    </div>
+
+                    <!-- Service 4 -->
+                    <div class="service-detail-item scroll-reveal-up reverse">
+                        <div class="service-detail-info">
+                            <div class="service-detail-icon"><i class="fa-solid fa-code"></i></div>
+                            <h2>Website Development</h2>
+                            <p class="service-detail-text">
+                                We write highly optimized code that brings design files to life. Utilizing modern frameworks, clean structure, and performance standards, we ensure your site is fast, responsive, and secure.
+                            </p>
+                            <ul class="service-detail-bullet-list">
+                                <li><i class="fa-solid fa-check"></i> Clean HTML5, CSS3, & Modern JS Architectures</li>
+                                <li><i class="fa-solid fa-check"></i> High-Performance GSAP Animation Implementations</li>
+                                <li><i class="fa-solid fa-check"></i> Seamless Integration of CMS Platforms</li>
+                                <li><i class="fa-solid fa-check"></i> Page Speed & Core Web Vitals Optimization</li>
+                            </ul>
+                            <div class="service-meta-badges">
+                                <span class="meta-badge"><i class="fa-regular fa-clock"></i> 4-8 Weeks Timeline</span>
+                                <span class="meta-badge"><i class="fa-solid fa-bolt"></i> Speed & SEO Friendly</span>
+                            </div>
+                        </div>
+                        <div class="service-detail-visual">
+                            <div class="service-visual-box" style="background-image: url('assets/about_studio.png');"></div>
+                        </div>
+                    </div>
+
+                    <!-- Service 5 -->
+                    <div class="service-detail-item scroll-reveal-up">
+                        <div class="service-detail-info">
+                            <div class="service-detail-icon"><i class="fa-solid fa-chart-simple"></i></div>
+                            <h2>Digital Marketing</h2>
+                            <p class="service-detail-text">
+                                Accelerate your digital footprint. We leverage organic SEO structures, paid advertisement campaigns, and targeted communication funnels to drive visibility, leads, and brand authority.
+                            </p>
+                            <ul class="service-detail-bullet-list">
+                                <li><i class="fa-solid fa-check"></i> Organic SEO Optimization & Keyword Research</li>
+                                <li><i class="fa-solid fa-check"></i> Paid Search & Social Ad Strategies</li>
+                                <li><i class="fa-solid fa-check"></i> Conversion Rate Optimization Auditing</li>
+                                <li><i class="fa-solid fa-check"></i> Analytics & Performance Reporting</li>
+                            </ul>
+                            <div class="service-meta-badges">
+                                <span class="meta-badge"><i class="fa-regular fa-clock"></i> Monthly Campaigns</span>
+                                <span class="meta-badge"><i class="fa-solid fa-arrow-trend-up"></i> Data-Driven Optimization</span>
+                            </div>
+                        </div>
+                        <div class="service-detail-visual">
+                            <div class="service-visual-box" style="background-image: url('assets/hero_abstract.png');"></div>
+                        </div>
+                    </div>
+
+                    <!-- Service 6 -->
+                    <div class="service-detail-item scroll-reveal-up reverse">
+                        <div class="service-detail-info">
+                            <div class="service-detail-icon"><i class="fa-solid fa-pen-nib"></i></div>
+                            <h2>Creative Content</h2>
+                            <p class="service-detail-text">
+                                Telling stories that connect. We produce premium copywriting, custom illustrations, and motion graphics that amplify your brand's voice across all marketing materials.
+                            </p>
+                            <ul class="service-detail-bullet-list">
+                                <li><i class="fa-solid fa-check"></i> Professional Copywriting & Scriptwriting</li>
+                                <li><i class="fa-solid fa-check"></i> 2D/3D Custom Motion Design</li>
+                                <li><i class="fa-solid fa-check"></i> Photography & Audio/Video Assets</li>
+                                <li><i class="fa-solid fa-check"></i> Creative Illustrations</li>
+                            </ul>
+                            <div class="service-meta-badges">
+                                <span class="meta-badge"><i class="fa-regular fa-clock"></i> 2-4 Weeks Timeline</span>
+                                <span class="meta-badge"><i class="fa-solid fa-palette"></i> Bespoke Visual Styling</span>
+                            </div>
+                        </div>
+                        <div class="service-detail-visual">
+                            <div class="service-visual-box" style="background-image: url('assets/portfolio_product.png');"></div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </section>
+
+        <!-- CTA Banner -->
+        <section class="cta-section">
+            <div class="container">
+                <div class="cta-box scroll-reveal-up">
+                    <h2 class="cta-title">Ready To Build<br>Something Extraordinary?</h2>
+                    <p class="cta-desc">Let's collaborate to create impactful digital experiences that elevate your brand and accelerate growth.</p>
+                    <a href="index.html#contact" class="btn btn-primary btn-magnetic" id="cta-action-btn">Start Your Project</a>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Footer Section -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-top">
+                <div class="footer-brand-col">
+                    <a href="index.html" class="logo">AETERNA<span class="logo-dot">.</span></a>
+                    <p class="footer-tagline">We create bold brands, exceptional experiences, and digital products that drive growth.</p>
+                    <div class="footer-social-links">
+                        <a href="https://linkedin.com" target="_blank" rel="noopener" aria-label="LinkedIn"><i class="fa-brands fa-linkedin-in"></i></a>
+                        <a href="https://instagram.com" target="_blank" rel="noopener" aria-label="Instagram"><i class="fa-brands fa-instagram"></i></a>
+                        <a href="https://facebook.com" target="_blank" rel="noopener" aria-label="Facebook"><i class="fa-brands fa-facebook-f"></i></a>
+                        <a href="https://behance.net" target="_blank" rel="noopener" aria-label="Behance"><i class="fa-brands fa-behance"></i></a>
+                        <a href="https://dribbble.com" target="_blank" rel="noopener" aria-label="Dribbble"><i class="fa-brands fa-dribbble"></i></a>
+                    </div>
+                </div>
+                
+                <div class="footer-links-col">
+                    <h4>Quick Links</h4>
+                    <ul>
+                        <li><a href="index.html">Home</a></li>
+                        <li><a href="about.html">About Us</a></li>
+                        <li><a href="services.html">Services</a></li>
+                        <li><a href="index.html#work">Our Work</a></li>
+                        <li><a href="index.html#contact">Contact</a></li>
+                    </ul>
+                </div>
+
+                <div class="footer-links-col">
+                    <h4>Our Services</h4>
+                    <ul>
+                        <li><a href="services.html">Branding</a></li>
+                        <li><a href="services.html">UI UX Design</a></li>
+                        <li><a href="services.html">Website Design</a></li>
+                        <li><a href="services.html">Website Development</a></li>
+                        <li><a href="services.html">Digital Marketing</a></li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="footer-bottom">
+                <p class="copyright">&copy; 2026 AETERNA Creative Agency. All Rights Reserved. Private Policy.</p>
+                <button class="btn-scroll-top btn-magnetic" id="back-to-top" aria-label="Scroll back to top">
+                    <i class="fa-solid fa-arrow-up"></i>
+                </button>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Scripts -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
+    <script src="https://unpkg.com/@studio-freight/lenis@1.0.34/dist/lenis.min.js"></script>
+    <script src="script.js"></script>
+</body>
+</html>
