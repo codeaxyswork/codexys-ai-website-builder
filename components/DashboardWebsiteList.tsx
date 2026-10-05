@@ -223,7 +223,7 @@ export function DashboardWebsiteList({ initialWebsites, userPlan = "free" }: Das
                           if (rawJobStatus === "FAILED") {
                             statusBadgeText = "Migration Failed";
                             statusBadgeStyle = "bg-red-50 border-red-200 text-red-700 font-extrabold";
-                          } else if (["QUEUED", "RUNNING", "CAPTURING_PAGE", "CAPTURING_ASSETS", "FINALIZING"].includes(rawJobStatus)) {
+                          } else if (["QUEUED", "DISCOVERING", "CAPTURING", "IMPORTING_ASSETS", "FINALIZING", "VALIDATING", "RUNNING", "CAPTURING_PAGE", "CAPTURING_ASSETS"].includes(rawJobStatus)) {
                             statusBadgeText = "Migration Running";
                             statusBadgeStyle = "bg-blue-50 border-blue-200 text-blue-700 font-extrabold animate-pulse";
                           } else if (rawJobStatus === "COMPLETED" || !migrationJob) {

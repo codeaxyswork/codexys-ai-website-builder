@@ -66,19 +66,45 @@ export function isPrivateOrReservedIP(ip: string): boolean {
 export function normalizePageUrl(urlStr: string): string {
   try {
     const parsed = new URL(urlStr);
-    let pathname = parsed.pathname.toLowerCase();
-    if (pathname.length > 1 && pathname.endsWith("/")) {
-      pathname = pathname.slice(0, -1);
-    }
-    if (pathname === "/index.html" || pathname === "/index.htm" || pathname === "/index.php") {
-      pathname = "/";
+    let pathname = parsed.pathname.toLowerCase().replace(/\/+$/, "");
+    if (pathname === "" || pathname === "/index.html" || pathname === "/index.htm" || pathname === "/index.php") {
+      pathname = "";
     }
     const origin = parsed.origin.toLowerCase();
-    const cleanPath = pathname === "/" ? "" : pathname;
-    return `${origin}${cleanPath}${parsed.search}`;
+    const cleanSearch = parsed.search || "";
+    return `${origin}${pathname}${cleanSearch}`;
   } catch {
     return urlStr.trim().toLowerCase();
   }
+}
+
+/**
+ * Extracts canonical relative HTML file path for a URL.
+ * Guarantees root / index URLs resolve to 'index.html'.
+ */
+export function extractCanonicalPagePath(urlStr: string): string {
+  try {
+    const parsed = new URL(urlStr);
+    let pathname = parsed.pathname.toLowerCase().replace(/\/+$/, "");
+    if (pathname === "" || pathname === "/" || pathname === "/index.html" || pathname === "/index.htm" || pathname === "/index.php") {
+      return "index.html";
+    }
+    let clean = pathname.replace(/^\//, "");
+    if (!clean.endsWith(".html")) {
+      clean += ".html";
+    }
+    return clean;
+  } catch {
+    return "index.html";
+  }
+}
+
+/**
+ * Extracts clean base slug from a canonical page path.
+ */
+export function extractCanonicalSlug(canonicalPath: string): string {
+  if (canonicalPath === "index.html" || canonicalPath === "/" || canonicalPath === "") return "home";
+  return canonicalPath.replace(/\.html$/, "").replace(/[^a-z0-9]+/gi, "-").toLowerCase().replace(/^-+|-+$/g, "") || "home";
 }
 
 /**
@@ -657,6 +683,8 @@ export async function scanSourceWebsite(inputUrl: string): Promise<SourceWebsite
   let discoveredFormCount = 0;
   let blogCount = 0;
 
+  const cleanDomain = domain.toLowerCase().replace(/^www\./, "");
+
   while (queue.length > 0 && visitedUrls.size < CRAWL_LIMITS.MAX_PAGES) {
     const current = queue.shift()!;
     const normCurrentUrl = normalizePageUrl(current.url);
@@ -665,6 +693,22 @@ export async function scanSourceWebsite(inputUrl: string): Promise<SourceWebsite
 
     const fetched = await safeFetchHtml(current.url);
     if (!fetched) continue;
+
+    const normFetchedUrl = normalizePageUrl(fetched.finalUrl);
+    visitedUrls.add(normFetchedUrl);
+
+    const rawPath = extractCanonicalPagePath(fetched.finalUrl);
+    const slug = extractCanonicalSlug(rawPath);
+
+    // Prevent duplicate homepage or duplicate page records
+    const alreadyDiscovered = pages.some(
+      (p) =>
+        p.path === rawPath ||
+        normalizePageUrl(p.url) === normCurrentUrl ||
+        normalizePageUrl(p.url) === normFetchedUrl ||
+        (rawPath === "index.html" && p.path === "index.html")
+    );
+    if (alreadyDiscovered) continue;
 
     const $ = cheerio.load(fetched.html);
     const seo = extractSEO($, fetched.finalUrl);
@@ -695,17 +739,6 @@ export async function scanSourceWebsite(inputUrl: string): Promise<SourceWebsite
     }
 
     const parsedPageUrl = new URL(fetched.finalUrl);
-    let rawPath = parsedPageUrl.pathname;
-    if (rawPath === "/" || rawPath === "") {
-      rawPath = "index.html";
-    } else {
-      rawPath = rawPath.replace(/^\//, "").replace(/\/$/, "");
-      if (!rawPath.endsWith(".html")) {
-        rawPath += ".html";
-      }
-    }
-
-    const slug = rawPath.replace(/\.html$/, "").replace(/[^a-z0-9]+/gi, "-").toLowerCase() || "home";
 
     const headings: { level: number; text: string }[] = [];
     $("h1, h2, h3, h4").each((_, h) => {
@@ -784,7 +817,12 @@ export async function scanSourceWebsite(inputUrl: string): Promise<SourceWebsite
           const resolved = resolveUrl(href, baseUrl);
           const normResolved = normalizePageUrl(resolved);
           const parsedRes = new URL(normResolved);
-          if (parsedRes.hostname === domain && !visitedUrls.has(normResolved) && !queue.some((q) => normalizePageUrl(q.url) === normResolved)) {
+          const candDomain = parsedRes.hostname.toLowerCase().replace(/^www\./, "");
+          if (
+            candDomain === cleanDomain &&
+            !visitedUrls.has(normResolved) &&
+            !queue.some((q) => normalizePageUrl(q.url) === normResolved)
+          ) {
             queue.push({ url: normResolved, depth: current.depth + 1 });
           }
         } catch {

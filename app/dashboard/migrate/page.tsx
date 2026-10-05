@@ -195,53 +195,12 @@ export default function MigrationPage() {
       const websiteId = initData.websiteId;
 
       // Start Polling Loop for Migration Progress & Status
-      const pollStartMs = Date.now();
-      const MAX_POLL_DURATION_MS = 45000;
-
+      // Polling continues dynamically while the job is legitimately processing.
+      // Stops ONLY when the persisted backend status is COMPLETED or FAILED.
       const pollInterval = setInterval(async () => {
         try {
-          if (Date.now() - pollStartMs > MAX_POLL_DURATION_MS) {
-            const finalRes = await fetch(`/api/websites/migrate/status?jobId=${jobId}&websiteId=${websiteId}`).catch(() => null);
-            const finalData = finalRes ? await finalRes.json().catch(() => null) : null;
-            const finalStatus = (finalData?.status || "").toUpperCase();
-
-            clearInterval(pollInterval);
-
-            if (finalStatus === "COMPLETED") {
-              setProgressPercent(100);
-              setProgressStage("Draft Website Ready!");
-              setExecutionResult(finalData.result || {
-                success: true,
-                websiteId: finalData.websiteId,
-                draftSlug: finalData.draftSlug,
-                title: scanData?.domain || "Migrated Website",
-                summary: scanData?.summary,
-                warnings: scanData?.warnings,
-                urlMappings: scanData?.urlMappings,
-                capturedPages: [],
-              });
-              setStep("review");
-              setIsExecuting(false);
-              return;
-            }
-
-            if (finalStatus === "FAILED") {
-              const errorMsg = finalData.lastError || finalData.error || "Migration failed during background execution.";
-              setMigrationError(errorMsg);
-              setStep("error");
-              setIsExecuting(false);
-              return;
-            }
-
-            console.warn(`[MIGRATION_UI_POLL_TIMEOUT] runId: ${runId} | Polling exceeded 45s safety limit. Stage: ${finalData?.currentStage || "Unknown"}`);
-            setMigrationError(`Migration progress polling timed out after 45 seconds (Server stage: ${finalData?.currentStage || "In progress"}).`);
-            setStep("error");
-            setIsExecuting(false);
-            return;
-          }
-
           const statusRes = await fetch(`/api/websites/migrate/status?jobId=${jobId}&websiteId=${websiteId}`);
-          const statusData = await statusRes.json();
+          const statusData = await statusRes.json().catch(() => null);
 
           if (statusData && statusData.success) {
             if (typeof statusData.progress === "number") {
@@ -264,13 +223,13 @@ export default function MigrationPage() {
                 summary: scanData.summary,
                 warnings: scanData.warnings,
                 urlMappings: scanData.urlMappings,
-                capturedPages: [],
+                capturedPages: statusData.capturedPages || [],
               });
               setStep("review");
               setIsExecuting(false);
             } else if (upperStatus === "FAILED") {
               clearInterval(pollInterval);
-              const errorMsg = statusData.lastError || statusData.error || "Migration failed during background execution.";
+              const errorMsg = statusData.lastError || statusData.error || statusData.failureDetails?.errorMessage || "Migration failed during background execution.";
               console.log(`[MIGRATION_UI_EXECUTION_FAILED] runId: ${runId} | error: "${errorMsg}"`);
               setMigrationError(errorMsg);
               setStep("error");
@@ -914,15 +873,28 @@ export default function MigrationPage() {
               </div>
 
               <div className="flex flex-wrap items-center gap-3 shrink-0">
+                <a
+                  id="open-website-btn"
+                  href={`/site/${executionResult.draftSlug}?preview=true`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="px-5 py-3 rounded-xl bg-emerald-700 hover:bg-emerald-800 text-white font-extrabold text-xs transition-all shadow-md flex items-center gap-2"
+                >
+                  <Globe className="w-4 h-4" />
+                  <span>Open Website</span>
+                </a>
+
                 <Link
-                  href={`/dashboard/websites/${executionResult.websiteId}`}
+                  id="open-in-editor-btn"
+                  href={`/dashboard/websites/${executionResult.websiteId}/editor`}
                   className="px-5 py-3 rounded-xl bg-white hover:bg-slate-100 text-emerald-900 font-extrabold text-xs transition-all shadow-md flex items-center gap-2"
                 >
-                  <Edit3 className="w-4 h-4" />
+                  <Edit3 className="w-4 h-4 text-emerald-700" />
                   <span>Open in Editor</span>
                 </Link>
 
                 <button
+                  id="approve-publish-btn"
                   onClick={() => setShowApprovalModal(true)}
                   className="px-6 py-3 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-extrabold text-xs transition-all shadow-md flex items-center gap-2 cursor-pointer"
                 >

@@ -1,6 +1,6 @@
 import { NextRequest, after } from "next/server";
 import { createClient } from "@/utils/supabase/server";
-import { prepareMigrationDraftWebsite, executeWebsiteMigration } from "@/lib/migration/executor";
+import { prepareMigrationDraftWebsite, startOrResumeMigrationJob } from "@/lib/migration/executor";
 import { SourceWebsiteScan, MigrationMode, MigrationSelections } from "@/lib/migration/types";
 
 export const maxDuration = 60;
@@ -69,7 +69,7 @@ export async function POST(req: NextRequest) {
       design: { colors: true, typography: true, spacing: true, layout: true, buttons: true },
     };
 
-    // 1. Prepare draft website synchronously (< 300ms response time)
+    // 1. Prepare/reuse draft website synchronously (< 200ms response time)
     const { websiteId, cleanSlug } = await prepareMigrationDraftWebsite(
       user.id,
       scanResult,
@@ -80,34 +80,44 @@ export async function POST(req: NextRequest) {
 
     const previewUrl = `https://codeaxys.com/site/${cleanSlug}?preview=true`;
 
-    // 2. Dispatch long-running migration execution in the background via Next.js after()
-    after(async () => {
-      console.log(`[MIGRATION ASYNC WORKER STARTED] runId: ${runId} | websiteId: ${websiteId}`);
-      try {
-        await executeWebsiteMigration(
-          user.id,
-          scanResult,
-          selectedMode,
-          selectedOptions,
-          supabase,
-          redesignPrompt,
-          runId,
-          websiteId,
-          cleanSlug
-        );
-      } catch (bgErr: any) {
-        console.error(`[MIGRATION ASYNC WORKER ERROR] runId: ${runId}:`, bgErr);
-      }
-    });
+    // 2. Dispatch initial stage execution. The workflow is durable and resumable;
+    // status polling automatically continues execution if this invocation terminates.
+    try {
+      after(async () => {
+        console.log(`[MIGRATION WORKFLOW INITIAL DISPATCH] runId=${runId} websiteId=${websiteId}`);
+        try {
+          await startOrResumeMigrationJob(websiteId, runId, {
+            userId: user.id,
+            scanResult,
+            mode: selectedMode,
+            selections: selectedOptions,
+            redesignPrompt,
+          });
+        } catch (bgErr: any) {
+          console.error(`[MIGRATION WORKFLOW BACKGROUND DISPATCH ERROR] runId=${runId}:`, bgErr?.message || bgErr);
+        }
+      });
+    } catch {
+      // Fallback if after() is not supported in current environment
+      startOrResumeMigrationJob(websiteId, runId, {
+        userId: user.id,
+        scanResult,
+        mode: selectedMode,
+        selections: selectedOptions,
+        redesignPrompt,
+      }).catch((bgErr) => {
+        console.error(`[MIGRATION DIRECT DISPATCH ERROR] runId=${runId}:`, bgErr?.message || bgErr);
+      });
+    }
 
-    console.log(`[MIGRATION API FAST RESPONSE] runId: ${runId} | websiteId: ${websiteId} | duration: ${Date.now() - startTime}ms`);
+    console.log(`[MIGRATION API FAST RESPONSE] runId=${runId} websiteId=${websiteId} duration=${Date.now() - startTime}ms`);
 
     return jsonResponse({
       success: true,
       jobId: runId,
       websiteId,
       draftSlug: cleanSlug,
-      status: "queued",
+      status: "QUEUED",
       previewUrl,
     }, 200);
   } catch (err: any) {

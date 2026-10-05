@@ -294,6 +294,68 @@ export interface PageCaptureManifest {
   migrationStatusLabel?: "Exact Migration" | "Partial Exact Migration" | "Functional Migration";
 }
 
+export type MigrationJobStatus =
+  | "QUEUED"
+  | "DISCOVERING"
+  | "CAPTURING"
+  | "IMPORTING_ASSETS"
+  | "FINALIZING"
+  | "VALIDATING"
+  | "COMPLETED"
+  | "FAILED"
+  | "RUNNING"
+  | "CAPTURING_PAGE"
+  | "CAPTURING_ASSETS";
+
+export interface MigrationFailureDetails {
+  stage: string;
+  step: string;
+  pageUrl?: string;
+  errorMessage: string;
+  retryCount: number;
+  timestamp: string;
+}
+
+export interface MigrationPageDiagnostic {
+  url: string;
+  path: string;
+  pageNumber: number;
+  status: "COMPLETED" | "SKIPPED" | "FAILED";
+  durationMs: number;
+  error: string | null;
+  retryCount: number;
+  timestamp?: string;
+}
+
+export interface MigrationJobRecord {
+  jobId: string;
+  websiteId: string;
+  userId?: string;
+  targetUrl: string;
+  cleanSlug: string;
+  mode: MigrationMode;
+  selections: MigrationSelections;
+  redesignPrompt?: string;
+  status: MigrationJobStatus;
+  currentStage: string;
+  progress: number;
+  currentPage: number;
+  totalPages: number;
+  completedPages: number;
+  failedPages: number;
+  pagesToMigrate?: SourcePage[];
+  capturedPages?: { path: string; html_content: string; css_content: string; manifest?: PageCaptureManifest }[];
+  storedPagesList?: string[];
+  pageDiagnostics: MigrationPageDiagnostic[];
+  failureDetails?: MigrationFailureDetails | null;
+  error?: string | null;
+  result?: MigrationExecuteResult | null;
+  startTime: string;
+  updatedAt: string;
+  lastHeartbeatAt?: string;
+  workerInstanceId?: string;
+}
+
 export interface MigrationExecuteResult {
   success: boolean;
   websiteId: string;

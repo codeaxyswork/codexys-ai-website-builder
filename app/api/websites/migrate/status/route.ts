@@ -1,4 +1,5 @@
 import { NextRequest } from "next/server";
+import { getMigrationJobState, checkAndAdvanceMigrationJob } from "@/lib/migration/executor";
 
 export const dynamic = "force-dynamic";
 
@@ -33,35 +34,53 @@ export async function GET(req: NextRequest) {
 
     const db = getSafeAdminClient();
 
+    // 1. Direct indexed primary key query first if websiteId provided
     let website: any = null;
-    if (jobId) {
-      const { data } = await db.from("websites").select("id, slug, is_published, design_plan, created_at").filter("design_plan->migration_job->>jobId", "eq", jobId).maybeSingle();
-      website = data;
-    }
-    if (!website && websiteId) {
-      const { data } = await db.from("websites").select("id, slug, is_published, design_plan, created_at").eq("id", websiteId).maybeSingle();
+    if (websiteId) {
+      const { data } = await db
+        .from("websites")
+        .select("id, slug, is_published, design_plan, created_at")
+        .eq("id", websiteId)
+        .maybeSingle();
       website = data;
     }
 
-    if (!website) {
+    // 2. Fallback to jobId lookup if website not found yet
+    if (!website && jobId) {
+      const { data } = await db
+        .from("websites")
+        .select("id, slug, is_published, design_plan, created_at")
+        .filter("design_plan->migration_job->>jobId", "eq", jobId)
+        .maybeSingle();
+      website = data;
+    }
+
+    // 3. Fallback to in-memory job cache if database lookup has a momentary sync delay
+    const cachedJob = await getMigrationJobState(websiteId || undefined, jobId || undefined);
+
+    if (!website && !cachedJob) {
+      // NEVER return a fake/default QUEUED state when the migration job actually exists but website row is temporarily unavailable
       return jsonResponse({
-        success: true,
+        success: false,
+        error: "Migration job record not found or still initializing.",
         jobId: jobId || null,
         websiteId: websiteId || null,
-        status: "QUEUED",
-        progress: 10,
-        currentStage: "Initializing migration environment...",
-        currentPage: 0,
-        totalPages: 0,
-        completedPages: 0,
-        failedPages: 0,
-        elapsedTime: 0,
-        lastError: null,
-        error: null,
+      }, 404);
+    }
+
+    const effectiveWebsiteId = website?.id || cachedJob?.websiteId || websiteId;
+    const effectiveSlug = website?.slug || cachedJob?.cleanSlug || "migrated";
+    const migrationJob = website?.design_plan?.migration_job || cachedJob || {};
+
+    const activeJobId = migrationJob.jobId || jobId || "";
+
+    // 4. Autonomous self-healing / resume trigger: If job is active and has stalled, resume execution
+    if (effectiveWebsiteId && activeJobId) {
+      checkAndAdvanceMigrationJob(effectiveWebsiteId, activeJobId).catch((advErr) => {
+        console.warn(`[STATUS_SELF_HEAL_WARN] websiteId=${effectiveWebsiteId}:`, advErr?.message);
       });
     }
 
-    const migrationJob = website.design_plan?.migration_job || {};
     const status = (migrationJob.status || "QUEUED").toUpperCase();
     const progress = typeof migrationJob.progress === "number" ? migrationJob.progress : 10;
     const currentStage = migrationJob.currentStage || "Processing migration...";
@@ -71,16 +90,16 @@ export async function GET(req: NextRequest) {
     const failedPages = migrationJob.failedPages || 0;
     const elapsedTime = migrationJob.startTime ? Math.max(0, Date.now() - new Date(migrationJob.startTime).getTime()) : 0;
     const lastError = migrationJob.error || null;
+    const failureDetails = migrationJob.failureDetails || null;
     const result = migrationJob.result || null;
     const pageDiagnostics = migrationJob.pageDiagnostics || [];
-    const draftSlug = website.slug;
-    const previewUrl = `https://codeaxys.com/site/${draftSlug}?preview=true`;
+    const previewUrl = `https://codeaxys.com/site/${effectiveSlug}?preview=true`;
 
     return jsonResponse({
       success: true,
-      jobId: migrationJob.jobId || jobId,
-      websiteId: website.id,
-      draftSlug,
+      jobId: activeJobId,
+      websiteId: effectiveWebsiteId,
+      draftSlug: effectiveSlug,
       status,
       progress,
       currentStage,
@@ -91,6 +110,7 @@ export async function GET(req: NextRequest) {
       elapsedTime,
       lastError,
       error: lastError,
+      failureDetails,
       previewUrl,
       result,
       pageDiagnostics,
