@@ -24,6 +24,11 @@ import {
 } from "./scanner";
 import { buildLocalPageMap, localizeHtmlLinks } from "./link-localizer";
 import { importAndStoreMigrationAssets } from "./asset-importer";
+import {
+  deriveCanonicalDomainSlug,
+  resolveCanonicalWebsiteSlug,
+  getWebsitePublicUrl,
+} from "@/lib/domain-resolver";
 
 export interface PageDiagnostic extends MigrationPageDiagnostic {}
 
@@ -233,7 +238,7 @@ export async function getMigrationJobState(websiteId?: string, runId?: string): 
 
 /**
  * Prepares/Reuses the draft website record synchronously before starting execution.
- * Preserves clean base slugs (e.g. 'neopraxis') without random suffix unless genuine active collision.
+ * Derives generic canonical domain slug and deterministically avoids collisions.
  */
 export async function prepareMigrationDraftWebsite(
   userId: string,
@@ -250,33 +255,20 @@ export async function prepareMigrationDraftWebsite(
   const rawTitle = scanResult.pages[0]?.title || scanResult.domain || "Migrated Website";
   const title = rawTitle.length > 50 ? rawTitle.substring(0, 47) + "..." : rawTitle;
 
-  let cleanBrand = scanResult.domain
-    .toLowerCase()
-    .trim()
-    .replace(/^(https?:\/\/)?(www\.)?/i, "")
-    .replace(/(\.online|\.com|\.org|\.net|\.site|\.co|\.in|\.io|\.tech)+$/gi, "")
-    .replace(/online$/gi, "")
-    .replace(/[^a-z0-9]+/gi, "-")
-    .replace(/^-+|-+$/g, "");
+  const cleanBrand = deriveCanonicalDomainSlug(scanResult.domain || scanResult.targetUrl);
 
-  if (!cleanBrand || cleanBrand.length < 2) {
-    cleanBrand = scanResult.domain.replace(/[^a-z0-9]+/gi, "-").toLowerCase().replace(/^-+|-+$/g, "");
-  }
-
-  let cleanSlug = cleanBrand;
-
-  // 1. Check if the current user already has an unpublished draft with this cleanBrand
-  const { data: userDrafts } = await db
+  // 1. Check if the current user already has an existing website/draft with this cleanBrand
+  const { data: userWebsites } = await db
     .from("websites")
-    .select("id, user_id, is_published, slug")
+    .select("id, user_id, is_published, slug, published_slug")
     .eq("user_id", userId)
-    .eq("is_published", false)
     .or(`slug.eq.${cleanBrand},published_slug.eq.${cleanBrand}`)
     .limit(1);
 
-  const existingUserDraft = userDrafts && userDrafts.length > 0 ? userDrafts[0] : null;
+  const existingUserDraft = userWebsites && userWebsites.length > 0 ? userWebsites[0] : null;
 
   let websiteId: string;
+  let cleanSlug = cleanBrand;
 
   const initialJobState: MigrationJobRecord = {
     jobId: runId,
@@ -343,20 +335,9 @@ export async function prepareMigrationDraftWebsite(
 
     console.log(`[MIGRATION_STEP_COMPLETE] runId=${runId} websiteId=${websiteId} step=PREPARE_DRAFT_WEBSITE mode=REUSE_USER_DRAFT slug=${cleanSlug} elapsedMs=${Date.now() - startMs}`);
   } else {
-    // Check if there is an active collision with ANY other published or existing website
-    const { data: collisions } = await db
-      .from("websites")
-      .select("id")
-      .or(`slug.eq.${cleanBrand},published_slug.eq.${cleanBrand}`)
-      .limit(1);
-
-    if (collisions && collisions.length > 0) {
-      const suffix = Math.random().toString(36).substring(2, 7);
-      cleanSlug = `${cleanBrand}-${suffix}`;
-    } else {
-      cleanSlug = cleanBrand;
-    }
-
+    // Check for collisions with other users and resolve deterministically
+    const resolved = await resolveCanonicalWebsiteSlug(db, userId, cleanBrand);
+    cleanSlug = resolved.slug;
     initialJobState.cleanSlug = cleanSlug;
 
     const { data: newWebsite, error: createWebError } = await db
@@ -806,7 +787,7 @@ export async function startOrResumeMigrationJob(
     });
 
     try {
-      const baseUrl = targetUrl ? new URL(targetUrl).origin : `https://${cleanSlug}.codeaxys.com`;
+      const baseUrl = targetUrl ? new URL(targetUrl).origin : getWebsitePublicUrl({ slug: cleanSlug, published_slug: cleanSlug });
       await withTimeout(
         importAndStoreMigrationAssets(userId, websiteId, baseUrl, capturedPages, { customSupabaseClient: db, runId }),
         4500,

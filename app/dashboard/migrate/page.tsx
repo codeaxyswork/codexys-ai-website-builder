@@ -33,6 +33,7 @@ import {
 } from "@/lib/migration/types";
 import { convertPageToCodeaxysNative, convertPageToExactSnapshot } from "@/lib/migration/converter";
 import { convertPageToCodeaxysNativeRedesign } from "@/lib/migration/redesign-engine";
+import { getWebsitePreviewUrl } from "@/lib/domain-resolver";
 
 export default function MigrationPage() {
   const router = useRouter();
@@ -875,7 +876,7 @@ export default function MigrationPage() {
               <div className="flex flex-wrap items-center gap-3 shrink-0">
                 <a
                   id="open-website-btn"
-                  href={`/site/${executionResult.draftSlug}?preview=true`}
+                  href={getWebsitePreviewUrl({ slug: executionResult.draftSlug, published_slug: executionResult.draftSlug, is_published: false })}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="px-5 py-3 rounded-xl bg-emerald-700 hover:bg-emerald-800 text-white font-extrabold text-xs transition-all shadow-md flex items-center gap-2"

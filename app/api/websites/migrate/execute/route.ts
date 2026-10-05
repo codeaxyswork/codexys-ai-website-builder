@@ -2,6 +2,7 @@ import { NextRequest, after } from "next/server";
 import { createClient } from "@/utils/supabase/server";
 import { prepareMigrationDraftWebsite, startOrResumeMigrationJob } from "@/lib/migration/executor";
 import { SourceWebsiteScan, MigrationMode, MigrationSelections } from "@/lib/migration/types";
+import { getWebsitePreviewUrl } from "@/lib/domain-resolver";
 
 export const maxDuration = 60;
 export const dynamic = "force-dynamic";
@@ -78,7 +79,11 @@ export async function POST(req: NextRequest) {
       runId
     );
 
-    const previewUrl = `https://codeaxys.com/site/${cleanSlug}?preview=true`;
+    const previewUrl = getWebsitePreviewUrl({
+      slug: cleanSlug,
+      published_slug: cleanSlug,
+      is_published: false,
+    });
 
     // 2. Dispatch initial stage execution. The workflow is durable and resumable;
     // status polling automatically continues execution if this invocation terminates.

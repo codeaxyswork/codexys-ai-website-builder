@@ -1,5 +1,6 @@
 import { NextRequest, after } from "next/server";
 import { getMigrationJobState, checkAndAdvanceMigrationJob } from "@/lib/migration/executor";
+import { getWebsitePreviewUrl } from "@/lib/domain-resolver";
 
 export const maxDuration = 60;
 export const dynamic = "force-dynamic";
@@ -100,7 +101,11 @@ export async function GET(req: NextRequest) {
     const failureDetails = migrationJob.failureDetails || null;
     const result = migrationJob.result || null;
     const pageDiagnostics = migrationJob.pageDiagnostics || [];
-    const previewUrl = `https://codeaxys.com/site/${effectiveSlug}?preview=true`;
+    const previewUrl = getWebsitePreviewUrl({
+      slug: effectiveSlug,
+      published_slug: effectiveSlug,
+      is_published: website?.is_published || false,
+    });
 
     return jsonResponse({
       success: true,
