@@ -112,8 +112,17 @@ export function RightSidebar({
     setIsListening(false);
     if (recognitionRef.current) {
       try {
-        recognitionRef.current.stop();
-      } catch (e) {}
+        recognitionRef.current.onstart = null;
+        recognitionRef.current.onresult = null;
+        recognitionRef.current.onerror = null;
+        recognitionRef.current.onend = null;
+        recognitionRef.current.abort();
+      } catch (e) {
+        try {
+          recognitionRef.current.stop();
+        } catch (_) {}
+      }
+      recognitionRef.current = null;
     }
   };
 
@@ -182,17 +191,8 @@ export function RightSidebar({
         };
 
         recognition.onend = () => {
-          if (isListeningRef.current) {
-            try {
-              recognition.start();
-            } catch (e) {
-              setTimeout(() => {
-                if (isListeningRef.current) createRecognition();
-              }, 200);
-            }
-          } else {
-            setIsListening(false);
-          }
+          isListeningRef.current = false;
+          setIsListening(false);
         };
 
         recognition.start();
@@ -222,6 +222,9 @@ export function RightSidebar({
 
   const handleEditSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    if (isListeningRef.current) {
+      stopListening();
+    }
     if (!editInstruction.trim() || isEditing || isGenerating) return;
     onEdit(editInstruction, selectedLang);
     setEditInstruction("");

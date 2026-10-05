@@ -206,8 +206,17 @@ export function LandingView({
     setIsListening(false);
     if (recognitionRef.current) {
       try {
-        recognitionRef.current.stop();
-      } catch (e) {}
+        recognitionRef.current.onstart = null;
+        recognitionRef.current.onresult = null;
+        recognitionRef.current.onerror = null;
+        recognitionRef.current.onend = null;
+        recognitionRef.current.abort();
+      } catch (e) {
+        try {
+          recognitionRef.current.stop();
+        } catch (_) {}
+      }
+      recognitionRef.current = null;
     }
   };
 
@@ -282,17 +291,8 @@ export function LandingView({
         };
 
         recognition.onend = () => {
-          if (isListeningRef.current) {
-            try {
-              recognition.start();
-            } catch (e) {
-              setTimeout(() => {
-                if (isListeningRef.current) createRecognition();
-              }, 200);
-            }
-          } else {
-            setIsListening(false);
-          }
+          isListeningRef.current = false;
+          setIsListening(false);
         };
 
         recognition.start();
@@ -494,7 +494,12 @@ export function LandingView({
                   </div>
 
                   <button
-                    onClick={() => onGenerate(selectedLang)}
+                    onClick={() => {
+                      if (isListeningRef.current) {
+                        stopListening();
+                      }
+                      onGenerate(selectedLang);
+                    }}
                     disabled={!prompt.trim() || isGenerating}
                     className="w-full sm:w-auto px-8 py-3.5 rounded-xl font-extrabold text-sm text-white bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 active:scale-[0.98] transition-all shadow-lg shadow-purple-600/25 hover:shadow-xl hover:shadow-purple-600/35 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2.5 shrink-0 cursor-pointer border border-purple-500/30"
                   >

@@ -35,6 +35,7 @@ import {
 
 import { StructuredSEOFix } from "@/lib/seo-agent";
 import { SUPPORTED_LANGUAGES, getLanguageConfig } from "@/lib/multilingual";
+import { useVoiceInput } from "@/hooks/useVoiceInput";
 
 export type UnifiedDomainMode = "general" | "website" | "seo" | "marketing";
 
@@ -204,8 +205,33 @@ export function UnifiedCodeaxysAIChat({
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const [copiedPromptId, setCopiedPromptId] = useState<string | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
-  const [isListening, setIsListening] = useState(false);
   const [selectedLang, setSelectedLang] = useState<string>("auto");
+  const isSendingRef = useRef<boolean>(false);
+
+  // Universal deterministic voice STT hook
+  const {
+    isListening,
+    interimTranscript,
+    isSupported: isVoiceSupported,
+    startListening,
+    stopListening,
+    error: voiceError,
+  } = useVoiceInput({
+    selectedLang,
+    onTranscriptUpdate: (finalPart, interimPart) => {
+      if (finalPart) {
+        setInputText(finalPart);
+      }
+    },
+    onFinalTranscript: (finalFull) => {
+      if (finalFull) {
+        setInputText(finalFull);
+      }
+    },
+    onError: (err) => {
+      setErrorMessage(err);
+    },
+  });
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLInputElement>(null);
@@ -242,10 +268,11 @@ export function UnifiedCodeaxysAIChat({
     }
   }, [mode]);
 
-  // Sync mode prop with active domain indicator
+  // Stop listening and sync mode prop with active domain indicator
   useEffect(() => {
+    stopListening();
     setActiveDomain(mode);
-  }, [mode]);
+  }, [mode, stopListening]);
 
   // Auto Scroll
   useEffect(() => {
@@ -256,6 +283,9 @@ export function UnifiedCodeaxysAIChat({
 
   // Handle drawer toggle
   const handleToggleOpen = (openState: boolean) => {
+    if (!openState) {
+      stopListening();
+    }
     if (onClose && !openState) {
       onClose();
     }
@@ -264,6 +294,7 @@ export function UnifiedCodeaxysAIChat({
 
   // Clear Conversation
   const handleNewConversation = () => {
+    stopListening();
     const currentIdentity = AGENT_IDENTITIES[mode] || AGENT_IDENTITIES.general;
     setMessages([
       {
@@ -279,46 +310,58 @@ export function UnifiedCodeaxysAIChat({
   };
 
   // Voice Input Speech Recognition
-  const handleToggleSpeech = () => {
+  const handleToggleSpeech = async () => {
     if (isListening) {
-      setIsListening(false);
+      stopListening();
+    } else {
+      await startListening({ lang: selectedLang, baseText: inputText });
+    }
+  };
+
+  // Action Click Handler for Suggested Action Chips
+  const handleActionClick = (action: string, navigationTarget?: string) => {
+    if (action === "View Pro Plans" || action === "Go to Billing" || navigationTarget === "billing") {
+      if (onNavigateTab) {
+        onNavigateTab("billing");
+      } else {
+        window.location.href = "/dashboard/billing";
+      }
       return;
     }
-    const SpeechRecognition =
-      (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
-    if (!SpeechRecognition) {
-      alert("Speech recognition is not supported in your browser.");
+    if (action === "Open Marketing Agent") {
+      if (onNavigateTab) onNavigateTab("marketing");
       return;
     }
-
-    try {
-      const recognition = new SpeechRecognition();
-      recognition.continuous = false;
-      recognition.interimResults = false;
-      recognition.lang = "en-US";
-
-      recognition.onstart = () => setIsListening(true);
-      recognition.onend = () => setIsListening(false);
-      recognition.onerror = () => setIsListening(false);
-
-      recognition.onresult = (event: any) => {
-        const transcript = event.results[0][0].transcript;
-        if (transcript) {
-          setInputText((prev) => (prev ? `${prev} ${transcript}` : transcript));
-        }
-      };
-
-      recognition.start();
-    } catch (err) {
-      setIsListening(false);
+    if (action === "Open Website Editor") {
+      if (websiteId) window.location.href = `/editor/${websiteId}`;
+      return;
     }
+    if (action === "Sign In") {
+      window.location.href = "/login";
+      return;
+    }
+    handleSend(action);
   };
 
   // Submit Message
   const handleSend = async (textToSend?: string) => {
-    const prompt = (textToSend || inputText).trim();
-    if (!prompt || isLoading) return;
+    // 1. Double submit protection
+    if (isSendingRef.current || isLoading) return;
 
+    // 2. Immediately terminate voice input and release media tracks
+    if (isListening) {
+      stopListening();
+    }
+
+    // 3. Resolve final prompt
+    let prompt = (textToSend || inputText).trim();
+    if (!textToSend && interimTranscript.trim()) {
+      prompt = prompt ? `${prompt} ${interimTranscript.trim()}` : interimTranscript.trim();
+    }
+
+    if (!prompt) return;
+
+    isSendingRef.current = true;
     setInputText("");
     setErrorMessage(null);
 
@@ -375,7 +418,79 @@ export function UnifiedCodeaxysAIChat({
 
       if (!res.ok) {
         const errData = await res.json().catch(() => ({}));
-        throw new Error(errData.error || errData.details || `Request failed with status ${res.status}`);
+        const status = res.status;
+        const errorCode = errData.code;
+        const errorMsg = errData.error || errData.details || "";
+
+        // Specific HTTP 403: Plan upgrade required
+        if (
+          status === 403 &&
+          (errorCode === "UPGRADE_REQUIRED" ||
+            errorMsg.toLowerCase().includes("pro") ||
+            errorMsg.toLowerCase().includes("plan") ||
+            errorMsg.toLowerCase().includes("subscription"))
+        ) {
+          const upgradeMsg: ChatMessageItem = {
+            id: `upgrade-${Date.now()}`,
+            role: "assistant",
+            domain: activeDomain,
+            text: `### 🔒 Pro Plan Required\n\n${errorMsg || "The Dedicated AI SEO Agent requires a Pro or Agency subscription plan."}\n\nUpgrade your account to unlock continuous AI SEO audits, automated on-page fixes, crawl monitoring, and AI Search (ChatGPT / Perplexity) optimization.`,
+            suggestedActions: ["View Pro Plans", "Go to Billing"],
+            navigationTarget: "billing",
+            timestamp: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
+          };
+          setMessages((prev) => [...prev, upgradeMsg]);
+          return;
+        }
+
+        // Specific HTTP 402: Insufficient credits
+        if (
+          status === 402 ||
+          errorCode === "INSUFFICIENT_CREDITS" ||
+          errorMsg.toLowerCase().includes("credit")
+        ) {
+          const creditMsg: ChatMessageItem = {
+            id: `credit-${Date.now()}`,
+            role: "assistant",
+            domain: activeDomain,
+            text: `### ⚡ Insufficient AI Credits\n\n${errorMsg || "You have reached your monthly AI credit limit."}\n\nPlease upgrade your plan or top up credits in your billing dashboard to continue.`,
+            suggestedActions: ["Go to Billing", "View Pro Plans"],
+            navigationTarget: "billing",
+            timestamp: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
+          };
+          setMessages((prev) => [...prev, creditMsg]);
+          return;
+        }
+
+        // Specific HTTP 401: Unauthorized
+        if (status === 401) {
+          const authMsg: ChatMessageItem = {
+            id: `auth-${Date.now()}`,
+            role: "assistant",
+            domain: activeDomain,
+            text: `### 🔑 Sign In Required\n\nYour session has expired or authentication is required. Please refresh the page and sign in again.`,
+            suggestedActions: ["Sign In"],
+            timestamp: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
+          };
+          setMessages((prev) => [...prev, authMsg]);
+          return;
+        }
+
+        // Specific HTTP 429: Rate limited
+        if (status === 429) {
+          const rateMsg: ChatMessageItem = {
+            id: `rate-${Date.now()}`,
+            role: "assistant",
+            domain: activeDomain,
+            text: `⏳ **Too Many Requests**: Please wait a few moments before sending another message.`,
+            suggestedActions: ["Try Again"],
+            timestamp: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
+          };
+          setMessages((prev) => [...prev, rateMsg]);
+          return;
+        }
+
+        throw new Error(errorMsg || `Request failed with status ${status}`);
       }
 
       const data = await res.json();
@@ -435,20 +550,21 @@ export function UnifiedCodeaxysAIChat({
       setMessages((prev) => [...prev, assistantMsg]);
     } catch (err: any) {
       console.warn("Unified AIChat send error:", err);
-      setErrorMessage("I'm having trouble processing that right now. Please try again.");
+      setErrorMessage(err?.message || "I encountered an error processing your request. Please try again.");
       setMessages((prev) => [
         ...prev,
         {
           id: `err-${Date.now()}`,
           role: "assistant",
           domain: activeDomain,
-          text: `⚠️ **Connection Issue**: ${err?.message || "I could not reach the Codeaxys AI service. Please check your network connection and try again."}`,
+          text: `⚠️ **Notice**: ${err?.message || "I could not complete your request. Please check your network and try again."}`,
           suggestedActions: ["Try Again"],
           timestamp: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
         },
       ]);
     } finally {
       setIsLoading(false);
+      isSendingRef.current = false;
     }
   };
 
@@ -764,6 +880,23 @@ export function UnifiedCodeaxysAIChat({
                   )}
                 </div>
 
+                {/* Assistant Suggested Action Chips */}
+                {!isUser && msg.suggestedActions && msg.suggestedActions.length > 0 && (
+                  <div className="flex flex-wrap gap-1.5 mt-2 max-w-full">
+                    {msg.suggestedActions.map((action, actionIdx) => (
+                      <button
+                        key={actionIdx}
+                        onClick={() => handleActionClick(action, msg.navigationTarget)}
+                        disabled={isLoading}
+                        className="px-2.5 py-1 rounded-lg bg-white hover:bg-purple-50 text-purple-700 hover:text-purple-800 border border-purple-200 hover:border-purple-300 text-[11px] font-semibold transition-all cursor-pointer shadow-2xs flex items-center gap-1"
+                      >
+                        <span>{action}</span>
+                        <ChevronRight className="w-3 h-3 text-purple-400" />
+                      </button>
+                    ))}
+                  </div>
+                )}
+
                 <span className="text-[10px] text-slate-400 mt-1 px-1">{msg.timestamp}</span>
               </div>
             </div>
@@ -822,6 +955,28 @@ export function UnifiedCodeaxysAIChat({
           </div>
         )}
 
+        {/* Transient Speech Recognition Banner (only visible while listening) */}
+        {isListening && (
+          <div className="mb-2 px-3 py-2 bg-red-50 border border-red-200 rounded-xl flex items-center justify-between animate-in fade-in duration-150">
+            <div className="flex items-center gap-2 text-xs text-red-700 font-medium overflow-hidden">
+              <span className="relative flex h-2 w-2 shrink-0">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
+                <span className="relative inline-flex rounded-full h-2 w-2 bg-red-600"></span>
+              </span>
+              <span className="truncate">
+                {interimTranscript ? `"${interimTranscript}"` : "Listening... Speak clearly into your mic"}
+              </span>
+            </div>
+            <button
+              type="button"
+              onClick={stopListening}
+              className="text-[11px] font-bold text-red-600 hover:text-red-800 bg-red-100 hover:bg-red-200 px-2 py-0.5 rounded-lg transition-colors cursor-pointer shrink-0 ml-2"
+            >
+              Done
+            </button>
+          </div>
+        )}
+
         <form
           onSubmit={(e) => {
             e.preventDefault();
@@ -856,7 +1011,7 @@ export function UnifiedCodeaxysAIChat({
 
           <button
             type="submit"
-            disabled={!inputText.trim() || isLoading}
+            disabled={(!inputText.trim() && !interimTranscript.trim()) || isLoading}
             className="w-10 h-10 rounded-xl bg-purple-600 hover:bg-purple-700 disabled:opacity-40 disabled:cursor-not-allowed text-white flex items-center justify-center shrink-0 cursor-pointer shadow-md shadow-purple-600/30 transition-all"
           >
             <Send className="w-4 h-4" />

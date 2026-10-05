@@ -206,9 +206,13 @@ export async function buildSEOContext(
   websiteId: string,
   detectedIntent?: DetectedSEOIntent
 ): Promise<SEOAgentContext> {
-  const activeIntents = detectedIntent
-    ? [detectedIntent.primaryIntent, ...detectedIntent.secondaryIntents]
-    : [];
+  const activeIntents: string[] = [];
+  if (detectedIntent) {
+    if (detectedIntent.primaryIntent) activeIntents.push(detectedIntent.primaryIntent);
+    if (Array.isArray(detectedIntent.secondaryIntents)) {
+      activeIntents.push(...detectedIntent.secondaryIntents);
+    }
+  }
   const shouldFetchAll =
     activeIntents.length === 0 ||
     activeIntents.includes("OVERALL_SEO") ||
