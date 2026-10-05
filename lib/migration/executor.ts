@@ -732,7 +732,7 @@ export async function executeWebsiteMigration(
           pageSeoPayload.canonical_url = srcPage.seo.canonicalUrl;
         }
 
-        db.from("website_page_seo").insert(pageSeoPayload).catch(() => {});
+        Promise.resolve(db.from("website_page_seo").insert(pageSeoPayload)).catch(() => {});
         console.log(`[MIGRATION_STEP_COMPLETE] runId=${runId} websiteId=${websiteId} step=${stepSeoDb} status=ASYNC_DISPATCHED`);
       }
 
