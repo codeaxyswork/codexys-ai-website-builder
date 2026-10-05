@@ -350,6 +350,7 @@ export interface MigrationJobRecord {
   failureDetails?: MigrationFailureDetails | null;
   error?: string | null;
   result?: MigrationExecuteResult | null;
+  assetStats?: any;
   startTime: string;
   updatedAt: string;
   lastHeartbeatAt?: string;
@@ -366,5 +367,6 @@ export interface MigrationExecuteResult {
   urlMappings: UrlMapping[];
   capturedPages?: { path: string; html_content: string; css_content: string; manifest?: PageCaptureManifest }[];
   manifests?: PageCaptureManifest[];
+  assetStats?: any;
 }
 

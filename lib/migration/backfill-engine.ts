@@ -344,18 +344,38 @@ export async function runExistingMigrationAssetBackfill(
 
   // 6. Rewrite HTML and CSS in website_pages DB records
   if (urlMap.size > 0) {
+    const sortedReplacements = Array.from(urlMap.entries()).sort(
+      (a, b) => b[0].length - a[0].length
+    );
+
     for (const p of pages) {
       let htmlMod = p.html_content || "";
       let cssMod = p.css_content || "";
       let isRewritten = false;
 
-      for (const [originalUrl, newPublicUrl] of urlMap.entries()) {
+      for (const [originalUrl, newPublicUrl] of sortedReplacements) {
         if (htmlMod.includes(originalUrl)) {
           htmlMod = htmlMod.replaceAll(originalUrl, newPublicUrl);
           isRewritten = true;
         }
         if (cssMod && cssMod.includes(originalUrl)) {
           cssMod = cssMod.replaceAll(originalUrl, newPublicUrl);
+          isRewritten = true;
+        }
+
+        const htmlEncodedUrl = originalUrl.replaceAll("&", "&amp;");
+        if (htmlEncodedUrl !== originalUrl && htmlMod.includes(htmlEncodedUrl)) {
+          htmlMod = htmlMod.replaceAll(htmlEncodedUrl, newPublicUrl);
+          isRewritten = true;
+        }
+
+        const protoRelativeUrl = originalUrl.replace(/^https?:/, "");
+        if (protoRelativeUrl !== originalUrl && htmlMod.includes(protoRelativeUrl)) {
+          htmlMod = htmlMod.replaceAll(protoRelativeUrl, newPublicUrl);
+          isRewritten = true;
+        }
+        if (cssMod && protoRelativeUrl !== originalUrl && cssMod.includes(protoRelativeUrl)) {
+          cssMod = cssMod.replaceAll(protoRelativeUrl, newPublicUrl);
           isRewritten = true;
         }
       }

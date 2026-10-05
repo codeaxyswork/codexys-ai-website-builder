@@ -118,6 +118,7 @@ export async function updateMigrationJobState(
     failureDetails?: MigrationFailureDetails | null;
     result?: any;
     pageDiagnostics?: PageDiagnostic[];
+    assetStats?: any;
     startTime?: string;
     lastHeartbeatAt?: string;
   }
@@ -148,6 +149,7 @@ export async function updateMigrationJobState(
     failureDetails: update.failureDetails !== undefined ? update.failureDetails : existingCached?.failureDetails || null,
     result: update.result !== undefined ? update.result : existingCached?.result || null,
     pageDiagnostics: update.pageDiagnostics || existingCached?.pageDiagnostics || [],
+    assetStats: update.assetStats !== undefined ? update.assetStats : existingCached?.assetStats || null,
     startTime: update.startTime || existingCached?.startTime || nowIso,
     updatedAt: nowIso,
     lastHeartbeatAt: update.lastHeartbeatAt || nowIso,
@@ -542,8 +544,13 @@ export async function startOrResumeMigrationJob(
     const totalPages = pagesToMigrate.length || 1;
     const pageDiagnostics: PageDiagnostic[] = currentJob.pageDiagnostics || [];
     const storedPagesList: string[] = currentJob.storedPagesList || [];
-    const capturedPages: { path: string; html_content: string; css_content: string; manifest?: PageCaptureManifest }[] =
-      currentJob.capturedPages || [];
+    const capturedPages: {
+      path: string;
+      html_content: string;
+      css_content: string;
+      manifest?: PageCaptureManifest;
+      discoveredAssetUrls?: string[];
+    }[] = currentJob.capturedPages || [];
 
     // =========================================================================
     // STAGE 2: CAPTURING
@@ -760,6 +767,7 @@ export async function startOrResumeMigrationJob(
         html_content: finalHtml,
         css_content: finalCss,
         manifest: browserSnapshot?.manifest,
+        discoveredAssetUrls: browserSnapshot?.assetUrls || [],
       });
 
       if (!storedPagesList.includes(pagePath)) {
@@ -786,14 +794,20 @@ export async function startOrResumeMigrationJob(
       lastHeartbeatAt: new Date().toISOString(),
     });
 
+    let assetImportResult: any = null;
     try {
       const baseUrl = targetUrl ? new URL(targetUrl).origin : getWebsitePublicUrl({ slug: cleanSlug, published_slug: cleanSlug });
-      await withTimeout(
+      assetImportResult = await withTimeout(
         importAndStoreMigrationAssets(userId, websiteId, baseUrl, capturedPages, { customSupabaseClient: db, runId }),
-        4500,
+        90000,
         "ASSET_IMPORT_PIPELINE",
         runId
       );
+      if (assetImportResult?.stats) {
+        console.log(
+          `[MIGRATION_ASSET_IMPORT_STATS] websiteId=${websiteId} detected=${assetImportResult.stats.detected} eligible=${assetImportResult.stats.eligible} imported=${assetImportResult.stats.imported} deduplicated=${assetImportResult.stats.deduplicated} failed=${assetImportResult.stats.failed}`
+        );
+      }
     } catch (assetErr: any) {
       console.warn(`[MIGRATION_ASSET_IMPORT_NON_BLOCKING_WARN] websiteId=${websiteId}:`, assetErr?.message || assetErr);
     }
@@ -907,17 +921,18 @@ export async function startOrResumeMigrationJob(
     // STAGE 6: COMPLETED
     // =========================================================================
     const manifests = capturedPages.map((p) => p.manifest).filter(Boolean) as any[];
+    const importedImagesCount = assetImportResult?.stats?.imported ?? (scanResultData?.summary?.imagesCount || 0);
     const finalResult: MigrationExecuteResult = {
       success: true,
       websiteId,
       draftSlug: cleanSlug,
       title: rawTitle,
-      summary: scanResultData?.summary || {
+      summary: {
         pagesCount: capturedPages.length,
-        imagesCount: 0,
-        navMenusCount: 1,
-        formsCount: 0,
-        blogPagesCount: 0,
+        imagesCount: importedImagesCount,
+        navMenusCount: scanResultData?.summary?.navMenusCount || 1,
+        formsCount: scanResultData?.summary?.formsCount || 0,
+        blogPagesCount: scanResultData?.summary?.blogPagesCount || 0,
         seoRecordsCount: capturedPages.length,
       },
       warnings: scanResultData?.warnings || [],
@@ -938,6 +953,7 @@ export async function startOrResumeMigrationJob(
       failureDetails: null,
       result: finalResult,
       pageDiagnostics,
+      assetStats: assetImportResult?.stats || null,
       lastHeartbeatAt: new Date().toISOString(),
     });
 

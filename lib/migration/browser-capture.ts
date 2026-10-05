@@ -462,7 +462,7 @@ async function captureSourcePageInternal(
         }
       }
 
-      // DOM Normalization Pass: Convert relative script src, link href, img src, source srcset to absolute URLs
+      // DOM Normalization Pass: Convert relative script src, link href, and normalize all media assets
       document.querySelectorAll("script[src]").forEach((scr) => {
         const rawSrc = scr.getAttribute("src");
         if (rawSrc) scr.setAttribute("src", toAbs(rawSrc));
@@ -471,19 +471,103 @@ async function captureSourcePageInternal(
         const rawHref = link.getAttribute("href");
         if (rawHref) link.setAttribute("href", toAbs(rawHref));
       });
-      document.querySelectorAll("img[src]").forEach((img) => {
-        const rawSrc = img.getAttribute("src");
-        if (rawSrc) img.setAttribute("src", toAbs(rawSrc));
-      });
-      document.querySelectorAll("source[src]").forEach((sou) => {
-        const rawSrc = sou.getAttribute("src");
-        if (rawSrc) sou.setAttribute("src", toAbs(rawSrc));
-      });
 
       const assetUrlsSet = new Set<string>();
       const cssUrlsSet = new Set<string>();
       const jsUrlsSet = new Set<string>();
       const fontUrlsSet = new Set<string>();
+
+      // Extract and materialize all img elements (including lazy loaded images)
+      document.querySelectorAll("img").forEach((img: any) => {
+        const rawSrc = img.getAttribute("src");
+        const currentSrc = img.currentSrc;
+        const dataSrc = img.getAttribute("data-src") ||
+                        img.getAttribute("data-lazy-src") ||
+                        img.getAttribute("data-original") ||
+                        img.getAttribute("data-orig-file") ||
+                        img.getAttribute("data-large_image") ||
+                        img.getAttribute("data-image");
+
+        let bestSrc = rawSrc;
+        if (!bestSrc || bestSrc.startsWith("data:") || bestSrc.length < 5) {
+          if (currentSrc && !currentSrc.startsWith("data:")) {
+            bestSrc = currentSrc;
+          } else if (dataSrc && !dataSrc.startsWith("data:")) {
+            bestSrc = dataSrc;
+          }
+        }
+
+        if (bestSrc && !bestSrc.startsWith("data:")) {
+          const abs = toAbs(bestSrc);
+          img.setAttribute("src", abs);
+          assetUrlsSet.add(abs);
+        } else if (rawSrc) {
+          const abs = toAbs(rawSrc);
+          img.setAttribute("src", abs);
+          if (!abs.startsWith("data:")) assetUrlsSet.add(abs);
+        }
+
+        if (dataSrc && !dataSrc.startsWith("data:")) {
+          assetUrlsSet.add(toAbs(dataSrc));
+        }
+
+        const srcset = img.getAttribute("srcset") || img.getAttribute("data-srcset") || img.getAttribute("data-lazy-srcset");
+        if (srcset) {
+          srcset.split(",").forEach((cand: string) => {
+            const u = cand.trim().split(/\s+/)[0];
+            if (u && !u.startsWith("data:")) {
+              assetUrlsSet.add(toAbs(u));
+            }
+          });
+        }
+      });
+
+      // Extract and normalize picture source elements
+      document.querySelectorAll("picture source, source").forEach((sou: any) => {
+        const rawSrc = sou.getAttribute("src");
+        if (rawSrc) {
+          const abs = toAbs(rawSrc);
+          sou.setAttribute("src", abs);
+          if (!abs.startsWith("data:")) assetUrlsSet.add(abs);
+        }
+        const srcset = sou.getAttribute("srcset") || sou.getAttribute("data-srcset");
+        if (srcset) {
+          srcset.split(",").forEach((cand: string) => {
+            const u = cand.trim().split(/\s+/)[0];
+            if (u && !u.startsWith("data:")) {
+              assetUrlsSet.add(toAbs(u));
+            }
+          });
+        }
+      });
+
+      // Extract video posters
+      document.querySelectorAll("video[poster]").forEach((vid: any) => {
+        const poster = vid.getAttribute("poster");
+        if (poster && !poster.startsWith("data:")) {
+          const abs = toAbs(poster);
+          vid.setAttribute("poster", abs);
+          assetUrlsSet.add(abs);
+        }
+      });
+
+      // Extract favicon and icon links
+      document.querySelectorAll("link[rel*='icon'], link[rel*='apple-touch-icon']").forEach((link: any) => {
+        const href = link.getAttribute("href");
+        if (href && !href.startsWith("data:")) {
+          const abs = toAbs(href);
+          link.setAttribute("href", abs);
+          assetUrlsSet.add(abs);
+        }
+      });
+
+      // Extract social preview meta tags
+      document.querySelectorAll("meta[property='og:image'], meta[name='twitter:image']").forEach((meta: any) => {
+        const content = meta.getAttribute("content");
+        if (content && !content.startsWith("data:")) {
+          assetUrlsSet.add(toAbs(content));
+        }
+      });
 
       // Extract script tags
       let inlineScriptCount = 0;
@@ -507,51 +591,38 @@ async function captureSourcePageInternal(
         if (st.textContent && st.textContent.trim()) inlineStyleCount++;
       });
 
-      // Extract image & media element URLs
+      // Extract media element URLs
       let videoCount = 0;
       let iframeCount = 0;
 
       document.querySelectorAll("video, audio, object").forEach((el) => {
         if (el.tagName.toLowerCase() === "video") videoCount++;
         const src = el.getAttribute("src") || el.getAttribute("data-src");
-        if (src) assetUrlsSet.add(toAbs(src));
+        if (src && !src.startsWith("data:")) assetUrlsSet.add(toAbs(src));
       });
 
       document.querySelectorAll("iframe").forEach((el) => {
         iframeCount++;
         const src = el.getAttribute("src") || el.getAttribute("data-src");
-        if (src) assetUrlsSet.add(toAbs(src));
-      });
-
-      document.querySelectorAll("img, picture source").forEach((el) => {
-        const src = el.getAttribute("src") || el.getAttribute("data-src") || el.getAttribute("data-lazy-src") || el.getAttribute("data-original");
-        if (src) assetUrlsSet.add(toAbs(src));
-
-        const srcset = el.getAttribute("srcset") || el.getAttribute("data-srcset") || el.getAttribute("data-lazy-srcset");
-        if (srcset) {
-          srcset.split(",").forEach((part) => {
-            const u = part.trim().split(" ")[0];
-            if (u) assetUrlsSet.add(toAbs(u));
-          });
-        }
+        if (src && !src.startsWith("data:")) assetUrlsSet.add(toAbs(src));
       });
 
       // Extract SVG images
       document.querySelectorAll("svg image, svg use").forEach((el) => {
         const href = el.getAttribute("href") || el.getAttribute("xlink:href");
-        if (href) assetUrlsSet.add(toAbs(href));
+        if (href && !href.startsWith("data:")) assetUrlsSet.add(toAbs(href));
       });
 
-      // Extract background images from DOM attributes and styles (targeted selector for max performance)
+      // Extract background images from DOM attributes and styles
       document.querySelectorAll('[style*="url"], [data-bg], [data-background], [data-image], [data-background-image]').forEach((el) => {
         const dataBg = el.getAttribute("data-bg") || el.getAttribute("data-background") || el.getAttribute("data-image") || el.getAttribute("data-background-image");
-        if (dataBg) assetUrlsSet.add(toAbs(dataBg));
+        if (dataBg && !dataBg.startsWith("data:")) assetUrlsSet.add(toAbs(dataBg));
 
         const style = el.getAttribute("style") || "";
         if (style.includes("url(")) {
           const matches = style.matchAll(/url\((['"]?)(.*?)\1\)/gi);
           for (const m of matches) {
-            if (m[2]) assetUrlsSet.add(toAbs(m[2]));
+            if (m[2] && !m[2].startsWith("data:")) assetUrlsSet.add(toAbs(m[2]));
           }
         }
       });

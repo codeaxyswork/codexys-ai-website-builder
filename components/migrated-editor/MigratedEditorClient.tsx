@@ -176,6 +176,33 @@ export function MigratedEditorClient({ website, initialIndexPage, initialPages =
     return () => window.removeEventListener("message", handleMessage);
   }, []);
 
+  // Fetch Media Library assets on mount
+  useEffect(() => {
+    let isMounted = true;
+    async function loadMediaAssets() {
+      try {
+        const res = await fetch("/api/media");
+        if (res.ok) {
+          const data = await res.json();
+          if (isMounted && Array.isArray(data.assets)) {
+            const sorted = [...data.assets].sort((a, b) => {
+              if (a.website_id === website.id && b.website_id !== website.id) return -1;
+              if (b.website_id === website.id && a.website_id !== website.id) return 1;
+              return 0;
+            });
+            setMediaAssets(sorted);
+          }
+        }
+      } catch (err) {
+        console.warn("Failed to load media assets in editor:", err);
+      }
+    }
+    loadMediaAssets();
+    return () => {
+      isMounted = false;
+    };
+  }, [website?.id]);
+
   // Send updates to iframe sandbox
   const postToIframe = (msgType: string, payload: any) => {
     if (iframeRef.current && iframeRef.current.contentWindow) {
@@ -771,14 +798,64 @@ export function MigratedEditorClient({ website, initialIndexPage, initialPages =
                 {/* 2. IMAGE EDITING */}
                 {selectedElement.type === "image" && (
                   <div className="space-y-3">
-                    <label className="text-xs font-bold text-slate-700 flex items-center gap-1.5">
-                      <ImageIcon className="w-3.5 h-3.5 text-purple-600" />
-                      <span>Image Settings</span>
-                    </label>
+                    <div className="flex items-center justify-between">
+                      <label className="text-xs font-bold text-slate-700 flex items-center gap-1.5">
+                        <ImageIcon className="w-3.5 h-3.5 text-purple-600" />
+                        <span>Image Settings</span>
+                      </label>
+                      <button
+                        onClick={() => fileInputRef.current?.click()}
+                        disabled={isUploadingMedia}
+                        className="px-2 py-0.5 rounded-md bg-purple-50 text-purple-700 hover:bg-purple-100 text-[10px] font-bold transition-all flex items-center gap-1 border border-purple-200"
+                        title="Upload replacement image"
+                      >
+                        {isUploadingMedia ? <Loader2 className="w-3 h-3 animate-spin" /> : <Upload className="w-3 h-3" />}
+                        <span>Upload New</span>
+                      </button>
+                    </div>
 
                     {selectedElement.src && (
-                      <div className="w-full h-28 rounded-xl border border-slate-200 overflow-hidden bg-slate-50 flex items-center justify-center">
-                        <img src={selectedElement.src} alt="Preview" className="max-h-full max-w-full object-contain" />
+                      <div className="w-full h-28 rounded-xl border border-slate-200 overflow-hidden bg-slate-50 flex items-center justify-center p-1">
+                        <img src={selectedElement.src} alt="Preview" className="max-h-full max-w-full object-contain rounded" />
+                      </div>
+                    )}
+
+                    {/* Media Library Quick-Select */}
+                    {mediaAssets.length > 0 && (
+                      <div className="space-y-1.5 pt-1">
+                        <span className="text-[11px] font-semibold text-slate-600 flex items-center justify-between">
+                          <span>Media Library Assets</span>
+                          <span className="text-[10px] text-slate-400">{mediaAssets.length} available</span>
+                        </span>
+                        <div className="grid grid-cols-4 gap-1.5 max-h-36 overflow-y-auto p-1.5 bg-slate-50 rounded-lg border border-slate-200">
+                          {mediaAssets.map((asset, idx) => {
+                            const isSelected = selectedElement.src === asset.public_url;
+                            return (
+                              <button
+                                key={asset.id || idx}
+                                type="button"
+                                onClick={() => handleImageChange(asset.public_url)}
+                                title={asset.file_name}
+                                className={`relative aspect-square rounded-md overflow-hidden border transition-all ${
+                                  isSelected
+                                    ? "border-purple-600 ring-2 ring-purple-400"
+                                    : "border-slate-200 hover:border-purple-400"
+                                }`}
+                              >
+                                <img
+                                  src={asset.public_url}
+                                  alt={asset.file_name}
+                                  className="w-full h-full object-cover"
+                                />
+                                {isSelected && (
+                                  <div className="absolute inset-0 bg-purple-600/30 flex items-center justify-center">
+                                    <Check className="w-3.5 h-3.5 text-white stroke-[3]" />
+                                  </div>
+                                )}
+                              </button>
+                            );
+                          })}
+                        </div>
                       </div>
                     )}
 
