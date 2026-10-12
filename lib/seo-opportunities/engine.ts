@@ -770,8 +770,42 @@ export async function runOpportunityScan(
   }
 
   // -------------------------------------------------------------
+  // SCANNER MODULE 10: UNIFIED SERP + AI CITATION GAP DETECTION (PHASE 16)
+  // -------------------------------------------------------------
+  try {
+    const { data: queryAnalytics } = await supabase
+      .from("gsc_search_analytics")
+      .select("dimension_value, clicks, impressions, ctr, position")
+      .eq("website_id", websiteId)
+      .eq("dimension_type", "query")
+      .order("impressions", { ascending: false })
+      .limit(50);
+
+    const candidateQueries = (queryAnalytics || [])
+      .map((q: any) => ({
+        query: String(q.dimension_value || "").trim(),
+        clicks: Number(q.clicks) || 0,
+        impressions: Number(q.impressions) || 0,
+        ctr: Number(q.ctr) || 0,
+        position: Number(q.position) || 0,
+      }))
+      .filter((q: any) => q.query.length > 2);
+
+    const gapOpps = await scanUnifiedSerpAiOpportunities(
+      supabase,
+      websiteId,
+      userId,
+      candidateQueries
+    );
+    discovered.push(...gapOpps);
+  } catch (gapErr) {
+    console.warn("[OpportunityEngine] Non-fatal error during AI citation gap scan:", gapErr);
+  }
+
+  // -------------------------------------------------------------
   // PERSIST DISCOVERED OPPORTUNITIES (DEDUPLICATING CONFLICTS)
   // -------------------------------------------------------------
+
   let insertedCount = 0;
   for (const item of discovered) {
     const { error } = await supabase
@@ -799,3 +833,123 @@ export async function runOpportunityScan(
     opportunities: (finalOpps as SEOOpportunity[]) || [],
   };
 }
+
+/**
+ * Phase 16: Scanner Module 10 - Unified SERP + AI Citation Gap Detection
+ * Detects keywords with reliable Google visibility (Top 10 average position, impressions >= 20)
+ * but low AI engine citation coverage (< 25%).
+ */
+export async function scanUnifiedSerpAiOpportunities(
+  supabase: any,
+  websiteId: string,
+  userId: string,
+  candidateQueries: Array<{ query: string; position: number; impressions: number; clicks: number; ctr?: number }>,
+  existingOpportunities: SEOOpportunity[] = []
+): Promise<Array<Omit<SEOOpportunity, "id" | "created_at" | "updated_at">>> {
+  const discovered: Array<Omit<SEOOpportunity, "id" | "created_at" | "updated_at">> = [];
+
+  try {
+    // 1. Fetch AI Visibility probe history for correlation
+    const { data: probeLogs } = await supabase
+      .from("seo_ai_visibility_logs")
+      .select("prompt, brand_mentioned, citation_urls, status, created_at")
+      .eq("website_id", websiteId);
+
+    const logs = probeLogs || [];
+
+    // 2. Fetch existing open opportunities to prevent duplicate creation
+    const { data: existingOpenOpps } = await supabase
+      .from("seo_opportunities")
+      .select("id, category, affected_keyword")
+      .eq("website_id", websiteId)
+      .in("status", ["new", "viewed", "in_progress"]);
+
+    const openKeywords = new Set(
+      [
+        ...(existingOpenOpps || []),
+        ...existingOpportunities,
+      ]
+        .filter((o: any) => o.category === "ai_citation_gap" && o.affected_keyword)
+        .map((o: any) => String(o.affected_keyword).toLowerCase().trim())
+    );
+
+    // 3. Thresholds for reliable Google search visibility (Safeguard 7)
+    const MIN_GSC_IMPRESSIONS = 20;
+    const MAX_GSC_AVG_POSITION = 10.0;
+    const MAX_AI_CITATION_RATE_THRESHOLD = 25; // 25%
+
+    for (const q of candidateQueries) {
+      const qLower = q.query.toLowerCase();
+
+      // Check if open opportunity already exists for this keyword
+      if (openKeywords.has(qLower)) continue;
+
+      // Reliable Google visibility criteria: Top 10 average position or reliable search traffic
+      const hasReliableGooglePresence =
+        (q.position > 0 && q.position <= MAX_GSC_AVG_POSITION && q.impressions >= MIN_GSC_IMPRESSIONS) ||
+        (q.clicks >= 3 && q.impressions >= 15);
+
+      if (!hasReliableGooglePresence) continue;
+
+      // Find matching probes for this query
+      const matchingProbes = logs.filter((l: any) =>
+        (l.prompt || "").toLowerCase().includes(qLower) || qLower.includes((l.prompt || "").toLowerCase())
+      );
+
+      // Safeguard 7: Only generate if we have at least 1 verified probe record
+      // (Do NOT generate misleading opportunities from missing or insufficient data!)
+      if (matchingProbes.length === 0) continue;
+
+      const successfulProbes = matchingProbes.filter((p: any) => p.status === "success" || p.brand_mentioned !== undefined);
+      if (successfulProbes.length === 0) continue;
+
+      const mentionsCount = successfulProbes.filter((p: any) => p.brand_mentioned).length;
+      const citationRate = Math.round((mentionsCount / successfulProbes.length) * 100);
+
+      if (citationRate < MAX_AI_CITATION_RATE_THRESHOLD) {
+        const { priorityScore, priority } = calculateOpportunityPriority({
+          impact: "high",
+          severity: "high",
+          effort: "low",
+          gscImpressions: q.impressions,
+        });
+
+        discovered.push({
+          website_id: websiteId,
+          user_id: userId,
+          type: "ai_visibility",
+          category: "ai_citation_gap",
+          title: `AI Citation Gap: "${q.query}" (Page 1 on Google, Absent in AI)`,
+          description: `Query "${q.query}" averages GSC position #${q.position.toFixed(1)} with ${q.impressions} impressions and ${q.clicks} clicks, but has only ${citationRate}% AI citation coverage in recent probes.`,
+          affected_page: `query/${encodeURIComponent(q.query.toLowerCase())}`,
+          affected_keyword: q.query,
+          severity: "high",
+          impact: "high",
+          effort: "low",
+          priority,
+          priority_score: priorityScore,
+          source: "ai_visibility",
+          recommended_action: `Create an authoritative, answer-first content piece in Content Studio optimized for LLM citations to capture demand for "${q.query}".`,
+          action_type: "content_studio_brief",
+          action_payload: {
+            topic: `Complete Guide to ${q.query.charAt(0).toUpperCase() + q.query.slice(1)}`,
+            primary_keyword: q.query,
+            query: q.query,
+            search_intent: "informational",
+            gscAvgPosition: q.position,
+            gscImpressions: q.impressions,
+            aiCitationRate: citationRate,
+          },
+          status: "new",
+        });
+
+        openKeywords.add(qLower);
+      }
+    }
+  } catch (gapErr) {
+    console.warn("[OpportunityEngine] Non-fatal error during AI citation gap scan:", gapErr);
+  }
+
+  return discovered;
+}
+

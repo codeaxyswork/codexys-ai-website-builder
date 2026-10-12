@@ -38,7 +38,7 @@ export class GeminiVisibilityAdapter implements AiVisibilityProviderAdapter {
     if (!isLiveAiVisibilityEnabled()) {
       return createNormalizedResponse({
         provider: this.providerName,
-        model: this.defaultModel,
+        model: `mock-${this.defaultModel}`,
         prompt: input.prompt,
         promptCategory: input.category,
         responseText: "",
@@ -46,10 +46,12 @@ export class GeminiVisibilityAdapter implements AiVisibilityProviderAdapter {
         latencyMs: Date.now() - startTime,
         status: "failed",
         errorMessage: "FEATURE_LIVE_AI_VISIBILITY is false",
+        isGroundedSearch: false,
+        isMock: true,
       });
     }
 
-    const apiKey = process.env.GEMINI_API_KEY;
+    const apiKey = process.env.GEMINI_API_KEY || process.env.GOOGLE_GENERATIVE_AI_API_KEY;
 
     // 2. Mock / Fallback Mode
     if (!apiKey) {
@@ -84,7 +86,7 @@ export class GeminiVisibilityAdapter implements AiVisibilityProviderAdapter {
 
       return createNormalizedResponse({
         provider: this.providerName,
-        model: this.defaultModel,
+        model: `mock-${this.defaultModel}`,
         prompt: input.prompt,
         promptCategory: input.category,
         responseText: mockText,
@@ -92,18 +94,21 @@ export class GeminiVisibilityAdapter implements AiVisibilityProviderAdapter {
         citations: mockCitations,
         latencyMs: Date.now() - startTime,
         status: "success",
+        isGroundedSearch: false,
+        isMock: true,
       });
     }
 
-    // 3. Real Provider API Call (Gemini REST API with Google Search Grounding)
+    // 3. Real Provider API Call (Gemini REST API with Google Search Grounding via secure header)
     try {
-      const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/${this.defaultModel}:generateContent?key=${apiKey}`;
+      const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/${this.defaultModel}:generateContent`;
 
       const response = await fetch(endpoint, {
         method: "POST",
         signal,
         headers: {
           "Content-Type": "application/json",
+          "x-goog-api-key": apiKey,
         },
         body: JSON.stringify({
           contents: [
@@ -135,7 +140,7 @@ export class GeminiVisibilityAdapter implements AiVisibilityProviderAdapter {
       const candidate = data?.candidates?.[0];
       const contentText = candidate?.content?.parts?.[0]?.text || "";
 
-      // Extract Grounding Metadata Citations
+      // Extract Grounding Metadata Citations (verified Google Search Grounding)
       const groundingChunks = candidate?.groundingMetadata?.groundingChunks || [];
       const citations: CitationItem[] = groundingChunks
         .map((chunk: any) => chunk.web?.uri)
@@ -143,6 +148,7 @@ export class GeminiVisibilityAdapter implements AiVisibilityProviderAdapter {
         .map((url: string) => ({
           url,
           domain: extractDomainFromUrl(url) || undefined,
+          sourceType: "grounded_search" as const,
         }));
 
       return createNormalizedResponse({
@@ -155,6 +161,8 @@ export class GeminiVisibilityAdapter implements AiVisibilityProviderAdapter {
         citations,
         latencyMs: Date.now() - startTime,
         status: "success",
+        isGroundedSearch: true,
+        isMock: false,
       });
     } catch (err: any) {
       const isTimeout = err?.name === "AbortError" || err?.message?.includes("aborted");

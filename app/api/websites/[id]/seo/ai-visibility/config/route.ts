@@ -4,6 +4,7 @@ import {
   getWebsiteMonitoringConfig,
   upsertWebsiteMonitoringConfig,
   getWebsiteMonitoringTrends,
+  checkAiVisibilityEntitlement,
 } from "@/lib/ai-visibility";
 
 export async function GET(
@@ -41,7 +42,33 @@ export async function GET(
       );
     }
 
-    // 3. Get existing config or create default config structure
+    // 3. Server-side Entitlement Check
+    const entitlement = await checkAiVisibilityEntitlement(user.id, supabase);
+    if (!entitlement.entitled) {
+      // Ineligible/Free users receive an unconfigured, disabled preview state
+      // strictly preventing auto-creation or activation of paid monitoring
+      return NextResponse.json({
+        success: true,
+        entitled: false,
+        planName: entitlement.planName,
+        planId: entitlement.planId,
+        config: {
+          websiteId,
+          userId: user.id,
+          enabled: false,
+          frequency: "daily",
+          selectedProviders: [],
+          promptCategories: [],
+          brandName: website.title || "Brand",
+          customPrompts: [],
+          maxProbesPerExecution: 5,
+        },
+        trends: [],
+        alerts: [],
+      });
+    }
+
+    // 4. Get existing config or create default config structure for eligible users
     let config = await getWebsiteMonitoringConfig(supabase, websiteId);
 
     if (!config) {
@@ -132,7 +159,20 @@ export async function POST(
       );
     }
 
-    // 3. Payload Extraction
+    // 3. Server-side Entitlement Check
+    const entitlement = await checkAiVisibilityEntitlement(user.id, supabase);
+    if (!entitlement.entitled) {
+      return NextResponse.json(
+        {
+          error: entitlement.reason || "Scheduled AI Visibility monitoring requires a Pro, Business, or Agency subscription.",
+          code: "UPGRADE_REQUIRED",
+          planId: entitlement.planId,
+        },
+        { status: 403 }
+      );
+    }
+
+    // 4. Payload Extraction
     let body: any = {};
     try {
       body = await request.json();

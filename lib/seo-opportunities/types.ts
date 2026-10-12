@@ -9,7 +9,8 @@ export type OpportunityType =
   | "third_party"
   | "geo"
   | "aio"
-  | "content_decay";
+  | "content_decay"
+  | "ai_visibility";
 
 export type OpportunitySeverity = "critical" | "high" | "medium" | "low";
 export type OpportunityImpact = "high" | "medium" | "low";

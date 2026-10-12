@@ -1,16 +1,22 @@
+import crypto from "crypto";
 import { NextResponse } from "next/server";
-import { createClient } from "@/utils/supabase/server";
+import { createClient, createAdminClient } from "@/utils/supabase/server";
 import {
   OpenAiVisibilityAdapter,
   PerplexityVisibilityAdapter,
   GeminiVisibilityAdapter,
   ClaudeVisibilityAdapter,
   executeProviderProbeSafe,
+  executeMultiProviderAiVisibilityProbe,
   persistProbeResults,
   AiVisibilityProbeInput,
   AiVisibilityProviderName,
   AiVisibilityPromptCategory,
   isLiveAiVisibilityEnabled,
+  checkAiVisibilityEntitlement,
+  checkProbeCreditEligibility,
+  deductProbeCredits,
+  refundProbeCredits,
 } from "@/lib/ai-visibility";
 
 const VALID_PROVIDERS: AiVisibilityProviderName[] = [
@@ -63,7 +69,22 @@ export async function POST(
       );
     }
 
-    // 3. Payload Extraction & Strict Validation
+    // 3. Server-Side PRO Subscription Entitlement Check
+    const entitlement = await checkAiVisibilityEntitlement(user.id, supabase);
+    if (!entitlement.entitled) {
+      return NextResponse.json(
+        {
+          error: entitlement.reason || "PRO subscription required for AI Visibility.",
+          code: "UPGRADE_REQUIRED",
+          requiredPlan: "pro",
+          currentPlan: entitlement.planId,
+          upgradeUrl: "/dashboard/billing",
+        },
+        { status: 403 }
+      );
+    }
+
+    // 4. Payload Extraction & Strict Validation
     let body: any = {};
     try {
       body = await request.json();
@@ -74,14 +95,40 @@ export async function POST(
       );
     }
 
-    const provider: AiVisibilityProviderName = body?.provider;
-    if (!provider || !VALID_PROVIDERS.includes(provider)) {
-      return NextResponse.json(
-        {
-          error: `Invalid provider '${provider}'. Supported providers: ${VALID_PROVIDERS.join(", ")}`,
-        },
-        { status: 400 }
-      );
+    // Determine target provider(s): single provider or batch
+    const rawProvider: string = body?.provider;
+    const rawProviders: any = body?.providers;
+    let isBatch = false;
+    let targetProviders: AiVisibilityProviderName[] = [];
+
+    if (rawProvider === "all" || Array.isArray(rawProviders)) {
+      isBatch = true;
+      if (Array.isArray(rawProviders) && rawProviders.length > 0) {
+        targetProviders = rawProviders.filter((p: any): p is AiVisibilityProviderName =>
+          VALID_PROVIDERS.includes(p)
+        );
+      } else {
+        targetProviders = [...VALID_PROVIDERS];
+      }
+
+      if (targetProviders.length === 0) {
+        return NextResponse.json(
+          {
+            error: `Invalid providers list. Supported providers: ${VALID_PROVIDERS.join(", ")}`,
+          },
+          { status: 400 }
+        );
+      }
+    } else {
+      if (!rawProvider || !VALID_PROVIDERS.includes(rawProvider as AiVisibilityProviderName)) {
+        return NextResponse.json(
+          {
+            error: `Invalid provider '${rawProvider}'. Supported providers: ${VALID_PROVIDERS.join(", ")}, or 'all'`,
+          },
+          { status: 400 }
+        );
+      }
+      targetProviders = [rawProvider as AiVisibilityProviderName];
     }
 
     const promptCategory: AiVisibilityPromptCategory =
@@ -112,9 +159,121 @@ export async function POST(
 
     const brandName: string = (body?.brandName || website.title || "Brand").trim();
 
-    // 4. Provider Adapter Selection
+    // 5. Credit & Operational Rate Limit Guard (Atomic Verification)
+    const eligibility = await checkProbeCreditEligibility(
+      supabase,
+      user.id,
+      websiteId,
+      prompt,
+      targetProviders
+    );
+
+    if (!eligibility.allowed) {
+      return NextResponse.json(
+        {
+          error: eligibility.error || "Probe request declined.",
+          code: eligibility.code || "PROBE_FORBIDDEN",
+          creditsRequired: eligibility.creditsRequired,
+          currentBalance: eligibility.currentBalance,
+        },
+        { status: eligibility.code === "INSUFFICIENT_CREDITS" ? 402 : 400 }
+      );
+    }
+
+    const probeRequestId =
+      request.headers.get("x-request-id") ||
+      request.headers.get("idempotency-key") ||
+      body?.requestId ||
+      crypto.randomUUID();
+    const probeActionKey = `probe_${probeRequestId}`;
+
+    // 6. Deduct credits atomically if in live mode (deducts batch price ONCE for multi-provider)
+    let deductedCredits = 0;
+    if (eligibility.liveMode && eligibility.creditsRequired > 0) {
+      const deduction = await deductProbeCredits(
+        supabase,
+        user.id,
+        websiteId,
+        eligibility.creditsRequired,
+        prompt,
+        probeActionKey
+      );
+
+      if (!deduction.success) {
+        return NextResponse.json(
+          {
+            error: deduction.error || "Failed to deduct AI credits.",
+            code: "INSUFFICIENT_CREDITS",
+          },
+          { status: 402 }
+        );
+      }
+      deductedCredits = deduction.creditsDeducted;
+    }
+
+    // 7. Execution Input Construction & Unique Request Tracking
+    const probeInput: AiVisibilityProbeInput = {
+      websiteId,
+      userId: user.id,
+      brandName,
+      prompt,
+      category: promptCategory,
+      options: {
+        timeoutMs: 8000, // Strict 8s deadline
+      },
+    };
+
+    // 8. Execution Orchestration: Batch vs Single Provider
+    if (isBatch || targetProviders.length > 1) {
+      // Execute multi-provider parallel probe with failure isolation
+      const batchResult = await executeMultiProviderAiVisibilityProbe(
+        probeInput,
+        targetProviders
+      );
+
+      // Refund safeguard: If in live mode and ALL providers failed or timed out, refund atomically
+      if (
+        eligibility.liveMode &&
+        deductedCredits > 0 &&
+        batchResult.successCount === 0
+      ) {
+        const adminDb = createAdminClient();
+        await refundProbeCredits(
+          adminDb || supabase,
+          user.id,
+          websiteId,
+          deductedCredits,
+          `All ${batchResult.totalProviders} batch providers failed`,
+          probeActionKey
+        );
+        deductedCredits = 0;
+      }
+
+      // Persist results for each provider (failure-isolated)
+      for (const res of batchResult.responses) {
+        await persistProbeResults(supabase, websiteId, user.id, res);
+      }
+
+      return NextResponse.json({
+        success: batchResult.successCount > 0,
+        probeRequestId,
+        liveMode: isLiveAiVisibilityEnabled(),
+        creditsDeducted: deductedCredits,
+        batch: {
+          totalProviders: batchResult.totalProviders,
+          successCount: batchResult.successCount,
+          failureCount: batchResult.failureCount,
+          timeoutCount: batchResult.timeoutCount,
+        },
+        responses: batchResult.responses,
+        response: batchResult.responses[0] || null, // Backwards-compatible single response reference
+      });
+    }
+
+    // Single Provider Execution Path
+    const singleProvider = targetProviders[0];
     let adapter;
-    switch (provider) {
+    switch (singleProvider) {
       case "openai":
         adapter = new OpenAiVisibilityAdapter();
         break;
@@ -131,30 +290,30 @@ export async function POST(
         return NextResponse.json({ error: "Unsupported provider." }, { status: 400 });
     }
 
-    // 5. Execution Input Construction
-    const probeInput: AiVisibilityProbeInput = {
-      websiteId,
-      userId: user.id,
-      brandName,
-      prompt,
-      category: promptCategory,
-      options: {
-        timeoutMs: 8000, // Strict 8s deadline
-      },
-    };
-
-    // 6. Safe Provider Execution (Handled via feature flag + failure isolation)
     const result = await executeProviderProbeSafe(adapter, probeInput);
 
-    // 7. Isolated DB Persistence (Safe call, failures never throw or crash response)
-    await persistProbeResults(supabase, websiteId, user.id, result);
+    // Automatic refund if live single provider call failed or timed out
+    if (eligibility.liveMode && deductedCredits > 0 && result.status !== "success") {
+      const adminDb = createAdminClient();
+      await refundProbeCredits(
+        adminDb || supabase,
+        user.id,
+        websiteId,
+        deductedCredits,
+        `Provider failed: ${result.errorMessage || result.status}`,
+        probeActionKey
+      );
+      deductedCredits = 0;
+    }
 
-    // 8. ZERO Credit Deduction Guarantee
-    // Note: Credit deduction is strictly disabled in Stage 6B
+    // Isolated DB Persistence
+    await persistProbeResults(supabase, websiteId, user.id, result);
 
     return NextResponse.json({
       success: result.status === "success",
+      probeRequestId,
       liveMode: isLiveAiVisibilityEnabled(),
+      creditsDeducted: deductedCredits,
       response: {
         provider: result.provider,
         model: result.model,

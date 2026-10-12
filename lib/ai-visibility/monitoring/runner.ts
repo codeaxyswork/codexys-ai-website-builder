@@ -18,6 +18,7 @@ import { generateControlledMonitoringPrompts } from "./prompts";
 import { acquireMonitoringLock, releaseMonitoringLock } from "./lock";
 import { calculateNextRunAt } from "./config-manager";
 import { evaluateMonitoringAlertConditions, processAndPersistAlerts } from "./alerts";
+import { checkAiVisibilityEntitlement } from "../credit-guard";
 
 export interface ExecuteMonitoringRunOptions {
   triggerType?: "scheduled" | "manual";
@@ -75,7 +76,18 @@ export async function executeWebsiteMonitoringRun(
   }
 
   try {
-    // 2. Resolve configured prompts and providers
+    // 2. Authoritative Server-side Entitlement Verification
+    const entitlement = await checkAiVisibilityEntitlement(config.userId, supabase);
+    if (!entitlement.entitled) {
+      console.warn(`[MonitoringRunner] Aborted run for user ${config.userId}: missing Pro/Agency entitlement.`);
+      return {
+        ...emptyRunResult,
+        errorMessage: entitlement.reason || "AI Visibility monitoring requires a Pro, Business, or Agency subscription.",
+        completedAt: new Date().toISOString(),
+      };
+    }
+
+    // 3. Resolve configured prompts and providers
     const targetProviders: AiVisibilityProviderName[] =
       config.selectedProviders.length > 0
         ? config.selectedProviders

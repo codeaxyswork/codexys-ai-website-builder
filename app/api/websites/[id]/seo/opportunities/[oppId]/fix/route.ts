@@ -61,6 +61,12 @@ export async function POST(req: NextRequest, { params }: RouteParams) {
         redirectUrl: `/dashboard/websites/${websiteId}/seo?tab=internal-links`,
         action: "apply_internal_link",
       };
+    } else if (opp.action_type === "content_studio_brief") {
+      executionResult = {
+        redirectUrl: `/dashboard/websites/${websiteId}/seo?tab=content-studio&topic=${encodeURIComponent(opp.action_payload?.query || "")}&keyword=${encodeURIComponent(opp.action_payload?.query || "")}`,
+        action: "content_studio_brief",
+        query: opp.action_payload?.query,
+      };
     }
 
     // Update opportunity status to completed

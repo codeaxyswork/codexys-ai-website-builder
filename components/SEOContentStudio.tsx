@@ -27,10 +27,11 @@ import { ContentBrief, ContentOutline, ContentQualityAnalysis, ContentRefreshRep
 interface SEOContentStudioProps {
   websiteId: string;
   initialTopic?: string;
+  initialPrimaryKeyword?: string;
   initialOpportunityId?: string;
 }
 
-export function SEOContentStudio({ websiteId, initialTopic, initialOpportunityId }: SEOContentStudioProps) {
+export function SEOContentStudio({ websiteId, initialTopic, initialPrimaryKeyword, initialOpportunityId }: SEOContentStudioProps) {
   const [activeTab, setActiveTab] = useState<'brief' | 'editor' | 'analysis' | 'refresh' | 'diff'>('brief');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -38,11 +39,16 @@ export function SEOContentStudio({ websiteId, initialTopic, initialOpportunityId
 
   // Brief Inputs
   const [topic, setTopic] = useState(initialTopic || '');
-  const [primaryKeyword, setPrimaryKeyword] = useState('');
+  const [primaryKeyword, setPrimaryKeyword] = useState(initialPrimaryKeyword || '');
   const [secondaryKeywordsStr, setSecondaryKeywordsStr] = useState('');
   const [searchIntent, setSearchIntent] = useState<'informational' | 'transactional' | 'commercial' | 'navigational'>('informational');
   const [targetAudience, setTargetAudience] = useState('Industry Professionals & Customers');
   const [desiredTone, setDesiredTone] = useState('Professional, Authoritative & Engaging');
+
+  useEffect(() => {
+    if (initialTopic) setTopic(initialTopic);
+    if (initialPrimaryKeyword) setPrimaryKeyword(initialPrimaryKeyword);
+  }, [initialTopic, initialPrimaryKeyword]);
 
   // Generated Data
   const [brief, setBrief] = useState<ContentBrief | null>(null);

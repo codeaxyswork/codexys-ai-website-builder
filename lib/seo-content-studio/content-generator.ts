@@ -1,6 +1,7 @@
 import { GoogleGenAI } from '@google/genai';
 import { getGeminiConfig } from '@/lib/gemini';
-import { getUserUsage, deductCredits } from '@/lib/billing';
+import { checkCreditBalance, deductCredits, refundCredits } from '@/lib/billing';
+import { CREDIT_COSTS } from '@/lib/constants';
 import { ContentBrief, ContentOutline } from './types';
 
 export interface GeneratedArticleDraft {
@@ -21,10 +22,23 @@ export async function generateContentStudioArticle(
   websiteId: string,
   userId: string,
   brief: ContentBrief,
-  outline?: ContentOutline
+  outline?: ContentOutline,
+  operationId?: string
 ): Promise<GeneratedArticleDraft> {
-  // TEMPORARY UNLIMITED AI USAGE MODE: Credit balance check bypassed
-  const CREDIT_COST = 5;
+  const CREDIT_COST = CREDIT_COSTS.CONTENT_STUDIO;
+  const opId = operationId || crypto.randomUUID();
+  const deductAction = `ai_content_studio_generation:${opId}`;
+  const refundAction = `refund:${deductAction}`;
+
+  const creditCheck = await checkCreditBalance(userId, CREDIT_COST);
+  if (!creditCheck.allowed) {
+    throw new Error(`Insufficient AI credits. You need ${CREDIT_COST} credits to generate an article draft.`);
+  }
+
+  const deducted = await deductCredits(userId, CREDIT_COST, deductAction, websiteId);
+  if (!deducted) {
+    throw new Error(`Insufficient AI credits. Failed to deduct ${CREDIT_COST} credits.`);
+  }
 
   // 2. Fetch Website Context
   const { data: website } = await supabase
@@ -81,52 +95,55 @@ INTERNAL LINK SUGGESTIONS:
 ${JSON.stringify(brief.internal_link_opportunities || [])}
   `;
 
-  // 4. Invoke Gemini AI safely
-  const { apiKey, model } = getGeminiConfig();
-  const ai = new GoogleGenAI({ apiKey });
+  // 4. Invoke Gemini AI safely with failure refund
+  try {
+    const { apiKey, model } = getGeminiConfig();
+    const ai = new GoogleGenAI({ apiKey });
 
-  const candidateModels = Array.from(new Set([model || 'gemini-3.6-flash', 'gemini-3.6-flash', 'gemini-3.5-flash']));
-  let rawResponseText = '';
-  let lastError: any = null;
+    const candidateModels = Array.from(new Set([model || 'gemini-3.6-flash', 'gemini-3.6-flash', 'gemini-3.5-flash']));
+    let rawResponseText = '';
+    let lastError: any = null;
 
-  for (const targetModel of candidateModels) {
-    try {
-      const response = await ai.models.generateContent({
-        model: targetModel,
-        contents: [{ role: 'user', parts: [{ text: `${systemPrompt}\n\n${userPrompt}` }] }],
-        config: {
-          responseMimeType: 'application/json',
-        },
-      });
+    for (const targetModel of candidateModels) {
+      try {
+        const response = await ai.models.generateContent({
+          model: targetModel,
+          contents: [{ role: 'user', parts: [{ text: `${systemPrompt}\n\n${userPrompt}` }] }],
+          config: {
+            responseMimeType: 'application/json',
+          },
+        });
 
-      rawResponseText = response.text || '';
-      if (rawResponseText.trim()) break;
-    } catch (err: any) {
-      console.warn(`Content Studio generation with ${targetModel} failed:`, err?.message || err);
-      lastError = err;
+        rawResponseText = response.text || '';
+        if (rawResponseText.trim()) break;
+      } catch (err: any) {
+        console.warn(`Content Studio generation with ${targetModel} failed:`, err?.message || err);
+        lastError = err;
+      }
     }
+
+    if (!rawResponseText.trim()) {
+      throw new Error(lastError?.message || 'AI engine failed to generate content draft.');
+    }
+
+    const cleanedText = rawResponseText.replace(/```json/gi, '').replace(/```/g, '').trim();
+    const parsed = JSON.parse(cleanedText);
+
+    return {
+      title: parsed.title || brief.topic,
+      slug: parsed.slug || brief.topic.toLowerCase().replace(/[^a-z0-9]+/g, '-'),
+      excerpt: parsed.excerpt || '',
+      content: parsed.content || `<p>${brief.topic}</p>`,
+      category: parsed.category || 'General',
+      tags: Array.isArray(parsed.tags) ? parsed.tags : ['Blog'],
+      seo_title: parsed.seo_title || parsed.title || brief.topic,
+      meta_description: parsed.meta_description || parsed.excerpt || '',
+      focus_keyword: parsed.focus_keyword || brief.primary_keyword,
+      creditsDeducted: CREDIT_COST,
+    };
+  } catch (err: any) {
+    console.warn("Content Studio generation failed, refunding credits:", err?.message || err);
+    await refundCredits(userId, CREDIT_COST, refundAction, websiteId);
+    throw err;
   }
-
-  if (!rawResponseText.trim()) {
-    throw new Error(lastError?.message || 'AI engine failed to generate content draft.');
-  }
-
-  const cleanedText = rawResponseText.replace(/```json/gi, '').replace(/```/g, '').trim();
-  const parsed = JSON.parse(cleanedText);
-
-  // 5. Deduct credits ONLY on successful generation
-  await deductCredits(userId, CREDIT_COST, 'ai_content_studio_generation', websiteId);
-
-  return {
-    title: parsed.title || brief.topic,
-    slug: parsed.slug || brief.topic.toLowerCase().replace(/[^a-z0-9]+/g, '-'),
-    excerpt: parsed.excerpt || '',
-    content: parsed.content || `<p>${brief.topic}</p>`,
-    category: parsed.category || 'General',
-    tags: Array.isArray(parsed.tags) ? parsed.tags : ['Blog'],
-    seo_title: parsed.seo_title || parsed.title || brief.topic,
-    meta_description: parsed.meta_description || parsed.excerpt || '',
-    focus_keyword: parsed.focus_keyword || brief.primary_keyword,
-    creditsDeducted: CREDIT_COST,
-  };
 }

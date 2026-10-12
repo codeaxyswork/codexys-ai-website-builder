@@ -17,9 +17,9 @@ export interface SEOReportData {
     average_position: number;
     resolved_issues: number;
     open_opportunities: number;
-    ai_visibility_score: number;
-    geo_readiness_score: number;
-    aio_answer_score: number;
+    ai_visibility_score: number | null;
+    geo_readiness_score: number | null;
+    aio_answer_score: number | null;
   };
   executive_summary: string;
   key_achievements: string[];
@@ -183,6 +183,25 @@ export async function generateSEOReport(
 
   const reportId = `report_${websiteId}_${Date.now()}`;
 
+  // 5. Fetch Genuine Stored AI Visibility Metrics (Never fabricate synthetic metrics)
+  const { data: rawAiLogs } = await supabase
+    .from("seo_ai_visibility_logs")
+    .select("status, brand_mentioned, model_name, is_mock")
+    .eq("website_id", websiteId);
+
+  const liveAiLogs = (rawAiLogs || []).filter(
+    (l: any) => !l.is_mock && !l.model_name?.startsWith("mock-")
+  );
+
+  let realAiVisibilityScore: number | null = null;
+  if (liveAiLogs.length > 0) {
+    const successful = liveAiLogs.filter((l: any) => l.status === "success");
+    const mentioned = successful.filter((l: any) => l.brand_mentioned).length;
+    realAiVisibilityScore = successful.length > 0
+      ? Math.round((mentioned / successful.length) * 100)
+      : 0;
+  }
+
   const reportPayload: SEOReportData = {
     id: reportId,
     website_id: websiteId,
@@ -200,9 +219,9 @@ export async function generateSEOReport(
       average_position: avgPos,
       resolved_issues: completedFixes.length,
       open_opportunities: openOpps,
-      ai_visibility_score: Math.min(100, Math.round(seoScore * 0.9 + 10)),
-      geo_readiness_score: Math.min(100, Math.round(seoScore * 0.85 + 12)),
-      aio_answer_score: Math.min(100, Math.round(seoScore * 0.88 + 8)),
+      ai_visibility_score: realAiVisibilityScore,
+      geo_readiness_score: null, // Labeled null until GEO search crawler active
+      aio_answer_score: null,    // Labeled null until Google AI Overviews tracker active
     },
     executive_summary: executiveSummary,
     key_achievements: keyAchievements,

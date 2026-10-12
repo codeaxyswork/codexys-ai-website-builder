@@ -24,6 +24,7 @@ export interface CitationItem {
   title?: string;
   snippet?: string;
   domain?: string;
+  sourceType?: "grounded_search" | "model_generated";
 }
 
 export interface NormalizedAiVisibilityResponse {
@@ -43,6 +44,8 @@ export interface NormalizedAiVisibilityResponse {
   status: AiVisibilityResponseStatus;
   errorMessage?: string;
   metadata?: Record<string, any>;
+  isGroundedSearch?: boolean;
+  isMock?: boolean;
 }
 
 export interface AiVisibilityProbeInput {

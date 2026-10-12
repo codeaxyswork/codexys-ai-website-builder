@@ -1,8 +1,10 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/utils/supabase/server";
 import { buildSEOContext, generateSEOAgentResponse, SEOAgentMessage } from "@/lib/seo-agent";
-import { getUserUsage, deductCredits } from "@/lib/billing";
+import { getUserUsage, checkCreditBalance, deductCredits, refundCredits } from "@/lib/billing";
 import { canUseFeature } from "@/lib/features";
+import { checkRateLimit } from "@/lib/rate-limit";
+import { CREDIT_COSTS } from "@/lib/constants";
 
 export async function POST(
   request: Request,
@@ -19,6 +21,15 @@ export async function POST(
 
     if (!user) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    // Rate Limiting (20 requests per minute per user)
+    const rl = checkRateLimit(`seo_agent_${user.id}`, { limit: 20, windowMs: 60 * 1000 });
+    if (!rl.success) {
+      return NextResponse.json(
+        { error: "Too many SEO Agent requests. Please slow down." },
+        { status: 429 }
+      );
     }
 
     // 2. Check Plan permissions
@@ -50,11 +61,10 @@ export async function POST(
       );
     }
 
-    // TEMPORARY UNLIMITED AI USAGE MODE: Credit balance check bypassed
-    const CREDIT_COST = 5;
+    const CREDIT_COST = CREDIT_COSTS.SEO_AGENT;
 
     // Parse Request Body
-    const body = await request.json();
+    const body = await request.json().catch(() => ({}));
     const prompt = (body.prompt || "").trim();
     const history: SEOAgentMessage[] = Array.isArray(body.history) ? body.history : [];
 
@@ -65,7 +75,7 @@ export async function POST(
       );
     }
 
-    // PHASE A: UNIFIED GEMINI INTENT & ROUTING CORE
+    // PHASE A: UNIFIED GEMINI INTENT & ROUTING CORE (Free deterministic routing)
     const { analyzeUnifiedConversationIntent } = await import("@/lib/ai/unified-conversation-core");
     const unifiedResult = await analyzeUnifiedConversationIntent({
       userPrompt: prompt,
@@ -129,6 +139,39 @@ export async function POST(
       }
     }
 
+    // Non-deterministic path: verify credit balance & deduct upfront atomically
+    const creditCheck = await checkCreditBalance(user.id, CREDIT_COST);
+    if (!creditCheck.allowed) {
+      return NextResponse.json(
+        {
+          error: `Insufficient AI credits. You need ${CREDIT_COST} credits to query the SEO Agent.`,
+          code: "INSUFFICIENT_CREDITS",
+          remainingCredits: creditCheck.balance,
+        },
+        { status: 402 }
+      );
+    }
+
+    const opId =
+      request.headers.get("x-request-id") ||
+      request.headers.get("idempotency-key") ||
+      body?.requestId ||
+      crypto.randomUUID();
+    const deductAction = `seo_ai_agent:${opId}`;
+    const refundAction = `refund:${deductAction}`;
+
+    const deducted = await deductCredits(user.id, CREDIT_COST, deductAction, websiteId);
+    if (!deducted) {
+      return NextResponse.json(
+        {
+          error: "Unable to deduct AI credits. Insufficient balance or concurrent request in progress.",
+          code: "INSUFFICIENT_CREDITS",
+          remainingCredits: creditCheck.balance,
+        },
+        { status: 402 }
+      );
+    }
+
     // 5. Detect Customer Intent
     const { detectSEOIntent } = await import("@/lib/seo-agent-intent");
     const detectedIntent = detectSEOIntent(prompt, history);
@@ -136,22 +179,28 @@ export async function POST(
     // 6. Assemble Intent-Filtered SEO Context
     const seoContext = await buildSEOContext(supabase, websiteId, detectedIntent);
 
-    // 7. Execute Gemini SEO Agent query
-    const agentResponse = await generateSEOAgentResponse({
-      userPrompt: prompt,
-      seoContext,
-      conversationHistory: history,
-      detectedIntent,
-    });
+    // 7. Execute Gemini SEO Agent query with failure refund
+    try {
+      const agentResponse = await generateSEOAgentResponse({
+        userPrompt: prompt,
+        seoContext,
+        conversationHistory: history,
+        detectedIntent,
+      });
 
-    // 7. Deduct credits ONLY after successful AI execution
-    await deductCredits(user.id, CREDIT_COST, "seo_ai_agent", websiteId);
-
-    return NextResponse.json({
-      response: agentResponse,
-      creditsDeducted: CREDIT_COST,
-      remainingCredits: Math.max(0, (usage?.credits?.balance || CREDIT_COST) - CREDIT_COST),
-    });
+      return NextResponse.json({
+        response: agentResponse,
+        creditsDeducted: CREDIT_COST,
+        remainingCredits: Math.max(0, creditCheck.balance - CREDIT_COST),
+      });
+    } catch (genErr: any) {
+      console.warn("AI SEO Agent query failed, refunding credits:", genErr?.message || genErr);
+      await refundCredits(user.id, CREDIT_COST, refundAction, websiteId);
+      return NextResponse.json(
+        { error: genErr?.message || "Failed to process request with AI SEO Agent. Your credits have been refunded." },
+        { status: 500 }
+      );
+    }
   } catch (err: any) {
     console.error("POST SEO Agent Error:", err);
     return NextResponse.json(

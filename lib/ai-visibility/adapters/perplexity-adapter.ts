@@ -38,7 +38,7 @@ export class PerplexityVisibilityAdapter implements AiVisibilityProviderAdapter 
     if (!isLiveAiVisibilityEnabled()) {
       return createNormalizedResponse({
         provider: this.providerName,
-        model: this.defaultModel,
+        model: `mock-${this.defaultModel}`,
         prompt: input.prompt,
         promptCategory: input.category,
         responseText: "",
@@ -46,6 +46,8 @@ export class PerplexityVisibilityAdapter implements AiVisibilityProviderAdapter 
         latencyMs: Date.now() - startTime,
         status: "failed",
         errorMessage: "FEATURE_LIVE_AI_VISIBILITY is false",
+        isGroundedSearch: false,
+        isMock: true,
       });
     }
 
@@ -84,7 +86,7 @@ export class PerplexityVisibilityAdapter implements AiVisibilityProviderAdapter 
 
       return createNormalizedResponse({
         provider: this.providerName,
-        model: this.defaultModel,
+        model: `mock-${this.defaultModel}`,
         prompt: input.prompt,
         promptCategory: input.category,
         responseText: mockText,
@@ -92,6 +94,8 @@ export class PerplexityVisibilityAdapter implements AiVisibilityProviderAdapter 
         citations: mockCitations,
         latencyMs: Date.now() - startTime,
         status: "success",
+        isGroundedSearch: false,
+        isMock: true,
       });
     }
 
@@ -138,9 +142,11 @@ export class PerplexityVisibilityAdapter implements AiVisibilityProviderAdapter 
       const contentText = data?.choices?.[0]?.message?.content || "";
       const rawCitations: string[] = data?.citations || [];
 
+      // Perplexity native search grounding citations
       const citations: CitationItem[] = rawCitations.map((url: string) => ({
         url,
         domain: extractDomainFromUrl(url) || undefined,
+        sourceType: "grounded_search" as const,
       }));
 
       return createNormalizedResponse({
@@ -153,6 +159,8 @@ export class PerplexityVisibilityAdapter implements AiVisibilityProviderAdapter 
         citations,
         latencyMs: Date.now() - startTime,
         status: "success",
+        isGroundedSearch: true,
+        isMock: false,
       });
     } catch (err: any) {
       const isTimeout = err?.name === "AbortError" || err?.message?.includes("aborted");

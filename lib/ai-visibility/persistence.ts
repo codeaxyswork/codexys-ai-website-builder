@@ -160,6 +160,9 @@ export async function getHistoricalVisibilityLogs(
     const totalProbes = rows.length;
     if (totalProbes === 0) return emptySummary;
 
+    // Filter live probe records to prevent simulated mock data from inflating live analytics
+    const liveRows = rows.filter((r: any) => !r.is_mock && !r.model_name?.startsWith("mock-"));
+
     let successCount = 0;
     let failureCount = 0;
     let timeoutCount = 0;
@@ -178,7 +181,8 @@ export async function getHistoricalVisibilityLogs(
       claude: { total: 0, mentions: 0, totalLatency: 0 },
     };
 
-    const recentHistory = rows.map((r: any) => {
+    // Aggregate metrics strictly over live customer probe rows
+    for (const r of liveRows) {
       if (r.status === "success") successCount++;
       else if (r.status === "timeout") timeoutCount++;
       else failureCount++;
@@ -199,6 +203,12 @@ export async function getHistoricalVisibilityLogs(
         if (r.brand_mentioned) providerStats[provider].mentions++;
         providerStats[provider].totalLatency += r.latency_ms || 0;
       }
+    }
+
+    const recentHistory = rows.map((r: any) => {
+      const urls: string[] = r.citation_urls || [];
+      const domains: string[] = r.citation_domains || [];
+      const provider = (r.provider as AiVisibilityProviderName) || "openai";
 
       return {
         id: r.id,
@@ -219,10 +229,11 @@ export async function getHistoricalVisibilityLogs(
         status: r.status as AiVisibilityResponseStatus,
         errorMessage: r.error_message,
         createdAt: r.created_at,
+        isMock: Boolean(r.is_mock || r.model_name?.startsWith("mock-")),
       };
     });
 
-    const brandMentionRate = Math.round((brandMentionCount / totalProbes) * 100);
+    const brandMentionRate = liveRows.length > 0 ? Math.round((brandMentionCount / liveRows.length) * 100) : 0;
 
     const providerBreakdown: HistoricalVisibilitySummary["providerBreakdown"] = {
       openai: {

@@ -26,6 +26,7 @@ import { SEOTechnicalDashboard } from "@/components/SEOTechnicalDashboard";
 import { SEOCommandCenterDashboard } from "@/components/SEOCommandCenterDashboard";
 import { SEOReportsDashboard } from "@/components/SEOReportsDashboard";
 import { AiVisibilityDashboard } from "@/components/AiVisibilityDashboard";
+import { UnifiedRankIntelligenceTable } from "@/components/UnifiedRankIntelligenceTable";
 import { SEOAnalysisResult } from "@/lib/seo-analyzer";
 import { AISEOSuggestions } from "@/lib/seo-ai";
 import { 
@@ -68,9 +69,24 @@ export default function SEODashboardPage({ params }: SEODashboardPageProps) {
   const initialTab = searchParams.get("tab") || "command-center";
   const [activeTab, setActiveTab] = useState<string>(initialTab);
 
+  // Content Studio Hand-off State
+  const [contentStudioInitialTopic, setContentStudioInitialTopic] = useState<string | undefined>(
+    searchParams.get("topic") || undefined
+  );
+  const [contentStudioInitialKeyword, setContentStudioInitialKeyword] = useState<string | undefined>(
+    searchParams.get("keyword") || undefined
+  );
+
+  const handleNavigateToContentStudio = (topic?: string, keyword?: string) => {
+    setContentStudioInitialTopic(topic);
+    setContentStudioInitialKeyword(keyword);
+    setActiveTab("content-studio");
+  };
+
   const [loading, setLoading] = useState(true);
   const [website, setWebsite] = useState<any>(null);
   const [userPlan, setUserPlan] = useState<string>("free");
+  const [allowAdvancedSeo, setAllowAdvancedSeo] = useState<boolean>(false);
   const [userCredits, setUserCredits] = useState<number>(0);
 
   // SEO Form Data State
@@ -180,6 +196,9 @@ export default function SEODashboardPage({ params }: SEODashboardPageProps) {
         const usageData = await usageRes.json();
         if (usageData?.plan?.id) {
           setUserPlan(usageData.plan.id);
+        }
+        if (usageData?.plan?.allow_advanced_seo !== undefined) {
+          setAllowAdvancedSeo(Boolean(usageData.plan.allow_advanced_seo));
         }
         if (typeof usageData?.credits?.balance === "number") {
           setUserCredits(usageData.credits.balance);
@@ -450,7 +469,7 @@ export default function SEODashboardPage({ params }: SEODashboardPageProps) {
     }
   };
 
-  const canUseAI = userPlan === "pro" || userPlan === "agency";
+  const canUseAI = allowAdvancedSeo || userPlan === "pro" || userPlan === "agency";
   const canUseSchema = userPlan === "pro" || userPlan === "agency";
   const canUseIntegrations = userPlan === "agency";
 
@@ -473,10 +492,10 @@ export default function SEODashboardPage({ params }: SEODashboardPageProps) {
     { id: "overview", label: "SEO Overview", icon: LayoutDashboard },
     { id: "technical-crawl", label: "Technical Crawl", icon: Activity, badge: "🕸️" },
     { id: "content-studio", label: "Content Studio", icon: PenTool, badge: "🚀" },
-    { id: "competitors", label: "Competitors", icon: Swords, badge: "⚔️" },
+    { id: "competitors", label: "Competitors", icon: Swords, badge: "⚔️", isPro: true },
     { id: "content-gaps", label: "Content Gaps", icon: Target, badge: "🎯" },
-    { id: "aeo", label: "AEO / AI Search", icon: Bot, badge: "🤖" },
-    { id: "ai-visibility", label: "AI Visibility", icon: Eye, badge: "👁️" },
+    { id: "aeo", label: "AEO / AI Search", icon: Bot, badge: "🤖", isPro: true },
+    { id: "ai-visibility", label: "AI Visibility", icon: Eye, badge: "👁️", isPro: true },
     { id: "topical-authority", label: "Topical Authority", icon: GitFork, badge: "🌳" },
     { id: "opportunities", label: "Opportunity Engine", icon: Lightbulb, badge: "⚡" },
     { id: "autopilot", label: "SEO Autopilot", icon: Cpu, badge: "⚙️" },
@@ -489,7 +508,7 @@ export default function SEODashboardPage({ params }: SEODashboardPageProps) {
     { id: "local-seo", label: "Local SEO", icon: MapPin, badge: "📍" },
     { id: "blog", label: "Content & Blog", icon: PenTool, badge: "✍️" },
     { id: "pages", label: "Pages", icon: Layers },
-    { id: "keywords", label: "Keywords / Rankings", icon: FileText },
+    { id: "keywords", label: "Keywords / SERP & AI", icon: FileText, badge: "✨" },
     { id: "integrations", label: "Integrations", icon: Boxes },
     { id: "settings", label: "SEO Settings", icon: Settings },
   ];
@@ -634,7 +653,16 @@ export default function SEODashboardPage({ params }: SEODashboardPageProps) {
                       <Icon className="w-4.5 h-4.5 shrink-0" />
                       <span>{t.label}</span>
                     </div>
-                    {t.badge && <span className="text-sm">{t.badge}</span>}
+                    <div className="flex items-center gap-1.5 shrink-0">
+                      {(t as any).isPro && (
+                        <span className={`text-[10px] font-black uppercase tracking-wider px-1.5 py-0.5 rounded-md ${
+                          isActive ? "bg-white/20 text-white" : "bg-purple-100 text-purple-700 font-extrabold"
+                        }`}>
+                          PRO
+                        </span>
+                      )}
+                      {t.badge && <span className="text-sm">{t.badge}</span>}
+                    </div>
                   </button>
                 );
               })}
@@ -678,9 +706,18 @@ export default function SEODashboardPage({ params }: SEODashboardPageProps) {
                       <Icon className={`w-4.5 h-4.5 shrink-0 ${isActive ? "text-white" : "text-slate-400 group-hover:text-purple-600"}`} />
                       <span className="truncate">{t.label}</span>
                     </div>
-                    {t.badge && (
-                      <span className="text-sm shrink-0">{t.badge}</span>
-                    )}
+                    <div className="flex items-center gap-1.5 shrink-0">
+                      {(t as any).isPro && (
+                        <span className={`text-[10px] font-black uppercase tracking-wider px-1.5 py-0.5 rounded-md ${
+                          isActive ? "bg-white/20 text-white" : "bg-purple-100 text-purple-700 font-extrabold"
+                        }`}>
+                          PRO
+                        </span>
+                      )}
+                      {t.badge && (
+                        <span className="text-sm shrink-0">{t.badge}</span>
+                      )}
+                    </div>
                   </button>
                 );
               })}
@@ -748,7 +785,11 @@ export default function SEODashboardPage({ params }: SEODashboardPageProps) {
 
             {/* CONTENT STUDIO TAB */}
             {activeTab === "content-studio" && (
-              <SEOContentStudio websiteId={websiteId} />
+              <SEOContentStudio
+                websiteId={websiteId}
+                initialTopic={contentStudioInitialTopic}
+                initialPrimaryKeyword={contentStudioInitialKeyword}
+              />
             )}
 
             {/* COMPETITORS TAB */}
@@ -768,7 +809,12 @@ export default function SEODashboardPage({ params }: SEODashboardPageProps) {
 
             {/* AI VISIBILITY TAB */}
             {activeTab === "ai-visibility" && (
-              <AiVisibilityDashboard websiteId={websiteId} brandName={website?.title} />
+              <AiVisibilityDashboard
+                websiteId={websiteId}
+                brandName={website?.title}
+                canUseAI={canUseAI}
+                userPlan={userPlan}
+              />
             )}
 
             {/* TOPICAL AUTHORITY TAB */}
@@ -957,51 +1003,12 @@ export default function SEODashboardPage({ params }: SEODashboardPageProps) {
 
             {/* 6. KEYWORDS / RANKINGS TAB */}
             {activeTab === "keywords" && (
-              <div className="bg-white border border-slate-200 rounded-2xl p-6 shadow-xs space-y-4">
-                <h3 className="text-lg font-bold text-slate-900 border-b border-slate-100 pb-3">
-                  Google Keyword Position Rankings
-                </h3>
-
-                {!gscPerformance?.connected ? (
-                  <div className="p-8 text-center bg-slate-50 border border-slate-200 rounded-xl space-y-3">
-                    <p className="text-xs text-slate-700 font-medium">
-                      Connect Google Search Console to display real Google keyword rankings.
-                    </p>
-                    <button
-                      type="button"
-                      onClick={handleConnectGsc}
-                      className="px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white font-semibold text-xs rounded-xl cursor-pointer"
-                    >
-                      Connect Search Console
-                    </button>
-                  </div>
-                ) : (
-                  <div className="overflow-x-auto">
-                    <table className="w-full text-left text-xs">
-                      <thead>
-                        <tr className="border-b border-slate-200 text-slate-500 uppercase font-semibold">
-                          <th className="py-3 px-4">Search Query</th>
-                          <th className="py-3 px-4 text-right">Avg Position</th>
-                          <th className="py-3 px-4 text-right">Clicks</th>
-                          <th className="py-3 px-4 text-right">Impressions</th>
-                          <th className="py-3 px-4 text-right">CTR</th>
-                        </tr>
-                      </thead>
-                      <tbody className="divide-y divide-slate-100">
-                        {(gscPerformance?.queries || []).map((q, i) => (
-                          <tr key={i} className="hover:bg-slate-50">
-                            <td className="py-3 px-4 font-mono font-semibold text-slate-900">{q.query}</td>
-                            <td className="py-3 px-4 text-right font-bold text-purple-600">#{q.position.toFixed(1)}</td>
-                            <td className="py-3 px-4 text-right text-slate-900 font-semibold">{q.clicks}</td>
-                            <td className="py-3 px-4 text-right text-slate-600">{q.impressions}</td>
-                            <td className="py-3 px-4 text-right text-purple-700">{q.ctr.toFixed(2)}%</td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
-                )}
-              </div>
+              <UnifiedRankIntelligenceTable
+                websiteId={websiteId}
+                isGscConnected={Boolean(gscPerformance?.connected)}
+                onConnectGsc={handleConnectGsc}
+                onNavigateToContentStudio={handleNavigateToContentStudio}
+              />
             )}
 
             {/* 7. INTEGRATIONS TAB */}

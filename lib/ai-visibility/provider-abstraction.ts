@@ -67,6 +67,8 @@ export function createNormalizedResponse(params: {
   latencyMs: number;
   status?: NormalizedAiVisibilityResponse["status"];
   errorMessage?: string;
+  isGroundedSearch?: boolean;
+  isMock?: boolean;
 }): NormalizedAiVisibilityResponse {
   const text = params.responseText || "";
   const cleanBrand = (params.brandName || "").toLowerCase().trim();
@@ -101,6 +103,8 @@ export function createNormalizedResponse(params: {
     latencyMs: Math.max(0, params.latencyMs),
     status: params.status || (params.errorMessage ? "failed" : "success"),
     errorMessage: params.errorMessage,
+    isGroundedSearch: params.isGroundedSearch,
+    isMock: params.isMock,
   };
 }
 

@@ -1,8 +1,10 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/utils/supabase/server";
 import { generateAISEOSuggestions } from "@/lib/seo-ai";
-import { getUserUsage, deductCredits } from "@/lib/billing";
+import { getUserUsage, checkCreditBalance, deductCredits, refundCredits } from "@/lib/billing";
 import { canUseFeature } from "@/lib/features";
+import { checkRateLimit } from "@/lib/rate-limit";
+import { CREDIT_COSTS } from "@/lib/constants";
 
 export async function POST(
   request: Request,
@@ -12,6 +14,7 @@ export async function POST(
     const { id: websiteId } = await params;
     const supabase = await createClient();
 
+    // 1. Authenticate User
     const {
       data: { user },
     } = await supabase.auth.getUser();
@@ -20,7 +23,16 @@ export async function POST(
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    // Check Plan permissions
+    // Rate Limiting (10 requests per minute per user)
+    const rl = checkRateLimit(`seo_gen_${user.id}`, { limit: 10, windowMs: 60 * 1000 });
+    if (!rl.success) {
+      return NextResponse.json(
+        { error: "Too many SEO suggestion requests. Please slow down." },
+        { status: 429 }
+      );
+    }
+
+    // 2. Check Plan permissions
     const usage = await getUserUsage(user.id);
     const planId = usage?.plan?.id || "free";
 
@@ -34,7 +46,7 @@ export async function POST(
       );
     }
 
-    // Verify ownership
+    // 3. Verify ownership
     const { data: website, error: websiteErr } = await supabase
       .from("websites")
       .select("id, title, prompt, design_plan")
@@ -49,8 +61,38 @@ export async function POST(
       );
     }
 
-    // TEMPORARY UNLIMITED AI USAGE MODE: Credit balance check bypassed
-    const CREDIT_COST = 5;
+    // 4. Check Credit Balance & Deduct Upfront Atomically
+    const CREDIT_COST = CREDIT_COSTS.SEO_SUGGESTIONS;
+    const creditCheck = await checkCreditBalance(user.id, CREDIT_COST);
+    if (!creditCheck.allowed) {
+      return NextResponse.json(
+        {
+          error: `Insufficient AI credits. You need ${CREDIT_COST} credits to generate AI SEO suggestions.`,
+          code: "INSUFFICIENT_CREDITS",
+          remainingCredits: creditCheck.balance,
+        },
+        { status: 402 }
+      );
+    }
+
+    const opId =
+      request.headers.get("x-request-id") ||
+      request.headers.get("idempotency-key") ||
+      crypto.randomUUID();
+    const deductAction = `ai_seo_suggestions:${opId}`;
+    const refundAction = `refund:${deductAction}`;
+
+    const deducted = await deductCredits(user.id, CREDIT_COST, deductAction, websiteId);
+    if (!deducted) {
+      return NextResponse.json(
+        {
+          error: "Unable to deduct AI credits. Insufficient balance or concurrent request in progress.",
+          code: "INSUFFICIENT_CREDITS",
+          remainingCredits: creditCheck.balance,
+        },
+        { status: 402 }
+      );
+    }
 
     // Fetch website page html
     const { data: indexPage } = await supabase
@@ -60,21 +102,27 @@ export async function POST(
       .eq("path", "index.html")
       .single();
 
-    const suggestions = await generateAISEOSuggestions({
-      websiteTitle: website.title,
-      prompt: website.prompt || "",
-      htmlContent: indexPage?.html_content || "",
-      designPlan: website.design_plan,
-    });
+    try {
+      const suggestions = await generateAISEOSuggestions({
+        websiteTitle: website.title,
+        prompt: website.prompt || "",
+        htmlContent: indexPage?.html_content || "",
+        designPlan: website.design_plan,
+      });
 
-    // Deduct credits after successful AI call
-    await deductCredits(user.id, CREDIT_COST, "ai_seo_suggestions", websiteId);
-
-    return NextResponse.json({
-      suggestions,
-      creditsDeducted: CREDIT_COST,
-      remainingCredits: (usage?.credits.balance || CREDIT_COST) - CREDIT_COST,
-    });
+      return NextResponse.json({
+        suggestions,
+        creditsDeducted: CREDIT_COST,
+        remainingCredits: Math.max(0, creditCheck.balance - CREDIT_COST),
+      });
+    } catch (genErr: any) {
+      console.warn("AI SEO Generation failed, refunding credits:", genErr?.message || genErr);
+      await refundCredits(user.id, CREDIT_COST, refundAction, websiteId);
+      return NextResponse.json(
+        { error: genErr?.message || "Failed to generate AI SEO suggestions. Your credits have been refunded." },
+        { status: 500 }
+      );
+    }
   } catch (err: any) {
     console.error("POST SEO AI Generate Error:", err);
     return NextResponse.json(

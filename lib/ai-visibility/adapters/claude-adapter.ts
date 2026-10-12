@@ -38,7 +38,7 @@ export class ClaudeVisibilityAdapter implements AiVisibilityProviderAdapter {
     if (!isLiveAiVisibilityEnabled()) {
       return createNormalizedResponse({
         provider: this.providerName,
-        model: this.defaultModel,
+        model: `mock-${this.defaultModel}`,
         prompt: input.prompt,
         promptCategory: input.category,
         responseText: "",
@@ -46,6 +46,8 @@ export class ClaudeVisibilityAdapter implements AiVisibilityProviderAdapter {
         latencyMs: Date.now() - startTime,
         status: "failed",
         errorMessage: "FEATURE_LIVE_AI_VISIBILITY is false",
+        isGroundedSearch: false,
+        isMock: true,
       });
     }
 
@@ -84,7 +86,7 @@ export class ClaudeVisibilityAdapter implements AiVisibilityProviderAdapter {
 
       return createNormalizedResponse({
         provider: this.providerName,
-        model: this.defaultModel,
+        model: `mock-${this.defaultModel}`,
         prompt: input.prompt,
         promptCategory: input.category,
         responseText: mockText,
@@ -92,6 +94,8 @@ export class ClaudeVisibilityAdapter implements AiVisibilityProviderAdapter {
         citations: mockCitations,
         latencyMs: Date.now() - startTime,
         status: "success",
+        isGroundedSearch: false,
+        isMock: true,
       });
     }
 
@@ -136,12 +140,13 @@ export class ClaudeVisibilityAdapter implements AiVisibilityProviderAdapter {
       const data = await response.json();
       const contentText = data?.content?.[0]?.text || "";
 
-      // Extract inline URL citations
+      // Extract inline URL citations (model-generated URLs, unverified by web search grounding)
       const urlRegex = /(https?:\/\/[^\s\)\>]+)/g;
       const matches = contentText.match(urlRegex) || [];
       const citations: CitationItem[] = matches.map((url: string) => ({
         url,
         domain: extractDomainFromUrl(url) || undefined,
+        sourceType: "model_generated" as const,
       }));
 
       return createNormalizedResponse({
@@ -154,6 +159,8 @@ export class ClaudeVisibilityAdapter implements AiVisibilityProviderAdapter {
         citations,
         latencyMs: Date.now() - startTime,
         status: "success",
+        isGroundedSearch: false,
+        isMock: false,
       });
     } catch (err: any) {
       const isTimeout = err?.name === "AbortError" || err?.message?.includes("aborted");

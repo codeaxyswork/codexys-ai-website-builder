@@ -99,6 +99,9 @@ export default function SEOOpportunitiesDashboard({ websiteId }: SEOOpportunitie
       const data = await res.json();
       if (data.success) {
         await fetchOpportunities();
+        if (data.executionResult?.redirectUrl) {
+          window.location.href = data.executionResult.redirectUrl;
+        }
       } else {
         alert(data.message || 'Could not auto-apply fix.');
       }
@@ -224,6 +227,7 @@ export default function SEOOpportunitiesDashboard({ websiteId }: SEOOpportunitie
             <option value="local_seo">Local SEO</option>
             <option value="blog_content">Blog Engine</option>
             <option value="third_party">3rd-Party Data</option>
+            <option value="ai_visibility">AI Citation & Visibility</option>
           </select>
 
           <select
