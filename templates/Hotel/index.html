@@ -1,0 +1,195 @@
+<!DOCTYPE html><html lang="en" class="h-full antialiased" style="--font-geist-sans:Arial, Helvetica, sans-serif;--font-geist-mono:monospace"><head><meta charSet="utf-8"/><meta name="viewport" content="width=device-width, initial-scale=1"/><link rel="preload" as="image" href="./images/room_garden_villa.png"/><link rel="preload" as="image" href="./images/room_ocean_suite.png"/><link rel="preload" as="image" href="./images/room_penthouse.png"/><link rel="preload" as="image" href="./images/room_lagoon_pavilion.png"/><link rel="preload" as="image" href="./images/room_spa_villa.png"/><link rel="preload" as="image" href="./images/room_overwater_bungalow.png"/><link rel="preload" as="image" href="./images/gallery_resort.png"/><link rel="preload" as="image" href="./images/gallery_dining.png"/><link rel="preload" as="image" href="./images/gallery_spa.png"/><link rel="preload" as="image" href="./images/hero_pool.png"/><link rel="preload" href="./images/style.css?v=1783147348744" as="style"/><title>Hotel Template</title><link rel="icon" href="./images/favicon.ico" type="image/x-icon" sizes="16x16"/>  <link rel="stylesheet" href="./css/style.css">
+</head><body class="min-h-full flex flex-col"><div hidden=""><!--$--><!--/$--></div><div class="min-h-screen bg-white text-gray-900 selection:bg-indigo-100 selection:text-indigo-900 flex flex-col " style="--color-primary:#c5a880;--color-secondary:#0b0c10;font-family:Inter"><style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@100;200;300;400;500;600;700;800;900&family=Playfair+Display:wght@100;200;300;400;500;600;700;800;900&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@100;200;300;400;500;600;700;800;900&family=Playfair+Display:ital,wght@0,400;0,500;0,600;0,700;0,800;0,900;1,400;1,500;1,600;1,700;1,800;1,900&family=Inter:wght@300;400;500;600;700&family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;0,700;1,300;1,400;1,500;1,600;1,700&display=swap');
+        
+          
+      .luxury-hotel {
+        --color-gold: #c5a880 !important;
+        --color-obsidian: #0b0c10 !important;
+        --color-cream: #ffffff !important;
+        --color-text-dark: #333333 !important;
+        --color-gold-light: #c5a880 !important;
+        --color-gold-dark: #c5a880 !important;
+        
+        --color-border-dark: rgba(197, 168, 128, 0.15) !important;
+        --color-border-light: rgba(197, 168, 128, 0.3) !important;
+        --color-gold-glow: rgba(197, 168, 128, 0.2) !important;
+        
+        --font-serif: 'Playfair Display', Georgia, serif !important;
+        --font-sans: 'Inter', Helvetica, Arial, sans-serif !important;
+      }
+    
+        .luxury-hotel, .luxury-hotel body, .luxury-hotel input, .luxury-hotel textarea, .luxury-hotel button, .luxury-hotel select, .luxury-hotel p, .luxury-hotel span, .luxury-hotel li, .luxury-hotel label, .luxury-hotel a, .luxury-hotel div {
+          font-family: 'Inter', sans-serif !important;
+        }
+        .luxury-hotel p, .luxury-hotel .section-desc, .luxury-hotel .room-desc, .luxury-hotel .amenity-desc, .luxury-hotel .lead-text, .luxury-hotel .body-text {
+          font-weight: 400 !important;
+          
+          
+          
+        }
+      
+          @media (min-width: 1025px) {
+            .luxury-hotel p, .luxury-hotel .section-desc, .luxury-hotel .room-desc, .luxury-hotel .amenity-desc, .luxury-hotel .lead-text, .luxury-hotel .body-text {
+              font-size: 16px !important;
+            }
+          }
+          @media (max-width: 1024px) {
+            .luxury-hotel p, .luxury-hotel .section-desc, .luxury-hotel .room-desc, .luxury-hotel .amenity-desc, .luxury-hotel .lead-text, .luxury-hotel .body-text {
+              font-size: max(14px, calc(16px * 0.95)) !important;
+            }
+          }
+          @media (max-width: 768px) {
+            .luxury-hotel p, .luxury-hotel .section-desc, .luxury-hotel .room-desc, .luxury-hotel .amenity-desc, .luxury-hotel .lead-text, .luxury-hotel .body-text {
+              font-size: max(14px, calc(16px * 0.9)) !important;
+            }
+          }
+        
+        .luxury-hotel h1, .luxury-hotel .hero-title {
+          font-family: 'Playfair Display', serif !important;
+          font-weight: 700 !important;
+          
+          
+          
+        }
+      
+          @media (min-width: 1025px) {
+            .luxury-hotel h1, .luxury-hotel .hero-title {
+              font-size: 48px !important;
+            }
+          }
+          @media (max-width: 1024px) {
+            .luxury-hotel h1, .luxury-hotel .hero-title {
+              font-size: calc(48px * 0.8) !important;
+            }
+          }
+          @media (max-width: 768px) {
+            .luxury-hotel h1, .luxury-hotel .hero-title {
+              font-size: calc(48px * 0.6) !important;
+            }
+          }
+        
+        .luxury-hotel h2, .luxury-hotel .section-title, .luxury-hotel .room-modal-title {
+          font-family: 'Playfair Display', serif !important;
+          font-weight: 700 !important;
+          
+          
+          
+        }
+      
+          @media (min-width: 1025px) {
+            .luxury-hotel h2, .luxury-hotel .section-title, .luxury-hotel .room-modal-title {
+              font-size: 36px !important;
+            }
+          }
+          @media (max-width: 1024px) {
+            .luxury-hotel h2, .luxury-hotel .section-title, .luxury-hotel .room-modal-title {
+              font-size: calc(36px * 0.85) !important;
+            }
+          }
+          @media (max-width: 768px) {
+            .luxury-hotel h2, .luxury-hotel .section-title, .luxury-hotel .room-modal-title {
+              font-size: calc(36px * 0.7) !important;
+            }
+          }
+        
+        .luxury-hotel h3, .luxury-hotel .room-name, .luxury-hotel .amenity-title, .luxury-hotel .card-title, .luxury-hotel .form-title, .luxury-hotel .confirm-title {
+          font-family: 'Playfair Display', serif !important;
+          font-weight: 700 !important;
+          
+          
+          
+        }
+      
+          @media (min-width: 1025px) {
+            .luxury-hotel h3, .luxury-hotel .room-name, .luxury-hotel .amenity-title, .luxury-hotel .card-title, .luxury-hotel .form-title, .luxury-hotel .confirm-title {
+              font-size: 28px !important;
+            }
+          }
+          @media (max-width: 1024px) {
+            .luxury-hotel h3, .luxury-hotel .room-name, .luxury-hotel .amenity-title, .luxury-hotel .card-title, .luxury-hotel .form-title, .luxury-hotel .confirm-title {
+              font-size: calc(28px * 0.9) !important;
+            }
+          }
+          @media (max-width: 768px) {
+            .luxury-hotel h3, .luxury-hotel .room-name, .luxury-hotel .amenity-title, .luxury-hotel .card-title, .luxury-hotel .form-title, .luxury-hotel .confirm-title {
+              font-size: calc(28px * 0.75) !important;
+            }
+          }
+        
+        .luxury-hotel h4, .luxury-hotel .modal-section-title, .luxury-hotel .guest-name, .luxury-hotel .footer-newsletter h4, .luxury-hotel .footer-links h4 {
+          font-family: 'Playfair Display', serif !important;
+          font-weight: 700 !important;
+          
+          
+          
+        }
+      
+          @media (min-width: 1025px) {
+            .luxury-hotel h4, .luxury-hotel .modal-section-title, .luxury-hotel .guest-name, .luxury-hotel .footer-newsletter h4, .luxury-hotel .footer-links h4 {
+              font-size: 22px !important;
+            }
+          }
+          @media (max-width: 1024px) {
+            .luxury-hotel h4, .luxury-hotel .modal-section-title, .luxury-hotel .guest-name, .luxury-hotel .footer-newsletter h4, .luxury-hotel .footer-links h4 {
+              font-size: calc(22px * 0.9) !important;
+            }
+          }
+          @media (max-width: 768px) {
+            .luxury-hotel h4, .luxury-hotel .modal-section-title, .luxury-hotel .guest-name, .luxury-hotel .footer-newsletter h4, .luxury-hotel .footer-links h4 {
+              font-size: calc(22px * 0.8) !important;
+            }
+          }
+        
+        .luxury-hotel .logo-text, .luxury-hotel .logo-sub, .luxury-hotel .nav-link, .luxury-hotel .mobile-nav-link, .luxury-hotel .filter-btn, .luxury-hotel .room-modal-tag, .luxury-hotel .receipt-label {
+          font-family: 'Inter', sans-serif !important;
+          font-weight: 500 !important;
+          
+          
+          
+        }
+      
+          @media (min-width: 1025px) {
+            .luxury-hotel .logo-text, .luxury-hotel .logo-sub, .luxury-hotel .nav-link, .luxury-hotel .mobile-nav-link, .luxury-hotel .filter-btn, .luxury-hotel .room-modal-tag, .luxury-hotel .receipt-label {
+              font-size: 16px !important;
+            }
+          }
+          @media (max-width: 1024px) {
+            .luxury-hotel .logo-text, .luxury-hotel .logo-sub, .luxury-hotel .nav-link, .luxury-hotel .mobile-nav-link, .luxury-hotel .filter-btn, .luxury-hotel .room-modal-tag, .luxury-hotel .receipt-label {
+              font-size: max(13px, calc(16px * 0.9)) !important;
+            }
+          }
+          @media (max-width: 768px) {
+            .luxury-hotel .logo-text, .luxury-hotel .logo-sub, .luxury-hotel .nav-link, .luxury-hotel .mobile-nav-link, .luxury-hotel .filter-btn, .luxury-hotel .room-modal-tag, .luxury-hotel .receipt-label {
+              font-size: max(12px, calc(16px * 0.8)) !important;
+            }
+          }
+        
+        .luxury-hotel .btn, .luxury-hotel button {
+          font-family: 'Inter', sans-serif !important;
+          font-weight: 600 !important;
+          
+          
+          
+        }
+      
+          @media (min-width: 1025px) {
+            .luxury-hotel .btn, .luxury-hotel button {
+              font-size: 16px !important;
+            }
+          }
+          @media (max-width: 1024px) {
+            .luxury-hotel .btn, .luxury-hotel button {
+              font-size: max(13px, calc(16px * 0.9)) !important;
+            }
+          }
+          @media (max-width: 768px) {
+            .luxury-hotel .btn, .luxury-hotel button {
+              font-size: max(12px, calc(16px * 0.8)) !important;
+            }
+          }
+        
+        
+      </style><div class="flex-1 flex flex-col "><div class="luxury-hotel"><header id="main-header" class="site-header "><div class="container header-container"><a href="#" class="logo" id="header-logo"><span class="logo-text">AURA</span><span class="logo-sub">RESORT &amp; SPA</span></a><nav class="nav-menu" id="desktop-nav"><ul><li><a href="#hero" class="nav-link">Home</a></li><li><a href="#rooms" class="nav-link">Rooms</a></li><li><a href="#amenities" class="nav-link">Amenities</a></li><li><a href="#gallery" class="nav-link">Gallery</a></li><li><a href="#contact" class="nav-link">Contact</a></li></ul></nav><div class="header-actions"><a href="https://wa.me/15555552872?text=Hello%2C%20I%20would%20like%20to%20book%20a%20luxury%20stay%20at%20Aura%20Resort%20%26%20Spa." target="_blank" rel="noopener noreferrer" class="btn btn-gold btn-header">Book Now</a><button class="hamburger-menu " id="hamburger-toggle" aria-label="Toggle Menu"><span class="bar"></span><span class="bar"></span><span class="bar"></span></button></div></div><div class="mobile-drawer " id="mobile-drawer"><nav class="mobile-nav"><ul><li><a href="#hero" class="mobile-nav-link">Home</a></li><li><a href="#rooms" class="mobile-nav-link">Rooms</a></li><li><a href="#amenities" class="mobile-nav-link">Amenities</a></li><li><a href="#gallery" class="mobile-nav-link">Gallery</a></li><li><a href="#contact" class="mobile-nav-link">Contact</a></li></ul><a href="https://wa.me/15555552872?text=Hello%2C%20I%20would%20like%20to%20book%20a%20luxury%20stay%20at%20Aura%20Resort%20%26%20Spa." target="_blank" rel="noopener noreferrer" class="btn btn-gold btn-drawer-book">Book Your Stay</a></nav></div></header></div><div class="luxury-hotel"><section id="hero" class="hero-section"><div class="hero-slider" id="hero-slider"><div class="hero-slide active"><div class="slide-bg" style="background-image:linear-gradient(to bottom, rgba(0, 0, 0, 0.4), rgba(0, 0, 0, 0.7)), url(&#x27;./images/hero_exterior.png&#x27;)"></div><div class="container hero-content"><span class="hero-subtitle">WELCOME TO AURA</span><h1 class="hero-title">A Sanctuary of Ultimate Luxury</h1><p class="hero-desc">Discover a world-class hospitality experience where ocean breeze meets timeless architectural elegance. Immersive beauty awaits you at every turn.</p><div class="hero-actions-container"><a href="https://wa.me/15555552872?text=Hello%2C%20I%20would%20like%20to%20book%20a%20luxury%20stay%20at%20Aura%20Resort%20%26%20Spa." target="_blank" rel="noopener noreferrer" class="btn btn-gold">Book Your Stay</a><a href="#rooms" class="btn btn-outline">Explore Rooms</a></div></div></div><div class="hero-slide "><div class="slide-bg" style="background-image:linear-gradient(to bottom, rgba(0, 0, 0, 0.4), rgba(0, 0, 0, 0.7)), url(&#x27;./images/hero_suite.png&#x27;)"></div><div class="container hero-content"><span class="hero-subtitle">THE PENTHOUSE LUXE</span><h2 class="hero-title">Panoramic Coastal Elegance</h2><p class="hero-desc">Indulge in our exquisite suites boasting floor-to-ceiling glass panel windows, marble features, and tailor-made bespoke butler hospitality services.</p><div class="hero-actions-container"><a href="https://wa.me/15555552872?text=Hello%2C%20I%20would%20like%20to%20book%20a%20luxury%20stay%20at%20Aura%20Resort%20%26%20Spa." target="_blank" rel="noopener noreferrer" class="btn btn-gold">Book Your Stay</a><a href="#rooms" class="btn btn-outline">Explore Rooms</a></div></div></div><div class="hero-slide "><div class="slide-bg" style="background-image:linear-gradient(to bottom, rgba(0, 0, 0, 0.4), rgba(0, 0, 0, 0.7)), url(&#x27;./images/hero_pool.png&#x27;)"></div><div class="container hero-content"><span class="hero-subtitle">WELLNESS &amp; RELAXATION</span><h2 class="hero-title">Timeless Infinity Vistas</h2><p class="hero-desc">Unwind at our iconic heated infinity pools overlooking the pristine reef lagoon. Relax your mind, rejuvenate your body, rediscover your soul.</p><div class="hero-actions-container"><a href="https://wa.me/15555552872?text=Hello%2C%20I%20would%20like%20to%20book%20a%20luxury%20stay%20at%20Aura%20Resort%20%26%20Spa." target="_blank" rel="noopener noreferrer" class="btn btn-gold">Book Your Stay</a><a href="#rooms" class="btn btn-outline">Explore Rooms</a></div></div></div></div><div class="slider-progress-bar"><div class="progress-fill" id="slider-progress" style="width:0%;transition:none"></div></div><div class="hero-controls"><button class="control-btn prev-btn" id="hero-prev" aria-label="Previous Slide"><svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M15 19l-7-7 7-7"></path></svg></button><div class="slider-dots" id="slider-dots"><span class="dot active"></span><span class="dot "></span><span class="dot "></span></div><button class="control-btn next-btn" id="hero-next" aria-label="Next Slide"><svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M9 5l7 7-7 7"></path></svg></button></div></section></div><div class="luxury-hotel"><section id="rooms" class="rooms-section scroll-spy"><div class="container text-center"><span class="section-subtitle">EXQUISITE HABITATS</span><h2 class="section-title">Rooms &amp; Suites</h2><p class="section-desc">Each space is a masterpiece of design, offering deep custom comfort, expansive ocean panoramas, and private terraces.</p></div><div class="container grid-container rooms-grid"><article class="room-card animate-on-scroll appear" style="animation-delay:0s"><div class="room-img-container"><img src="./images/room_garden_villa.png" alt="Deluxe Garden Villa" class="room-img"/><div class="room-overlay"><button class="btn btn-gold btn-room-detail">Explore Room</button></div></div><div class="room-info"><div class="room-meta"><span class="room-price">$<!-- -->650<small>/night</small></span><span class="room-size">120 m²</span></div><h3 class="room-name">Deluxe Garden Villa</h3><p class="room-excerpt">Set amidst beautifully landscaped tropical gardens, the Deluxe Garden Villa offers an inti...</p><ul class="room-features"><li>Private plunge pool</li><li>Tropical garden terrace</li><li>Outdoor rain shower</li></ul></div></article><article class="room-card animate-on-scroll appear" style="animation-delay:0.1s"><div class="room-img-container"><img src="./images/room_ocean_suite.png" alt="Oceanfront Suite" class="room-img"/><div class="room-overlay"><button class="btn btn-gold btn-room-detail">Explore Room</button></div></div><div class="room-info"><div class="room-meta"><span class="room-price">$<!-- -->950<small>/night</small></span><span class="room-size">180 m²</span></div><h3 class="room-name">Oceanfront Suite</h3><p class="room-excerpt">Perched on the waters edge, our Oceanfront Suite delivers breathtaking cinematic vistas of...</p><ul class="room-features"><li>Private hot tub on deck</li><li>Floor-to-ceiling glass</li><li>Dedicated private butler</li></ul></div></article><article class="room-card animate-on-scroll appear" style="animation-delay:0.2s"><div class="room-img-container"><img src="./images/room_penthouse.png" alt="Presidential Penthouse" class="room-img"/><div class="room-overlay"><button class="btn btn-gold btn-room-detail">Explore Room</button></div></div><div class="room-info"><div class="room-meta"><span class="room-price">$<!-- -->2,400<small>/night</small></span><span class="room-size">350 m²</span></div><h3 class="room-name">Presidential Penthouse</h3><p class="room-excerpt">Exuding grandeur, the Presidential Penthouse represents the ultimate luxury stay. Boasting...</p><ul class="room-features"><li>Panoramic terrace with firepit</li><li>Private cocktail lounge</li><li>In-room wellness spa</li></ul></div></article><article class="room-card animate-on-scroll appear" style="animation-delay:0.30000000000000004s"><div class="room-img-container"><img src="./images/room_lagoon_pavilion.png" alt="Sunset Lagoon Pavilion" class="room-img"/><div class="room-overlay"><button class="btn btn-gold btn-room-detail">Explore Room</button></div></div><div class="room-info"><div class="room-meta"><span class="room-price">$<!-- -->1,200<small>/night</small></span><span class="room-size">150 m²</span></div><h3 class="room-name">Sunset Lagoon Pavilion</h3><p class="room-excerpt">Elegantly built on stilts directly over the calm reef lagoon waters, the Sunset Lagoon Pav...</p><ul class="room-features"><li>Direct lagoon ladder access</li><li>Private sunset deck</li><li>Sun lounge cabana</li></ul></div></article><article class="room-card animate-on-scroll appear" style="animation-delay:0.4s"><div class="room-img-container"><img src="./images/room_spa_villa.png" alt="Wellness Spa Villa" class="room-img"/><div class="room-overlay"><button class="btn btn-gold btn-room-detail">Explore Room</button></div></div><div class="room-info"><div class="room-meta"><span class="room-price">$<!-- -->1,500<small>/night</small></span><span class="room-size">210 m²</span></div><h3 class="room-name">Wellness Spa Villa</h3><p class="room-excerpt">Designed specifically for rejuvenation, the Wellness Spa Villa features an private indoor ...</p><ul class="room-features"><li>In-villa massage tables</li><li>Stone bath tub room</li><li>Organic luxury cosmetics</li></ul></div></article><article class="room-card animate-on-scroll appear" style="animation-delay:0.5s"><div class="room-img-container"><img src="./images/room_overwater_bungalow.png" alt="Royal Overwater Bungalow" class="room-img"/><div class="room-overlay"><button class="btn btn-gold btn-room-detail">Explore Room</button></div></div><div class="room-info"><div class="room-meta"><span class="room-price">$<!-- -->1,850<small>/night</small></span><span class="room-size">240 m²</span></div><h3 class="room-name">Royal Overwater Bungalow</h3><p class="room-excerpt">Our grandest overwater retreat, the Royal Overwater Bungalow features expansive glass floo...</p><ul class="room-features"><li>Glass floor viewing panel</li><li>Private deck plunge pool</li><li>Bespoke room service</li></ul></div></article></div></section></div><div class="luxury-hotel"><section id="amenities" class="amenities-section scroll-spy"><div class="container text-center"><span class="section-subtitle">INDULGENT DETAILS</span><h2 class="section-title">World-Class Experiences</h2><p class="section-desc">Every amenity is crafted to offer you maximum luxury, serenity, and unparalleled comfort.</p></div><div class="container grid-container amenities-grid"><div class="amenity-card animate-on-scroll appear" style="animation-delay:0s"><div class="amenity-icon"><svg viewBox="0 0 24 24" width="36" height="36" fill="none" stroke="currentColor" stroke-width="1.2"><path d="M2 14c2.5 0 2.5-2 5-2s2.5 2 5 2 2.5-2 5-2 2.5 2 5 2M2 19c2.5 0 2.5-2 5-2s2.5 2 5 2 2.5-2 5-2 2.5 2 5 2"></path><path d="M18 10a3 3 0 00-3-3h-1M6 10a3 3 0 013-3h2M12 4v4"></path></svg></div><h3 class="amenity-title">Swimming Pool</h3><p class="amenity-desc">Dynamic heated oceanfront infinity pools complete with floating pool lounges.</p></div><div class="amenity-card animate-on-scroll appear" style="animation-delay:0.05s"><div class="amenity-icon"><svg viewBox="0 0 24 24" width="36" height="36" fill="none" stroke="currentColor" stroke-width="1.2"><circle cx="12" cy="12" r="10"></circle><path d="M12 8c0 4 3 4 3 6s-1.5 2-3 2-3 0-3-2 3-2 3-6z"></path><path d="M9 10a1.5 1.5 0 011.5-1.5M15 10a1.5 1.5 0 00-1.5-1.5"></path></svg></div><h3 class="amenity-title">Spa &amp; Wellness</h3><p class="amenity-desc">Holistic massage therapy, organic body scrubs, and volcanic stone hot baths.</p></div><div class="amenity-card animate-on-scroll appear" style="animation-delay:0.1s"><div class="amenity-icon"><svg viewBox="0 0 24 24" width="36" height="36" fill="none" stroke="currentColor" stroke-width="1.2"><path d="M12 2v20M5 5h14c0 3-2.5 6-7 6S5 8 5 5zM9 17h6"></path></svg></div><h3 class="amenity-title">Fine Dining</h3><p class="amenity-desc">Award-winning Michelin-star gastronomy featuring organic locally-sourced ingredients.</p></div><div class="amenity-card animate-on-scroll appear" style="animation-delay:0.15000000000000002s"><div class="amenity-icon"><svg viewBox="0 0 24 24" width="36" height="36" fill="none" stroke="currentColor" stroke-width="1.2"><path d="M6.5 6.5h11M4 12h16M6.5 17.5h11M3 6.5A1.5 1.5 0 014.5 5h2a1.5 1.5 0 011.5 1.5v0A1.5 1.5 0 016.5 8h-2A1.5 1.5 0 013 6.5v0zM16 6.5a1.5 1.5 0 011.5-1.5h2A1.5 1.5 0 0121 6.5v0a1.5 1.5 0 01-1.5 1.5h-2A1.5 1.5 0 0116 6.5v0z"></path></svg></div><h3 class="amenity-title">Fitness Center</h3><p class="amenity-desc">State-of-the-art cardiovascular apparatus, private yoga pavilions, and personal coaches.</p></div><div class="amenity-card animate-on-scroll appear" style="animation-delay:0.2s"><div class="amenity-icon"><svg viewBox="0 0 24 24" width="36" height="36" fill="none" stroke="currentColor" stroke-width="1.2"><path d="M12 20h.01M8.5 16.5a5 5 0 017 0M5 13a10 10 0 0114 0M1.5 9.5a15 15 0 0121 0"></path></svg></div><h3 class="amenity-title">Bespoke WiFi</h3><p class="amenity-desc">Ultra-fast optical-fiber high-speed connectivity across the private beach and resort grounds.</p></div><div class="amenity-card animate-on-scroll appear" style="animation-delay:0.25s"><div class="amenity-icon"><svg viewBox="0 0 24 24" width="36" height="36" fill="none" stroke="currentColor" stroke-width="1.2"><path d="M19 17h2c.6 0 1-.4 1-1v-3c0-.9-.7-1.7-1.5-1.9C18.7 10.6 16 10 16 10s-1.3-1.4-2.2-2.3c-.5-.4-1.1-.7-1.8-.7H5c-1.1 0-2 .9-2 2v7c0 .6.4 1 1 1h2M7 17a2 2 0 100 4 2 2 0 000-4zM17 17a2 2 0 100 4 2 2 0 000-4z"></path></svg></div><h3 class="amenity-title">Airport Transfer</h3><p class="amenity-desc">Bespoke luxury chauffeur transfer in premium vehicles directly from the airport terminal.</p></div><div class="amenity-card animate-on-scroll appear" style="animation-delay:0.30000000000000004s"><div class="amenity-icon"><svg viewBox="0 0 24 24" width="36" height="36" fill="none" stroke="currentColor" stroke-width="1.2"><path d="M8 19h8a4 4 0 004-4V7a4 4 0 00-4-4H8a4 4 0 00-4 4v8a4 4 0 004 4zM12 7v6M9 10h6"></path></svg></div><h3 class="amenity-title">Concierge Service</h3><p class="amenity-desc">24/7 butler coordination for private excursions, helicopter flights, and yacht rentals.</p></div><div class="amenity-card animate-on-scroll appear" style="animation-delay:0.35000000000000003s"><div class="amenity-icon"><svg viewBox="0 0 24 24" width="36" height="36" fill="none" stroke="currentColor" stroke-width="1.2"><path d="M12 2a10 10 0 110 20 10 10 0 010-20z"></path><path d="M9 16V8h3a3 3 0 010 6H9"></path></svg></div><h3 class="amenity-title">Valet Parking</h3><p class="amenity-desc">Private underground secured garage parking with complementary premium valet attendance.</p></div></div></section></div><div class="luxury-hotel"><section id="gallery" class="gallery-section scroll-spy"><div class="container text-center"><span class="section-subtitle">VISUAL NARRATIVE</span><h2 class="section-title">The Resort Gallery</h2><p class="section-desc">Glance at the panoramic sunsets, immersive spaces, and refined architecture of Aura Resort.</p><div class="gallery-filters"><button class="filter-btn active">All</button><button class="filter-btn ">Views</button><button class="filter-btn ">Rooms</button><button class="filter-btn ">Restaurant</button><button class="filter-btn ">Wellness</button></div></div><div class="container gallery-grid"><div class="gallery-item animate-on-scroll appear"><img src="./images/gallery_resort.png" alt="Resort Grounds &amp; Ocean"/><div class="gallery-hover"><span class="gallery-caption">Resort Grounds &amp; Ocean</span><span class="gallery-zoom-icon">+</span></div></div><div class="gallery-item animate-on-scroll appear"><img src="./images/room_ocean_suite.png" alt="Oceanfront Suite View"/><div class="gallery-hover"><span class="gallery-caption">Oceanfront Suite View</span><span class="gallery-zoom-icon">+</span></div></div><div class="gallery-item animate-on-scroll appear"><img src="./images/gallery_dining.png" alt="L&#x27;Aura Michelin Dining"/><div class="gallery-hover"><span class="gallery-caption">L&#x27;Aura Michelin Dining</span><span class="gallery-zoom-icon">+</span></div></div><div class="gallery-item animate-on-scroll appear"><img src="./images/gallery_spa.png" alt="Sensory Treatment Room"/><div class="gallery-hover"><span class="gallery-caption">Sensory Treatment Room</span><span class="gallery-zoom-icon">+</span></div></div><div class="gallery-item animate-on-scroll appear"><img src="./images/hero_pool.png" alt="Infinity Pool at Dusk"/><div class="gallery-hover"><span class="gallery-caption">Infinity Pool at Dusk</span><span class="gallery-zoom-icon">+</span></div></div><div class="gallery-item animate-on-scroll appear"><img src="./images/room_spa_villa.png" alt="Bespoke Wellness Villa"/><div class="gallery-hover"><span class="gallery-caption">Bespoke Wellness Villa</span><span class="gallery-zoom-icon">+</span></div></div></div></section></div><div class="luxury-hotel"><section id="contact" class="contact-section scroll-spy"><div class="container grid-container contact-grid"><div class="contact-info animate-on-scroll appear"><span class="section-subtitle">CONNECT WITH US</span><h2 class="section-title">Reservations &amp; Inquiries</h2><p class="contact-lead">Our dedicated guest relations specialists are available 24/7 to help coordinate your premium hospitality travel arrangements.</p><div class="contact-details-list"><div class="contact-detail-item"><div class="contact-detail-icon"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"></path><circle cx="12" cy="10" r="3"></circle></svg></div><div class="contact-detail-text"><h5>Location</h5><p>Aura Boulevard 84, Elite Bay, Private Island</p></div></div><div class="contact-detail-item"><div class="contact-detail-icon"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07 19.5 19.5 0 01-6-6 19.79 19.79 0 01-3.07-8.67A2 2 0 014.11 2h3a2 2 0 012 1.72 12.84 12.84 0 00.7 2.81 2 2 0 01-.45 2.11L8.09 9.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45 12.84 12.84 0 002.81.7A2 2 0 0122 16.92z"></path></svg></div><div class="contact-detail-text"><h5>Reservations Hotline</h5><p>+1 (800) 555-AURA</p></div></div><div class="contact-detail-item"><div class="contact-detail-icon"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path><polyline points="22,6 12,13 2,6"></polyline></svg></div><div class="contact-detail-text"><h5>Email Enquiries</h5><p>retreat@aurajourney.com</p></div></div></div></div><div class="contact-form-container animate-on-scroll delay-1 appear"><form class="contact-form" id="contact-message-form"><h3 class="form-title">Send a Private Inquiry</h3><div class="form-group"><label for="contact-name">Full Name</label><input type="text" id="contact-name" placeholder="E.g., Charlotte Sterling" required="" value=""/></div><div class="form-group"><label for="contact-email">Email Address</label><input type="email" id="contact-email" placeholder="E.g., charlotte@sterling.com" required="" value=""/></div><div class="form-group"><label for="contact-message">Private Message / Special Requests</label><textarea id="contact-message" rows="5" placeholder="Specify your desired experiences, custom catering request, or concierge inquiries..." required=""></textarea></div><button type="submit" class="btn btn-gold btn-full">Send Inquiry</button></form></div></div></section></div><div class="luxury-hotel"><footer class="site-footer"><div class="container footer-grid"><div class="footer-brand"><a href="#" class="logo"><span class="logo-text">AURA</span><span class="logo-sub">RESORT &amp; SPA</span></a><p class="footer-tagline">Experience timeless architectural elegance, pristine coastal isolation, and customized hospitality luxury since 1924.</p><div class="social-links"><a href="#" aria-label="Instagram" target="_blank" rel="noopener noreferrer"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"></rect><path d="M16 11.37A4 4 0 1112.63 8 4 4 0 0116 11.37zM17.5 6.5h.01"></path></svg></a><a href="#" aria-label="Facebook" target="_blank" rel="noopener noreferrer"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M18 2h-3a5 5 0 00-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 011-1h3z"></path></svg></a><a href="#" aria-label="Twitter" target="_blank" rel="noopener noreferrer"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M23 3a10.9 10.9 0 01-3.14 1.53 4.48 4.48 0 00-7.86 3v1A10.66 10.66 0 013 4s-4 9 5 13a11.64 11.64 0 01-7 2c9 5 20 0 20-11.5a4.5 4.5 0 00-.08-.83A7.72 7.72 0 0023 3z"></path></svg></a><a href="#" aria-label="Pinterest" target="_blank" rel="noopener noreferrer"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M8 22a8.88 8.88 0 005.3-2.1c2.1-1.7 3.5-4.2 3.5-7.3a9.45 9.45 0 00-1.8-5.6C13.2 4.6 10 4 8 4a8.13 8.13 0 00-6 2.7C1 7.9 1 9.8 1.8 11.3c.5.9 1.5.9 2 0v-.6A2.86 2.86 0 013.3 9a4.85 4.85 0 012.7-3.1C8 5 10 5.4 11.3 6.9c1 1.2 1.3 3.1 1 4.7a3.42 3.42 0 01-2 2c-.9.3-1.6 0-2-.5a5.55 5.55 0 01.3-4.1C9 8.2 9.5 7 10 6a.93.93 0 00.1-.4.86.86 0 00-.7-.6c-.5 0-1.2.6-1.6 1.4A15 15 0 007 11.8v2.7a5.55 5.55 0 00.3 2c.2.5.6.8 1 .8a5 5 0 004-3.5c1-2.4 1-5.6-.7-7.8A9.74 9.74 0 006 4.2C3.1 5.3.6 8 0 11.2a7.66 7.66 0 001.3 5A7 7 0 008 22z"></path></svg></a></div></div><div class="footer-links"><h4>Explore</h4><ul><li><a href="#about">About Our Sanctuary</a></li><li><a href="#rooms">Exquisite Suites</a></li><li><a href="#amenities">Bespoke Experiences</a></li><li><a href="#gallery">Visual Narratives</a></li><li><a href="#why-us">Aura Sovereignty</a></li></ul></div><div class="footer-links"><h4>Bespoke Services</h4><ul><li><a href="https://wa.me/15555552872?text=Hello%2C%20I%20would%20like%20to%20book%20a%20luxury%20stay%20at%20Aura%20Resort%20%26%20Spa." target="_blank" rel="noopener noreferrer">Book via WhatsApp</a></li><li><a href="#contact">Private Helicopter Transfer</a></li><li><a href="#contact">Yacht Charters</a></li><li><a href="#contact">Bespoke Dining Requests</a></li><li><a href="#about">Resort Sitemap</a></li></ul></div><div class="footer-newsletter"><h4>The Aura Dispatch</h4><p>Subscribe to receive curated luxury travel insights, seasonal private retreat details, and priority bookings.</p><form class="newsletter-form" id="newsletter-subscription"><input type="email" placeholder="Your email address" aria-label="Newsletter email input" required="" value=""/><button type="submit" aria-label="Subscribe to newsletter"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.5"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12,5 19,12 12,19"></polyline></svg></button></form></div></div><div class="container footer-bottom"><p>© 2026 Aura Resort &amp; Spa. All Rights Reserved. Crafted with pure luxury hospitality principles.</p><div class="footer-bottom-links"><a href="#">Privacy Policy</a><a href="#">Terms &amp; Conditions</a></div></div></footer></div></div></div><!--$--><!--/$-->  <script src="./js/main.js"></script>
+</body></html>

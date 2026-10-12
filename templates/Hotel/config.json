@@ -1,0 +1,699 @@
+{
+  "id": "cmr5v9jxg0001y0q8immask9c",
+  "userId": "cmqc6k9go0000y0y2uw83yi6o",
+  "name": "Hotel Template",
+  "subdomain": null,
+  "customDomain": null,
+  "status": "IN_PROGRESS",
+  "createdAt": "2026-07-04T04:32:57.892Z",
+  "updatedAt": "2026-07-04T06:42:28.744Z",
+  "sectionConfigs": [
+    {
+      "id": "hotel-header",
+      "name": "Hotel Header",
+      "type": "hotel-header",
+      "isFixed": true,
+      "isEnabled": true,
+      "menuTitle": "Home",
+      "showInMenu": false
+    },
+    {
+      "id": "hotel-hero",
+      "name": "Hotel Hero",
+      "type": "hotel-hero",
+      "isEnabled": true,
+      "menuTitle": "Home",
+      "showInMenu": false
+    },
+    {
+      "id": "hotel-rooms",
+      "name": "Rooms & Suites",
+      "type": "hotel-rooms",
+      "isEnabled": true,
+      "menuTitle": "Rooms",
+      "showInMenu": true
+    },
+    {
+      "id": "hotel-amenities",
+      "name": "Amenities",
+      "type": "hotel-amenities",
+      "isEnabled": true,
+      "menuTitle": "Amenities",
+      "showInMenu": true
+    },
+    {
+      "id": "hotel-experience",
+      "name": "The Experience",
+      "type": "hotel-experience",
+      "isEnabled": true,
+      "menuTitle": "Experience",
+      "showInMenu": true
+    },
+    {
+      "id": "hotel-services",
+      "name": "Services & Leisure",
+      "type": "hotel-services",
+      "isEnabled": true,
+      "menuTitle": "Services",
+      "showInMenu": true
+    },
+    {
+      "id": "hotel-gallery",
+      "name": "Gallery & Details",
+      "type": "hotel-gallery",
+      "isEnabled": true,
+      "menuTitle": "Gallery",
+      "showInMenu": true
+    },
+    {
+      "id": "hotel-cta",
+      "name": "Booking Callout",
+      "type": "hotel-cta",
+      "isEnabled": true,
+      "menuTitle": "Book Now",
+      "showInMenu": false
+    },
+    {
+      "id": "hotel-contact",
+      "name": "Reservations",
+      "type": "hotel-contact",
+      "isEnabled": true,
+      "menuTitle": "Reserve",
+      "showInMenu": true
+    },
+    {
+      "id": "hotel-footer",
+      "name": "Hotel Footer",
+      "type": "hotel-footer",
+      "isFixed": true,
+      "isEnabled": true,
+      "menuTitle": "Footer",
+      "showInMenu": false
+    }
+  ],
+  "publishedAt": null,
+  "isTemplate": true,
+  "categoryName": null,
+  "themeSetting": {
+    "id": "cmr5v9jy80005y0q89gthnbyk",
+    "projectId": "cmr5v9jxg0001y0q8immask9c",
+    "palette": "Luxury Gold",
+    "primaryColor": "#c5a880",
+    "secondaryColor": "#0b0c10",
+    "accentColor": "#c5a880",
+    "textColor": "#333333",
+    "backgroundColor": "#ffffff",
+    "buttonColor": "#c5a880",
+    "customColors": null,
+    "fontFamily": "Inter",
+    "fontSize": null,
+    "fontWeight": null,
+    "typography": [
+      {
+        "id": "style-h1",
+        "name": "H1",
+        "fontSize": "48px",
+        "fontFamily": "Playfair Display",
+        "fontWeight": "700"
+      },
+      {
+        "id": "style-h2",
+        "name": "H2",
+        "fontSize": "36px",
+        "fontFamily": "Playfair Display",
+        "fontWeight": "700"
+      },
+      {
+        "id": "style-h3",
+        "name": "H3",
+        "fontSize": "28px",
+        "fontFamily": "Playfair Display",
+        "fontWeight": "700"
+      },
+      {
+        "id": "style-h4",
+        "name": "H4",
+        "fontSize": "22px",
+        "fontFamily": "Playfair Display",
+        "fontWeight": "700"
+      },
+      {
+        "id": "style-paragraph",
+        "name": "Paragraph",
+        "fontSize": "16px",
+        "fontFamily": "Inter",
+        "fontWeight": "400"
+      },
+      {
+        "id": "style-menu",
+        "name": "Menu Text",
+        "fontSize": "16px",
+        "fontFamily": "Inter",
+        "fontWeight": "500"
+      },
+      {
+        "id": "style-button",
+        "name": "Button Text",
+        "fontSize": "16px",
+        "fontFamily": "Inter",
+        "fontWeight": "600"
+      }
+    ],
+    "badgeBgColor": "#c5a880",
+    "badgeBgOpacity": 15,
+    "badgeStrokeColor": "#c5a880",
+    "badgeStrokeOpacity": 100,
+    "badgeTextColor": "#c5a880",
+    "badgeBorderRadius": "rounded-full",
+    "badgeFontSize": "text-xs",
+    "badgeFontWeight": "font-bold",
+    "badgeLetterSpacing": "tracking-widest",
+    "badgeTextTransform": "uppercase",
+    "buttonBorderRadius": 8,
+    "enableGlobalBadge": true,
+    "enableTitleUnderline": true,
+    "hoverAnimatedLineColor": null,
+    "meshBaseColor": null
+  },
+  "seoSetting": null,
+  "category": {
+    "id": "cmr5v9jy50003y0q81eh0d3jz",
+    "name": "Hotel",
+    "description": "Bespoke luxury oceanfront resort template.",
+    "icon": "Palmtree",
+    "status": "ACTIVE",
+    "orderIndex": -85,
+    "projectId": "cmr5v9jxg0001y0q8immask9c",
+    "createdAt": "2026-07-04T04:32:57.918Z",
+    "updatedAt": "2026-07-04T06:41:37.878Z"
+  },
+  "headerSetting": null,
+  "heroSetting": null,
+  "aboutSetting": null,
+  "services": [],
+  "servicesSetting": null,
+  "products": [],
+  "counters": [],
+  "whyChooseUs": [],
+  "galleryImages": [],
+  "gallerySetting": null,
+  "clientLogos": [],
+  "clientsSetting": null,
+  "videos": [],
+  "ctaSetting": null,
+  "reviewSetting": null,
+  "manualReviews": [],
+  "marqueeSetting": null,
+  "customContentSections": [],
+  "footerSetting": null,
+  "floatingButtonSetting": null,
+  "contactFormSetting": null,
+  "splitContentSetting": null,
+  "saasCarouselSetting": null,
+  "saasCarouselCards": [],
+  "saasProductSetting": null,
+  "saasProductCards": [],
+  "faqSetting": null,
+  "faqItems": [],
+  "teamSetting": null,
+  "teamMembers": [],
+  "pricingSetting": null,
+  "pricingPackages": [],
+  "sectionData": [
+    {
+      "id": "cmr5v9jyj000by0q8l3en6qmn",
+      "projectId": "cmr5v9jxg0001y0q8immask9c",
+      "sectionId": "luxury-hotel-about",
+      "data": {
+        "body": "For over a century, our sanctuary has hosted artists, leaders, and connoisseurs seeking a quiet private escape. We believe in meticulous detail: curated local elements, bespoke interior styling, and intuitive legendary service that anticipates your every desire. Here, time slows down, allowing you to immerse yourself in natural beauty and refined comfort.",
+        "lead": "Nestled along the pristine cliffs of the azure coastline, Aura Resort & Spa represents the pinnacle of boutique luxury travel.",
+        "image": "/category-assets/luxury-hotel/images/about_lobby.png",
+        "title": "Where Serenity Meets Grandeur",
+        "subtitle": "OUR STORY",
+        "badgeText": "LEGENDARY SERVICE",
+        "badgeYear": "1924",
+        "signatures": [
+          {
+            "title": "Bespoke Concierge",
+            "description": "24/7 dedicated private attention for personalized experiences."
+          },
+          {
+            "title": "Holistic Wellness",
+            "description": "Award-winning natural treatments to realign body and mind."
+          }
+        ]
+      },
+      "createdAt": "2026-07-04T04:32:57.932Z",
+      "updatedAt": "2026-07-04T04:32:57.932Z"
+    },
+    {
+      "id": "cmr5v9jyp000fy0q84p6hjtkf",
+      "projectId": "cmr5v9jxg0001y0q8immask9c",
+      "sectionId": "luxury-hotel-amenities",
+      "data": {
+        "items": [
+          {
+            "icon": "pool",
+            "name": "Swimming Pool",
+            "description": "Dynamic heated oceanfront infinity pools complete with floating pool lounges."
+          },
+          {
+            "icon": "spa",
+            "name": "Spa & Wellness",
+            "description": "Holistic massage therapy, organic body scrubs, and volcanic stone hot baths."
+          },
+          {
+            "icon": "dining",
+            "name": "Fine Dining",
+            "description": "Award-winning Michelin-star gastronomy featuring organic locally-sourced ingredients."
+          },
+          {
+            "icon": "fitness",
+            "name": "Fitness Center",
+            "description": "State-of-the-art cardiovascular apparatus, private yoga pavilions, and personal coaches."
+          },
+          {
+            "icon": "wifi",
+            "name": "Bespoke WiFi",
+            "description": "Ultra-fast optical-fiber high-speed connectivity across the private beach and resort grounds."
+          },
+          {
+            "icon": "transfer",
+            "name": "Airport Transfer",
+            "description": "Bespoke luxury chauffeur transfer in premium vehicles directly from the airport terminal."
+          },
+          {
+            "icon": "concierge",
+            "name": "Concierge Service",
+            "description": "24/7 butler coordination for private excursions, helicopter flights, and yacht rentals."
+          },
+          {
+            "icon": "valet",
+            "name": "Valet Parking",
+            "description": "Private underground secured garage parking with complementary premium valet attendance."
+          }
+        ],
+        "title": "World-Class Experiences",
+        "subtitle": "INDULGENT DETAILS",
+        "description": "Every amenity is crafted to offer you maximum luxury, serenity, and unparalleled comfort."
+      },
+      "createdAt": "2026-07-04T04:32:57.937Z",
+      "updatedAt": "2026-07-04T04:32:57.937Z"
+    },
+    {
+      "id": "cmr5v9jyt000ny0q8n1s7q9ec",
+      "projectId": "cmr5v9jxg0001y0q8immask9c",
+      "sectionId": "luxury-hotel-booking",
+      "data": {
+        "lead": "Secure your reservations today to unlock exclusive packages, dedicated private butler service, and complimentary luxury airport transfer. Choose your preferred booking channel below.",
+        "title": "Begin Your Aura Journey",
+        "bgImage": "/category-assets/luxury-hotel/images/cta_background.png",
+        "subtitle": "SECURE YOUR RETREAT",
+        "whatsappLink": "https://wa.me/15555552872?text=Hello%2C%20I%20would%20like%20to%20book%20a%20luxury%20stay%20at%20Aura%20Resort%20%26%20Spa.",
+        "whatsappText": "Book via WhatsApp",
+        "formButtonLink": "#contact",
+        "formButtonText": "Inquire via Contact Form"
+      },
+      "createdAt": "2026-07-04T04:32:57.942Z",
+      "updatedAt": "2026-07-04T04:32:57.942Z"
+    },
+    {
+      "id": "cmr5v9jyu000py0q86gx7r8ht",
+      "projectId": "cmr5v9jxg0001y0q8immask9c",
+      "sectionId": "luxury-hotel-contact",
+      "data": {
+        "lead": "Our dedicated guest relations specialists are available 24/7 to help coordinate your premium hospitality travel arrangements.",
+        "email": "retreat@aurajourney.com",
+        "phone": "+1 (800) 555-AURA",
+        "title": "Reservations & Inquiries",
+        "address": "Aura Boulevard 84, Elite Bay, Private Island",
+        "subtitle": "CONNECT WITH US",
+        "formTitle": "Send a Private Inquiry",
+        "nameLabel": "Full Name",
+        "emailLabel": "Email Address",
+        "submitText": "Send Inquiry",
+        "messageLabel": "Private Message / Special Requests"
+      },
+      "createdAt": "2026-07-04T04:32:57.943Z",
+      "updatedAt": "2026-07-04T04:32:57.943Z"
+    },
+    {
+      "id": "cmr5v9jyv000ry0q8h5nb97cc",
+      "projectId": "cmr5v9jxg0001y0q8immask9c",
+      "sectionId": "luxury-hotel-footer",
+      "data": {
+        "logoSub": "RESORT & SPA",
+        "socials": [
+          {
+            "url": "#",
+            "icon": "instagram",
+            "platform": "Instagram"
+          },
+          {
+            "url": "#",
+            "icon": "facebook",
+            "platform": "Facebook"
+          },
+          {
+            "url": "#",
+            "icon": "twitter",
+            "platform": "Twitter"
+          },
+          {
+            "url": "#",
+            "icon": "pinterest",
+            "platform": "Pinterest"
+          }
+        ],
+        "tagline": "Experience timeless architectural elegance, pristine coastal isolation, and customized hospitality luxury since 1924.",
+        "logoText": "AURA",
+        "copyright": "© 2026 Aura Resort & Spa. All Rights Reserved. Crafted with pure luxury hospitality principles."
+      },
+      "createdAt": "2026-07-04T04:32:57.944Z",
+      "updatedAt": "2026-07-04T04:32:57.944Z"
+    },
+    {
+      "id": "cmr5v9jyq000hy0q8xjibns8n",
+      "projectId": "cmr5v9jxg0001y0q8immask9c",
+      "sectionId": "luxury-hotel-gallery",
+      "data": {
+        "title": "The Resort Gallery",
+        "images": [
+          {
+            "url": "/category-assets/luxury-hotel/images/gallery_resort.png",
+            "caption": "Resort Grounds & Ocean",
+            "category": "resort"
+          },
+          {
+            "url": "/category-assets/luxury-hotel/images/room_ocean_suite.png",
+            "caption": "Oceanfront Suite View",
+            "category": "rooms"
+          },
+          {
+            "url": "/category-assets/luxury-hotel/images/gallery_dining.png",
+            "caption": "L'Aura Michelin Dining",
+            "category": "dining"
+          },
+          {
+            "url": "/category-assets/luxury-hotel/images/gallery_spa.png",
+            "caption": "Sensory Treatment Room",
+            "category": "wellness"
+          },
+          {
+            "url": "/category-assets/luxury-hotel/images/hero_pool.png",
+            "caption": "Infinity Pool at Dusk",
+            "category": "resort"
+          },
+          {
+            "url": "/category-assets/luxury-hotel/images/room_spa_villa.png",
+            "caption": "Bespoke Wellness Villa",
+            "category": "wellness"
+          }
+        ],
+        "subtitle": "VISUAL NARRATIVE",
+        "description": "Glance at the panoramic sunsets, immersive spaces, and refined architecture of Aura Resort."
+      },
+      "createdAt": "2026-07-04T04:32:57.938Z",
+      "updatedAt": "2026-07-04T04:32:57.938Z"
+    },
+    {
+      "id": "cmr5v9jyd0007y0q8fsawlhu9",
+      "projectId": "cmr5v9jxg0001y0q8immask9c",
+      "sectionId": "luxury-hotel-header",
+      "data": {
+        "logoSub": "RESORT & SPA",
+        "logoText": "AURA",
+        "buttonLink": "https://wa.me/15555552872?text=Hello%2C%20I%20would%20like%20to%20book%20a%20luxury%20stay%20at%20Aura%20Resort%20%26%20Spa.",
+        "buttonText": "Book Now"
+      },
+      "createdAt": "2026-07-04T04:32:57.925Z",
+      "updatedAt": "2026-07-04T04:32:57.925Z"
+    },
+    {
+      "id": "cmr5v9jyh0009y0q8oy1m19s6",
+      "projectId": "cmr5v9jxg0001y0q8immask9c",
+      "sectionId": "luxury-hotel-hero",
+      "data": {
+        "slides": [
+          {
+            "image": "/category-assets/luxury-hotel/images/hero_exterior.png",
+            "title": "A Sanctuary of Ultimate Luxury",
+            "subtitle": "WELCOME TO AURA",
+            "description": "Discover a world-class hospitality experience where ocean breeze meets timeless architectural elegance. Immersive beauty awaits you at every turn.",
+            "primaryButtonLink": "https://wa.me/15555552872?text=Hello%2C%20I%20would%20like%20to%20book%20a%20luxury%20stay%20at%20Aura%20Resort%20%26%20Spa.",
+            "primaryButtonText": "Book Your Stay",
+            "secondaryButtonLink": "#rooms",
+            "secondaryButtonText": "Explore Rooms"
+          },
+          {
+            "image": "/category-assets/luxury-hotel/images/hero_suite.png",
+            "title": "Panoramic Coastal Elegance",
+            "subtitle": "THE PENTHOUSE LUXE",
+            "description": "Indulge in our exquisite suites boasting floor-to-ceiling glass panel windows, marble features, and tailor-made bespoke butler hospitality services.",
+            "primaryButtonLink": "https://wa.me/15555552872?text=Hello%2C%20I%20would%20like%20to%20book%20a%20luxury%20stay%20at%20Aura%20Resort%20%26%20Spa.",
+            "primaryButtonText": "Book Your Stay",
+            "secondaryButtonLink": "#rooms",
+            "secondaryButtonText": "Explore Rooms"
+          },
+          {
+            "image": "/category-assets/luxury-hotel/images/hero_pool.png",
+            "title": "Timeless Infinity Vistas",
+            "subtitle": "WELLNESS & RELAXATION",
+            "description": "Unwind at our iconic heated infinity pools overlooking the pristine reef lagoon. Relax your mind, rejuvenate your body, rediscover your soul.",
+            "primaryButtonLink": "https://wa.me/15555552872?text=Hello%2C%20I%20would%20like%20to%20book%20a%20luxury%20stay%20at%20Aura%20Resort%20%26%20Spa.",
+            "primaryButtonText": "Book Your Stay",
+            "secondaryButtonLink": "#rooms",
+            "secondaryButtonText": "Explore Rooms"
+          }
+        ],
+        "slideDuration": 6000
+      },
+      "createdAt": "2026-07-04T04:32:57.930Z",
+      "updatedAt": "2026-07-04T04:32:57.930Z"
+    },
+    {
+      "id": "cmr5v9jys000ly0q87oxdgfkh",
+      "projectId": "cmr5v9jxg0001y0q8immask9c",
+      "sectionId": "luxury-hotel-reviews",
+      "data": {
+        "title": "Testimonials of Grandeur",
+        "reviews": [
+          {
+            "text": "\"Our stay at Aura was spectacular. The Oceanfront Suite offered breathtaking views and the private butler anticipated our every need. It's the pinnacle of luxury.\"",
+            "stars": "★★★★★",
+            "guestName": "Arthur Sterling",
+            "guestImage": "/category-assets/luxury-hotel/images/guest_profile_1.png",
+            "guestTitle": "Founder, Sterling Holdings"
+          },
+          {
+            "text": "\"The wellness treatment room was a transcendental experience. The architecture blends beautifully with the environment. Absolute tranquility.\"",
+            "stars": "★★★★★",
+            "guestName": "Elena Rostova",
+            "guestImage": "/category-assets/luxury-hotel/images/guest_profile_2.png",
+            "guestTitle": "Luxury Travel Editor & Critic"
+          },
+          {
+            "text": "\"Michelin-star culinary works prepared directly inside our private dining room. Every detail, from linens to custom scents, screams perfection.\"",
+            "stars": "★★★★★",
+            "guestName": "Dr. Marcus Vance",
+            "guestImage": "/category-assets/luxury-hotel/images/guest_profile_3.png",
+            "guestTitle": "Philanthropist & Art Collector"
+          }
+        ],
+        "subtitle": "GUEST EXPERIENCES"
+      },
+      "createdAt": "2026-07-04T04:32:57.940Z",
+      "updatedAt": "2026-07-04T04:32:57.940Z"
+    },
+    {
+      "id": "cmr5v9jyl000dy0q8j7mtr7x5",
+      "projectId": "cmr5v9jxg0001y0q8immask9c",
+      "sectionId": "luxury-hotel-rooms",
+      "data": {
+        "rooms": [
+          {
+            "id": "garden-villa",
+            "bed": "King Bed",
+            "tag": "PRIVATE SANCTUARY",
+            "name": "Deluxe Garden Villa",
+            "size": "120 m²",
+            "view": "Garden View",
+            "image": "/category-assets/luxury-hotel/images/room_garden_villa.png",
+            "price": "650",
+            "features": [
+              "Private plunge pool",
+              "Tropical garden terrace",
+              "Outdoor rain shower"
+            ],
+            "amenities": [
+              "Private plunge pool with sun loungers",
+              "Outdoor courtyard stone bath & shower",
+              "Bespoke organic bath amenities",
+              "24/7 dedicated guest relations service",
+              "Complimentary exotic fresh fruit basket on arrival"
+            ],
+            "description": "Set amidst beautifully landscaped tropical gardens, the Deluxe Garden Villa offers an intimate retreat. Indulge in complete seclusion with a private plunge pool, and an outdoor courtyard featuring a magnificent hand-carved stone soaking tub and tropical rainfall shower. The interior displays refined organic wood features and plush custom linens."
+          },
+          {
+            "id": "ocean-suite",
+            "bed": "King Bed",
+            "tag": "HORIZON ELEGANCE",
+            "name": "Oceanfront Suite",
+            "size": "180 m²",
+            "view": "Ocean View",
+            "image": "/category-assets/luxury-hotel/images/room_ocean_suite.png",
+            "price": "950",
+            "features": [
+              "Private hot tub on deck",
+              "Floor-to-ceiling glass",
+              "Dedicated private butler"
+            ],
+            "amenities": [
+              "Private balcony hot tub overlooking the ocean",
+              "Floor-to-ceiling sliding glass doors",
+              "Personal dedicated private butler service",
+              "Espresso station & premium cocktail bar",
+              "Priority restaurant and spa reservations"
+            ],
+            "description": "Perched on the waters edge, our Oceanfront Suite delivers breathtaking cinematic vistas of the azure sea. Features floor-to-ceiling panoramic glass windows that slide completely open to integrate the private balcony with your master living space. Relax in your private balcony hot tub as the sun sinks beneath the horizon."
+          },
+          {
+            "id": "penthouse",
+            "bed": "Two King Beds",
+            "tag": "THE SUMMIT OF LUXURY",
+            "name": "Presidential Penthouse",
+            "size": "350 m²",
+            "view": "Panoramic 360 View",
+            "image": "/category-assets/luxury-hotel/images/room_penthouse.png",
+            "price": "2,400",
+            "features": [
+              "Panoramic terrace with firepit",
+              "Private cocktail lounge",
+              "In-room wellness spa"
+            ],
+            "amenities": [
+              "Vast panoramic private terrace with fire pit",
+              "Private infinity plunge pool",
+              "In-suite wellness therapy & massage room",
+              "Fully-stocked premium cocktail bar with private bartender",
+              "Complimentary luxury airport transfer & helicopter booking coordination"
+            ],
+            "description": "Exuding grandeur, the Presidential Penthouse represents the ultimate luxury stay. Boasting vast double-height vaulted ceilings, a beautifully curated lounge with a Steinway grand piano, a private butler pantry, and a fully stocked mixologist cocktail bar. The expansive private terrace features a heated plunge pool, luxury lounge cabanas, and an open-air fire pit overlooking the shoreline."
+          },
+          {
+            "id": "lagoon-pavilion",
+            "bed": "King Bed",
+            "tag": "WATER SANCTUARY",
+            "name": "Sunset Lagoon Pavilion",
+            "size": "150 m²",
+            "view": "Lagoon View",
+            "image": "/category-assets/luxury-hotel/images/room_lagoon_pavilion.png",
+            "price": "1,200",
+            "features": [
+              "Direct lagoon ladder access",
+              "Private sunset deck",
+              "Sun lounge cabana"
+            ],
+            "amenities": [
+              "Direct ladder entry to clear lagoon waters",
+              "Private overwater sunset hammock & deck pool",
+              "Underfloor glass panels for marine viewing",
+              "Bespoke in-room breakfast served by boat",
+              "Kayaks and snorkeling gear included"
+            ],
+            "description": "Elegantly built on stilts directly over the calm reef lagoon waters, the Sunset Lagoon Pavilion blends contemporary design with exotic wooden architectures. Step down from your private deck directly into the warm tropical waters or relax suspended over the lagoon in a handcrafted cotton hammock."
+          },
+          {
+            "id": "spa-villa",
+            "bed": "King Bed",
+            "tag": "HOLISTIC TRANSFORMATION",
+            "name": "Wellness Spa Villa",
+            "size": "210 m²",
+            "view": "Zen Garden View",
+            "image": "/category-assets/luxury-hotel/images/room_spa_villa.png",
+            "price": "1,500",
+            "features": [
+              "In-villa massage tables",
+              "Stone bath tub room",
+              "Organic luxury cosmetics"
+            ],
+            "amenities": [
+              "Private massage room with on-call spa therapists",
+              "Volcanic stone soaking tub & private steam sauna",
+              "Complimentary daily in-villa spa treatments (90 min)",
+              "Custom aromatherapy diffuser selection",
+              "Curated wellness culinary dining menu"
+            ],
+            "description": "Designed specifically for rejuvenation, the Wellness Spa Villa features an private indoor therapy room. Enjoy daily complimentary spa treatments, a private organic steam sauna, and a deep volcanic stone bath surrounded by tranquil water features. Soft lighting, bamboo accents, and gentle water murmurs create a sublime zen state."
+          },
+          {
+            "id": "overwater-bungalow",
+            "bed": "King Bed",
+            "tag": "SOVEREIGN ESTATE",
+            "name": "Royal Overwater Bungalow",
+            "size": "240 m²",
+            "view": "Ocean View",
+            "image": "/category-assets/luxury-hotel/images/room_overwater_bungalow.png",
+            "price": "1,850",
+            "features": [
+              "Glass floor viewing panel",
+              "Private deck plunge pool",
+              "Bespoke room service"
+            ],
+            "amenities": [
+              "Large glass floor viewing panels in living room",
+              "Expansive deck with private infinity pool",
+              "Direct stair access to the marine reef",
+              "24/7 private butler & chef service",
+              "Complimentary premium champagne on arrival"
+            ],
+            "description": "Our grandest overwater retreat, the Royal Overwater Bungalow features expansive glass floor viewing panels, bringing the vibrant ocean life directly into your living room. The spacious deck houses a private infinity pool, direct lagoon stairs, and a luxurious outdoor dining pavilion perfect for starlight dinners."
+          }
+        ],
+        "title": "Rooms & Suites",
+        "subtitle": "EXQUISITE HABITATS",
+        "description": "Each space is a masterpiece of design, offering deep custom comfort, expansive ocean panoramas, and private terraces."
+      },
+      "createdAt": "2026-07-04T04:32:57.933Z",
+      "updatedAt": "2026-07-04T04:32:57.933Z"
+    },
+    {
+      "id": "cmr5v9jyr000jy0q8a16cxmo3",
+      "projectId": "cmr5v9jxg0001y0q8immask9c",
+      "sectionId": "luxury-hotel-why-us",
+      "data": {
+        "body": "At Aura Resort, we reject the generic. From custom-scented bath rituals to helicopter charters and private yacht reservations, our dedication to service ensures an unforgettable luxury hospitality experience.",
+        "lead": "We believe hospitality is an art form. Every aspect of your stay is tailored to reflect ultimate privacy and comfort.",
+        "title": "The Standard of Pure Luxury",
+        "features": [
+          {
+            "num": "01",
+            "title": "Bespoke Privacy",
+            "description": "Gated estates and isolated premium villas designed for total personal seclusion."
+          },
+          {
+            "num": "02",
+            "title": "Culinary Masterpieces",
+            "description": "Personalized culinary creations prepared daily by award-winning chefs in your villa."
+          },
+          {
+            "num": "03",
+            "title": "Regenerative Spas",
+            "description": "Advanced hydrotherapy, thermal baths, and custom organic wellness treatments."
+          },
+          {
+            "num": "04",
+            "title": "Tailored Excursions",
+            "description": "Private island yacht access and curated cultural tours organized by your butler."
+          }
+        ],
+        "subtitle": "THE AURA PROMISE",
+        "buttonLink": "#contact",
+        "buttonText": "Plan Your Retreat"
+      },
+      "createdAt": "2026-07-04T04:32:57.939Z",
+      "updatedAt": "2026-07-04T04:32:57.939Z"
+    }
+  ],
+  "pages": []
+}

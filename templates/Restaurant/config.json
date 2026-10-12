@@ -1,0 +1,1038 @@
+{
+  "id": "cmr4w3rvy0001y06qgxj9sj73",
+  "userId": "cmqc6k9go0000y0y2uw83yi6o",
+  "name": "Restaurant Template",
+  "subdomain": null,
+  "customDomain": null,
+  "status": "IN_PROGRESS",
+  "createdAt": "2026-07-03T12:08:41.710Z",
+  "updatedAt": "2026-07-03T15:40:05.264Z",
+  "sectionConfigs": [
+    {
+      "id": "restaurant-header",
+      "name": "Restaurant Header",
+      "type": "restaurant-header",
+      "isFixed": true,
+      "isEnabled": true,
+      "menuTitle": "Home",
+      "showInMenu": false
+    },
+    {
+      "id": "restaurant-hero",
+      "name": "Welcome Grid",
+      "type": "restaurant-hero",
+      "isEnabled": true,
+      "menuTitle": "Home",
+      "showInMenu": false
+    },
+    {
+      "id": "restaurant-story",
+      "name": "Promo Grid",
+      "type": "restaurant-story",
+      "isEnabled": true,
+      "menuTitle": "Promo",
+      "showInMenu": false
+    },
+    {
+      "id": "restaurant-team",
+      "name": "Our Story",
+      "type": "restaurant-team",
+      "isEnabled": true,
+      "menuTitle": "Our Story",
+      "showInMenu": true
+    },
+    {
+      "id": "restaurant-chefs",
+      "name": "Master Chef",
+      "type": "restaurant-chefs",
+      "isEnabled": true,
+      "menuTitle": "Chef",
+      "showInMenu": true
+    },
+    {
+      "id": "restaurant-cta",
+      "name": "Philosophy",
+      "type": "restaurant-cta",
+      "isEnabled": true,
+      "menuTitle": "Philosophy",
+      "showInMenu": true
+    },
+    {
+      "id": "restaurant-gallery",
+      "name": "Experiences",
+      "type": "restaurant-gallery",
+      "isEnabled": true,
+      "menuTitle": "Experiences",
+      "showInMenu": true
+    },
+    {
+      "id": "restaurant-menu",
+      "name": "Signature Menu",
+      "type": "restaurant-menu",
+      "isEnabled": true,
+      "menuTitle": "Menu",
+      "showInMenu": true
+    },
+    {
+      "id": "restaurant-facilities",
+      "name": "Facilities & Guest Experience",
+      "type": "restaurant-facilities",
+      "isEnabled": true,
+      "menuTitle": "Experience",
+      "showInMenu": true
+    },
+    {
+      "id": "restaurant-signatures",
+      "name": "Signature Showcase",
+      "type": "restaurant-signatures",
+      "isEnabled": true,
+      "menuTitle": "Signatures",
+      "showInMenu": true
+    },
+    {
+      "id": "restaurant-recommendations",
+      "name": "Chef Recommendations",
+      "type": "restaurant-recommendations",
+      "isEnabled": true,
+      "menuTitle": "Chef Picks",
+      "showInMenu": true
+    },
+    {
+      "id": "restaurant-contact",
+      "name": "Reserve & Find Us",
+      "type": "restaurant-contact",
+      "isEnabled": true,
+      "menuTitle": "Reserve",
+      "showInMenu": true
+    },
+    {
+      "id": "restaurant-food-gallery",
+      "name": "Gallery",
+      "type": "restaurant-food-gallery",
+      "isEnabled": true,
+      "menuTitle": "Gallery",
+      "showInMenu": true
+    },
+    {
+      "id": "restaurant-footer",
+      "name": "Footer",
+      "type": "restaurant-footer",
+      "isFixed": true,
+      "isEnabled": true,
+      "menuTitle": "Footer",
+      "showInMenu": false
+    }
+  ],
+  "publishedAt": null,
+  "isTemplate": true,
+  "categoryName": null,
+  "themeSetting": {
+    "id": "cmr4w3rw40003y06qnu6czpkt",
+    "projectId": "cmr4w3rvy0001y06qgxj9sj73",
+    "palette": "Custom",
+    "primaryColor": "#d5a33f",
+    "secondaryColor": "#d5a33f",
+    "accentColor": "#654b16",
+    "textColor": "#1c1917",
+    "backgroundColor": "#ffffff",
+    "buttonColor": "#d5a33f",
+    "customColors": [],
+    "fontFamily": "Poppins",
+    "fontSize": "14px",
+    "fontWeight": "400",
+    "typography": [
+      {
+        "id": "style-h1",
+        "name": "H1",
+        "fontSize": "48px",
+        "fontFamily": "Playfair Display",
+        "fontWeight": "400"
+      },
+      {
+        "id": "style-h2",
+        "name": "H2",
+        "fontSize": "36px",
+        "fontFamily": "Playfair Display",
+        "fontWeight": "400"
+      },
+      {
+        "id": "style-h3",
+        "name": "H3",
+        "fontSize": "28px",
+        "fontFamily": "Playfair Display",
+        "fontWeight": "400"
+      },
+      {
+        "id": "style-h4",
+        "name": "H4",
+        "fontSize": "22px",
+        "fontFamily": "Playfair Display",
+        "fontWeight": "400"
+      },
+      {
+        "id": "style-paragraph",
+        "name": "Paragraph",
+        "fontSize": "14px",
+        "fontFamily": "Poppins",
+        "fontWeight": "400"
+      },
+      {
+        "id": "style-menu",
+        "name": "Menu Text",
+        "fontSize": "15px",
+        "fontFamily": "Poppins",
+        "fontWeight": "500"
+      },
+      {
+        "id": "style-button",
+        "name": "Button Text",
+        "fontSize": "14px",
+        "fontFamily": "Poppins",
+        "fontWeight": "500"
+      }
+    ],
+    "badgeBgColor": "#d5a33f",
+    "badgeBgOpacity": 15,
+    "badgeStrokeColor": "#d5a33f",
+    "badgeStrokeOpacity": 100,
+    "badgeTextColor": "#d5a33f",
+    "badgeBorderRadius": "rounded-full",
+    "badgeFontSize": "text-base",
+    "badgeFontWeight": "font-semibold",
+    "badgeLetterSpacing": "tracking-widest",
+    "badgeTextTransform": "uppercase",
+    "buttonBorderRadius": 8,
+    "enableGlobalBadge": true,
+    "enableTitleUnderline": true,
+    "hoverAnimatedLineColor": null,
+    "meshBaseColor": "#faf1e1"
+  },
+  "seoSetting": {
+    "id": "cmr4w3rw80005y06q5tx96t3p",
+    "projectId": "cmr4w3rvy0001y06qgxj9sj73",
+    "websiteTitle": "Antigravity Coffee Roasters",
+    "metaTitle": "Antigravity Coffee Roasters | Best Organic Coffee in Boston",
+    "metaDescription": "Experience the finest organic coffee and handmade pastries at Antigravity Coffee Roasters. Visit us today for fresh roasts and community vibes.",
+    "metaKeywords": "organic coffee, coffee shop, Boston cafe, fresh roast",
+    "faviconUrl": null,
+    "createdAt": "2026-06-15T03:21:20.180Z",
+    "updatedAt": "2026-06-15T03:24:12.492Z"
+  },
+  "category": {
+    "id": "cmr4w3rwn0009y06q274e11of",
+    "name": "Restaurant",
+    "description": "Standalone luxury white theme restaurant category inspired by Soul Kitchen.",
+    "icon": "Utensils",
+    "status": "ACTIVE",
+    "orderIndex": -86,
+    "projectId": "cmr4w3rvy0001y06qgxj9sj73",
+    "createdAt": "2026-07-03T12:08:41.736Z",
+    "updatedAt": "2026-07-03T12:29:18.694Z"
+  },
+  "headerSetting": {
+    "id": "cmr4zfgz4000vy0hhmge4m8sj",
+    "projectId": "cmr4w3rvy0001y06qgxj9sj73",
+    "logoUrl": "/uploads/1783086106167_Untitled_1.png",
+    "autoExtractColors": true,
+    "backgroundColor": null,
+    "menuTextColor": null,
+    "menuHoverColor": "#d5a33f",
+    "activeMenuColor": "#d5a33f",
+    "logoWidth": 120,
+    "logoHeight": 40,
+    "headerPadding": 16,
+    "mobileMenuIconColor": null,
+    "mobileMenuBgColor": null,
+    "mobileMenuTextColor": null,
+    "mobileMenuHoverColor": null,
+    "textStyles": null,
+    "gradientSetting": null,
+    "mobileLogoHeight": 30,
+    "mobileLogoWidth": 80,
+    "bgStyle": "solid-white",
+    "glassSetting": null,
+    "stickyHeader": false,
+    "stickyLogoUrl": null,
+    "transparentLogoUrl": null,
+    "buttonColor": "#d5a33f",
+    "buttonHoverColor": "#c09339",
+    "buttonTextColor": null,
+    "stickyActiveMenuColor": null,
+    "stickyBackgroundColor": null,
+    "stickyButtonColor": null,
+    "stickyButtonHoverColor": null,
+    "stickyButtonTextColor": null,
+    "stickyMenuHoverColor": null,
+    "stickyMenuTextColor": null,
+    "stickyUseGlobalColors": false,
+    "useGlobalColors": false,
+    "stickyMobileMenuIconColor": null,
+    "menus": []
+  },
+  "heroSetting": null,
+  "aboutSetting": null,
+  "services": [],
+  "servicesSetting": null,
+  "products": [],
+  "counters": [],
+  "whyChooseUs": [],
+  "galleryImages": [],
+  "gallerySetting": null,
+  "clientLogos": [],
+  "clientsSetting": null,
+  "videos": [],
+  "ctaSetting": null,
+  "reviewSetting": null,
+  "manualReviews": [],
+  "marqueeSetting": null,
+  "customContentSections": [],
+  "footerSetting": null,
+  "floatingButtonSetting": {
+    "id": "cmr4w3rwf0007y06qsp0cgex6",
+    "projectId": "cmr4w3rvy0001y06qgxj9sj73",
+    "whatsappNumber": "",
+    "defaultMessage": "",
+    "callNumber": "",
+    "whatsappEnabled": true,
+    "callEnabled": true,
+    "whatsappBgColor": null,
+    "whatsappIconColor": null,
+    "callBgColor": null,
+    "callIconColor": null,
+    "scrollIndicatorEnabled": true,
+    "scrollIndicatorBgColor": null,
+    "scrollIndicatorBorderColor": null,
+    "scrollIndicatorTextColor": null,
+    "scrollIndicatorHoverColor": null,
+    "scrollIndicatorShadowColor": null,
+    "scrollIndicatorOpacity": 90
+  },
+  "contactFormSetting": null,
+  "splitContentSetting": null,
+  "saasCarouselSetting": null,
+  "saasCarouselCards": [],
+  "saasProductSetting": null,
+  "saasProductCards": [],
+  "faqSetting": null,
+  "faqItems": [],
+  "teamSetting": null,
+  "teamMembers": [],
+  "pricingSetting": null,
+  "pricingPackages": [],
+  "sectionData": [
+    {
+      "id": "cmr4w3rx9000jy06qv60rl0fe",
+      "projectId": "cmr4w3rvy0001y06qgxj9sj73",
+      "sectionId": "restaurant-chefs",
+      "data": {
+        "img1": "/category-assets/restaurant/chef-2.jpg",
+        "img2": "/category-assets/restaurant/story-2.jpg",
+        "bioText": "Aravind’s culinary creations are reflective of his own extensive travels and love of combining spices from all over the Indian subcontinent. His cooking focuses on slow-cooked tandoori dishes sourced from organic local farmers and he pays thoughtful attention to ingredients and subtle saffron notes.",
+        "chefImg": "/category-assets/restaurant/chef-1.jpg",
+        "chefName": "Aravind Nair",
+        "buttonLink": "#restaurant-team",
+        "buttonText": "meet the team",
+        "designation": "CHEF",
+        "verticalText": "chef aravind"
+      },
+      "createdAt": "2026-07-03T12:08:41.757Z",
+      "updatedAt": "2026-07-03T12:08:41.757Z"
+    },
+    {
+      "id": "cmr4w3rxh000ry06qsk607gqd",
+      "projectId": "cmr4w3rvy0001y06qgxj9sj73",
+      "sectionId": "restaurant-contact",
+      "data": {
+        "bgImg": "/category-assets/restaurant/hero-1.jpg",
+        "email": "eat@tandoorluxury.com",
+        "phone": "+91 11 4059 1000",
+        "title": "Find Us",
+        "address": "Royal Palace Arcade, Ground Floor, Spice Square, New Delhi, India",
+        "formTitle": "Book Your Table",
+        "hoursList": [
+          {
+            "days": "Monday – Friday",
+            "hours": "12pm – 11:30pm"
+          },
+          {
+            "days": "Saturday/Sunday",
+            "hours": "12pm – 12am"
+          }
+        ],
+        "viewMapLink": "https://maps.google.com",
+        "successMessage": "Thank you. Our guest experience hosts will review availability and contact you within 2 hours to confirm your table."
+      },
+      "createdAt": "2026-07-03T12:08:41.766Z",
+      "updatedAt": "2026-07-03T12:08:41.766Z"
+    },
+    {
+      "id": "cmr4w3rxb000ly06qjfy5i0m1",
+      "projectId": "cmr4w3rvy0001y06qgxj9sj73",
+      "sectionId": "restaurant-cta",
+      "data": {
+        "heading": "Food Philosophy",
+        "subtitle": "Quality is at heart of everything we do",
+        "paragraph": "Our daily changing menu represents the best of what our local markets have to offer. Our passion for sourcing fresh ingredients from farmers and suppliers we know, combining with traditional flavors and rewriting familiar recipes into exceptional cuisine is our mission and greatest joy."
+      },
+      "createdAt": "2026-07-03T12:08:41.759Z",
+      "updatedAt": "2026-07-03T12:08:41.759Z"
+    },
+    {
+      "id": "cmr4w3rxk000ty06qwemz27sy",
+      "projectId": "cmr4w3rvy0001y06qgxj9sj73",
+      "sectionId": "restaurant-facilities",
+      "data": {
+        "items": [
+          {
+            "id": "fac-1",
+            "icon": "Car",
+            "title": "Free Parking",
+            "enabled": true,
+            "description": "Secure and spacious parking available for all guests."
+          },
+          {
+            "id": "fac-2",
+            "icon": "WiFi",
+            "title": "Complimentary WiFi",
+            "enabled": true,
+            "description": "High speed internet access throughout the restaurant."
+          },
+          {
+            "id": "fac-3",
+            "icon": "Breathing",
+            "title": "Welcome Drink",
+            "enabled": true,
+            "description": "Complimentary signature beverage served upon arrival."
+          },
+          {
+            "id": "fac-4",
+            "icon": "Insurance Shield",
+            "title": "Private Dining",
+            "enabled": true,
+            "description": "Exclusive private dining spaces for celebrations, family gatherings, and business meetings."
+          },
+          {
+            "id": "fac-5",
+            "icon": "Music Note",
+            "title": "Live Music",
+            "enabled": true,
+            "description": "Curated live music performances creating a memorable dining atmosphere."
+          }
+        ],
+        "title": "Facilities & Guest Experience",
+        "subtitle": "We offer a range of premium facilities to ensure your dining journey is perfectly comfortable and memorable.",
+        "badgeText": "SERVICES & AMENITIES",
+        "iconBgColor": "#ffffff"
+      },
+      "createdAt": "2026-07-03T12:08:41.768Z",
+      "updatedAt": "2026-07-03T13:08:13.485Z"
+    },
+    {
+      "id": "cmr4yvywk000ny0hhqkb5thy1",
+      "projectId": "cmr4w3rvy0001y06qgxj9sj73",
+      "sectionId": "restaurant-food-gallery",
+      "data": {
+        "title": "Gourmet Gallery",
+        "images": [
+          {
+            "id": "dish-1",
+            "title": "Saffron Truffle Galouti",
+            "enabled": true,
+            "category": "Starters",
+            "imageUrl": "/category-assets/restaurant/menu-1.jpg"
+          },
+          {
+            "id": "dish-2",
+            "title": "Clay-Oven Tandoori Lobster",
+            "enabled": true,
+            "category": "Starters",
+            "imageUrl": "/category-assets/restaurant/menu-2.jpg"
+          },
+          {
+            "id": "dish-3",
+            "title": "Paneer Pesto Tikka",
+            "enabled": true,
+            "category": "Starters",
+            "imageUrl": "/category-assets/restaurant/menu-3.jpg"
+          },
+          {
+            "id": "dish-4",
+            "title": "Crispy Soft-Shell Crab",
+            "enabled": true,
+            "category": "Starters",
+            "imageUrl": "/category-assets/restaurant/menu-4.jpg"
+          },
+          {
+            "id": "dish-5",
+            "title": "Gunpowder Beetroot Cutlets",
+            "enabled": true,
+            "category": "Starters",
+            "imageUrl": "/category-assets/restaurant/menu-5.jpg"
+          },
+          {
+            "id": "dish-6",
+            "title": "Gold-Leaf Shahi Nalli Nihari",
+            "enabled": true,
+            "category": "Mains",
+            "imageUrl": "/category-assets/restaurant/menu-6.jpg"
+          },
+          {
+            "id": "dish-7",
+            "title": "Black Garlic Paneer Tikka",
+            "enabled": true,
+            "category": "Mains",
+            "imageUrl": "/category-assets/restaurant/story-1.jpg"
+          },
+          {
+            "id": "dish-8",
+            "title": "Wild Mushroom Truffle Korma",
+            "enabled": true,
+            "category": "Mains",
+            "imageUrl": "/category-assets/restaurant/story-2.jpg"
+          },
+          {
+            "id": "dish-9",
+            "title": "Avadhi Slow-Cooked Chicken Biryani",
+            "enabled": true,
+            "category": "Mains",
+            "imageUrl": "/category-assets/restaurant/gallery-2.jpg"
+          },
+          {
+            "id": "dish-10",
+            "title": "Tandoori Jumbo Tiger Prawns",
+            "enabled": true,
+            "category": "Mains",
+            "imageUrl": "/category-assets/restaurant/gallery-3.jpg"
+          },
+          {
+            "id": "dish-11",
+            "title": "Rose Petal Kulfi Sphere",
+            "enabled": true,
+            "category": "Desserts",
+            "imageUrl": "/category-assets/restaurant/gallery-1.jpg"
+          },
+          {
+            "id": "dish-12",
+            "title": "Saffron Cardamom Phirni",
+            "enabled": true,
+            "category": "Desserts",
+            "imageUrl": "/category-assets/restaurant/gallery-4.jpg"
+          },
+          {
+            "id": "dish-13",
+            "title": "Shahi Tukda Cardamom Mille-Feuille",
+            "enabled": true,
+            "category": "Desserts",
+            "imageUrl": "/category-assets/restaurant/dish_dessert_1.png"
+          },
+          {
+            "id": "dish-14",
+            "title": "Pistachio Fig Halwa Tart",
+            "enabled": true,
+            "category": "Desserts",
+            "imageUrl": "/category-assets/restaurant/dish_dessert_2.png"
+          },
+          {
+            "id": "dish-15",
+            "title": "Elaneer Coconut Panna Cotta",
+            "enabled": true,
+            "category": "Desserts",
+            "imageUrl": "/category-assets/restaurant/gallery-5.jpg"
+          },
+          {
+            "id": "dish-16",
+            "title": "Kokum Ginger Cooler",
+            "enabled": true,
+            "category": "Drinks",
+            "imageUrl": "/category-assets/restaurant/dish_drink_1.png"
+          },
+          {
+            "id": "dish-17",
+            "title": "Saffron Cardamom Somras",
+            "enabled": true,
+            "category": "Drinks",
+            "imageUrl": "/category-assets/restaurant/dish_drink_2.png"
+          },
+          {
+            "id": "dish-18",
+            "title": "Tamarind Whiskey Sour",
+            "enabled": true,
+            "category": "Drinks",
+            "imageUrl": "/category-assets/restaurant/gallery-6.jpg"
+          },
+          {
+            "id": "dish-19",
+            "title": "Royal Spiced Chai Martini",
+            "enabled": true,
+            "category": "Drinks",
+            "imageUrl": "/category-assets/restaurant/hero-2.jpg"
+          },
+          {
+            "id": "dish-20",
+            "title": "Himalayan Rose Gimlet",
+            "enabled": true,
+            "category": "Drinks",
+            "imageUrl": "/category-assets/restaurant/hero-3.jpg"
+          }
+        ],
+        "subtitle": "A visual showcase of our signature dishes and curated fine-dining culinary masterpieces.",
+        "badgeText": "FOOD GALLERY",
+        "lightboxEnabled": true
+      },
+      "createdAt": "2026-07-03T13:26:36.403Z",
+      "updatedAt": "2026-07-03T15:40:29.478Z"
+    },
+    {
+      "id": "cmr4w3rxr000zy06qy3ddv8qs",
+      "projectId": "cmr4w3rvy0001y06qgxj9sj73",
+      "sectionId": "restaurant-footer",
+      "data": {
+        "email": "reservations@tandoorluxury.com",
+        "phone": "+91 11 4059 1000",
+        "address": "Royal Palace Arcade, Ground Floor, Spice Square, New Delhi, India",
+        "logoUrl": "/uploads/1783086226687_Untitled_1.png",
+        "description": "An immersive culinary sanctuary bridging majestic royal Indian traditions with modern fine-dining innovation.",
+        "socialLinks": [
+          {
+            "url": "#",
+            "icon": "📸",
+            "platform": "Instagram"
+          },
+          {
+            "url": "#",
+            "icon": "👥",
+            "platform": "Facebook"
+          },
+          {
+            "url": "#",
+            "icon": "🦉",
+            "platform": "TripAdvisor"
+          },
+          {
+            "url": "#",
+            "icon": "⭐",
+            "platform": "Yelp"
+          }
+        ],
+        "copyrightText": "© 2026 Tandoor Luxury Fine Dining. All rights reserved.",
+        "footerBgColor": "#ffffff",
+        "footerTextColor": "#1c1917",
+        "copyrightBgColor": "#1c1917",
+        "copyrightTextColor": "#ffffff"
+      },
+      "createdAt": "2026-07-03T12:08:41.775Z",
+      "updatedAt": "2026-07-03T13:50:49.917Z"
+    },
+    {
+      "id": "cmr4w3rxd000ny06q9o4xi0l2",
+      "projectId": "cmr4w3rvy0001y06qgxj9sj73",
+      "sectionId": "restaurant-gallery",
+      "data": {
+        "col1Img": "/category-assets/restaurant/gallery-2.jpg",
+        "col2Img": "/category-assets/restaurant/gallery-5.jpg",
+        "col3Img": "/category-assets/restaurant/gallery-3.jpg",
+        "col1Link": "#restaurant-menu",
+        "col2Link": "#restaurant-contact",
+        "col3Link": "#restaurant-contact",
+        "col1Badge": "A Culinary Experience",
+        "col1Title": "Explore Menu",
+        "col2Badge": "Perfect Pairing",
+        "col2Title": "Sommelier Selection",
+        "col3Badge": "Intimate Dinners",
+        "col3Title": "Chef Table"
+      },
+      "createdAt": "2026-07-03T12:08:41.761Z",
+      "updatedAt": "2026-07-03T12:08:41.761Z"
+    },
+    {
+      "id": "cmr4w3rwq000by06qp51ydkil",
+      "projectId": "cmr4w3rvy0001y06qgxj9sj73",
+      "sectionId": "restaurant-header",
+      "data": {
+        "menus": [
+          {
+            "link": "restaurant-hero",
+            "label": "Home"
+          },
+          {
+            "link": "restaurant-story",
+            "label": "Promo Special"
+          },
+          {
+            "link": "restaurant-team",
+            "label": "Our Story"
+          },
+          {
+            "link": "restaurant-chefs",
+            "label": "Chefs"
+          },
+          {
+            "link": "restaurant-cta",
+            "label": "Philosophy"
+          },
+          {
+            "link": "restaurant-gallery",
+            "label": "Experiences"
+          },
+          {
+            "link": "restaurant-menu",
+            "label": "Menu"
+          },
+          {
+            "link": "restaurant-contact",
+            "label": "Reserve"
+          }
+        ],
+        "logoUrl": "/uploads/1783086018065_Untitled_1.png",
+        "socialLinks": [
+          {
+            "url": "https://instagram.com",
+            "platform": "Instagram"
+          },
+          {
+            "url": "https://facebook.com",
+            "platform": "Facebook"
+          },
+          {
+            "url": "https://tripadvisor.com",
+            "platform": "Tripadvisor"
+          },
+          {
+            "url": "https://x.com",
+            "platform": "X"
+          }
+        ],
+        "bookTableLink": "#restaurant-contact",
+        "bookTableText": "book your table"
+      },
+      "createdAt": "2026-07-03T12:08:41.739Z",
+      "updatedAt": "2026-07-03T13:40:54.798Z"
+    },
+    {
+      "id": "cmr4w3rwz000dy06qy7wgn2zr",
+      "projectId": "cmr4w3rvy0001y06qgxj9sj73",
+      "sectionId": "restaurant-hero",
+      "data": {
+        "title": "Heritage Spices & Tandoor Masterpieces",
+        "imageUrl": "/category-assets/restaurant/hero-1.jpg",
+        "badgeText": "ROYAL INDIAN CULINARY ARTISTRY",
+        "buttonLink": "#restaurant-menu",
+        "buttonText": "view menu",
+        "description": "Step into a majestic culinary sanctuary where royal Indian recipes are re-imagined with modern elegance, slow-cooked in clay tandoors and finished with delicate saffron notes.",
+        "verticalText": "welcome"
+      },
+      "createdAt": "2026-07-03T12:08:41.747Z",
+      "updatedAt": "2026-07-03T12:08:41.747Z"
+    },
+    {
+      "id": "cmr4w3rxf000py06qyuukwyr0",
+      "projectId": "cmr4w3rvy0001y06qgxj9sj73",
+      "sectionId": "restaurant-menu",
+      "data": {
+        "badge": "SIGNATURE SELECTION",
+        "title": "The Culinary Masterpieces",
+        "subtitle": "A curated fine-dining selection showcasing the golden age of Indian cooking, hand-crafted with exquisite precision.",
+        "menuItems": [
+          {
+            "id": "dish-1",
+            "tag": "Chef Special",
+            "price": "$28",
+            "title": "Saffron Truffle Galouti",
+            "category": "Starters",
+            "imageUrl": "/category-assets/restaurant/menu-1.jpg",
+            "description": "Smoked minced lamb patties infused with Kashmiri saffron and black truffle pate, served on miniature gold-dusted parathas."
+          },
+          {
+            "id": "dish-2",
+            "tag": "Signature",
+            "price": "$45",
+            "title": "Clay-Oven Tandoori Lobster",
+            "category": "Starters",
+            "imageUrl": "/category-assets/restaurant/menu-2.jpg",
+            "description": "Scottish rock lobster tail marinated in cream cheese, crushed yellow mustard seeds, and cardamom, chargrilled."
+          },
+          {
+            "id": "dish-3",
+            "tag": "Vegetarian",
+            "price": "$24",
+            "title": "Paneer Pesto Tikka",
+            "category": "Starters",
+            "imageUrl": "/category-assets/restaurant/menu-3.jpg",
+            "description": "Cottage cheese cubes marinated in fresh basil pesto, pine nuts, and ground spices, baked over organic charcoal embers."
+          },
+          {
+            "id": "dish-4",
+            "tag": "Seafood Pick",
+            "price": "$32",
+            "title": "Crispy Soft-Shell Crab",
+            "category": "Starters",
+            "imageUrl": "/category-assets/restaurant/menu-4.jpg",
+            "description": "Fried bay crab tossed in dry curry leaves, ground dry ginger, and spicy red pepper flakes, served with fresh garlic dip."
+          },
+          {
+            "id": "dish-5",
+            "tag": "Vegan Choice",
+            "price": "$19",
+            "title": "Gunpowder Beetroot Cutlets",
+            "category": "Starters",
+            "imageUrl": "/category-assets/restaurant/menu-5.jpg",
+            "description": "Spiced beet croquettes crusted with coarse gunpowder spices, served with fresh cooling mint-coriander emulsion."
+          },
+          {
+            "id": "dish-6",
+            "tag": "Award Winning",
+            "price": "$42",
+            "title": "Gold-Leaf Shahi Nalli Nihari",
+            "category": "Mains",
+            "imageUrl": "/category-assets/restaurant/menu-6.jpg",
+            "description": "Slow-braised lamb shanks cooked in a rich, aromatic yogurt and nut gravy, finished with 24-karat edible gold leaf."
+          },
+          {
+            "id": "dish-7",
+            "tag": "Vegetarian",
+            "price": "$32",
+            "title": "Black Garlic Paneer Tikka",
+            "category": "Mains",
+            "imageUrl": "/category-assets/restaurant/story-1.jpg",
+            "description": "House-made organic cottage cheese blocks stuffed with black garlic paste, flame-baked in a traditional charcoal clay oven."
+          },
+          {
+            "id": "dish-8",
+            "tag": "Chef Special",
+            "price": "$36",
+            "title": "Wild Mushroom Truffle Korma",
+            "category": "Mains",
+            "imageUrl": "/category-assets/restaurant/story-2.jpg",
+            "description": "Locally sourced chanterelles simmered in a velvet cashew cream sauce, finished with shaved white truffles."
+          },
+          {
+            "id": "dish-9",
+            "tag": "House Favorite",
+            "price": "$38",
+            "title": "Avadhi Slow-Cooked Chicken Biryani",
+            "category": "Mains",
+            "imageUrl": "/category-assets/restaurant/gallery-2.jpg",
+            "description": "Long-grain basmati rice and tender spring chicken layered with rose water, saffron, and aromatic spices in a sealed pot."
+          },
+          {
+            "id": "dish-10",
+            "tag": "Fresh Catch",
+            "price": "$48",
+            "title": "Tandoori Jumbo Tiger Prawns",
+            "category": "Mains",
+            "imageUrl": "/category-assets/restaurant/gallery-3.jpg",
+            "description": "Giant wild tiger prawns rubbed in wild carom seeds, ginger paste, lemon juice, and baked inside a hot clay oven."
+          },
+          {
+            "id": "dish-11",
+            "tag": "Classic",
+            "price": "$18",
+            "title": "Rose Petal Kulfi Sphere",
+            "category": "Desserts",
+            "imageUrl": "/category-assets/restaurant/gallery-1.jpg",
+            "description": "Slow-churned organic kulfi infused with wild rose extract, encapsulated in a white chocolate dome."
+          },
+          {
+            "id": "dish-12",
+            "tag": "Chef Special",
+            "price": "$15",
+            "title": "Saffron Cardamom Phirni",
+            "category": "Desserts",
+            "imageUrl": "/category-assets/restaurant/gallery-4.jpg",
+            "description": "Chilled cream-of-rice pudding flavored with fresh ground green cardamom and premium threads of saffron."
+          },
+          {
+            "id": "dish-13",
+            "tag": "Signature",
+            "price": "$16",
+            "title": "Shahi Tukda Cardamom Mille-Feuille",
+            "category": "Desserts",
+            "imageUrl": "/category-assets/restaurant/dish_dessert_1.png",
+            "description": "Crispy ghee-fried puff pastry layers loaded with sweet rabri cream, dried rose leaves, and silver almonds."
+          },
+          {
+            "id": "dish-14",
+            "tag": "Gourmet",
+            "price": "$20",
+            "title": "Pistachio Fig Halwa Tart",
+            "category": "Desserts",
+            "imageUrl": "/category-assets/restaurant/dish_dessert_2.png",
+            "description": "Delicate tart shell stuffed with rich organic green pistachio paste and dried sweet black figs, baked golden."
+          },
+          {
+            "id": "dish-15",
+            "tag": "Refreshing",
+            "price": "$17",
+            "title": "Elaneer Coconut Panna Cotta",
+            "category": "Desserts",
+            "imageUrl": "/category-assets/restaurant/gallery-5.jpg",
+            "description": "Lighter gelled cream flavored with fresh tender coconut water and a hint of vanilla, topped with sweet mango puree."
+          },
+          {
+            "id": "dish-16",
+            "tag": "House Mocktail",
+            "price": "$14",
+            "title": "Kokum Ginger Cooler",
+            "category": "Drinks",
+            "imageUrl": "/category-assets/restaurant/dish_drink_1.png",
+            "description": "Tart kokum berry syrup combined with freshly pressed ginger, cooling mint, sparkling soda, and lime juice."
+          },
+          {
+            "id": "dish-17",
+            "tag": "Luxury Cocktail",
+            "price": "$22",
+            "title": "Saffron Cardamom Somras",
+            "category": "Drinks",
+            "imageUrl": "/category-assets/restaurant/dish_drink_2.png",
+            "description": "Premium gold-filtered spirit shaken with green cardamom, homemade saffron syrup, and finished with champagne."
+          },
+          {
+            "id": "dish-18",
+            "tag": "Signature",
+            "price": "$20",
+            "title": "Tamarind Whiskey Sour",
+            "category": "Drinks",
+            "imageUrl": "/category-assets/restaurant/gallery-6.jpg",
+            "description": "Indian malt single cask whiskey, fresh sweet tamarind puree, organic egg white, and orange bitters."
+          },
+          {
+            "id": "dish-19",
+            "tag": "Gourmet Drink",
+            "price": "$18",
+            "title": "Royal Spiced Chai Martini",
+            "category": "Drinks",
+            "imageUrl": "/category-assets/restaurant/hero-2.jpg",
+            "description": "Double brewed black tea spiced with ginger, cloves, cinnamon, shaken with Himalayan vodka and milk syrup."
+          },
+          {
+            "id": "dish-20",
+            "tag": "Refreshing",
+            "price": "$19",
+            "title": "Himalayan Rose Gimlet",
+            "category": "Drinks",
+            "imageUrl": "/category-assets/restaurant/hero-3.jpg",
+            "description": "Dry botanical gin infused with mountain rose petals, clean elderflower liqueur, and cold lime juice."
+          }
+        ],
+        "categories": [
+          "All",
+          "Starters",
+          "Mains",
+          "Desserts",
+          "Drinks"
+        ]
+      },
+      "createdAt": "2026-07-03T12:08:41.764Z",
+      "updatedAt": "2026-07-03T12:08:41.764Z"
+    },
+    {
+      "id": "cmr4w3rxo000xy06qzknkb2dw",
+      "projectId": "cmr4w3rvy0001y06qgxj9sj73",
+      "sectionId": "restaurant-recommendations",
+      "data": {
+        "title": "Chef's Recommendations",
+        "subtitle": "Personally selected specialties curated by our Executive Chef, showcasing the pinnacle of modern Indian cooking.",
+        "badgeText": "SPECIALLY CURATED",
+        "recommendations": [
+          {
+            "id": "rec-1",
+            "name": "Truffle Galouti Kebab",
+            "badge": "Chef Special",
+            "price": "$28.00",
+            "enabled": true,
+            "imageUrl": "/category-assets/restaurant/menu-1.jpg",
+            "description": "Mouth-melting smoked lamb patties infused with black truffle pate and Kashmiri saffron, cooked to golden brown perfection."
+          },
+          {
+            "id": "rec-2",
+            "name": "Clay-Oven Tandoori Salmon",
+            "badge": "Signature Choice",
+            "price": "$36.00",
+            "enabled": true,
+            "imageUrl": "/category-assets/restaurant/story-1.jpg",
+            "description": "Premium Norwegian salmon steaks marinaded with cream cheese, yellow mustard seeds, and cardamoms, grilled gently in clay oven."
+          },
+          {
+            "id": "rec-3",
+            "name": "Golden Cardamom Phirni",
+            "badge": "Must Try Dessert",
+            "price": "$14.00",
+            "enabled": true,
+            "imageUrl": "/category-assets/restaurant/gallery-1.jpg",
+            "description": "A traditional ground rice pudding slow-infused with sweet cardamoms and premium saffron strands, finished with silver leaf details."
+          }
+        ]
+      },
+      "createdAt": "2026-07-03T12:08:41.772Z",
+      "updatedAt": "2026-07-03T12:08:41.772Z"
+    },
+    {
+      "id": "cmr4w3rxm000vy06qkfcgf6dg",
+      "projectId": "cmr4w3rvy0001y06qgxj9sj73",
+      "sectionId": "restaurant-signatures",
+      "data": {
+        "title": "Signature Dish Showcase",
+        "dishes": [
+          {
+            "id": "sig-1",
+            "name": "Tandoori Gold Lobster Tail",
+            "price": "$48.00",
+            "enabled": true,
+            "imageUrl": "/category-assets/restaurant/menu-2.jpg",
+            "description": "Succulent cold-water lobster tail marinated in creamed Greek yogurt, fresh cardamom, and ground mace, slow-cooked in our clay oven.",
+            "ingredients": "Rock Lobster Tail, Kashmiri Chilies, Cardamom, Edible Gold Dust, Yogurt"
+          },
+          {
+            "id": "sig-2",
+            "name": "Slow-Braised Shahi Nalli Nihari",
+            "price": "$44.00",
+            "enabled": true,
+            "imageUrl": "/category-assets/restaurant/menu-3.jpg",
+            "description": "Tender lamb shank cooked over 12 hours in a velvety marrow gravy seasoned with fennel seeds, ginger, and saffron, finished with 24K gold leaf.",
+            "ingredients": "Lamb Shank, Fennel Gravy, Saffron, Fresh Ginger juliennes, Gold Leaf"
+          }
+        ],
+        "subtitle": "A curation of culinary masterpieces crafted by our master chefs, showcasing heritage recipes and premium ingredients.",
+        "badgeText": "CRAFTED SPECIALTIES"
+      },
+      "createdAt": "2026-07-03T12:08:41.770Z",
+      "updatedAt": "2026-07-03T12:08:41.770Z"
+    },
+    {
+      "id": "cmr4w3rx5000fy06qef64t8b6",
+      "projectId": "cmr4w3rvy0001y06qgxj9sj73",
+      "sectionId": "restaurant-story",
+      "data": {
+        "img1": "/category-assets/restaurant/menu-1.jpg",
+        "img2": "/category-assets/restaurant/story-1.jpg",
+        "img5": "/category-assets/restaurant/gallery-1.jpg",
+        "badge1": "feeling hungry?",
+        "badge2": "the tandoor experience",
+        "badge3": "THE PERFECT GIFT FOR A LOVED ONE",
+        "badge4": "What's Happening",
+        "badge5": "FOLLOW US ON INSTAGRAM",
+        "title1": "LUNCH Special",
+        "title2": "Royal Catering",
+        "title3": "Gift Card",
+        "title4": "Latest Heritage News & Recipes",
+        "title5": "@tandoorluxury",
+        "button3": "buy now",
+        "button4": "read articles"
+      },
+      "createdAt": "2026-07-03T12:08:41.754Z",
+      "updatedAt": "2026-07-03T12:08:41.754Z"
+    },
+    {
+      "id": "cmr4w3rx7000hy06qsntvag8k",
+      "projectId": "cmr4w3rvy0001y06qgxj9sj73",
+      "sectionId": "restaurant-team",
+      "data": {
+        "narrativeText": "TANDOOR LUXURY, founded in 2026, is dedicated to all those who love to wander far and wide. We invite you on a wholesome culinary adventure, where you’ll explore undiscovered gourmet heritage experiences.",
+        "narrativeText2": "Thank you for creating lasting memories with us."
+      },
+      "createdAt": "2026-07-03T12:08:41.756Z",
+      "updatedAt": "2026-07-03T12:08:41.756Z"
+    }
+  ],
+  "pages": []
+}

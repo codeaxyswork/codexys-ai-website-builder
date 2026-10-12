@@ -1,0 +1,2812 @@
+{
+  "id": "cmr7j0jpq00dvy0zqnx2kbisq",
+  "userId": "cmqc6k9go0000y0y2uw83yi6o",
+  "name": "Travel & Tourism Template",
+  "subdomain": null,
+  "customDomain": null,
+  "status": "IN_PROGRESS",
+  "createdAt": "2026-07-05T08:25:34.671Z",
+  "updatedAt": "2026-07-06T04:24:49.686Z",
+  "sectionConfigs": [
+    {
+      "id": "header",
+      "name": "Header",
+      "type": "header",
+      "isFixed": true,
+      "isEnabled": true,
+      "menuTitle": "Home",
+      "showInMenu": false
+    },
+    {
+      "id": "tourism-hero-slider-dup-1783248573810",
+      "name": "Tourism Hero Slider (Library)",
+      "type": "tourism-hero-slider",
+      "isFixed": false,
+      "isEnabled": true,
+      "menuTitle": "Tourism Hero Slider",
+      "showInMenu": false
+    },
+    {
+      "id": "tourism-offers",
+      "name": "Tourism Packages",
+      "type": "tourism-offers",
+      "isEnabled": true,
+      "menuTitle": "Packages",
+      "showInMenu": true
+    },
+    {
+      "id": "saas-product",
+      "name": " Top Historical Places",
+      "type": "saas-product",
+      "isEnabled": true,
+      "menuTitle": "",
+      "showInMenu": false
+    },
+    {
+      "id": "tourism-packages-dup-1783252154303",
+      "name": "Destinations",
+      "type": "tourism-packages",
+      "isFixed": false,
+      "isEnabled": true,
+      "menuTitle": "Destinations",
+      "showInMenu": false
+    },
+    {
+      "id": "about",
+      "name": "About Us",
+      "type": "about",
+      "isEnabled": true,
+      "menuTitle": "About Us",
+      "showInMenu": true
+    },
+    {
+      "id": "services",
+      "name": "Services",
+      "type": "services",
+      "isEnabled": true,
+      "menuTitle": "Services",
+      "showInMenu": true
+    },
+    {
+      "id": "counters",
+      "name": "Trusted Results",
+      "type": "counters",
+      "isEnabled": true,
+      "menuTitle": "Counters",
+      "showInMenu": false
+    },
+    {
+      "id": "vision-mission",
+      "name": "Vision & Mission",
+      "type": "vision-mission",
+      "isEnabled": true,
+      "menuTitle": "Our Focus",
+      "showInMenu": false
+    },
+    {
+      "id": "why-choose-us",
+      "name": "Why Choose Us",
+      "type": "why-choose-us",
+      "isEnabled": true,
+      "menuTitle": "Why Choose Us",
+      "showInMenu": true
+    },
+    {
+      "id": "cta",
+      "name": "CTA",
+      "type": "cta",
+      "isEnabled": true,
+      "menuTitle": "CTA",
+      "showInMenu": false
+    },
+    {
+      "id": "custom-content",
+      "name": "Custom Content",
+      "type": "custom-content",
+      "isEnabled": false,
+      "menuTitle": "More Info",
+      "showInMenu": false
+    },
+    {
+      "id": "products",
+      "name": "Products",
+      "type": "products",
+      "isEnabled": false,
+      "menuTitle": "Products",
+      "showInMenu": false
+    },
+    {
+      "id": "gallery",
+      "name": "Gallery",
+      "type": "gallery",
+      "isEnabled": false,
+      "menuTitle": "Gallery",
+      "showInMenu": false
+    },
+    {
+      "id": "clients",
+      "name": "Clients",
+      "type": "clients",
+      "isEnabled": false,
+      "menuTitle": "Clients",
+      "showInMenu": false
+    },
+    {
+      "id": "our-team",
+      "name": "Our Tour Consultants",
+      "type": "our-team",
+      "isEnabled": true,
+      "menuTitle": "Our Team",
+      "showInMenu": false
+    },
+    {
+      "id": "split-content",
+      "name": "Split Content",
+      "type": "split-content",
+      "isEnabled": false,
+      "menuTitle": "Split Content",
+      "showInMenu": false
+    },
+    {
+      "id": "saas-carousel",
+      "name": "Study in Domestic",
+      "type": "saas-carousel",
+      "isEnabled": false,
+      "menuTitle": "Study in Domestic",
+      "showInMenu": false
+    },
+    {
+      "id": "saas-carousel-dup-1783233810090",
+      "name": "Study Abroad",
+      "type": "saas-carousel",
+      "isFixed": false,
+      "isEnabled": false,
+      "menuTitle": "Study Abroad",
+      "showInMenu": false
+    },
+    {
+      "id": "faq",
+      "name": "FAQ",
+      "type": "faq",
+      "isEnabled": true,
+      "menuTitle": "FAQ",
+      "showInMenu": false
+    },
+    {
+      "id": "pricing",
+      "name": "Pricing Plans",
+      "type": "pricing",
+      "isEnabled": false,
+      "menuTitle": "Pricing",
+      "showInMenu": false
+    },
+    {
+      "id": "reviews",
+      "name": "What Travelers Say",
+      "type": "reviews",
+      "isEnabled": true,
+      "menuTitle": "Reviews",
+      "showInMenu": false
+    },
+    {
+      "id": "marquee",
+      "name": "Marquee",
+      "type": "marquee",
+      "isEnabled": true,
+      "menuTitle": "Marquee",
+      "showInMenu": false
+    },
+    {
+      "id": "benefits-timeline",
+      "name": "Process",
+      "type": "benefits-timeline",
+      "isEnabled": true,
+      "menuTitle": "Process",
+      "showInMenu": false
+    },
+    {
+      "id": "contact-form",
+      "name": "Contact Form",
+      "type": "contact-form",
+      "isEnabled": true,
+      "menuTitle": "CONTACT",
+      "showInMenu": true
+    },
+    {
+      "id": "footer",
+      "name": "Footer",
+      "type": "footer",
+      "isFixed": true,
+      "isEnabled": true,
+      "menuTitle": "Footer",
+      "showInMenu": false
+    },
+    {
+      "id": "__metadata__",
+      "type": "metadata",
+      "deletedTypes": [
+        "hero",
+        "hospital-header",
+        "hospital-hero",
+        "corporate-hero",
+        "ayurveda-hero",
+        "tourism-packages"
+      ]
+    }
+  ],
+  "publishedAt": null,
+  "isTemplate": true,
+  "categoryName": null,
+  "themeSetting": {
+    "id": "cmr7j0jrg00epy0zqzcuscrdc",
+    "projectId": "cmr7j0jpq00dvy0zqnx2kbisq",
+    "palette": "Custom",
+    "primaryColor": "#df4e56",
+    "secondaryColor": "#051960",
+    "accentColor": "#f6cfb9",
+    "textColor": "#1f2937",
+    "backgroundColor": "#ffffff",
+    "buttonColor": "#df4e56",
+    "customColors": [],
+    "fontFamily": "Poppins",
+    "fontSize": "16px",
+    "fontWeight": "400",
+    "typography": [
+      {
+        "id": "style-h1",
+        "name": "H1",
+        "fontSize": "48",
+        "fontFamily": "Poppins",
+        "fontWeight": "700",
+        "lineHeight": "1.2",
+        "letterSpacing": "0px"
+      },
+      {
+        "id": "style-h2",
+        "name": "H2",
+        "fontSize": "40",
+        "fontFamily": "Poppins",
+        "fontWeight": "700",
+        "lineHeight": "1.2",
+        "letterSpacing": "0px"
+      },
+      {
+        "id": "style-h3",
+        "name": "H3",
+        "fontSize": "32px",
+        "fontFamily": "Poppins",
+        "fontWeight": "600",
+        "lineHeight": "1.3",
+        "letterSpacing": "0px"
+      },
+      {
+        "id": "style-h4",
+        "name": "H4",
+        "fontSize": "24px",
+        "fontFamily": "Poppins",
+        "fontWeight": "500",
+        "lineHeight": "1.4",
+        "letterSpacing": "0px"
+      },
+      {
+        "id": "style-paragraph",
+        "name": "Paragraph",
+        "fontSize": "16px",
+        "fontFamily": "Poppins",
+        "fontWeight": "400",
+        "lineHeight": "1.5",
+        "letterSpacing": "0px"
+      },
+      {
+        "id": "style-menu",
+        "name": "Menu Text",
+        "fontSize": "14",
+        "fontFamily": "Poppins",
+        "fontWeight": "600",
+        "lineHeight": "1.5",
+        "letterSpacing": "0px"
+      },
+      {
+        "id": "style-button",
+        "name": "Button Text",
+        "color": "#ffffff",
+        "bgColor": "#d5909d",
+        "fontSize": "16px",
+        "fontFamily": "Poppins",
+        "fontWeight": "600",
+        "lineHeight": "1.5",
+        "bgHoverColor": "#df4e56",
+        "letterSpacing": "0px"
+      }
+    ],
+    "badgeBgColor": "#df4e56",
+    "badgeBgOpacity": 15,
+    "badgeStrokeColor": "#df4e56",
+    "badgeStrokeOpacity": 24,
+    "badgeTextColor": "#df4e56",
+    "badgeBorderRadius": "rounded-full",
+    "badgeFontSize": "text-base",
+    "badgeFontWeight": "font-semibold",
+    "badgeLetterSpacing": "tracking-widest",
+    "badgeTextTransform": "uppercase",
+    "buttonBorderRadius": 8,
+    "enableGlobalBadge": true,
+    "enableTitleUnderline": false,
+    "hoverAnimatedLineColor": "#7a5787",
+    "meshBaseColor": "#fae1e2"
+  },
+  "seoSetting": {
+    "id": "cmr7j0js600exy0zq5lu2kje7",
+    "projectId": "cmr7j0jpq00dvy0zqnx2kbisq",
+    "websiteTitle": "Travel & Tourism | Luxury Expeditions & Bespoke Journeys",
+    "metaTitle": "Travel & Tourism | Luxury Expeditions & Bespoke Journeys",
+    "metaDescription": "Curating bespoke travel itineraries, luxury private getaways, and unforgettable world expeditions across premier global destinations.",
+    "metaKeywords": "luxury travel, bespoke tours, vacation packages, luxury resort getaways, global expeditions, destination guides",
+    "faviconUrl": null,
+    "createdAt": "2026-06-15T03:21:20.180Z",
+    "updatedAt": "2026-06-22T11:38:38.461Z"
+  },
+  "category": {
+    "id": "cmr7j0juh00hty0zq2gs3oqen",
+    "name": "Travel & Tourism",
+    "description": "Educational portal for schools, primary education, and academies.",
+    "icon": "School",
+    "status": "ACTIVE",
+    "orderIndex": -82,
+    "projectId": "cmr7j0jpq00dvy0zqnx2kbisq",
+    "createdAt": "2026-07-05T08:25:34.842Z",
+    "updatedAt": "2026-07-05T08:25:34.842Z"
+  },
+  "headerSetting": {
+    "id": "cmr7j0jqk00e9y0zqmkkif5b0",
+    "projectId": "cmr7j0jpq00dvy0zqnx2kbisq",
+    "logoUrl": "/uploads/1783239972028_logo_color.png",
+    "autoExtractColors": true,
+    "backgroundColor": "transparent",
+    "menuTextColor": "#ffffff",
+    "menuHoverColor": "#df4e56",
+    "activeMenuColor": "#df4e56",
+    "logoWidth": 280,
+    "logoHeight": 60,
+    "headerPadding": 16,
+    "mobileMenuIconColor": "#ffffff",
+    "mobileMenuBgColor": "#ffffff",
+    "mobileMenuTextColor": null,
+    "mobileMenuHoverColor": null,
+    "textStyles": {
+      "menu": {
+        "color": "#ffffff",
+        "typographyStyle": "Menu Text"
+      }
+    },
+    "gradientSetting": {
+      "enabled": false,
+      "endColor": "#000000",
+      "intensity": 40,
+      "endOpacity": 0.2,
+      "startColor": "#112233",
+      "startOpacity": 0.75
+    },
+    "mobileLogoHeight": 45,
+    "mobileLogoWidth": 180,
+    "bgStyle": "transparent",
+    "glassSetting": {
+      "bgColor": "#1f2937",
+      "bgOpacity": 0.15,
+      "borderColor": "#ffffff",
+      "blurIntensity": 10,
+      "borderOpacity": 0.1,
+      "shadowIntensity": 29
+    },
+    "stickyHeader": true,
+    "stickyLogoUrl": "/uploads/1783239977857_logo_color.png",
+    "transparentLogoUrl": "/uploads/1782459849343_logo_sticky_footer.png",
+    "buttonColor": "#df4e56",
+    "buttonHoverColor": "#c9464d",
+    "buttonTextColor": null,
+    "stickyActiveMenuColor": null,
+    "stickyBackgroundColor": "#ffffff",
+    "stickyButtonColor": null,
+    "stickyButtonHoverColor": null,
+    "stickyButtonTextColor": null,
+    "stickyMenuHoverColor": null,
+    "stickyMenuTextColor": "#1f2937",
+    "stickyUseGlobalColors": true,
+    "useGlobalColors": true,
+    "stickyMobileMenuIconColor": null,
+    "menus": []
+  },
+  "heroSetting": {
+    "id": "cmr7j0jqo00eby0zq1dwthjci",
+    "projectId": "cmr7j0jpq00dvy0zqnx2kbisq",
+    "mainHeading": null,
+    "subHeading": null,
+    "description": null,
+    "buttonText": null,
+    "buttonLink": null,
+    "mainHeadingColor": null,
+    "subHeadingColor": null,
+    "descriptionTextColor": null,
+    "buttonBgColor": null,
+    "buttonTextColor": null,
+    "buttonHoverColor": null,
+    "showArrows": true,
+    "showDots": true,
+    "autoSlide": true,
+    "slideInterval": 5000,
+    "textStyles": null,
+    "images": [
+      {
+        "id": "cmr7j0ju700hgy0zqgmjn6o19",
+        "heroSettingId": "cmr7j0jqo00eby0zq1dwthjci",
+        "imageUrl": "/uploads/1782137262198_hero1.jpg",
+        "mainHeading": "Strategic Growth",
+        "subHeading": "BUSINESS EXCELLENCE",
+        "description": "We help organizations navigate complex challenges, optimize operations, and build future ready strategies that drive measurable results and long term success.",
+        "buttonText": "Get Started",
+        "buttonLink": null,
+        "mainHeadingColor": null,
+        "subHeadingColor": null,
+        "descriptionTextColor": null,
+        "buttonBgColor": null,
+        "buttonTextColor": null,
+        "buttonHoverColor": null,
+        "textStyles": {
+          "buttonText": {
+            "align": "left",
+            "typographyStyle": "H4"
+          },
+          "subHeading": {
+            "align": "left",
+            "typographyStyle": "H4"
+          },
+          "description": {
+            "align": "left",
+            "typographyStyle": "H4"
+          },
+          "mainHeading": {
+            "align": "left",
+            "typographyStyle": "title"
+          }
+        }
+      },
+      {
+        "id": "cmr7j0ju700hhy0zqtaav3apk",
+        "heroSettingId": "cmr7j0jqo00eby0zq1dwthjci",
+        "imageUrl": "/uploads/1782137446702_hero2.jpg",
+        "mainHeading": "Business Transformation",
+        "subHeading": "FUTURE READY",
+        "description": "We help organizations navigate complex challenges, optimize operations, and build future ready strategies that drive measurable results and long term success.",
+        "buttonText": "Get Started",
+        "buttonLink": null,
+        "mainHeadingColor": null,
+        "subHeadingColor": null,
+        "descriptionTextColor": null,
+        "buttonBgColor": null,
+        "buttonTextColor": null,
+        "buttonHoverColor": null,
+        "textStyles": {
+          "buttonText": {
+            "align": "left",
+            "typographyStyle": "H4"
+          },
+          "subHeading": {
+            "align": "left",
+            "typographyStyle": "H4"
+          },
+          "description": {
+            "align": "left",
+            "typographyStyle": "H4"
+          },
+          "mainHeading": {
+            "align": "left",
+            "typographyStyle": "title"
+          }
+        }
+      },
+      {
+        "id": "cmr7j0ju700hiy0zq7quqpfio",
+        "heroSettingId": "cmr7j0jqo00eby0zq1dwthjci",
+        "imageUrl": "/uploads/1782137487885_hero3.jpg",
+        "mainHeading": "Corporate Advisory",
+        "subHeading": "TRUSTED ADVISORS",
+        "description": "We partner with businesses to create scalable strategies, improve decision making, and deliver sustainable growth through expert consulting services.",
+        "buttonText": "Get Started",
+        "buttonLink": null,
+        "mainHeadingColor": null,
+        "subHeadingColor": null,
+        "descriptionTextColor": null,
+        "buttonBgColor": null,
+        "buttonTextColor": null,
+        "buttonHoverColor": null,
+        "textStyles": {
+          "buttonText": {
+            "align": "left",
+            "typographyStyle": "H4"
+          },
+          "subHeading": {
+            "align": "left",
+            "typographyStyle": "H4"
+          },
+          "description": {
+            "align": "left",
+            "typographyStyle": "H4"
+          },
+          "mainHeading": {
+            "align": "left",
+            "typographyStyle": "title"
+          }
+        }
+      }
+    ]
+  },
+  "aboutSetting": {
+    "id": "cmr7j0jpz00dxy0zq88h8qo2i",
+    "projectId": "cmr7j0jpq00dvy0zqnx2kbisq",
+    "title": "Guiding Ambitions, Building Global Futures",
+    "description": "At our education consultancy, we are committed to providing personalized counseling and strategic guidance to students aiming for academic excellence. With over 15 years of industry experience, we specialize in helping students discover their ideal academic paths, map career objectives, and successfully navigate complex university admission cycles.\n\nFrom comprehensive profile evaluation and test prep advice to detailed document reviews and visa interview training, our experienced advisors provide end-to-end guidance to make your global learning journey smooth and successful.",
+    "imageUrl": "/category-assets/education-consultancy/about.png",
+    "titleColor": null,
+    "descriptionColor": null,
+    "textStyles": {
+      "badge": {
+        "size": 160,
+        "text": "Years of Trust",
+        "speed": 15,
+        "number": "15+",
+        "direction": "clockwise",
+        "hasBorder": true,
+        "positionX": 82,
+        "positionY": 76,
+        "showBadge": true,
+        "centerText": "15+ Years Trust",
+        "circularText": "Certified Advisors \u2022 Since 2011 \u2022",
+        "textFontSize": 9,
+        "centerFontSize": 13,
+        "numberFontSize": 36,
+        "textFontWeight": "600",
+        "circularFontSize": 9,
+        "numberFontWeight": "600",
+        "circularFontWeight": "500",
+        "textTypographyStyle": "",
+        "numberTypographyStyle": "",
+        "circularTypographyStyle": ""
+      },
+      "title": {
+        "typographyStyle": "H1"
+      },
+      "badgeText": "ABOUT US",
+      "description": {
+        "typographyStyle": "Paragraph"
+      }
+    },
+    "reverseOrder": false,
+    "showButton": false,
+    "buttonText": null,
+    "buttonLink": null,
+    "buttonNewTab": false
+  },
+  "services": [
+    {
+      "id": "cmr7j0jt100g8y0zq2yc1anc8",
+      "projectId": "cmr7j0jpq00dvy0zqnx2kbisq",
+      "imageUrl": "/category-assets/education-consultancy/service-1.png",
+      "title": "University Admission Guidance",
+      "description": "Get expert course matching, profile assessment, and personalized admission strategies to secure offer letters from top-tier global institutions.",
+      "orderIndex": 0,
+      "textStyles": {
+        "title": {
+          "typographyStyle": "H4"
+        },
+        "description": {
+          "typographyStyle": "Paragraph"
+        }
+      },
+      "showButton": false,
+      "buttonText": null,
+      "buttonLink": null,
+      "buttonNewTab": false,
+      "buttonAlign": "center"
+    },
+    {
+      "id": "cmr7j0jt100g9y0zq4dvew7i6",
+      "projectId": "cmr7j0jpq00dvy0zqnx2kbisq",
+      "imageUrl": "/category-assets/education-consultancy/service-2.png",
+      "title": "Visa Processing & Interview Prep",
+      "description": "Navigate complex immigration requirements with ease. Our visa experts ensure high success rates through meticulous document checks and mock visa interviews.",
+      "orderIndex": 1,
+      "textStyles": {
+        "title": {
+          "align": "left",
+          "typographyStyle": "H4"
+        },
+        "description": {
+          "align": "left",
+          "typographyStyle": "Paragraph"
+        }
+      },
+      "showButton": false,
+      "buttonText": null,
+      "buttonLink": null,
+      "buttonNewTab": false,
+      "buttonAlign": "center"
+    },
+    {
+      "id": "cmr7j0jt100gay0zqvrguwkfy",
+      "projectId": "cmr7j0jpq00dvy0zqnx2kbisq",
+      "imageUrl": "/category-assets/education-consultancy/service-3.png",
+      "title": "Scholarship & Funding Advisory",
+      "description": "Identify merit-based and need-based financial aid opportunities, and craft compelling essays to maximize your chances of receiving educational grants.",
+      "orderIndex": 2,
+      "textStyles": {
+        "title": {
+          "typographyStyle": "H4"
+        },
+        "description": {
+          "typographyStyle": "Paragraph"
+        }
+      },
+      "showButton": false,
+      "buttonText": null,
+      "buttonLink": null,
+      "buttonNewTab": false,
+      "buttonAlign": "center"
+    }
+  ],
+  "servicesSetting": {
+    "id": "cmr7j0jru00ety0zqj0068gp2",
+    "projectId": "cmr7j0jpq00dvy0zqnx2kbisq",
+    "title": "Our Services",
+    "subtitle": "Capabilities",
+    "spacingTop": 64,
+    "spacingBottom": 64,
+    "textStyles": {
+      "title": {
+        "typographyStyle": "H1"
+      },
+      "subtitle": {
+        "typographyStyle": "H4"
+      },
+      "badgeText": ""
+    },
+    "accentLineColor": null,
+    "accentLineVisible": true
+  },
+  "products": [],
+  "counters": [
+    {
+      "id": "cmr7j0jsl00fly0zqfrpxhk9s",
+      "projectId": "cmr7j0jpq00dvy0zqnx2kbisq",
+      "counterNumber": "100%",
+      "counterTitle": "Board Exam Success Rate",
+      "orderIndex": 0,
+      "textStyles": {
+        "counterTitle": {
+          "align": "left",
+          "typographyStyle": "Paragraph"
+        },
+        "sectionTitle": {
+          "badgeText": "Stats",
+          "typographyStyle": "H1"
+        },
+        "counterNumber": {
+          "align": "left",
+          "typographyStyle": "H1"
+        }
+      }
+    },
+    {
+      "id": "cmr7j0jsl00fmy0zqaipzr9x6",
+      "projectId": "cmr7j0jpq00dvy0zqnx2kbisq",
+      "counterNumber": "2,500+",
+      "counterTitle": "Successful Graduates",
+      "orderIndex": 1,
+      "textStyles": {
+        "counterTitle": {
+          "align": "left",
+          "typographyStyle": "Paragraph"
+        },
+        "sectionTitle": {
+          "badgeText": "Stats",
+          "typographyStyle": "H1"
+        },
+        "counterNumber": {
+          "align": "left",
+          "typographyStyle": "H1"
+        }
+      }
+    },
+    {
+      "id": "cmr7j0jsl00fny0zqzux0ys4b",
+      "projectId": "cmr7j0jpq00dvy0zqnx2kbisq",
+      "counterNumber": "50+",
+      "counterTitle": "Experienced Educators",
+      "orderIndex": 2,
+      "textStyles": {
+        "counterTitle": {
+          "align": "left",
+          "typographyStyle": "Paragraph"
+        },
+        "sectionTitle": {
+          "badgeText": "Stats",
+          "typographyStyle": "H1"
+        },
+        "counterNumber": {
+          "align": "left",
+          "typographyStyle": "H1"
+        }
+      }
+    },
+    {
+      "id": "cmr7j0jsl00foy0zqg435wwla",
+      "projectId": "cmr7j0jpq00dvy0zqnx2kbisq",
+      "counterNumber": "25+",
+      "counterTitle": "Awards & Recognitions",
+      "orderIndex": 3,
+      "textStyles": {
+        "counterTitle": {
+          "align": "left",
+          "typographyStyle": "Paragraph"
+        },
+        "sectionTitle": {
+          "badgeText": "Stats",
+          "typographyStyle": "H1"
+        },
+        "counterNumber": {
+          "align": "left",
+          "typographyStyle": "H1"
+        }
+      }
+    },
+    {
+      "id": "cmr7j0jsl00fpy0zqnunapvo9",
+      "projectId": "cmr7j0jpq00dvy0zqnx2kbisq",
+      "counterNumber": "20+",
+      "counterTitle": "Years of Educational Excellence",
+      "orderIndex": 4,
+      "textStyles": {
+        "counterTitle": {
+          "align": "left",
+          "typographyStyle": "Paragraph"
+        },
+        "sectionTitle": {
+          "badgeText": "Stats",
+          "typographyStyle": "H1"
+        },
+        "counterNumber": {
+          "align": "left",
+          "typographyStyle": "H1"
+        }
+      }
+    }
+  ],
+  "whyChooseUs": [
+    {
+      "id": "cmr7sqo2l001my0lg3p8cpgk1",
+      "projectId": "cmr7j0jpq00dvy0zqnx2kbisq",
+      "iconType": "library",
+      "iconName": "Briefcase",
+      "imageUrl": null,
+      "iconColor": null,
+      "iconBgColor": null,
+      "title": "Business Administration & Management",
+      "description": null,
+      "orderIndex": 0,
+      "textStyles": {
+        "title": {
+          "typographyStyle": "H4"
+        },
+        "description": {
+          "typographyStyle": "Paragraph"
+        },
+        "sectionTitle": {
+          "badgeText": "Strength"
+        }
+      },
+      "cardBgColor": null
+    },
+    {
+      "id": "cmr7sqo2l001ny0lg0fazgpr2",
+      "projectId": "cmr7j0jpq00dvy0zqnx2kbisq",
+      "iconType": "library",
+      "iconName": "Code",
+      "imageUrl": null,
+      "iconColor": null,
+      "iconBgColor": null,
+      "title": "Computer Science & Software Engineering",
+      "description": null,
+      "orderIndex": 1,
+      "textStyles": {
+        "title": {
+          "typographyStyle": "H4"
+        },
+        "description": {
+          "typographyStyle": "Paragraph"
+        },
+        "sectionTitle": {
+          "badgeText": "Strength"
+        }
+      },
+      "cardBgColor": null
+    },
+    {
+      "id": "cmr7sqo2l001oy0lgi8b33o8q",
+      "projectId": "cmr7j0jpq00dvy0zqnx2kbisq",
+      "iconType": "library",
+      "iconName": "Cpu",
+      "imageUrl": null,
+      "iconColor": null,
+      "iconBgColor": null,
+      "title": "Engineering & Applied Technology",
+      "description": null,
+      "orderIndex": 2,
+      "textStyles": {
+        "title": {
+          "typographyStyle": "H4"
+        },
+        "description": {
+          "typographyStyle": "Paragraph"
+        },
+        "sectionTitle": {
+          "badgeText": "Strength"
+        }
+      },
+      "cardBgColor": null
+    },
+    {
+      "id": "cmr7sqo2l001py0lgbn9jo9xi",
+      "projectId": "cmr7j0jpq00dvy0zqnx2kbisq",
+      "iconType": "library",
+      "iconName": "HeartPulse",
+      "imageUrl": null,
+      "iconColor": null,
+      "iconBgColor": null,
+      "title": "Medicine & Healthcare Sciences",
+      "description": null,
+      "orderIndex": 3,
+      "textStyles": {
+        "title": {
+          "typographyStyle": "H4"
+        },
+        "description": {
+          "typographyStyle": "Paragraph"
+        },
+        "sectionTitle": {
+          "badgeText": "Strength"
+        }
+      },
+      "cardBgColor": null
+    },
+    {
+      "id": "cmr7sqo2l001qy0lgv1e9yddy",
+      "projectId": "cmr7j0jpq00dvy0zqnx2kbisq",
+      "iconType": "library",
+      "iconName": "Palette",
+      "imageUrl": null,
+      "iconColor": null,
+      "iconBgColor": null,
+      "title": "Art, Design & Architecture",
+      "description": null,
+      "orderIndex": 4,
+      "textStyles": {
+        "title": {
+          "typographyStyle": "H4"
+        },
+        "description": {
+          "typographyStyle": "Paragraph"
+        },
+        "sectionTitle": {
+          "badgeText": "Strength"
+        }
+      },
+      "cardBgColor": null
+    },
+    {
+      "id": "cmr7sqo2l001ry0lgf9qsfi2f",
+      "projectId": "cmr7j0jpq00dvy0zqnx2kbisq",
+      "iconType": "library",
+      "iconName": "Globe",
+      "imageUrl": null,
+      "iconColor": null,
+      "iconBgColor": null,
+      "title": "Social Sciences & Humanities",
+      "description": null,
+      "orderIndex": 5,
+      "textStyles": {
+        "title": {
+          "typographyStyle": "H4"
+        },
+        "description": {
+          "typographyStyle": "Paragraph"
+        },
+        "sectionTitle": {
+          "badgeText": "Strength"
+        }
+      },
+      "cardBgColor": null
+    }
+  ],
+  "galleryImages": [],
+  "gallerySetting": {
+    "id": "cmr7j0js900ezy0zq726rppm8",
+    "projectId": "cmr7j0jpq00dvy0zqnx2kbisq",
+    "categories": [
+      {
+        "id": "cat-17824748187473",
+        "name": "Campus",
+        "images": [
+          {
+            "id": "temp-17824748717050",
+            "imageUrl": "/uploads/1782474871702_hero3.jpg",
+            "projectId": "cmqs47hxc007by0qu1qmqfflp"
+          },
+          {
+            "id": "temp-17824748717131",
+            "imageUrl": "/uploads/1782474871711_hero2.jpg",
+            "projectId": "cmqs47hxc007by0qu1qmqfflp"
+          },
+          {
+            "id": "temp-17824748717212",
+            "imageUrl": "/uploads/1782474871720_hero1.jpg",
+            "projectId": "cmqs47hxc007by0qu1qmqfflp"
+          }
+        ],
+        "orderIndex": 0
+      },
+      {
+        "id": "cat-178247482731087",
+        "name": "Smart Classrooms",
+        "images": [
+          {
+            "id": "temp-17824748777690",
+            "imageUrl": "/uploads/1782474877766_hero3.jpg",
+            "projectId": "cmqs47hxc007by0qu1qmqfflp"
+          },
+          {
+            "id": "temp-17824748777931",
+            "imageUrl": "/uploads/1782474877792_hero2.jpg",
+            "projectId": "cmqs47hxc007by0qu1qmqfflp"
+          },
+          {
+            "id": "temp-17824748778032",
+            "imageUrl": "/uploads/1782474877802_hero1.jpg",
+            "projectId": "cmqs47hxc007by0qu1qmqfflp"
+          }
+        ],
+        "orderIndex": 1
+      },
+      {
+        "id": "cat-178247484025833",
+        "name": "Science Laboratory",
+        "images": [
+          {
+            "id": "temp-17824748841040",
+            "imageUrl": "/uploads/1782474884101_hero3.jpg",
+            "projectId": "cmqs47hxc007by0qu1qmqfflp"
+          },
+          {
+            "id": "temp-17824748841181",
+            "imageUrl": "/uploads/1782474884116_hero2.jpg",
+            "projectId": "cmqs47hxc007by0qu1qmqfflp"
+          },
+          {
+            "id": "temp-17824748841402",
+            "imageUrl": "/uploads/1782474884134_hero1.jpg",
+            "projectId": "cmqs47hxc007by0qu1qmqfflp"
+          }
+        ],
+        "orderIndex": 2
+      },
+      {
+        "id": "cat-178247484929053",
+        "name": "Sports Activities",
+        "images": [
+          {
+            "id": "temp-17824748891530",
+            "imageUrl": "/uploads/1782474889149_hero3.jpg",
+            "projectId": "cmqs47hxc007by0qu1qmqfflp"
+          },
+          {
+            "id": "temp-17824748891691",
+            "imageUrl": "/uploads/1782474889167_hero2.jpg",
+            "projectId": "cmqs47hxc007by0qu1qmqfflp"
+          },
+          {
+            "id": "temp-17824748891802",
+            "imageUrl": "/uploads/1782474889179_hero1.jpg",
+            "projectId": "cmqs47hxc007by0qu1qmqfflp"
+          }
+        ],
+        "orderIndex": 3
+      }
+    ],
+    "defaultActiveTab": "all",
+    "tabSpacing": 25,
+    "tabPaddingX": 42,
+    "tabPaddingY": 8,
+    "tabBorderRadius": "rounded-full",
+    "tabBorderWidth": 1,
+    "tabBgColor": null,
+    "tabTextColor": null,
+    "tabBorderColor": null,
+    "activeTabBgColor": null,
+    "activeTabTextColor": null,
+    "activeTabBorderColor": null,
+    "textStyles": {
+      "tab": {},
+      "sectionTitle": {
+        "typographyStyle": "H1"
+      }
+    },
+    "colsDesktop": 4,
+    "colsTablet": 3,
+    "colsMobile": 2,
+    "enableImages": true,
+    "enableVideos": true,
+    "videoTitle": null,
+    "enabled": false
+  },
+  "clientLogos": [
+    {
+      "id": "cmr7j0jsg00f2y0zqcauax57o",
+      "projectId": "cmr7j0jpq00dvy0zqnx2kbisq",
+      "logoUrl": "/uploads/1781603782483_Auralink.png",
+      "orderIndex": 0
+    },
+    {
+      "id": "cmr7j0jsg00f3y0zqin06m5j0",
+      "projectId": "cmr7j0jpq00dvy0zqnx2kbisq",
+      "logoUrl": "/uploads/1781345663317_logo.png",
+      "orderIndex": 1
+    },
+    {
+      "id": "cmr7j0jsh00f4y0zqyagym52j",
+      "projectId": "cmr7j0jpq00dvy0zqnx2kbisq",
+      "logoUrl": "/uploads/1781603782484_BlueNova.png",
+      "orderIndex": 2
+    },
+    {
+      "id": "cmr7j0jsh00f5y0zqace6uwvm",
+      "projectId": "cmr7j0jpq00dvy0zqnx2kbisq",
+      "logoUrl": "/uploads/1781345663317_logo.png",
+      "orderIndex": 3
+    },
+    {
+      "id": "cmr7j0jsh00f6y0zqf6e2qjh3",
+      "projectId": "cmr7j0jpq00dvy0zqnx2kbisq",
+      "logoUrl": "/uploads/1781603782483_BrightPeak.png",
+      "orderIndex": 4
+    },
+    {
+      "id": "cmr7j0jsh00f7y0zq9bm3mdk3",
+      "projectId": "cmr7j0jpq00dvy0zqnx2kbisq",
+      "logoUrl": "/uploads/1781345663317_logo.png",
+      "orderIndex": 5
+    },
+    {
+      "id": "cmr7j0jsh00f8y0zqxha09rwj",
+      "projectId": "cmr7j0jpq00dvy0zqnx2kbisq",
+      "logoUrl": "/uploads/1781603782484_CodeSphere.png",
+      "orderIndex": 6
+    },
+    {
+      "id": "cmr7j0jsh00f9y0zqg8hskplt",
+      "projectId": "cmr7j0jpq00dvy0zqnx2kbisq",
+      "logoUrl": "/uploads/1781345663317_logo.png",
+      "orderIndex": 7
+    },
+    {
+      "id": "cmr7j0jsh00fay0zqmmd2rofw",
+      "projectId": "cmr7j0jpq00dvy0zqnx2kbisq",
+      "logoUrl": "/uploads/1781603782482_CoreVista.png",
+      "orderIndex": 8
+    },
+    {
+      "id": "cmr7j0jsh00fby0zqx2c1yzpq",
+      "projectId": "cmr7j0jpq00dvy0zqnx2kbisq",
+      "logoUrl": "/uploads/1781603782483_FusionLabs.png",
+      "orderIndex": 9
+    },
+    {
+      "id": "cmr7j0jsh00fcy0zqhqht00no",
+      "projectId": "cmr7j0jpq00dvy0zqnx2kbisq",
+      "logoUrl": "/uploads/1781603782601_GreenOrbit.png",
+      "orderIndex": 10
+    },
+    {
+      "id": "cmr7j0jsh00fdy0zq8ksm2gru",
+      "projectId": "cmr7j0jpq00dvy0zqnx2kbisq",
+      "logoUrl": "/uploads/1781603782602_Nexora.png",
+      "orderIndex": 11
+    },
+    {
+      "id": "cmr7j0jsh00fey0zqdhajztkx",
+      "projectId": "cmr7j0jpq00dvy0zqnx2kbisq",
+      "logoUrl": "/uploads/1781603782602_PixelCraft.png",
+      "orderIndex": 12
+    },
+    {
+      "id": "cmr7j0jsh00ffy0zq40tj1vjw",
+      "projectId": "cmr7j0jpq00dvy0zqnx2kbisq",
+      "logoUrl": "/uploads/1781603782603_PrimeWave.png",
+      "orderIndex": 13
+    },
+    {
+      "id": "cmr7j0jsh00fgy0zqko83rf1q",
+      "projectId": "cmr7j0jpq00dvy0zqnx2kbisq",
+      "logoUrl": "/uploads/1781603782603_QuantumEdge.png",
+      "orderIndex": 14
+    },
+    {
+      "id": "cmr7j0jsh00fhy0zqfxeawo5r",
+      "projectId": "cmr7j0jpq00dvy0zqnx2kbisq",
+      "logoUrl": "/uploads/1781603782603_SkyForge.png",
+      "orderIndex": 15
+    },
+    {
+      "id": "cmr7j0jsh00fiy0zqx8w7tody",
+      "projectId": "cmr7j0jpq00dvy0zqnx2kbisq",
+      "logoUrl": "/uploads/1781603782658_UrbanHive.png",
+      "orderIndex": 16
+    },
+    {
+      "id": "cmr7j0jsh00fjy0zqyp7i689w",
+      "projectId": "cmr7j0jpq00dvy0zqnx2kbisq",
+      "logoUrl": "/uploads/1781603782658_Veltrix.png",
+      "orderIndex": 17
+    },
+    {
+      "id": "cmr7j0jsh00fky0zqnvcbqql3",
+      "projectId": "cmr7j0jpq00dvy0zqnx2kbisq",
+      "logoUrl": "/uploads/1781603782658_Zenova.png",
+      "orderIndex": 18
+    }
+  ],
+  "clientsSetting": {
+    "id": "cmr7j0jq300dzy0zqy9whe6rj",
+    "projectId": "cmr7j0jpq00dvy0zqnx2kbisq",
+    "textStyles": {
+      "align": "center",
+      "typographyStyle": "H1"
+    },
+    "logoSpacing": 72,
+    "logoGrayscale": false,
+    "logoOpacity": 100,
+    "logoHoverEffect": "both",
+    "createdAt": "2026-06-16T10:15:11.777Z",
+    "updatedAt": "2026-07-05T06:46:46.393Z"
+  },
+  "videos": [],
+  "ctaSetting": {
+    "id": "cmr7j0jqb00e3y0zq0q5e8meg",
+    "projectId": "cmr7j0jpq00dvy0zqnx2kbisq",
+    "heading": "Ready to Give Your Child the Best Education?",
+    "description": "Join a community where students are inspired to learn, grow, and succeed. Discover a school that nurtures academic excellence, creativity, confidence, and lifelong values.",
+    "buttonText": "Apply for Admission",
+    "buttonLink": "#contact-form",
+    "bgType": "COLOR",
+    "bgColor": null,
+    "bgImage": "",
+    "textColor": null,
+    "buttonColor": null,
+    "overlayColor": null,
+    "overlayOpacity": 40,
+    "textStyles": {
+      "heading": {
+        "typographyStyle": "H1"
+      },
+      "badgeText": "Book Today",
+      "buttonText": {
+        "typographyStyle": "H4"
+      },
+      "description": {
+        "typographyStyle": "H4"
+      }
+    },
+    "bgPattern": {
+      "size": 13,
+      "type": "diagonal-lines",
+      "color": "#ffffff",
+      "enabled": true,
+      "opacity": 0.15,
+      "position": "center"
+    }
+  },
+  "reviewSetting": {
+    "id": "cmr7j0jqv00efy0zqn0a49ijm",
+    "projectId": "cmr7j0jpq00dvy0zqnx2kbisq",
+    "reviewType": "MANUAL",
+    "googlePlaceId": "",
+    "googleApiKey": ""
+  },
+  "manualReviews": [
+    {
+      "id": "cmr8po93e0002y0e3i29bieah",
+      "projectId": "cmr7j0jpq00dvy0zqnx2kbisq",
+      "customerName": "John",
+      "companyOrDesignation": "",
+      "reviewText": "Our child has grown academically and personally since joining this school. The teachers genuinely care about every student and create a positive learning environment.\"",
+      "textStyles": {
+        "reviewText": {
+          "typographyStyle": "Paragraph"
+        },
+        "customerName": {
+          "typographyStyle": "H4"
+        },
+        "sectionTitle": {
+          "badgeText": "Reviews",
+          "typographyStyle": "H1"
+        }
+      }
+    },
+    {
+      "id": "cmr8po93e0003y0e39qrlzlhw",
+      "projectId": "cmr7j0jpq00dvy0zqnx2kbisq",
+      "customerName": "Elizabeth Reynolds",
+      "companyOrDesignation": "",
+      "reviewText": "The balance between academics and extracurricular activities is excellent. Our daughter loves coming to school every day.",
+      "textStyles": {
+        "reviewText": {
+          "typographyStyle": "Paragraph"
+        },
+        "customerName": {
+          "typographyStyle": "H4"
+        },
+        "sectionTitle": {
+          "badgeText": "Reviews",
+          "typographyStyle": "H1"
+        }
+      }
+    },
+    {
+      "id": "cmr8po93e0004y0e3saic37a8",
+      "projectId": "cmr7j0jpq00dvy0zqnx2kbisq",
+      "customerName": "Marcus Thorn",
+      "companyOrDesignation": "",
+      "reviewText": "Highly professional teachers, modern facilities, and excellent communication with parents. We couldn't have chosen a better school.",
+      "textStyles": {
+        "reviewText": {
+          "typographyStyle": "Paragraph"
+        },
+        "customerName": {
+          "typographyStyle": "H4"
+        },
+        "sectionTitle": {
+          "badgeText": "Reviews",
+          "typographyStyle": "H1"
+        }
+      }
+    },
+    {
+      "id": "cmr8po93e0005y0e313pmtl7g",
+      "projectId": "cmr7j0jpq00dvy0zqnx2kbisq",
+      "customerName": "Sophia Patel",
+      "companyOrDesignation": "",
+      "reviewText": "The teachers are caring, approachable, and truly invested in every student's growth. The school's focus on academics, discipline, and overall development has made a remarkable difference in our son's confidence and learning.",
+      "textStyles": {
+        "reviewText": {
+          "typographyStyle": "Paragraph"
+        },
+        "customerName": {
+          "typographyStyle": "H4"
+        },
+        "sectionTitle": {
+          "badgeText": "Reviews",
+          "typographyStyle": "H1"
+        }
+      }
+    }
+  ],
+  "marqueeSetting": {
+    "id": "cmr7j0jsd00f1y0zqqxu57z3r",
+    "projectId": "cmr7j0jpq00dvy0zqnx2kbisq",
+    "isEnabled": true,
+    "autoSync": true,
+    "customContent": null,
+    "speed": 30,
+    "direction": "left",
+    "bgColor": null,
+    "textColor": null,
+    "textStyles": null
+  },
+  "customContentSections": [
+    {
+      "id": "cmr7j0jsz00g6y0zqm9zln2gr",
+      "projectId": "cmr7j0jpq00dvy0zqnx2kbisq",
+      "title": "Custom Section Original",
+      "description": "This is the original custom section content.",
+      "orderIndex": 0,
+      "isEnabled": true,
+      "headingColor": "",
+      "textColor": "",
+      "bgColor": "theme",
+      "textStyles": {
+        "title": {
+          "align": "left"
+        },
+        "description": {
+          "align": "left"
+        }
+      }
+    },
+    {
+      "id": "cmr7j0jsz00g7y0zqqt3xd7l8",
+      "projectId": "cmr7j0jpq00dvy0zqnx2kbisq",
+      "title": "Custom Business Architecture Consulting",
+      "description": "Every enterprise operates with its own culture, regulatory landscape, and technology stack. That is why our strategy team designs custom solutions that address your unique competitive environment. We don't believe in generic frameworks \u2014 only tailored pathways to operational success.",
+      "orderIndex": 0,
+      "isEnabled": true,
+      "headingColor": null,
+      "textColor": null,
+      "bgColor": null,
+      "textStyles": null
+    }
+  ],
+  "footerSetting": {
+    "id": "cmr7j0jqg00e7y0zqrkblnb6b",
+    "projectId": "cmr7j0jpq00dvy0zqnx2kbisq",
+    "logoUrl": "/uploads/1782136607417_logo_sticky_footer.png",
+    "backgroundColor": null,
+    "textColor": null,
+    "linkColor": null,
+    "companyName": null,
+    "description": "Driving enterprise innovation, automation, and sustainable market leadership.",
+    "address": "789 Corporate Way, Floor 14, Financial District",
+    "addressIcon": "MapPin",
+    "phoneNumber": "+1 (555) 0899",
+    "phoneIcon": "Phone",
+    "emailAddress": "advisors@consultancy.com",
+    "emailIcon": "Mail",
+    "copyrightText": "\u00a9 2026 Apex Corporate. All rights reserved.",
+    "googleMapsUrl": "https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3944.446768771585!2d76.6538!3d10.7867!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3ba86df2b3d8c3f1%3A0x9d8e5d3f5a8c1d2a!2sPalakkad%2C%20Kerala!5e0!3m2!1sen!2sin!4v1750000000000",
+    "textStyles": {
+      "address": {
+        "fontSize": 14,
+        "typographyStyle": "Paragraph"
+      },
+      "description": {
+        "fontSize": 14,
+        "typographyStyle": "Paragraph"
+      },
+      "phoneNumber": {
+        "fontSize": 14,
+        "typographyStyle": "Paragraph"
+      },
+      "emailAddress": {
+        "fontSize": 14,
+        "typographyStyle": "Paragraph"
+      },
+      "copyrightText": {
+        "align": "center",
+        "fontSize": 12
+      }
+    },
+    "footerMenuStyle": {
+      "align": "left",
+      "spacing": 10,
+      "fontSize": 14,
+      "textColor": "#ffffff",
+      "fontWeight": "400"
+    },
+    "socialMedias": [
+      {
+        "id": "cmr7j0jub00hjy0zqo385of92",
+        "footerSettingId": "cmr7j0jqg00e7y0zqrkblnb6b",
+        "platformName": "Facebook",
+        "url": "#"
+      },
+      {
+        "id": "cmr7j0jub00hky0zqaieu8eoz",
+        "footerSettingId": "cmr7j0jqg00e7y0zqrkblnb6b",
+        "platformName": "Instagram",
+        "url": "#"
+      },
+      {
+        "id": "cmr7j0jub00hly0zqzh0wc2l7",
+        "footerSettingId": "cmr7j0jqg00e7y0zqrkblnb6b",
+        "platformName": "YouTube",
+        "url": "#"
+      }
+    ],
+    "quickLinks": [
+      {
+        "id": "cmr7j0juf00hmy0zqp3wt0ymc",
+        "footerSettingId": "cmr7j0jqg00e7y0zqrkblnb6b",
+        "linkName": "Home",
+        "linkUrl": "#",
+        "isEnabled": true,
+        "orderIndex": 0
+      },
+      {
+        "id": "cmr7j0juf00hny0zqr8y3o1c7",
+        "footerSettingId": "cmr7j0jqg00e7y0zqrkblnb6b",
+        "linkName": "About Us",
+        "linkUrl": "#about",
+        "isEnabled": true,
+        "orderIndex": 1
+      },
+      {
+        "id": "cmr7j0juf00hoy0zqetmfjwp1",
+        "footerSettingId": "cmr7j0jqg00e7y0zqrkblnb6b",
+        "linkName": "Facilities",
+        "linkUrl": "#facilities",
+        "isEnabled": true,
+        "orderIndex": 2
+      },
+      {
+        "id": "cmr7j0juf00hpy0zqaxqsz85r",
+        "footerSettingId": "cmr7j0jqg00e7y0zqrkblnb6b",
+        "linkName": "Contact Us",
+        "linkUrl": "#contact-form",
+        "isEnabled": true,
+        "orderIndex": 5
+      },
+      {
+        "id": "cmr7j0juf00hqy0zqwyodrtxt",
+        "footerSettingId": "cmr7j0jqg00e7y0zqrkblnb6b",
+        "linkName": "Our Team",
+        "linkUrl": "#our-team",
+        "isEnabled": true,
+        "orderIndex": 5
+      },
+      {
+        "id": "cmr7j0juf00hry0zqriv87v64",
+        "footerSettingId": "cmr7j0jqg00e7y0zqrkblnb6b",
+        "linkName": "Faq",
+        "linkUrl": "#faq",
+        "isEnabled": true,
+        "orderIndex": 5
+      }
+    ]
+  },
+  "floatingButtonSetting": {
+    "id": "cmr7j0js000evy0zq7od55m2w",
+    "projectId": "cmr7j0jpq00dvy0zqnx2kbisq",
+    "whatsappNumber": "+15550899",
+    "defaultMessage": "Hello, I would like to schedule a corporate consulting strategy call.",
+    "callNumber": "+15550899",
+    "whatsappEnabled": true,
+    "callEnabled": true,
+    "whatsappBgColor": null,
+    "whatsappIconColor": null,
+    "callBgColor": "#071c3b",
+    "callIconColor": null,
+    "scrollIndicatorEnabled": true,
+    "scrollIndicatorBgColor": null,
+    "scrollIndicatorBorderColor": "#ffffff",
+    "scrollIndicatorTextColor": null,
+    "scrollIndicatorHoverColor": null,
+    "scrollIndicatorShadowColor": "#8e97a4",
+    "scrollIndicatorOpacity": 100
+  },
+  "contactFormSetting": {
+    "id": "cmr7j0jq600e1y0zqbpm2qvdp",
+    "projectId": "cmr7j0jpq00dvy0zqnx2kbisq",
+    "title": "Get in Touch",
+    "description": "Have questions about admissions, programs, or campus facilities? Our admission team is here to help you every step of the way.",
+    "notificationEmail": null,
+    "submitButtonText": "Send Request",
+    "enableName": true,
+    "enableEmail": true,
+    "enablePhone": true,
+    "enableMessage": true,
+    "enableRecaptcha": true,
+    "recaptchaSiteKey": null,
+    "recaptchaSecretKey": null,
+    "successMessage": "Thank you for your inquiry. Our admission counselors will get back to you shortly.",
+    "textStyles": {
+      "title": {
+        "typographyStyle": "H1"
+      },
+      "badgeText": "CONTACT US",
+      "description": {
+        "color": "#ffffff",
+        "typographyStyle": "H4"
+      }
+    }
+  },
+  "splitContentSetting": {
+    "id": "cmr7j0jr700ely0zqzside2xh",
+    "projectId": "cmr7j0jpq00dvy0zqnx2kbisq",
+    "title": "Highest Quality Medical Treatment",
+    "content": "Receive world class healthcare with advanced technology, experienced specialists, and compassionate care. We are committed to providing accurate diagnosis, effective treatments, and personalized medical solutions for you and your family.",
+    "titlePosX": 0,
+    "titlePosY": 0,
+    "contentPosX": 0,
+    "contentPosY": 0,
+    "titleAlign": "left",
+    "contentAlign": "left",
+    "titleColor": "#ffffff",
+    "contentColor": "#ffffff",
+    "showButton": true,
+    "buttonText": "Call Us Now",
+    "buttonLink": "#contact-form",
+    "buttonBgColor": null,
+    "buttonTextColor": "#ffffff",
+    "buttonBorderColor": null,
+    "buttonBorderRadius": 4,
+    "buttonHoverColor": null,
+    "columnSpacing": 76,
+    "bgType": "COLOR",
+    "bgColor": null,
+    "bgImage": null,
+    "overlayColor": null,
+    "overlayOpacity": 40,
+    "textStyles": {
+      "title": {
+        "align": "left",
+        "typographyStyle": "cta2"
+      },
+      "button": {
+        "typographyStyle": "H4"
+      },
+      "content": {
+        "align": "left",
+        "typographyStyle": "cta2-text"
+      },
+      "badgeText": "ADVANCED HEALING"
+    },
+    "sectionHeight": "screen"
+  },
+  "saasCarouselSetting": {
+    "id": "cmr7j0jqy00ehy0zq51locs98",
+    "projectId": "cmr7j0jpq00dvy0zqnx2kbisq",
+    "title": "Study in Domestic Universities",
+    "subtitle": "Discover prestigious national institutes, state-of-the-art infrastructure, and high-quality degree programs closer to home.",
+    "badge": "DOMESTIC COLLEGES",
+    "spacingTop": 80,
+    "spacingBottom": 80,
+    "containerWidth": "max-w-7xl",
+    "sectionAlignment": "center",
+    "desktopCardsPerView": 3,
+    "tabletCardsPerView": 2,
+    "mobileCardsPerView": 1,
+    "cardWidth": "auto",
+    "cardHeight": "auto",
+    "carouselGap": 24,
+    "navPosition": "bottom",
+    "autoplay": true,
+    "autoplaySpeed": 3000,
+    "pauseOnHover": true,
+    "infiniteLoop": true,
+    "showArrows": true,
+    "showDots": true,
+    "cardBgColor": null,
+    "glassmorphism": false,
+    "cardShadow": "premium",
+    "imageHeight": "min-h-[500px]",
+    "cardGap": 24,
+    "hoverLift": true,
+    "hoverShadow": true,
+    "hoverScale": false,
+    "contentPositionX": "left",
+    "contentPositionY": "bottom",
+    "contentPaddingTop": 24,
+    "contentPaddingBottom": 24,
+    "contentPaddingLeft": 24,
+    "contentPaddingRight": 24,
+    "textStyles": {
+      "badge": {},
+      "title": {
+        "typographyStyle": "H1"
+      },
+      "subtitle": {
+        "typographyStyle": "Paragraph"
+      }
+    },
+    "badgeColor": null,
+    "badgeBgColor": null,
+    "titleColor": null,
+    "descColor": null,
+    "cardTitleColor": null,
+    "cardDescColor": null,
+    "btnTextColor": null,
+    "btnBgColor": null,
+    "btnHoverColor": null,
+    "navArrowColor": null,
+    "navArrowBgColor": null,
+    "paginationDotColor": null,
+    "overlayOpacity": 0.6
+  },
+  "saasCarouselCards": [
+    {
+      "id": "cmr7j0jt400gby0zq7rbtl33i",
+      "projectId": "cmr7j0jpq00dvy0zqnx2kbisq",
+      "imageUrl": "/category-assets/education-consultancy/domestic-1.png",
+      "title": "Leading Business Schools",
+      "description": "Top-ranked MBA programs with elite faculty and strong national recruitment records.",
+      "showButton": true,
+      "buttonText": "Explore Programs",
+      "buttonLink": null,
+      "orderIndex": 0,
+      "textStyles": {
+        "title": {},
+        "button": {},
+        "description": {}
+      }
+    },
+    {
+      "id": "cmr7j0jt400gcy0zq2qjynwgd",
+      "projectId": "cmr7j0jpq00dvy0zqnx2kbisq",
+      "imageUrl": "/category-assets/education-consultancy/domestic-2.png",
+      "title": "Premier Engineering Colleges",
+      "description": "State-of-the-art research facilities, computing labs, and industry-sponsored tech programs.",
+      "showButton": false,
+      "buttonText": "Explore Programs",
+      "buttonLink": null,
+      "orderIndex": 1,
+      "textStyles": null
+    },
+    {
+      "id": "cmr7j0jt400gdy0zq5r723a9v",
+      "projectId": "cmr7j0jpq00dvy0zqnx2kbisq",
+      "imageUrl": "/category-assets/education-consultancy/domestic-3.png",
+      "title": "Liberal Arts & Sciences",
+      "description": "Interdisciplinary undergraduate programs focused on critical thinking, writing, and leadership.",
+      "showButton": true,
+      "buttonText": "Explore Programs",
+      "buttonLink": null,
+      "orderIndex": 2,
+      "textStyles": {
+        "title": {},
+        "button": {},
+        "description": {}
+      }
+    },
+    {
+      "id": "cmr7j0jt400gey0zqf9n46y26",
+      "projectId": "cmr7j0jpq00dvy0zqnx2kbisq",
+      "imageUrl": "/category-assets/education-consultancy/domestic-4.png",
+      "title": "Medical & Healthcare Sciences",
+      "description": "Renowned healthcare teaching hospitals offering advanced medical, nursing, and dental programs.",
+      "showButton": false,
+      "buttonText": "Explore Programs",
+      "buttonLink": null,
+      "orderIndex": 3,
+      "textStyles": null
+    },
+    {
+      "id": "cmr7j0jt400gfy0zqz97vmei7",
+      "projectId": "cmr7j0jpq00dvy0zqnx2kbisq",
+      "imageUrl": "/category-assets/education-consultancy/domestic-1.png",
+      "title": "Law & Legal Studies",
+      "description": "Preeminent law academies offering integrated BA/BBA LLB programs and court advocacy simulations.",
+      "showButton": true,
+      "buttonText": "Explore Programs",
+      "buttonLink": null,
+      "orderIndex": 4,
+      "textStyles": {
+        "title": {},
+        "button": {},
+        "description": {}
+      }
+    },
+    {
+      "id": "cmr7j0jt400ggy0zqwew36rs0",
+      "projectId": "cmr7j0jpq00dvy0zqnx2kbisq",
+      "imageUrl": "/category-assets/education-consultancy/domestic-2.png",
+      "title": "Design & Media Academies",
+      "description": "Creative pathways in fashion, communication, UX design, and journalism with studio training.",
+      "showButton": false,
+      "buttonText": "Explore Programs",
+      "buttonLink": null,
+      "orderIndex": 5,
+      "textStyles": null
+    },
+    {
+      "id": "cmr7j0jt400ghy0zq9jspqwky",
+      "projectId": "cmr7j0jpq00dvy0zqnx2kbisq",
+      "imageUrl": "/category-assets/education-consultancy/domestic-3.png",
+      "title": "Information Technology & AI",
+      "description": "Advanced computing certifications, bootcamps, and degree options in AI, data science, and security.",
+      "showButton": true,
+      "buttonText": "Explore Programs",
+      "buttonLink": null,
+      "orderIndex": 6,
+      "textStyles": {
+        "title": {},
+        "button": {},
+        "description": {}
+      }
+    },
+    {
+      "id": "cmr7j0jt400giy0zqk30wf8jq",
+      "projectId": "cmr7j0jpq00dvy0zqnx2kbisq",
+      "imageUrl": "/category-assets/education-consultancy/domestic-4.png",
+      "title": "Architecture & Design School",
+      "description": "Approved architecture degrees integrating eco-friendly design principles and physical building models.",
+      "showButton": true,
+      "buttonText": "Explore Programs",
+      "buttonLink": null,
+      "orderIndex": 7,
+      "textStyles": {
+        "title": {},
+        "button": {},
+        "description": {}
+      }
+    },
+    {
+      "id": "cmr7j0jt400gjy0zq81sbc7ne",
+      "projectId": "cmr7j0jpq00dvy0zqnx2kbisq",
+      "imageUrl": "/category-assets/education-consultancy/domestic-1.png",
+      "title": "Hospitality & Tourism Management",
+      "description": "Practical professional learning environments with luxury internship affiliations.",
+      "showButton": true,
+      "buttonText": "Explore Programs",
+      "buttonLink": null,
+      "orderIndex": 8,
+      "textStyles": {
+        "title": {},
+        "button": {},
+        "description": {}
+      }
+    },
+    {
+      "id": "cmr7j0jt400gky0zqgqxvufox",
+      "projectId": "cmr7j0jpq00dvy0zqnx2kbisq",
+      "imageUrl": "/category-assets/education-consultancy/domestic-2.png",
+      "title": "Science & Environmental Studies",
+      "description": "Degree programs exploring biochemistry, ecology, and sustainable technology research.",
+      "showButton": true,
+      "buttonText": "Explore Programs",
+      "buttonLink": null,
+      "orderIndex": 9,
+      "textStyles": {
+        "title": {},
+        "button": {},
+        "description": {}
+      }
+    }
+  ],
+  "saasProductSetting": {
+    "id": "cmr7j0jr200ejy0zqu1rrd3i1",
+    "projectId": "cmr7j0jpq00dvy0zqnx2kbisq",
+    "title": " Top Historical Places",
+    "subtitle": "Choose from leading education hubs across the globe to pursue your academic ambitions.",
+    "badge": "Historical",
+    "spacingTop": 80,
+    "spacingBottom": 80,
+    "containerWidth": "max-w-7xl",
+    "sectionAlignment": "center",
+    "autoplay": true,
+    "autoplaySpeed": 3000,
+    "pauseOnHover": true,
+    "infiniteLoop": true,
+    "showArrows": true,
+    "showDots": true,
+    "cardBgColor": null,
+    "glassmorphism": false,
+    "cardShadow": "premium",
+    "imageHeight": "min-h-[550px]",
+    "cardGap": 24,
+    "hoverLift": true,
+    "hoverShadow": true,
+    "hoverScale": true,
+    "overlayOpacity": 0.5,
+    "contentPositionX": "left",
+    "contentPositionY": "bottom",
+    "contentPaddingTop": 48,
+    "contentPaddingBottom": 48,
+    "contentPaddingLeft": 48,
+    "contentPaddingRight": 48,
+    "textStyles": {
+      "badge": {},
+      "title": {
+        "typographyStyle": "H1"
+      },
+      "subtitle": {
+        "typographyStyle": "Paragraph"
+      }
+    },
+    "badgeColor": null,
+    "badgeBgColor": null,
+    "titleColor": null,
+    "descColor": null,
+    "cardTitleColor": null,
+    "cardDescColor": null,
+    "btnTextColor": null,
+    "btnBgColor": null,
+    "btnHoverColor": null,
+    "navArrowColor": null,
+    "navArrowBgColor": null,
+    "paginationDotColor": null
+  },
+  "saasProductCards": [
+    {
+      "id": "cmr8pqjb80008y0e31jkpgj9g",
+      "projectId": "cmr7j0jpq00dvy0zqnx2kbisq",
+      "imageUrl": "/category-assets/education-consultancy/destination-1.png",
+      "title": "Study in United States (USA)",
+      "description": "Home to Ivy League schools and leading research universities. Perfect for STEM fields, MBA, and technology careers.",
+      "showButton": true,
+      "buttonText": "View Universities",
+      "buttonLink": null,
+      "orderIndex": 0,
+      "textStyles": {
+        "title": {},
+        "button": {},
+        "description": {}
+      }
+    },
+    {
+      "id": "cmr8pqjb80009y0e36pseil55",
+      "projectId": "cmr7j0jpq00dvy0zqnx2kbisq",
+      "imageUrl": "/category-assets/education-consultancy/destination-2.png",
+      "title": "Study in United Kingdom (UK)",
+      "description": "Experience centuries of academic tradition, high-intensity 1-year Master's programs, and post-study work pathways.",
+      "showButton": true,
+      "buttonText": "View Universities",
+      "buttonLink": "#",
+      "orderIndex": 1,
+      "textStyles": null
+    },
+    {
+      "id": "cmr8pqjb8000ay0e3nahwv6nq",
+      "projectId": "cmr7j0jpq00dvy0zqnx2kbisq",
+      "imageUrl": "/category-assets/education-consultancy/destination-3.png",
+      "title": "Study in Canada",
+      "description": "Exceptional quality of life, highly affordable public universities, and clear post-graduation work permit opportunities.",
+      "showButton": true,
+      "buttonText": "View Universities",
+      "buttonLink": null,
+      "orderIndex": 2,
+      "textStyles": {
+        "title": {},
+        "button": {},
+        "description": {}
+      }
+    },
+    {
+      "id": "cmr8pqjb8000by0e3b6nxz2sh",
+      "projectId": "cmr7j0jpq00dvy0zqnx2kbisq",
+      "imageUrl": "/category-assets/education-consultancy/destination-4.png",
+      "title": "Study in Australia",
+      "description": "Vibrant lifestyle, top-ranked world universities, outstanding student support, and great post-study work options.",
+      "showButton": true,
+      "buttonText": "View Universities",
+      "buttonLink": "#",
+      "orderIndex": 3,
+      "textStyles": null
+    },
+    {
+      "id": "cmr8pqjb8000cy0e3ude79ssn",
+      "projectId": "cmr7j0jpq00dvy0zqnx2kbisq",
+      "imageUrl": "/category-assets/education-consultancy/destination-5.png",
+      "title": "Study in Germany",
+      "description": "Tuition-free English-taught programs at world-renowned public universities, with a strong focus on engineering and research.",
+      "showButton": true,
+      "buttonText": "View Universities",
+      "buttonLink": null,
+      "orderIndex": 4,
+      "textStyles": {
+        "title": {},
+        "button": {},
+        "description": {}
+      }
+    },
+    {
+      "id": "cmr8pqjb8000dy0e321qsjoo0",
+      "projectId": "cmr7j0jpq00dvy0zqnx2kbisq",
+      "imageUrl": "/category-assets/education-consultancy/destination-6.png",
+      "title": "Study in Ireland & Europe",
+      "description": "Fast-growing tech hubs, rich cultural heritage, post-study work visa opportunities, and highly affordable degrees.",
+      "showButton": true,
+      "buttonText": "View Universities",
+      "buttonLink": "#",
+      "orderIndex": 5,
+      "textStyles": null
+    }
+  ],
+  "faqSetting": {
+    "id": "cmr7j0jqe00e5y0zqkzc5gzur",
+    "projectId": "cmr7j0jpq00dvy0zqnx2kbisq",
+    "title": "Frequently Asked Questions",
+    "subtitle": "Find answers to common questions about our corporate services and onboarding.",
+    "badge": "FAQ",
+    "spacingTop": 80,
+    "spacingBottom": 80,
+    "containerWidth": "max-w-4xl",
+    "sectionAlignment": "center",
+    "cardBgColor": null,
+    "cardShadow": "sm",
+    "hoverLift": true,
+    "hoverShadow": true,
+    "textStyles": {
+      "badge": {},
+      "title": {
+        "typographyStyle": "H1"
+      },
+      "subtitle": {}
+    },
+    "badgeColor": null,
+    "badgeBgColor": null,
+    "titleColor": null,
+    "descColor": null,
+    "cardTitleColor": null,
+    "cardDescColor": null
+  },
+  "faqItems": [
+    {
+      "id": "cmr7j0jtd00gry0zqlnhx6hlq",
+      "projectId": "cmr7j0jpq00dvy0zqnx2kbisq",
+      "question": "What is the typical duration of a strategy engagement?",
+      "answer": "Engagements vary by scope, ranging from a 4-week diagnostic sprint to a multi-month enterprise transformation. We define clear milestones and timelines during our initial alignment phase.",
+      "orderIndex": 0,
+      "textStyles": null
+    },
+    {
+      "id": "cmr7j0jtd00gsy0zqkmgd4dkb",
+      "projectId": "cmr7j0jpq00dvy0zqnx2kbisq",
+      "question": "How do you measure the success of an advisory project?",
+      "answer": "We establish specific, measurable Key Performance Indicators (KPIs) at the start of each project. These typically cover metrics like operational efficiency, cost reduction, or market expansion velocity.",
+      "orderIndex": 1,
+      "textStyles": null
+    },
+    {
+      "id": "cmr7j0jtd00gty0zqusgjvx4j",
+      "projectId": "cmr7j0jpq00dvy0zqnx2kbisq",
+      "question": "Do you work with mid-market businesses or just large enterprises?",
+      "answer": "We support both high-growth mid-market companies aiming to scale and established fortune enterprises navigating complex market transitions.",
+      "orderIndex": 2,
+      "textStyles": null
+    }
+  ],
+  "teamSetting": {
+    "id": "cmr7j0jrc00eny0zqxnf3fx1c",
+    "projectId": "cmr7j0jpq00dvy0zqnx2kbisq",
+    "title": "Meet Our Dedicated Educators",
+    "subtitle": "Experienced Teachers Committed to Student Success",
+    "badge": "Our Team",
+    "spacingTop": 80,
+    "spacingBottom": 80,
+    "containerWidth": "max-w-7xl",
+    "sectionAlignment": "center",
+    "layout": "carousel",
+    "autoplay": true,
+    "autoplaySpeed": 3000,
+    "pauseOnHover": true,
+    "infiniteLoop": true,
+    "showArrows": true,
+    "showDots": true,
+    "cardBgColor": null,
+    "cardShadow": "none",
+    "hoverLift": true,
+    "hoverShadow": true,
+    "hoverScale": false,
+    "textStyles": {
+      "title": {
+        "typographyStyle": "H1"
+      },
+      "subtitle": {
+        "typographyStyle": "H4"
+      },
+      "socialIconColor": "",
+      "socialIconHoverColor": ""
+    },
+    "badgeColor": null,
+    "badgeBgColor": null,
+    "titleColor": null,
+    "descColor": null,
+    "cardTitleColor": null,
+    "cardDescColor": null,
+    "cardSubTitleColor": null,
+    "navArrowColor": null,
+    "navArrowBgColor": null,
+    "paginationDotColor": null
+  },
+  "teamMembers": [
+    {
+      "id": "cmr7j0jtg00guy0zq0l0sgj3t",
+      "projectId": "cmr7j0jpq00dvy0zqnx2kbisq",
+      "imageUrl": "/uploads/1782473761287_Screenshot_2026_06_26_at_5_04_22_PM.png",
+      "name": "Dr. Sarah Johnson",
+      "designation": "Science",
+      "description": "Experienced cardiologist specializing in heart health, preventive care, and advanced cardiovascular treatments with a compassionate patient focused approach.",
+      "socialLinks": {
+        "github": "",
+        "twitter": "https://twitter.com",
+        "website": "#",
+        "facebook": "#",
+        "linkedin": "https://linkedin.com"
+      },
+      "orderIndex": 0,
+      "textStyles": {
+        "title": {},
+        "subtitle": {},
+        "description": {}
+      },
+      "enabled": true
+    },
+    {
+      "id": "cmr7j0jtg00gvy0zqxldjnhya",
+      "projectId": "cmr7j0jpq00dvy0zqnx2kbisq",
+      "imageUrl": "/uploads/1782473800714_Screenshot_2026_06_26_at_5_03_45_PM.png",
+      "name": "Rahul Menon",
+      "designation": "Mathematics",
+      "description": "Expert orthopedic surgeon dedicated to treating bone, joint, and musculoskeletal conditions while helping patients restore mobility and strength.",
+      "socialLinks": {
+        "github": "https://github.com",
+        "twitter": "",
+        "website": "#",
+        "facebook": "#",
+        "linkedin": "https://linkedin.com"
+      },
+      "orderIndex": 1,
+      "textStyles": {
+        "title": {},
+        "subtitle": {},
+        "description": {}
+      },
+      "enabled": true
+    },
+    {
+      "id": "cmr7j0jtg00gwy0zqs0lbt9lm",
+      "projectId": "cmr7j0jpq00dvy0zqnx2kbisq",
+      "imageUrl": "/uploads/1782473906427_Screenshot_2026_06_26_at_5_03_31_PM.png",
+      "name": "Roberts",
+      "designation": "Mathematics",
+      "description": "Compassionate pediatric specialist providing comprehensive healthcare services for infants, children, and adolescents.",
+      "socialLinks": {
+        "github": "",
+        "twitter": "https://twitter.com",
+        "website": "#",
+        "facebook": "#",
+        "linkedin": "https://linkedin.com"
+      },
+      "orderIndex": 2,
+      "textStyles": {
+        "title": {},
+        "subtitle": {},
+        "description": {}
+      },
+      "enabled": true
+    },
+    {
+      "id": "cmr7j0jtg00gxy0zqf1a5y4xq",
+      "projectId": "cmr7j0jpq00dvy0zqnx2kbisq",
+      "imageUrl": "/uploads/1782473923049_Screenshot_2026_06_26_at_5_04_22_PM.png",
+      "name": "Roberts",
+      "designation": "Mathematics",
+      "description": "Compassionate pediatric specialist providing comprehensive healthcare services for infants, children, and adolescents.",
+      "socialLinks": {
+        "github": "",
+        "twitter": "https://twitter.com",
+        "website": "#",
+        "facebook": "#",
+        "linkedin": "https://linkedin.com"
+      },
+      "orderIndex": 3,
+      "textStyles": {
+        "title": {},
+        "subtitle": {},
+        "description": {}
+      },
+      "enabled": true
+    }
+  ],
+  "pricingSetting": {
+    "id": "cmr7j0jqs00edy0zqrmbn0wo6",
+    "projectId": "cmr7j0jpq00dvy0zqnx2kbisq",
+    "title": "Scalable Engagement Plans",
+    "subtitle": "Choose a consultation scope aligned with your enterprise goals.",
+    "badge": null,
+    "spacingTop": 85,
+    "spacingBottom": 80,
+    "containerWidth": "max-w-7xl",
+    "sectionAlignment": "center",
+    "cardBgColor": null,
+    "cardShadow": "none",
+    "hoverLift": true,
+    "hoverShadow": true,
+    "hoverScale": false,
+    "textStyles": {
+      "title": {
+        "typographyStyle": "H1"
+      },
+      "subtitle": {}
+    },
+    "badgeColor": null,
+    "badgeBgColor": null,
+    "titleColor": null,
+    "descColor": null,
+    "cardTitleColor": null,
+    "cardDescColor": null,
+    "priceColor": null,
+    "durationColor": null,
+    "recommendedBadgeColor": null,
+    "recommendedBadgeBgColor": null,
+    "btnTextColor": null,
+    "btnBgColor": null,
+    "btnHoverColor": null,
+    "standardBtnBgColor": null,
+    "standardBtnTextColor": null,
+    "standardBtnHoverColor": null
+  },
+  "pricingPackages": [
+    {
+      "id": "cmr7j0jtk00gyy0zqmivl42ry",
+      "projectId": "cmr7j0jpq00dvy0zqnx2kbisq",
+      "name": "Starter",
+      "price": "$0",
+      "duration": "/mo",
+      "features": [
+        "Single website workspace",
+        "Standard site exports",
+        "Basic design styling options",
+        "Xelevor domain sub-route",
+        "Email support ticketing"
+      ],
+      "buttonText": "Get Started Now",
+      "buttonLink": "#",
+      "isRecommended": false,
+      "orderIndex": 0,
+      "textStyles": {
+        "price": {},
+        "title": {},
+        "description": {}
+      },
+      "enabled": true
+    },
+    {
+      "id": "cmr7j0jtk00gzy0zqzwxwslrq",
+      "projectId": "cmr7j0jpq00dvy0zqnx2kbisq",
+      "name": "Professional",
+      "price": "$49",
+      "duration": "/mo",
+      "features": [
+        "Unlimited website workspaces",
+        "Premium customizable sections",
+        "Priority static ZIP exports",
+        "Custom domain connections",
+        "24/7 dedicated support"
+      ],
+      "buttonText": "Scale Professional",
+      "buttonLink": "#",
+      "isRecommended": true,
+      "orderIndex": 1,
+      "textStyles": null,
+      "enabled": true
+    },
+    {
+      "id": "cmr7j0jtk00h0y0zqzyvgwfab",
+      "projectId": "cmr7j0jpq00dvy0zqnx2kbisq",
+      "name": "Advisory Sprint",
+      "price": "$3,500",
+      "duration": "/mo",
+      "features": [
+        "1-on-1 monthly advisory call",
+        "High-level operational assessment",
+        "Strategic growth roadmap blueprint"
+      ],
+      "buttonText": "Initiate Sprint",
+      "buttonLink": "#contact-form",
+      "isRecommended": false,
+      "orderIndex": 2,
+      "textStyles": null,
+      "enabled": true
+    }
+  ],
+  "sectionData": [
+    {
+      "id": "cmr7j0jty00hby0zql1ia3a49",
+      "projectId": "cmr7j0jpq00dvy0zqnx2kbisq",
+      "sectionId": "benefits-timeline",
+      "data": {
+        "ctaUrl": "#",
+        "ctaText": "",
+        "heading": "Benefits Timeline",
+        "benefits": [
+          {
+            "id": "ben-1",
+            "title": "Expert Team",
+            "number": "01",
+            "iconName": "Award",
+            "iconType": "library",
+            "description": "Professional experts with years of industry experience."
+          },
+          {
+            "id": "ben-2",
+            "title": "Fast Delivery",
+            "number": "02",
+            "iconName": "Zap",
+            "iconType": "library",
+            "description": "Quick turnaround without compromising quality."
+          },
+          {
+            "id": "ben-3",
+            "title": "Affordable Pricing",
+            "number": "03",
+            "iconName": "DollarSign",
+            "iconType": "library",
+            "description": "Premium services at competitive pricing."
+          },
+          {
+            "id": "ben-4",
+            "title": "Dedicated Support",
+            "number": "04",
+            "iconName": "ShieldAlert",
+            "iconType": "library",
+            "description": "Continuous support and assistance."
+          }
+        ],
+        "badgeText": "Process",
+        "descStyle": {},
+        "description": "Highlight your unique SaaS business advantages with our responsive, modern timeline layout.",
+        "headingStyle": {}
+      },
+      "createdAt": "2026-07-05T06:58:24.696Z",
+      "updatedAt": "2026-07-05T06:58:24.696Z"
+    },
+    {
+      "id": "cmr7j0jty00hdy0zqdsscmsbj",
+      "projectId": "cmr7j0jpq00dvy0zqnx2kbisq",
+      "sectionId": "pricing-dup-1782067624849",
+      "data": {
+        "setting": {
+          "badge": null,
+          "title": "Choose Your Plan",
+          "subtitle": "Unlock high-performance tools designed to scale your operations. Cancel or change tier at any time.",
+          "descColor": null,
+          "hoverLift": true,
+          "badgeColor": null,
+          "btnBgColor": null,
+          "cardShadow": "none",
+          "hoverScale": false,
+          "priceColor": null,
+          "spacingTop": 85,
+          "textStyles": {
+            "title": {
+              "typographyStyle": "H1"
+            },
+            "subtitle": {}
+          },
+          "titleColor": null,
+          "cardBgColor": null,
+          "hoverShadow": true,
+          "badgeBgColor": null,
+          "btnTextColor": null,
+          "btnHoverColor": null,
+          "cardDescColor": null,
+          "durationColor": null,
+          "spacingBottom": 80,
+          "cardTitleColor": null,
+          "containerWidth": "max-w-7xl",
+          "sectionAlignment": "center",
+          "standardBtnBgColor": null,
+          "standardBtnTextColor": null,
+          "recommendedBadgeColor": null,
+          "standardBtnHoverColor": null,
+          "recommendedBadgeBgColor": null
+        },
+        "packages": [
+          {
+            "name": "Starter",
+            "price": "$0",
+            "enabled": true,
+            "duration": "/mo",
+            "features": [
+              "Single website workspace",
+              "Standard site exports",
+              "Basic design styling options",
+              "Xelevor domain sub-route",
+              "Email support ticketing"
+            ],
+            "buttonLink": "#",
+            "buttonText": "Get Started Now",
+            "textStyles": {
+              "price": {},
+              "title": {},
+              "description": {}
+            },
+            "isRecommended": false
+          },
+          {
+            "name": "Professional",
+            "price": "$49",
+            "enabled": true,
+            "duration": "/mo",
+            "features": [
+              "Unlimited website workspaces",
+              "Premium customizable sections",
+              "Priority static ZIP exports",
+              "Custom domain connections",
+              "24/7 dedicated support"
+            ],
+            "buttonLink": "#",
+            "buttonText": "Scale Professional",
+            "textStyles": null,
+            "isRecommended": true
+          },
+          {
+            "name": "Enterprise",
+            "price": "$99",
+            "enabled": true,
+            "duration": "/mo",
+            "features": [
+              "Dedicated team dashboard",
+              "SLA & custom platform support",
+              "Whitelabel dashboard styling",
+              "Custom code & JS exports",
+              "Tailored API integrations"
+            ],
+            "buttonLink": "#",
+            "buttonText": "Contact Enterprise",
+            "textStyles": null,
+            "isRecommended": false
+          }
+        ]
+      },
+      "createdAt": "2026-06-21T18:47:04.857Z",
+      "updatedAt": "2026-07-01T15:35:27.197Z"
+    },
+    {
+      "id": "cmr7j0jty00hey0zqe5slocza",
+      "projectId": "cmr7j0jpq00dvy0zqnx2kbisq",
+      "sectionId": "pricing-dup-1782070348802",
+      "data": {
+        "setting": {
+          "badge": null,
+          "title": "Choose Your Plan",
+          "subtitle": "Unlock high-performance tools designed to scale your operations. Cancel or change tier at any time.",
+          "descColor": null,
+          "hoverLift": true,
+          "badgeColor": null,
+          "btnBgColor": null,
+          "cardShadow": "none",
+          "hoverScale": false,
+          "priceColor": null,
+          "spacingTop": 85,
+          "textStyles": {
+            "title": {
+              "typographyStyle": "H1"
+            },
+            "subtitle": {}
+          },
+          "titleColor": null,
+          "cardBgColor": null,
+          "hoverShadow": true,
+          "badgeBgColor": null,
+          "btnTextColor": null,
+          "btnHoverColor": null,
+          "cardDescColor": null,
+          "durationColor": null,
+          "spacingBottom": 80,
+          "cardTitleColor": null,
+          "containerWidth": "max-w-7xl",
+          "sectionAlignment": "center",
+          "standardBtnBgColor": null,
+          "standardBtnTextColor": null,
+          "recommendedBadgeColor": null,
+          "standardBtnHoverColor": null,
+          "recommendedBadgeBgColor": null
+        },
+        "packages": [
+          {
+            "name": "Starter",
+            "price": "$0",
+            "enabled": true,
+            "duration": "/mo",
+            "features": [
+              "Single website workspace",
+              "Standard site exports",
+              "Basic design styling options",
+              "Xelevor domain sub-route",
+              "Email support ticketing"
+            ],
+            "buttonLink": "#",
+            "buttonText": "Get Started Now",
+            "textStyles": {
+              "price": {},
+              "title": {},
+              "description": {}
+            },
+            "isRecommended": false
+          },
+          {
+            "name": "Professional",
+            "price": "$49",
+            "enabled": true,
+            "duration": "/mo",
+            "features": [
+              "Unlimited website workspaces",
+              "Premium customizable sections",
+              "Priority static ZIP exports",
+              "Custom domain connections",
+              "24/7 dedicated support"
+            ],
+            "buttonLink": "#",
+            "buttonText": "Scale Professional",
+            "textStyles": null,
+            "isRecommended": true
+          },
+          {
+            "name": "Enterprise",
+            "price": "$99",
+            "enabled": true,
+            "duration": "/mo",
+            "features": [
+              "Dedicated team dashboard",
+              "SLA & custom platform support",
+              "Whitelabel dashboard styling",
+              "Custom code & JS exports",
+              "Tailored API integrations"
+            ],
+            "buttonLink": "#",
+            "buttonText": "Contact Enterprise",
+            "textStyles": null,
+            "isRecommended": false
+          }
+        ]
+      },
+      "createdAt": "2026-06-21T19:32:28.805Z",
+      "updatedAt": "2026-07-01T15:35:27.199Z"
+    },
+    {
+      "id": "cmr7j0jty00hfy0zqcclhh3jv",
+      "projectId": "cmr7j0jpq00dvy0zqnx2kbisq",
+      "sectionId": "saas-carousel-dup-1783233810090",
+      "data": {
+        "cards": [
+          {
+            "title": "Global MBA & Business",
+            "imageUrl": "/category-assets/education-consultancy/abroad-1.png",
+            "buttonLink": null,
+            "buttonText": "Learn More",
+            "showButton": true,
+            "textStyles": {
+              "title": {},
+              "button": {},
+              "description": {}
+            },
+            "description": "Prestigious business schools in USA, UK, and Europe with outstanding career placement rates."
+          },
+          {
+            "title": "STEM & Computing Degrees",
+            "imageUrl": "/category-assets/education-consultancy/abroad-2.png",
+            "buttonLink": null,
+            "buttonText": "Learn More",
+            "showButton": true,
+            "textStyles": null,
+            "description": "Cutting-edge computing, data engineering, and AI courses from world-famous tech institutions."
+          },
+          {
+            "title": "Creative Arts & Design",
+            "imageUrl": "/category-assets/education-consultancy/abroad-3.png",
+            "buttonLink": null,
+            "buttonText": "Learn More",
+            "showButton": true,
+            "textStyles": {
+              "title": {},
+              "button": {},
+              "description": {}
+            },
+            "description": "Top-ranked international colleges offering degrees in fashion, digital media, and film."
+          },
+          {
+            "title": "Undergraduate Pathway Programs",
+            "imageUrl": "/category-assets/education-consultancy/abroad-4.png",
+            "buttonLink": null,
+            "buttonText": "Learn More",
+            "showButton": true,
+            "textStyles": null,
+            "description": "Dedicated foundation year programs to guarantee admission to top global universities."
+          },
+          {
+            "title": "Healthcare & Biomedical Sciences",
+            "imageUrl": "/category-assets/education-consultancy/abroad-1.png",
+            "buttonLink": null,
+            "buttonText": "Learn More",
+            "showButton": true,
+            "textStyles": {
+              "title": {},
+              "button": {},
+              "description": {}
+            },
+            "description": "Preeminent global programs offering research opportunities in biomedicine and public health."
+          },
+          {
+            "title": "Ecology & Sustainable Sciences",
+            "imageUrl": "/category-assets/education-consultancy/abroad-2.png",
+            "buttonLink": null,
+            "buttonText": "Learn More",
+            "showButton": true,
+            "textStyles": null,
+            "description": "Specialized European degree paths focusing on sustainability policies and green tech research."
+          },
+          {
+            "title": "Hospitality & Culinary Management",
+            "imageUrl": "/category-assets/education-consultancy/abroad-3.png",
+            "buttonLink": null,
+            "buttonText": "Learn More",
+            "showButton": true,
+            "textStyles": {
+              "title": {},
+              "button": {},
+              "description": {}
+            },
+            "description": "Voted best Swiss hospitality courses with integrated luxury hotel placements worldwide."
+          },
+          {
+            "title": "Aviation & Flight Training",
+            "imageUrl": "/category-assets/education-consultancy/abroad-4.png",
+            "buttonLink": null,
+            "buttonText": "Learn More",
+            "showButton": true,
+            "textStyles": {
+              "title": {},
+              "button": {},
+              "description": {}
+            },
+            "description": "Pilot licensing and commercial aviation management programs in USA, Australia, and UK."
+          },
+          {
+            "title": "Humanities & Global Policy",
+            "imageUrl": "/category-assets/education-consultancy/abroad-1.png",
+            "buttonLink": null,
+            "buttonText": "Learn More",
+            "showButton": true,
+            "textStyles": {
+              "title": {},
+              "button": {},
+              "description": {}
+            },
+            "description": "Study politics, international relations, and history at highly prestigious institutions."
+          },
+          {
+            "title": "Pre-Departure Briefings",
+            "imageUrl": "/category-assets/education-consultancy/abroad-2.png",
+            "buttonLink": null,
+            "buttonText": "Learn More",
+            "showButton": true,
+            "textStyles": {
+              "title": {},
+              "button": {},
+              "description": {}
+            },
+            "description": "Practical pre-travel support covering housing search, international insurance, and health guidelines."
+          }
+        ],
+        "setting": {
+          "badge": "GLOBAL EDUCATION",
+          "title": "Study Abroad Pathways",
+          "autoplay": true,
+          "showDots": true,
+          "subtitle": "Unlock life-changing international academic opportunities and jumpstart your global career.",
+          "cardWidth": "auto",
+          "descColor": "",
+          "hoverLift": true,
+          "badgeColor": "",
+          "btnBgColor": "",
+          "cardHeight": "auto",
+          "cardShadow": "premium",
+          "hoverScale": false,
+          "showArrows": true,
+          "spacingTop": 80,
+          "textStyles": {
+            "badge": {},
+            "title": {
+              "typographyStyle": "H1"
+            },
+            "subtitle": {
+              "typographyStyle": "Paragraph"
+            }
+          },
+          "titleColor": "",
+          "cardBgColor": "",
+          "carouselGap": 24,
+          "hoverShadow": true,
+          "imageHeight": "min-h-[500px]",
+          "navPosition": "bottom",
+          "badgeBgColor": "",
+          "btnTextColor": "",
+          "infiniteLoop": true,
+          "pauseOnHover": true,
+          "autoplaySpeed": 3000,
+          "btnHoverColor": "",
+          "cardDescColor": "",
+          "glassmorphism": false,
+          "navArrowColor": "",
+          "spacingBottom": 80,
+          "cardTitleColor": "",
+          "containerWidth": "max-w-7xl",
+          "overlayOpacity": 0.6,
+          "navArrowBgColor": "",
+          "contentPositionX": "left",
+          "contentPositionY": "bottom",
+          "sectionAlignment": "center",
+          "contentPaddingTop": 24,
+          "contentPaddingLeft": 24,
+          "mobileCardsPerView": 1,
+          "paginationDotColor": "",
+          "tabletCardsPerView": 2,
+          "contentPaddingRight": 24,
+          "desktopCardsPerView": 3,
+          "contentPaddingBottom": 24
+        }
+      },
+      "createdAt": "2026-07-05T06:43:30.094Z",
+      "updatedAt": "2026-07-05T07:32:39.001Z"
+    },
+    {
+      "id": "cmr7o5ppv0005y0lgv6zj6c2r",
+      "projectId": "cmr7j0jpq00dvy0zqnx2kbisq",
+      "sectionId": "tourism-hero-slider-dup-1783248573810",
+      "data": {
+        "slides": [
+          {
+            "heading": "Wanderlust in the {Maldives}",
+            "imageUrl": "/category-assets/travel-tourism/images/beach.png",
+            "badgeText": "PRIVATE PARADISE",
+            "buttonLink": "#destinations",
+            "buttonText": "Discover Maldives",
+            "description": "Indulge in crystal-clear turquoise waters, ultra-luxury overwater villas, and private coral reef diving customized to your dream escape."
+          },
+          {
+            "heading": "Conquer the {Swiss Peaks}",
+            "imageUrl": "/category-assets/travel-tourism/images/mountains.png",
+            "badgeText": "ALPINE EXPLORATION",
+            "buttonLink": "#destinations",
+            "buttonText": "Explore Alpine Escapes",
+            "description": "Experience the majestic serenity of snow-capped peaks, crystal alpine lakes, and premium heli-skiing adventures coupled with luxury chalet retreats."
+          },
+          {
+            "heading": "Unveil Santorini's {Twilight Magic}",
+            "imageUrl": "/category-assets/travel-tourism/images/santorini.png",
+            "badgeText": "MEDITERRANEAN ELEGANCE",
+            "buttonLink": "#destinations",
+            "buttonText": "View Santorini Packages",
+            "description": "Savor fine volcanic wine and private yacht excursions beneath iconic white-domed skylines resting on dramatic volcanic cliffs."
+          }
+        ],
+        "btnBgEnd": "#051960",
+        "btnBgStart": "#df4e56",
+        "cardBgColor": "#090d16",
+        "textGradEnd": "",
+        "btnTextColor": "#ffffff",
+        "overlayColor": "#090d16",
+        "cardBgOpacity": 0.45,
+        "textGradStart": "#ffffff",
+        "overlayOpacity": 0.9,
+        "panelLineColor": "#df4e56",
+        "panelTextColor": "#f6cfb9",
+        "cardBorderColor": "#ffffff",
+        "indicatorTextColor": "#f6cfb9",
+        "indicatorActiveColor": "#df4e56"
+      },
+      "createdAt": "2026-07-05T10:49:33.811Z",
+      "updatedAt": "2026-07-05T11:37:37.074Z"
+    },
+    {
+      "id": "cmr7sc60t0001y0wt35ww5nzh",
+      "projectId": "cmr7j0jpq00dvy0zqnx2kbisq",
+      "sectionId": "tourism-offers",
+      "data": {
+        "packages": [
+          {
+            "badge": "All Inclusive",
+            "image": "/category-assets/travel-tourism/images/beach.png",
+            "price": "$1,850",
+            "title": "Maldives Private Island Resort",
+            "duration": "5 Days / 4 Nights",
+            "location": "Maldives, Asia",
+            "buttonLink": "#",
+            "buttonText": "Book Now",
+            "description": "Experience absolute luxury in an overwater villa with a private infinity pool and dedicated butler service."
+          },
+          {
+            "badge": "Adventure",
+            "image": "/category-assets/travel-tourism/images/mountains.png",
+            "price": "$2,450",
+            "title": "Swiss Alps Luxury Chalet Stay",
+            "duration": "7 Days / 6 Nights",
+            "location": "Zermatt, Switzerland",
+            "buttonLink": "#",
+            "buttonText": "Book Now",
+            "description": "Chalet luxury retreats, private helicopter skiing tracks, and scenic alpine panoramas in the heart of Zermatt."
+          },
+          {
+            "badge": "Honeymoon Special",
+            "image": "/category-assets/travel-tourism/images/santorini.png",
+            "price": "$1,290",
+            "title": "Santorini Cliffside Cave Suite",
+            "duration": "4 Days / 3 Nights",
+            "location": "Santorini, Greece",
+            "buttonLink": "#",
+            "buttonText": "Book Now",
+            "description": "Clifftop cave hotels, sunset caldera private cruises, and candlelit dinners overlooking the Aegean Sea."
+          }
+        ],
+        "badgeColor": "#df4e56",
+        "cardBgColor": "#ffffff",
+        "sectionBadge": "EXCLUSIVE OFFERS",
+        "sectionTitle": "Find Your {Perfect Escape}",
+        "btnHoverColor": "",
+        "cardBgOpacity": 2,
+        "cardTextColor": "#051960",
+        "titleTextColor": "#051960",
+        "cardAccentColor": "",
+        "cardBorderColor": "",
+        "titleHighlightEnd": "",
+        "sectionDescription": "Explore our handpicked travel packages curated for the discerning traveler.",
+        "titleHighlightStart": "#051960",
+        "descriptionTextColor": "#051960"
+      },
+      "createdAt": "2026-07-05T12:46:33.342Z",
+      "updatedAt": "2026-07-05T12:52:23.085Z"
+    },
+    {
+      "id": "cmr7qagfz000xy0lgpj31wrcv",
+      "projectId": "cmr7j0jpq00dvy0zqnx2kbisq",
+      "sectionId": "tourism-packages-dup-1783252154303",
+      "data": {
+        "packages": [
+          {
+            "tag": "Beach Paradise",
+            "image": "/category-assets/travel-tourism/images/beach.png",
+            "title": "Maldives",
+            "buttonLink": "#",
+            "buttonText": "Explore",
+            "description": "Bespoke private islands and pristine crystal water reefs."
+          },
+          {
+            "tag": "Alpine Luxury",
+            "image": "/category-assets/travel-tourism/images/mountains.png",
+            "title": "Swiss Alps",
+            "buttonLink": "#",
+            "buttonText": "Explore",
+            "description": "Chalet retreats and private helicopter skiing tracks."
+          },
+          {
+            "tag": "Coastal Romance",
+            "image": "/category-assets/travel-tourism/images/santorini.png",
+            "title": "Santorini",
+            "buttonLink": "#",
+            "buttonText": "Explore",
+            "description": "Clifftop cave hotels and private sunsets caldera cruises."
+          },
+          {
+            "tag": "Wild Safari",
+            "image": "/category-assets/travel-tourism/images/safari.png",
+            "title": "Serengeti",
+            "buttonLink": "#",
+            "buttonText": "Explore",
+            "description": "Elegantly appointed wilderness tents and big five safaris."
+          },
+          {
+            "tag": "Cultural Heritage",
+            "image": "/category-assets/travel-tourism/images/kyoto.png",
+            "title": "Kyoto",
+            "buttonLink": "#",
+            "buttonText": "Explore",
+            "description": "Private zen garden stays and historic geisha district tea tours."
+          },
+          {
+            "tag": "Coastal Luxury",
+            "image": "/category-assets/travel-tourism/images/amalfi.png",
+            "title": "Amalfi Coast",
+            "buttonLink": "#",
+            "buttonText": "Explore",
+            "description": "Scenic driving tours and custom yacht excursions along cliffs."
+          }
+        ],
+        "badgeColor": "#df4e56",
+        "cardBgColor": "#051960",
+        "sectionBadge": "CURATED HAVENS",
+        "sectionTitle": "Explore the World's {Breathtaking Destinations}",
+        "btnHoverColor": "",
+        "cardBgOpacity": 2,
+        "cardTextColor": "#051960",
+        "titleTextColor": "#051960",
+        "cardAccentColor": "",
+        "cardBorderColor": "",
+        "titleHighlightEnd": "#051960",
+        "sectionDescription": "A collection of remote islands, grand mountain ranges, and historic cultural centers handpicked for architectural majesty and natural beauty.",
+        "titleHighlightStart": "#df4e56",
+        "descriptionTextColor": "#051960"
+      },
+      "createdAt": "2026-07-05T11:49:14.303Z",
+      "updatedAt": "2026-07-05T12:23:13.097Z"
+    }
+  ],
+  "pages": []
+}
