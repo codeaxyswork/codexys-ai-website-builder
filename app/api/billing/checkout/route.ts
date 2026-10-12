@@ -1,7 +1,8 @@
 import { NextResponse } from "next/server";
-import { createClient } from "@/utils/supabase/server";
+import { createClient, createAdminClient } from "@/utils/supabase/server";
 import { PLANS } from "@/lib/constants";
 import { getPaymentProvider } from "@/lib/payment-providers";
+import { invalidateUserCache } from "@/lib/cache";
 
 export async function POST(request: Request) {
   try {
@@ -18,12 +19,13 @@ export async function POST(request: Request) {
     const body = await request.json();
     const planId = (body.planId || "").toLowerCase().trim();
 
+    // Explicitly validate requested plan against trusted server-side catalog
     const plan = PLANS[planId];
     if (!plan) {
       return NextResponse.json({ error: "Invalid plan ID specified." }, { status: 400 });
     }
 
-    // Process Mock Payment via Provider Abstraction Layer
+    // Process Mock Payment via Provider Abstraction Layer (using trusted server-side pricing)
     const provider = getPaymentProvider("mock");
     const checkoutResult = await provider.createCheckout({
       userId: user.id,
@@ -40,12 +42,15 @@ export async function POST(request: Request) {
       );
     }
 
+    // Use admin client for privileged database writes under Row Level Security (RLS)
+    const adminSupabase = createAdminClient();
+
     const now = new Date();
     const periodEnd = new Date();
     periodEnd.setDate(now.getDate() + 30);
 
-    // 1. Upsert Subscription
-    const { data: subData, error: subErr } = await supabase
+    // 1. Upsert Subscription with service_role privileges
+    const { data: subData, error: subErr } = await adminSupabase
       .from("subscriptions")
       .upsert(
         {
@@ -66,11 +71,20 @@ export async function POST(request: Request) {
 
     if (subErr) {
       console.error("Checkout Subscription Error:", subErr);
-      return NextResponse.json({ error: subErr.message }, { status: 500 });
+      if ((subErr as any).code === "23503" || subErr.message?.includes("foreign key")) {
+        return NextResponse.json(
+          {
+            error: `Plan '${plan.name}' is currently pending database catalog synchronization. Please select Pro or Agency, or contact support.`,
+            code: "PLAN_CATALOG_UNSYNCHRONIZED",
+          },
+          { status: 409 }
+        );
+      }
+      return NextResponse.json({ error: subErr.message || "Failed to update subscription." }, { status: 500 });
     }
 
-    // 2. Set / Refresh User Credits to New Plan Limit
-    const { error: creditErr } = await supabase
+    // 2. Set / Refresh User Credits to New Plan Limit (Atomic grant)
+    const { error: creditErr } = await adminSupabase
       .from("user_credits")
       .upsert(
         {
@@ -84,10 +98,14 @@ export async function POST(request: Request) {
 
     if (creditErr) {
       console.error("Checkout Credit Upsert Error:", creditErr);
+      return NextResponse.json(
+        { error: "Failed to update credit balance for subscription." },
+        { status: 500 }
+      );
     }
 
-    // 3. Log Billing Transaction
-    const { data: transData, error: transErr } = await supabase
+    // 3. Log Billing Transaction (Explicitly record mock simulation evidence)
+    const { data: transData, error: transErr } = await adminSupabase
       .from("billing_transactions")
       .insert({
         user_id: user.id,
@@ -103,6 +121,8 @@ export async function POST(request: Request) {
           plan_name: plan.name,
           monthly_credits: plan.monthlyCredits,
           max_websites: plan.maxWebsites,
+          provider: "mock",
+          payment_mode: "simulation",
         },
       })
       .select()
@@ -110,7 +130,14 @@ export async function POST(request: Request) {
 
     if (transErr) {
       console.error("Billing Transaction Log Error:", transErr);
+      return NextResponse.json(
+        { error: "Failed to record billing transaction log." },
+        { status: 500 }
+      );
     }
+
+    // 4. Invalidate User Cache so dashboard reflects fresh plan & credits immediately
+    await invalidateUserCache(user.id);
 
     return NextResponse.json({
       success: true,

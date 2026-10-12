@@ -1,7 +1,8 @@
 import { NextResponse } from "next/server";
-import { createClient } from "@/utils/supabase/server";
+import { createClient, createAdminClient } from "@/utils/supabase/server";
 import { PLANS } from "@/lib/constants";
 import { getUserUsage } from "@/lib/billing";
+import { invalidateUserCache } from "@/lib/cache";
 
 export async function POST(request: Request) {
   try {
@@ -58,13 +59,16 @@ export async function POST(request: Request) {
       );
     }
 
+    // Use admin client for privileged database writes under Row Level Security (RLS)
+    const adminSupabase = createAdminClient();
+
     const isUpgrade = targetPlan.monthlyCredits > (PLANS[currentPlanId]?.monthlyCredits || 0);
     const now = new Date();
     const periodEnd = new Date();
     periodEnd.setDate(now.getDate() + 30);
 
-    // 3. Update Subscription
-    const { data: updatedSub, error: subErr } = await supabase
+    // 3. Update Subscription with service_role privileges
+    const { data: updatedSub, error: subErr } = await adminSupabase
       .from("subscriptions")
       .upsert(
         {
@@ -85,11 +89,11 @@ export async function POST(request: Request) {
 
     if (subErr) {
       console.error("Change Plan Subscription Error:", subErr);
-      return NextResponse.json({ error: subErr.message }, { status: 500 });
+      return NextResponse.json({ error: subErr.message || "Failed to change subscription plan." }, { status: 500 });
     }
 
-    // 4. Update Credits Balance
-    await supabase.from("user_credits").upsert(
+    // 4. Update Credits Balance with service_role privileges
+    const { error: creditErr } = await adminSupabase.from("user_credits").upsert(
       {
         user_id: user.id,
         balance: targetPlan.monthlyCredits,
@@ -99,8 +103,16 @@ export async function POST(request: Request) {
       { onConflict: "user_id" }
     );
 
-    // 5. Log Transaction
-    const { data: transData } = await supabase
+    if (creditErr) {
+      console.error("Change Plan Credit Upsert Error:", creditErr);
+      return NextResponse.json(
+        { error: "Failed to update credit balance for changed plan." },
+        { status: 500 }
+      );
+    }
+
+    // 5. Log Transaction (Explicitly record mock simulation evidence)
+    const { data: transData, error: transErr } = await adminSupabase
       .from("billing_transactions")
       .insert({
         user_id: user.id,
@@ -115,10 +127,23 @@ export async function POST(request: Request) {
         metadata: {
           previous_plan: currentPlanId,
           new_plan: targetPlan.id,
+          provider: "mock",
+          payment_mode: "simulation",
         },
       })
       .select()
       .single();
+
+    if (transErr) {
+      console.error("Change Plan Transaction Log Error:", transErr);
+      return NextResponse.json(
+        { error: "Failed to record billing transaction log." },
+        { status: 500 }
+      );
+    }
+
+    // 6. Invalidate User Cache so dashboard reflects fresh plan & credits immediately
+    await invalidateUserCache(user.id);
 
     return NextResponse.json({
       success: true,

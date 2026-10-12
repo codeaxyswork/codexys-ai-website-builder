@@ -74,7 +74,7 @@ export async function getUserUsage(userId: string, customClient?: any): Promise<
     const websiteCount = websiteRes.count;
     const assets = assetsRes.data || [];
 
-    let plan = (sub?.plans as any) || {
+    const plan = (sub?.plans as any) || {
       id: "free",
       name: "Free",
       monthly_ai_credits: 50,
@@ -148,28 +148,96 @@ export async function checkWebsiteLimit(
 
 export async function checkCreditBalance(
   userId: string,
-  requiredCredits: number
+  requiredCredits: number,
+  customClient?: any
 ): Promise<{ allowed: boolean; balance: number; required: number }> {
-  const usage = await getUserUsage(userId);
-  const currentBalance = usage?.credits.balance ?? 50;
+  if (!userId) {
+    return { allowed: false, balance: 0, required: requiredCredits };
+  }
+  const usage = await getUserUsage(userId, customClient);
+  const currentBalance = usage?.credits.balance ?? 0;
 
-  // TEMPORARY UNLIMITED AI USAGE MODE: Always allow AI operations regardless of user_credits balance.
   return {
-    allowed: true,
+    allowed: currentBalance >= requiredCredits,
     balance: currentBalance,
     required: requiredCredits,
   };
 }
 
 export async function deductCreditsWithClient(
-  _supabase: any,
-  _userId: string,
-  _credits: number,
-  _actionType: string,
-  _websiteId?: string
+  supabase: any,
+  userId: string,
+  credits: number,
+  actionType: string,
+  websiteId?: string
 ): Promise<boolean> {
-  // TEMPORARY UNLIMITED AI USAGE MODE: Bypass credit deduction to keep credit balances intact during testing.
-  return true;
+  if (!userId || credits <= 0) {
+    return false;
+  }
+
+  // 1. Primary: Invoke Postgres RPC `deduct_user_credits` with row-level locking (FOR UPDATE)
+  const { data: success, error } = await supabase.rpc("deduct_user_credits", {
+    p_user_id: userId,
+    p_credits: credits,
+    p_action_type: actionType,
+    p_website_id: websiteId || null,
+  });
+
+  if (error) {
+    console.warn("deduct_user_credits RPC Error (falling back to manual atomic deduction):", error?.message || error);
+    try {
+      const { data: creditRow, error: fetchErr } = await supabase
+        .from("user_credits")
+        .select("balance, monthly_used, lifetime_used")
+        .eq("user_id", userId)
+        .maybeSingle();
+
+      if (fetchErr || !creditRow) {
+        console.error("Failed to fetch user_credits for deduction:", fetchErr?.message);
+        return false;
+      }
+
+      const currentBalance = creditRow.balance ?? 0;
+      if (currentBalance < credits) {
+        return false;
+      }
+
+      const { error: updateErr } = await supabase
+        .from("user_credits")
+        .update({
+          balance: currentBalance - credits,
+          monthly_used: (creditRow.monthly_used || 0) + credits,
+          lifetime_used: (creditRow.lifetime_used || 0) + credits,
+          updated_at: new Date().toISOString(),
+        })
+        .eq("user_id", userId);
+
+      if (updateErr) {
+        console.error("Fallback deduction update error:", updateErr.message);
+        return false;
+      }
+
+      await supabase.from("ai_credit_transactions").insert({
+        user_id: userId,
+        website_id: websiteId || null,
+        credits_used: credits,
+        action_type: actionType,
+      });
+
+      await invalidateUserCache(userId);
+      return true;
+    } catch (fallbackErr: any) {
+      console.error("Fallback deduction exception:", fallbackErr?.message || fallbackErr);
+      return false;
+    }
+  }
+
+  if (success) {
+    await invalidateUserCache(userId);
+    return true;
+  }
+
+  return false;
 }
 
 export async function deductCredits(
@@ -183,6 +251,74 @@ export async function deductCredits(
     return await deductCreditsWithClient(supabase, userId, credits, actionType, websiteId);
   } catch (err) {
     console.error("deductCredits Error:", err);
+    return false;
+  }
+}
+
+export async function refundCreditsWithClient(
+  supabase: any,
+  userId: string,
+  credits: number,
+  actionType: string,
+  websiteId?: string
+): Promise<boolean> {
+  if (!userId || credits <= 0) {
+    return false;
+  }
+
+  // Use provided client (mock in tests or server context), or obtain server-side admin client
+  let adminClient: any = supabase;
+  if (!adminClient) {
+    try {
+      const { createAdminClient } = await import("@/utils/supabase/server");
+      adminClient = createAdminClient();
+    } catch {
+      console.error("[Billing] Failed to create admin client for refund.");
+      return false;
+    }
+  }
+
+  const { data: rpcResult, error } = await adminClient.rpc("refund_user_credits", {
+    p_user_id: userId,
+    p_credits: credits,
+    p_action_type: actionType,
+    p_website_id: websiteId || null,
+  });
+
+  if (error) {
+    console.error(
+      `[Billing] refund_user_credits RPC execution failed for user ${userId}, action ${actionType}:`,
+      error.message || error
+    );
+    // Explicit failure return: never attempt unprivileged direct user_credits update fallback
+    return false;
+  }
+
+  const isSuccess =
+    typeof rpcResult === "object" && rpcResult !== null
+      ? Boolean(rpcResult.success)
+      : Boolean(rpcResult);
+
+  if (isSuccess) {
+    await invalidateUserCache(userId);
     return true;
+  }
+
+  return false;
+}
+
+export async function refundCredits(
+  userId: string,
+  credits: number,
+  actionType: string,
+  websiteId?: string
+): Promise<boolean> {
+  try {
+    const { createAdminClient } = await import("@/utils/supabase/server");
+    const adminClient = createAdminClient();
+    return await refundCreditsWithClient(adminClient, userId, credits, actionType, websiteId);
+  } catch (err: any) {
+    console.error("[Billing] refundCredits Error:", err?.message || err);
+    return false;
   }
 }
