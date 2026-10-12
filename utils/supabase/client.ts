@@ -1,7 +1,5 @@
 import { createBrowserClient } from "@supabase/ssr";
 
-const DEFAULT_SUPABASE_URL = "https://yumsturujjjgdxsrqgbm.supabase.co";
-
 export function getAuthRedirectUrl(nextPath?: string): string {
   let origin = "";
   if (typeof window !== "undefined" && window.location?.origin) {
@@ -23,13 +21,15 @@ export function getAuthRedirectUrl(nextPath?: string): string {
 }
 
 export function createClient() {
-  let supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || "";
-  let supabaseAnonKey = (process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || "")
+  const supabaseUrl = (process.env.NEXT_PUBLIC_SUPABASE_URL || "").trim();
+  const supabaseAnonKey = (process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || "")
     .trim()
     .replace(/^["'\s]+|["'\s]+$/g, "");
 
-  if (!supabaseUrl || !supabaseUrl.startsWith("http")) {
-    supabaseUrl = DEFAULT_SUPABASE_URL;
+  if (!supabaseUrl || !supabaseUrl.startsWith("http") || !supabaseAnonKey || supabaseAnonKey.length < 10) {
+    throw new Error(
+      "[Supabase Config Error] NEXT_PUBLIC_SUPABASE_URL or NEXT_PUBLIC_SUPABASE_ANON_KEY is missing or invalid in browser client."
+    );
   }
 
   return createBrowserClient(supabaseUrl, supabaseAnonKey);

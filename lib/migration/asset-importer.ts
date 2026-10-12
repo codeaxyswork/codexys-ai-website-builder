@@ -18,13 +18,7 @@ export interface MigrationAssetImportResult {
 }
 
 export function getSafeAdminClient() {
-  const url = process.env.NEXT_PUBLIC_SUPABASE_URL || "https://yumsturujjjgdxsrqgbm.supabase.co";
-  const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || "";
-
-  const { createClient: createSupabaseDirectClient } = require("@supabase/supabase-js");
-  return createSupabaseDirectClient(url, serviceKey, {
-    auth: { persistSession: false, autoRefreshToken: false },
-  });
+  return createAdminClient();
 }
 
 export function sanitizeFileName(rawName: string): string {
@@ -77,11 +71,13 @@ export function isSupportedAssetUrl(urlStr: string): boolean {
   }
 
   // Exclude assets that are already localized in Codeaxys / Supabase storage
-  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || "https://yumsturujjjgdxsrqgbm.supabase.co";
+  const supabaseUrl = (process.env.NEXT_PUBLIC_SUPABASE_URL || "").trim();
   let supabaseHost = "";
-  try {
-    supabaseHost = new URL(supabaseUrl).hostname.toLowerCase();
-  } catch {}
+  if (supabaseUrl) {
+    try {
+      supabaseHost = new URL(supabaseUrl).hostname.toLowerCase();
+    } catch {}
+  }
 
   if (
     (supabaseHost && lower.includes(supabaseHost)) ||

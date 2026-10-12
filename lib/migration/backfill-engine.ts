@@ -21,13 +21,7 @@ export interface BackfillResult {
 }
 
 function getSafeAdminClient() {
-  const url = process.env.NEXT_PUBLIC_SUPABASE_URL || "https://yumsturujjjgdxsrqgbm.supabase.co";
-  const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || "";
-
-  const { createClient: createSupabaseDirectClient } = require("@supabase/supabase-js");
-  return createSupabaseDirectClient(url, serviceKey, {
-    auth: { persistSession: false, autoRefreshToken: false },
-  });
+  return createAdminClient();
 }
 
 function sanitizeFileName(rawName: string): string {

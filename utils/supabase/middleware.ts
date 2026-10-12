@@ -1,25 +1,25 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 
-const DEFAULT_SUPABASE_URL = "https://yumsturujjjgdxsrqgbm.supabase.co";
-const DEFAULT_SUPABASE_ANON_KEY = "sb_publishable_qZERNQHUEVJN_deBFMDGLw_DQgJDwcS";
-
 export async function updateSession(request: NextRequest) {
   let supabaseResponse = NextResponse.next({
     request,
   });
 
-  let supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || "";
-  let supabaseAnonKey = (process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || "")
+  const supabaseUrl = (process.env.NEXT_PUBLIC_SUPABASE_URL || "").trim();
+  const supabaseAnonKey = (process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || "")
     .trim()
     .replace(/^["'\s]+|["'\s]+$/g, "");
 
-  if (!supabaseUrl || !supabaseUrl.startsWith("http")) {
-    supabaseUrl = DEFAULT_SUPABASE_URL;
-  }
-
-  if (!supabaseAnonKey || supabaseAnonKey === "[SENSITIVE]" || supabaseAnonKey.length < 10) {
-    supabaseAnonKey = DEFAULT_SUPABASE_ANON_KEY;
+  if (!supabaseUrl || !supabaseUrl.startsWith("http") || !supabaseAnonKey || supabaseAnonKey.length < 10) {
+    console.error("[Middleware] Supabase environment configuration is missing or invalid. Request halted closed.");
+    return new NextResponse(
+      JSON.stringify({
+        error: "SERVER_CONFIGURATION_ERROR",
+        message: "Supabase environment configuration is missing or invalid.",
+      }),
+      { status: 500, headers: { "content-type": "application/json" } }
+    );
   }
 
   const applyResponseCookies = (targetRes: NextResponse) => {
@@ -39,11 +39,15 @@ export async function updateSession(request: NextRequest) {
           const rawDomain = (
             process.env.APP_DOMAIN ||
             process.env.NEXT_PUBLIC_APP_DOMAIN ||
-            "codeaxys.com"
+            ""
           ).toLowerCase().trim().replace(/^https?:\/\//i, "").replace(/\/.*$/, "");
 
-          const baseDomain = (rawDomain && !rawDomain.includes("localhost") && !rawDomain.includes("127.0.0.1")) ? rawDomain : "codeaxys.com";
-          const cookieDomain = (baseDomain && !baseDomain.includes("localhost") && !baseDomain.includes("127.0.0.1")) ? `.${baseDomain}` : undefined;
+          const isLocal =
+            !rawDomain ||
+            rawDomain.includes("localhost") ||
+            rawDomain.includes("127.0.0.1");
+
+          const cookieDomain = isLocal ? undefined : `.${rawDomain.replace(/^\./, "")}`;
 
           cookiesToSet.forEach(({ name, value }) => request.cookies.set(name, value));
           supabaseResponse = NextResponse.next({

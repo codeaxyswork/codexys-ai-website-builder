@@ -45,27 +45,8 @@ export interface MetaConnectionRecord {
 /**
  * Server admin Supabase client using SUPABASE_SERVICE_ROLE_KEY if available
  */
-/**
- * Server admin Supabase client using SUPABASE_SERVICE_ROLE_KEY if available
- */
-export function createAdminClient() {
-  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || "https://yumsturujjjgdxsrqgbm.supabase.co";
-  const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
-
-  if (serviceKey && serviceKey !== "[SENSITIVE]" && serviceKey.length > 20) {
-    return createSupabaseDirectClient(supabaseUrl, serviceKey, {
-      auth: { persistSession: false, autoRefreshToken: false },
-    });
-  }
-
-  const anonKey = (process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || "").trim().replace(/^["'\s]+|["'\s]+$/g, "");
-  if (!anonKey) {
-    throw new Error("Supabase API key is missing.");
-  }
-  return createSupabaseDirectClient(supabaseUrl, anonKey, {
-    auth: { persistSession: false, autoRefreshToken: false },
-  });
-}
+import { createAdminClient } from "@/utils/supabase/server";
+export { createAdminClient };
 
 /**
  * Encrypt sensitive OAuth token using AES-256-GCM

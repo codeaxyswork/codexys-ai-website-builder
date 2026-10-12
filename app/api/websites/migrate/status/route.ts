@@ -1,6 +1,7 @@
 import { NextRequest, after } from "next/server";
 import { getMigrationJobState, checkAndAdvanceMigrationJob } from "@/lib/migration/executor";
 import { getWebsitePreviewUrl } from "@/lib/domain-resolver";
+import { createAdminClient } from "@/utils/supabase/server";
 
 export const maxDuration = 60;
 export const dynamic = "force-dynamic";
@@ -16,12 +17,7 @@ function jsonResponse(data: any, status = 200) {
 }
 
 function getSafeAdminClient() {
-  const url = process.env.NEXT_PUBLIC_SUPABASE_URL || "https://yumsturujjjgdxsrqgbm.supabase.co";
-  const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || "";
-  const { createClient: createSupabaseDirectClient } = require("@supabase/supabase-js");
-  return createSupabaseDirectClient(url, serviceKey, {
-    auth: { persistSession: false, autoRefreshToken: false },
-  });
+  return createAdminClient();
 }
 
 export async function GET(req: NextRequest) {

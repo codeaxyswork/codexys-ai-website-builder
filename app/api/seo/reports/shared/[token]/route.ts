@@ -13,8 +13,17 @@ export async function GET(
   try {
     const { token } = await params;
 
-    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || "https://yumsturujjjgdxsrqgbm.supabase.co";
+    const supabaseUrl = (process.env.NEXT_PUBLIC_SUPABASE_URL || "").trim();
     const anonKey = (process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || "").trim().replace(/^["'\s]+|["'\s]+$/g, "");
+
+    if (!supabaseUrl || !supabaseUrl.startsWith("http") || !anonKey || anonKey.length < 10) {
+      console.error("[Shared Report Route Error] Missing or invalid Supabase public configuration. Failing closed.");
+      return NextResponse.json(
+        { error: "Configuration error: Supabase service is not properly configured." },
+        { status: 500 }
+      );
+    }
+
     const supabase = createClient(supabaseUrl, anonKey);
 
     const { data: reportRow, error } = await supabase
