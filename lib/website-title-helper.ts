@@ -11,7 +11,7 @@ export function deriveWebsiteTitle(
   promptText?: string
 ): string {
   // 1. Check plan.brandIdentity if present, concise, and not a prompt command
-  let brandName = plan?.brandIdentity?.trim() || "";
+  const brandName = plan?.brandIdentity?.trim() || "";
   if (brandName && !isPromptLike(brandName, promptText) && brandName.length <= 50) {
     return brandName;
   }
@@ -43,7 +43,7 @@ export function deriveWebsiteTitle(
   }
 
   // 4. Try plan.websiteType (e.g. "Luxury Car Showroom", "Fitness Gym")
-  let websiteType = plan?.websiteType?.trim() || "";
+  const websiteType = plan?.websiteType?.trim() || "";
   if (websiteType && websiteType.length >= 2 && websiteType.length <= 50 && !isPromptLike(websiteType, promptText)) {
     return websiteType;
   }

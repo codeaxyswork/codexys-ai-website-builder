@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { editWebsite } from "@/lib/gemini";
 import { GeneratedFile, WebsitePlan } from "@/lib/types";
 import { createClient } from "@/utils/supabase/server";
-import { checkCreditBalance, deductCredits } from "@/lib/billing";
+import { checkCreditBalance, deductCredits, refundCredits } from "@/lib/billing";
 import { isUserSuspended } from "@/lib/admin-auth";
 import { checkRateLimit } from "@/lib/rate-limit";
 import { CREDIT_COSTS, ERROR_CODES } from "@/lib/constants";
@@ -54,6 +54,32 @@ export async function POST(req: NextRequest) {
       );
     }
 
+    // User rate limit: 15 edits per minute
+    const userRl = checkRateLimit(`edit_user_${user.id}`, { limit: 15, windowMs: 60 * 1000 });
+    if (!userRl.success) {
+      return NextResponse.json(
+        { error: "Too many edit requests. Please slow down." },
+        { status: 429 }
+      );
+    }
+
+    // Verify website ownership upfront if websiteId is provided
+    if (websiteId) {
+      const { data: websiteCheck, error: webErr } = await supabase
+        .from("websites")
+        .select("id, user_id")
+        .eq("id", websiteId)
+        .single();
+
+      if (webErr || !websiteCheck || websiteCheck.user_id !== user.id) {
+        return NextResponse.json(
+          { error: "Website not found or unauthorized access." },
+          { status: 403 }
+        );
+      }
+    }
+
+    // Check balance upfront
     const creditCheck = await checkCreditBalance(user.id, CREDIT_COSTS.AI_EDIT);
     if (!creditCheck.allowed) {
       return NextResponse.json(
@@ -65,19 +91,48 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // 2. Call existing Gemini AI edit (lib/gemini.ts UNTOUCHED)
-    const result = await editWebsite(files as GeneratedFile[], instruction.trim(), images, {
-      conversationLanguage,
-      websiteLanguage,
-    });
+    const opId =
+      req.headers.get("x-request-id") ||
+      req.headers.get("idempotency-key") ||
+      body?.requestId ||
+      crypto.randomUUID();
+    const deductAction = `ai_edit:${opId}`;
+    const refundAction = `refund:${deductAction}`;
 
-    // 3. If user is authenticated and Gemini edit succeeded: save & deduct credits
+    // Deduct credits upfront atomically
+    const deducted = await deductCredits(user.id, CREDIT_COSTS.AI_EDIT, deductAction, websiteId);
+    if (!deducted) {
+      return NextResponse.json(
+        {
+          error: ERROR_CODES.INSUFFICIENT_CREDITS,
+          message: `You need ${CREDIT_COSTS.AI_EDIT} AI credits to edit your website. Insufficient balance or concurrent request in progress.`,
+        },
+        { status: 402 }
+      );
+    }
+
+    // Call existing Gemini AI edit with refund safeguard
+    let result;
+    try {
+      result = await editWebsite(files as GeneratedFile[], instruction.trim(), images, {
+        conversationLanguage,
+        websiteLanguage,
+      });
+
+      if (!result || !result.files || result.files.length === 0) {
+        throw new Error("AI edit produced empty website files.");
+      }
+    } catch (editErr: any) {
+      console.warn("Website edit failed, refunding credits:", editErr?.message || editErr);
+      await refundCredits(user.id, CREDIT_COSTS.AI_EDIT, refundAction, websiteId);
+      throw editErr;
+    }
+
+    // Save edited website to DB
     if (user && result && result.files && result.files.length > 0) {
       if (websiteId) {
         await saveEditedWebsiteToDb(supabase, user.id, websiteId, result.plan, result.files);
       }
-      // Deduct 5 credits atomically (0 credits deducted if Gemini failed above)
-      await deductCredits(user.id, CREDIT_COSTS.AI_EDIT, "ai_edit", websiteId);
     }
 
     return NextResponse.json(result, { status: 200 });

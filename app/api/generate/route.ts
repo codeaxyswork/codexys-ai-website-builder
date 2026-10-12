@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse, after } from "next/server";
 import { generateWebsite } from "@/lib/gemini";
 import { createClient } from "@/utils/supabase/server";
-import { checkWebsiteLimit, checkCreditBalance, deductCredits } from "@/lib/billing";
+import { checkWebsiteLimit, checkCreditBalance, deductCredits, refundCredits } from "@/lib/billing";
 import { isUserSuspended } from "@/lib/admin-auth";
 import { checkRateLimit } from "@/lib/rate-limit";
 import { CREDIT_COSTS, ERROR_CODES } from "@/lib/constants";
@@ -66,7 +66,7 @@ export async function POST(req: NextRequest) {
       }
     }
 
-    // 2. Check AI credit balance
+    // 2. Check AI credit balance & deduct atomically upfront
     const creditCheck = await checkCreditBalance(
       user.id,
       CREDIT_COSTS.INITIAL_GENERATION
@@ -81,13 +81,53 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // 3. Execute existing Gemini website generation (lib/gemini.ts UNTOUCHED)
-    const result = await generateWebsite(prompt.trim(), images, {
-      conversationLanguage,
-      websiteLanguage,
-    });
+    const opId =
+      req.headers.get("x-request-id") ||
+      req.headers.get("idempotency-key") ||
+      body?.requestId ||
+      crypto.randomUUID();
+    const deductAction = `initial_generation:${opId}`;
+    const refundAction = `refund:${deductAction}`;
 
-    // 4. If user is authenticated and Gemini generation succeeded: save & deduct credits
+    const deducted = await deductCredits(
+      user.id,
+      CREDIT_COSTS.INITIAL_GENERATION,
+      deductAction,
+      websiteId
+    );
+    if (!deducted) {
+      return NextResponse.json(
+        {
+          error: ERROR_CODES.INSUFFICIENT_CREDITS,
+          message: `You need ${CREDIT_COSTS.INITIAL_GENERATION} AI credits to generate a website. Insufficient balance or concurrent request in progress.`,
+        },
+        { status: 402 }
+      );
+    }
+
+    // 3. Execute existing Gemini website generation with refund safety
+    let result;
+    try {
+      result = await generateWebsite(prompt.trim(), images, {
+        conversationLanguage,
+        websiteLanguage,
+      });
+
+      if (!result || !result.files || result.files.length === 0) {
+        throw new Error("AI generation produced empty website files.");
+      }
+    } catch (genErr: any) {
+      console.warn("Website generation failed, refunding credits:", genErr?.message || genErr);
+      await refundCredits(
+        user.id,
+        CREDIT_COSTS.INITIAL_GENERATION,
+        refundAction,
+        websiteId
+      );
+      throw genErr;
+    }
+
+    // 4. Save generated website to database
     let savedWebsiteId = websiteId;
     if (user && result && result.files && result.files.length > 0) {
       savedWebsiteId = await saveGeneratedWebsiteToDb(
@@ -97,14 +137,6 @@ export async function POST(req: NextRequest) {
         prompt.trim(),
         result.plan,
         result.files
-      );
-
-      // Deduct credits atomically (0 credits deducted if Gemini failed above)
-      await deductCredits(
-        user.id,
-        CREDIT_COSTS.INITIAL_GENERATION,
-        "initial_generation",
-        savedWebsiteId
       );
 
       // Non-blocking post-response SEO auto-enhancement using Next.js after()

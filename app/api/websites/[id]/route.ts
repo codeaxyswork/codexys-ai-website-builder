@@ -125,31 +125,51 @@ export async function DELETE(
         });
       }
 
-      // B. List all storage objects in bucket 'website-assets' under prefix `${user.id}/${id}/`
-      const websiteStoragePrefix = `${user.id}/${id}`;
-      const { data: storageList } = await dbClient.storage
-        .from("website-assets")
-        .list(websiteStoragePrefix, { limit: 1000 });
+      // B. Recursive listing helper to discover all files across nested folders (e.g., assets/, subdirectories)
+      const listStorageFolderRecursive = async (folderPrefix: string): Promise<string[]> => {
+        const collected: string[] = [];
+        const { data: entries, error } = await dbClient.storage
+          .from("website-assets")
+          .list(folderPrefix, { limit: 1000 });
 
-      if (storageList && storageList.length > 0) {
-        storageList.forEach((fileObj: any) => {
-          if (fileObj.name) {
-            storagePathsToDelete.add(`${websiteStoragePrefix}/${fileObj.name}`);
+        if (error || !entries) return collected;
+
+        for (const entry of entries) {
+          const entryPath = folderPrefix ? `${folderPrefix}/${entry.name}` : entry.name;
+          if (entry.id === null || !entry.metadata) {
+            // Subdirectory -> recurse
+            const nested = await listStorageFolderRecursive(entryPath);
+            collected.push(...nested);
+          } else {
+            // Actual file object
+            collected.push(entryPath);
           }
-        });
-      }
+        }
+        return collected;
+      };
 
+      // Check both standard user-scoped path `${user.id}/${id}` and legacy `${id}`
+      const userWebsiteFiles = await listStorageFolderRecursive(`${user.id}/${id}`);
+      userWebsiteFiles.forEach((p) => storagePathsToDelete.add(p));
+
+      const legacyWebsiteFiles = await listStorageFolderRecursive(`${id}`);
+      legacyWebsiteFiles.forEach((p) => storagePathsToDelete.add(p));
+
+      // C. Remove all discovered storage objects in safe batches
       if (storagePathsToDelete.size > 0) {
         const pathArray = Array.from(storagePathsToDelete);
-        const { error: storageDeleteErr } = await dbClient.storage
-          .from("website-assets")
-          .remove(pathArray);
+        const BATCH_SIZE = 100;
+        for (let i = 0; i < pathArray.length; i += BATCH_SIZE) {
+          const chunk = pathArray.slice(i, i + BATCH_SIZE);
+          const { error: storageDeleteErr } = await dbClient.storage
+            .from("website-assets")
+            .remove(chunk);
 
-        if (storageDeleteErr) {
-          console.warn(`[STORAGE CLEANUP WARN] Failed to remove some storage objects for website ${id}:`, storageDeleteErr.message);
-        } else {
-          console.log(`[STORAGE CLEANUP] Removed ${pathArray.length} storage objects for website ${id}`);
+          if (storageDeleteErr) {
+            console.warn(`[STORAGE CLEANUP WARN] Failed to remove storage batch for website ${id}:`, storageDeleteErr.message);
+          }
         }
+        console.log(`[STORAGE CLEANUP] Recursively removed ${pathArray.length} storage objects for website ${id}`);
       }
     } catch (storageErr: any) {
       console.warn(`[STORAGE CLEANUP ERROR] Non-fatal storage cleanup issue for website ${id}:`, storageErr?.message);

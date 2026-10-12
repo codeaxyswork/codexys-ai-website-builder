@@ -38,22 +38,16 @@ export function useVoiceInput(options: UseVoiceInputOptions = {}): UseVoiceInput
   const [isListening, setIsListening] = useState(false);
   const [interimTranscript, setInterimTranscript] = useState("");
   const [error, setError] = useState<string | null>(null);
-  const [isSupported, setIsSupported] = useState(true);
+  const [isSupported] = useState(() => {
+    if (typeof window === "undefined") return true;
+    return Boolean((window as any).SpeechRecognition || (window as any).webkitSpeechRecognition);
+  });
 
   const recognitionRef = useRef<any>(null);
   const mediaStreamRef = useRef<MediaStream | null>(null);
   const isListeningRef = useRef<boolean>(false);
   const baseTextRef = useRef<string>("");
   const accumulatedFinalRef = useRef<string>("");
-
-  // Check browser support on mount
-  useEffect(() => {
-    if (typeof window !== "undefined") {
-      const SpeechRecognition =
-        (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
-      setIsSupported(Boolean(SpeechRecognition));
-    }
-  }, []);
 
   /**
    * Deterministically stops speech recognition and releases all media tracks immediately.

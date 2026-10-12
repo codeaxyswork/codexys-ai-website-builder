@@ -2,6 +2,10 @@ import { NextRequest, NextResponse } from "next/server";
 import { GoogleGenAI } from "@google/genai";
 import { checkRateLimit } from "@/lib/rate-limit";
 import { getLanguageConfig } from "@/lib/multilingual";
+import { createClient } from "@/utils/supabase/server";
+import { checkCreditBalance, deductCredits, refundCredits } from "@/lib/billing";
+import { CREDIT_COSTS, ERROR_CODES } from "@/lib/constants";
+import { isUserSuspended } from "@/lib/admin-auth";
 
 const ALLOWED_MIME_TYPES = [
   "audio/webm",
@@ -16,17 +20,45 @@ const ALLOWED_MIME_TYPES = [
 
 export async function POST(req: NextRequest) {
   try {
-    // 1. IP Rate Limiting for Public Chatbot Voice Input (15 requests per minute per IP)
+    const supabase = await createClient();
+    const {
+      data: { user },
+      error: authError,
+    } = await supabase.auth.getUser();
+
+    // 1. Enforce Server-Side Authentication
+    if (authError || !user) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: "Authentication required for audio transcription. Please log in first.",
+          code: ERROR_CODES.UNAUTHORIZED,
+        },
+        { status: 401 }
+      );
+    }
+
+    // 2. Check for Account Suspension
+    if (await isUserSuspended(user.id)) {
+      return NextResponse.json(
+        { success: false, error: "Your account has been suspended by an administrator." },
+        { status: 403 }
+      );
+    }
+
+    // 3. User & IP Rate Limiting (10 requests per minute per user, 15 per IP)
     const ip = req.headers.get("x-forwarded-for") || req.headers.get("x-real-ip") || "client-ip";
-    const rl = checkRateLimit(`transcribe_${ip}`, { limit: 15, windowMs: 60 * 1000 });
-    if (!rl.success) {
+    const userRl = checkRateLimit(`transcribe_user_${user.id}`, { limit: 10, windowMs: 60 * 1000 });
+    const ipRl = checkRateLimit(`transcribe_ip_${ip}`, { limit: 15, windowMs: 60 * 1000 });
+
+    if (!userRl.success || !ipRl.success) {
       return NextResponse.json(
         { success: false, error: "Too many transcription requests. Please wait a minute before trying again." },
         { status: 429 }
       );
     }
 
-    // 2. Extract FormData (audio + language)
+    // 4. Extract FormData (audio + language)
     let formData: FormData;
     try {
       formData = await req.formData();
@@ -46,15 +78,15 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // Max 15MB file size validation
-    if (audioFile.size > 15 * 1024 * 1024) {
+    // Max 5MB file size validation (avoids abusive payloads while comfortably fitting 60s voice prompts)
+    if (audioFile.size > 5 * 1024 * 1024) {
       return NextResponse.json(
-        { success: false, error: "Audio recording size exceeds 15MB limit." },
+        { success: false, error: "Audio recording size exceeds 5MB limit." },
         { status: 400 }
       );
     }
 
-    // 3. Detect & Validate MIME Type
+    // 5. Detect & Validate MIME Type
     let mimeType = audioFile.type || "audio/webm";
     if (mimeType.includes(";")) {
       mimeType = mimeType.split(";")[0].trim();
@@ -67,14 +99,50 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // 4. Convert Audio Blob to Base64 (Transient in-memory processing)
+    // 6. Server-Side Credit Check (1 Credit per Audio Transcription)
+    const creditCost = CREDIT_COSTS.AUDIO_TRANSCRIBE;
+    const creditCheck = await checkCreditBalance(user.id, creditCost);
+    if (!creditCheck.allowed) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: `Insufficient AI credits. Audio transcription requires ${creditCost} credit (Balance: ${creditCheck.balance}).`,
+          code: ERROR_CODES.INSUFFICIENT_CREDITS,
+          remainingCredits: creditCheck.balance,
+        },
+        { status: 402 }
+      );
+    }
+
+    const opId =
+      req.headers.get("x-request-id") ||
+      req.headers.get("idempotency-key") ||
+      crypto.randomUUID();
+    const deductAction = `audio_transcribe:${opId}`;
+    const refundAction = `refund:${deductAction}`;
+
+    // 7. Atomic Upfront Credit Deduction to Prevent Concurrent Overspending
+    const deductSuccess = await deductCredits(user.id, creditCost, deductAction);
+    if (!deductSuccess) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: "Credit deduction failed. Insufficient credit balance.",
+          code: ERROR_CODES.INSUFFICIENT_CREDITS,
+        },
+        { status: 402 }
+      );
+    }
+
+    // 8. Convert Audio Blob to Base64 (Transient in-memory processing)
     const arrayBuffer = await audioFile.arrayBuffer();
     const audioBuffer = Buffer.from(arrayBuffer);
     const base64Audio = audioBuffer.toString("base64");
 
-    // 5. Retrieve Server-side Gemini API Key
+    // 9. Retrieve Server-side Gemini API Key
     const apiKey = process.env.GEMINI_API_KEY;
     if (!apiKey || apiKey.trim() === "" || apiKey === "YOUR_GEMINI_API_KEY") {
+      await refundCredits(user.id, creditCost, refundAction);
       return NextResponse.json(
         { success: false, error: "Gemini API Key is not configured on server." },
         { status: 500 }
@@ -83,7 +151,7 @@ export async function POST(req: NextRequest) {
 
     const ai = new GoogleGenAI({ apiKey });
 
-    // 6. Build Language & Custom Terminology Directive
+    // 10. Build Language & Custom Terminology Directive
     const langCfg = getLanguageConfig(languageCode);
     const langContext =
       langCfg && langCfg.code !== "auto"
@@ -113,7 +181,7 @@ TRANSCRIPTION DIRECTIVES (CRITICAL):
 4. RESPONSE FORMAT:
    Return ONLY the raw transcription text string. Do NOT include markdown code blocks, JSON formatting, quotes, or conversational prefix/suffix text. If the audio contains silence or no speech, respond with an empty string.`;
 
-    // 7. Candidate Gemini Transcription Models
+    // 11. Candidate Gemini Transcription Models
     const candidateModels = [
       "gemini-3.5-transcribe",
       "gemini-3.5-flash",
@@ -155,8 +223,10 @@ TRANSCRIPTION DIRECTIVES (CRITICAL):
 
     if (transcriptText === "" && lastError) {
       console.error("[Transcribe Endpoint] All candidate models failed:", lastError);
+      // Refund on failure
+      await refundCredits(user.id, creditCost, refundAction);
       return NextResponse.json(
-        { success: false, error: "AI transcription engine failed to process audio." },
+        { success: false, error: "AI transcription engine failed to process audio. Your credit has been refunded." },
         { status: 500 }
       );
     }
@@ -164,6 +234,8 @@ TRANSCRIPTION DIRECTIVES (CRITICAL):
     return NextResponse.json({
       success: true,
       transcript: transcriptText,
+      creditsDeducted: creditCost,
+      remainingCredits: Math.max(0, creditCheck.balance - creditCost),
     });
   } catch (error: any) {
     console.error("[Transcribe Route Error]:", error);
