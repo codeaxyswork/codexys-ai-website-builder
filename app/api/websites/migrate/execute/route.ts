@@ -3,6 +3,8 @@ import { createClient } from "@/utils/supabase/server";
 import { prepareMigrationDraftWebsite, startOrResumeMigrationJob } from "@/lib/migration/executor";
 import { SourceWebsiteScan, MigrationMode, MigrationSelections } from "@/lib/migration/types";
 import { getWebsitePreviewUrl } from "@/lib/domain-resolver";
+import { checkCreditBalance, deductCredits, refundCredits } from "@/lib/billing";
+import { CREDIT_COSTS, ERROR_CODES } from "@/lib/constants";
 
 export const maxDuration = 60;
 export const dynamic = "force-dynamic";
@@ -70,7 +72,27 @@ export async function POST(req: NextRequest) {
       design: { colors: true, typography: true, spacing: true, layout: true, buttons: true },
     };
 
-    // 1. Prepare/reuse draft website synchronously (< 200ms response time)
+    // 1. Credit Enforcement for AI Redesign Mode (Deterministic modes 'exact' and 'clean' consume 0 AI credits)
+    let redesignCreditsToDeduct = 0;
+    if (selectedMode === "redesign") {
+      const pageCount = Math.max(1, (scanResult.pages || []).length);
+      redesignCreditsToDeduct = pageCount * CREDIT_COSTS.MIGRATION_AI_REDESIGN_PER_PAGE;
+
+      const creditCheck = await checkCreditBalance(user.id, redesignCreditsToDeduct);
+      if (!creditCheck.allowed) {
+        return jsonResponse(
+          {
+            success: false,
+            error: `Insufficient AI credits. AI redesign of ${pageCount} page(s) requires ${redesignCreditsToDeduct} credits (Balance: ${creditCheck.balance}).`,
+            code: ERROR_CODES.INSUFFICIENT_CREDITS,
+            remainingCredits: creditCheck.balance,
+          },
+          402
+        );
+      }
+    }
+
+    // 2. Prepare/reuse draft website synchronously (< 200ms response time)
     const { websiteId, cleanSlug } = await prepareMigrationDraftWebsite(
       user.id,
       scanResult,
@@ -79,13 +101,37 @@ export async function POST(req: NextRequest) {
       runId
     );
 
+    const deductAction = `migration_redesign:${runId}`;
+    const refundAction = `refund:${deductAction}`;
+
+    // 3. Atomically Deduct Credits Upfront for AI Redesign Mode
+    if (selectedMode === "redesign" && redesignCreditsToDeduct > 0) {
+      const deductSuccess = await deductCredits(
+        user.id,
+        redesignCreditsToDeduct,
+        deductAction,
+        websiteId
+      );
+
+      if (!deductSuccess) {
+        return jsonResponse(
+          {
+            success: false,
+            error: "Credit deduction failed. Insufficient credit balance.",
+            code: ERROR_CODES.INSUFFICIENT_CREDITS,
+          },
+          402
+        );
+      }
+    }
+
     const previewUrl = getWebsitePreviewUrl({
       slug: cleanSlug,
       published_slug: cleanSlug,
       is_published: false,
     });
 
-    // 2. Dispatch initial stage execution. The workflow is durable and resumable;
+    // 4. Dispatch initial stage execution. The workflow is durable and resumable;
     // status polling automatically continues execution if this invocation terminates.
     try {
       after(async () => {
@@ -100,6 +146,14 @@ export async function POST(req: NextRequest) {
           });
         } catch (bgErr: any) {
           console.error(`[MIGRATION WORKFLOW BACKGROUND DISPATCH ERROR] runId=${runId}:`, bgErr?.message || bgErr);
+          if (selectedMode === "redesign" && redesignCreditsToDeduct > 0) {
+            await refundCredits(
+              user.id,
+              redesignCreditsToDeduct,
+              refundAction,
+              websiteId
+            );
+          }
         }
       });
     } catch {
@@ -110,8 +164,16 @@ export async function POST(req: NextRequest) {
         mode: selectedMode,
         selections: selectedOptions,
         redesignPrompt,
-      }).catch((bgErr) => {
+      }).catch(async (bgErr) => {
         console.error(`[MIGRATION DIRECT DISPATCH ERROR] runId=${runId}:`, bgErr?.message || bgErr);
+        if (selectedMode === "redesign" && redesignCreditsToDeduct > 0) {
+          await refundCredits(
+            user.id,
+            redesignCreditsToDeduct,
+            refundAction,
+            websiteId
+          );
+        }
       });
     }
 

@@ -90,6 +90,19 @@ export function MigratedEditorClient({ website, initialIndexPage, initialPages =
   // Page loading state for on-demand secondary page fetch
   const [isLoadingPage, setIsLoadingPage] = useState<boolean>(false);
 
+  // Editor mode & viewport controls
+  const [isEditMode, setIsEditMode] = useState<boolean>(true);
+  const [deviceMode, setDeviceMode] = useState<"desktop" | "tablet" | "mobile">("desktop");
+  const [activeLeftTab, setActiveLeftTab] = useState<"layers" | "media">("layers");
+
+  // Selection & Inspector state
+  const [selectedElement, setSelectedElement] = useState<SelectedElementData | null>(null);
+  const [domTree, setDomTree] = useState<any | null>(null);
+
+  // Undo / Redo history stack
+  const [history, setHistory] = useState<SelectedElementData[]>([]);
+  const [historyIndex, setHistoryIndex] = useState<number>(-1);
+
   // Update canvas content when switching active page
   useEffect(() => {
     if (!activePage) return;
@@ -126,19 +139,6 @@ export function MigratedEditorClient({ website, initialIndexPage, initialPages =
         });
     }
   }, [activePageId, activePage, website?.id]);
-
-  // Editor mode & viewport controls
-  const [isEditMode, setIsEditMode] = useState<boolean>(true);
-  const [deviceMode, setDeviceMode] = useState<"desktop" | "tablet" | "mobile">("desktop");
-  const [activeLeftTab, setActiveLeftTab] = useState<"layers" | "media">("layers");
-
-  // Selection & Inspector state
-  const [selectedElement, setSelectedElement] = useState<SelectedElementData | null>(null);
-  const [domTree, setDomTree] = useState<any | null>(null);
-
-  // Undo / Redo history stack
-  const [history, setHistory] = useState<SelectedElementData[]>([]);
-  const [historyIndex, setHistoryIndex] = useState<number>(-1);
 
   // UI status states
   const [isSaving, setIsSaving] = useState(false);

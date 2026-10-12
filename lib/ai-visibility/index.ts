@@ -13,4 +13,5 @@ export * from "./adapters/claude-adapter";
 export * from "./engine";
 export * from "./persistence";
 export * from "./monitoring";
+export * from "./credit-guard";
 

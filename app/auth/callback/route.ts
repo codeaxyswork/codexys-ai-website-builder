@@ -3,8 +3,6 @@ import { createServerClient } from "@supabase/ssr";
 import { type EmailOtpType } from "@supabase/supabase-js";
 import { cookies } from "next/headers";
 
-const DEFAULT_SUPABASE_URL = "https://yumsturujjjgdxsrqgbm.supabase.co";
-
 export async function GET(request: Request) {
   try {
     const requestUrl = new URL(request.url);
@@ -26,24 +24,25 @@ export async function GET(request: Request) {
       ? `${request.headers.get("x-forwarded-proto") || "https"}://${forwardedHost}`
       : requestUrl.origin;
 
-    const cookieStore = await cookies();
-    const response = NextResponse.redirect(targetUrl);
-
-    let supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || "";
-    let supabaseAnonKey = (process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || "")
+    const supabaseUrl = (process.env.NEXT_PUBLIC_SUPABASE_URL || "").trim();
+    const supabaseAnonKey = (process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || "")
       .trim()
       .replace(/^["'\s]+|["'\s]+$/g, "");
 
-    if (!supabaseUrl || !supabaseUrl.startsWith("http")) {
-      supabaseUrl = DEFAULT_SUPABASE_URL;
-    }
-
-    if (!supabaseUrl || !supabaseAnonKey) {
-      console.error("Supabase credentials missing or invalid in /auth/callback");
+    if (!supabaseUrl || !supabaseUrl.startsWith("http") || !supabaseAnonKey || supabaseAnonKey.length < 10) {
+      console.error("[Auth Callback] Missing or invalid Supabase credentials in /auth/callback. Redirecting safely.");
       return NextResponse.redirect(
         `${baseUrl}/login?error=Authentication%20configuration%20error`
       );
     }
+
+    let cookieStore: any = null;
+    try {
+      cookieStore = await cookies();
+    } catch {
+      // Handled if invoked outside request scope
+    }
+    const response = NextResponse.redirect(targetUrl);
 
     const supabase = createServerClient(supabaseUrl, supabaseAnonKey, {
       cookies: {
