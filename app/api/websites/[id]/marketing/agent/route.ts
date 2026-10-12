@@ -1,7 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/utils/supabase/server";
 import { createAdminClient } from "@/lib/marketing/meta-client";
-import { checkCreditBalance, deductCreditsWithClient } from "@/lib/billing";
+import { checkCreditBalance, deductCreditsWithClient, refundCredits } from "@/lib/billing";
+import { checkRateLimit } from "@/lib/rate-limit";
+import { CREDIT_COSTS } from "@/lib/constants";
 import { generateMarketingAgentReply, MarketingAgentChatMessage } from "@/lib/marketing/marketing-agent-ai";
 
 export async function POST(
@@ -39,13 +41,18 @@ export async function POST(
       return NextResponse.json({ error: "Access denied to this website." }, { status: 403 });
     }
 
-    // Billing & Credit Safeguard (5 credits per AI Marketing Agent Query)
-    const CREDIT_COST = 5;
-    const creditStatus = await checkCreditBalance(user.id, CREDIT_COST).catch(() => ({
-      allowed: true,
-      balance: 100,
-      userPlan: "free",
-    }));
+    // Rate limiting: 20 queries per minute per user
+    const rl = checkRateLimit(`marketing-agent:${user.id}`, { limit: 20, windowMs: 60 * 1000 });
+    if (!rl.success) {
+      return NextResponse.json(
+        { error: "Too many marketing agent requests. Please slow down.", code: "RATE_LIMITED" },
+        { status: 429 }
+      );
+    }
+
+    // Billing & Credit Safeguard
+    const CREDIT_COST = CREDIT_COSTS.MARKETING_AGENT;
+    const creditStatus = await checkCreditBalance(user.id, CREDIT_COST);
 
     if (!creditStatus.allowed) {
       return NextResponse.json(
@@ -67,46 +74,74 @@ export async function POST(
       return NextResponse.json({ error: "Please provide a valid marketing query." }, { status: 400 });
     }
 
+    const opId =
+      req.headers.get("x-request-id") ||
+      req.headers.get("idempotency-key") ||
+      body?.requestId ||
+      crypto.randomUUID();
+    const deductAction = `marketing_agent:${opId}`;
+    const refundAction = `refund:${deductAction}`;
+
+    // Deduct credits upfront atomically
+    const deducted = await deductCreditsWithClient(
+      dbClient,
+      user.id,
+      CREDIT_COST,
+      deductAction,
+      websiteId
+    );
+
+    if (!deducted) {
+      return NextResponse.json(
+        {
+          error: "Unable to deduct AI credits. Insufficient balance or concurrent request in progress.",
+          code: "INSUFFICIENT_CREDITS",
+          remainingCredits: creditStatus.balance,
+        },
+        { status: 402 }
+      );
+    }
+
     // Generate Conversational Marketing Agent Response with 10s hard server timeout safeguard
     const serverTimeoutPromise = new Promise<any>((_, reject) =>
       setTimeout(() => reject(new Error("Marketing Agent request processing timed out")), 10000)
     );
 
-    const agentResponse = await Promise.race([
-      generateMarketingAgentReply(
-        dbClient,
-        websiteId,
+    try {
+      const agentResponse = await Promise.race([
+        generateMarketingAgentReply(
+          dbClient,
+          websiteId,
+          user.id,
+          userPrompt.trim(),
+          history,
+          conversationLanguage
+        ),
+        serverTimeoutPromise,
+      ]);
+
+      return NextResponse.json({
+        success: true,
+        response: agentResponse,
+        remainingCredits: Math.max(0, creditStatus.balance - CREDIT_COST),
+      });
+    } catch (err: any) {
+      console.warn("Marketing Agent failed or timed out, processing refund:", err?.message || err);
+      await refundCredits(
         user.id,
-        userPrompt.trim(),
-        history,
-        conversationLanguage
-      ),
-      serverTimeoutPromise,
-    ]).catch((err) => {
-      console.warn("Marketing Agent server timeout notice:", err?.message || err);
-      return {
-        message: "I understand your request. I'm taking a little longer than expected to process. Please specify your daily budget (e.g. ₹500 or ₹1000/day) to proceed.",
-        suggestedActions: ["₹500 / day for 7 days", "₹1000 / day for 7 days"],
-        navigationTarget: "planner",
-      };
-    });
+        CREDIT_COST,
+        refundAction,
+        websiteId
+      );
 
-    // Deduct credits cleanly after successful response generation
-    const deductRes = await deductCreditsWithClient(
-      dbClient,
-      user.id,
-      CREDIT_COST,
-      "MARKETING_AGENT_QUERY",
-      `Queried AI Marketing Agent for website ${websiteId}`
-    ).catch(() => ({ success: true, remainingBalance: creditStatus.balance - CREDIT_COST }));
-
-    const remainingBal = (typeof deductRes === "object" && deductRes !== null && "remainingBalance" in deductRes) ? deductRes.remainingBalance : creditStatus.balance;
-
-    return NextResponse.json({
-      success: true,
-      response: agentResponse,
-      remainingCredits: remainingBal,
-    });
+      return NextResponse.json(
+        {
+          error: err?.message || "Marketing Agent request failed. Your credits have been refunded.",
+          code: "AGENT_EXECUTION_FAILED",
+        },
+        { status: 500 }
+      );
+    }
   } catch (err: any) {
     console.error("Marketing Agent API Error:", err);
     return NextResponse.json(

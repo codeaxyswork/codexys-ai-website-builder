@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/utils/supabase/server";
 import { generateGoogleSearchPlan } from "@/lib/marketing/google-strategy";
+import { checkRateLimit } from "@/lib/rate-limit";
 
 export async function POST(
   req: Request,
@@ -17,6 +18,15 @@ export async function POST(
 
     if (authError || !user) {
       return NextResponse.json({ error: "Unauthorized access" }, { status: 401 });
+    }
+
+    // Rate Limiting (10 requests per minute per user)
+    const rl = checkRateLimit(`google_plan_${user.id}`, { limit: 10, windowMs: 60 * 1000 });
+    if (!rl.success) {
+      return NextResponse.json(
+        { error: "Too many campaign planning requests. Please wait a moment." },
+        { status: 429 }
+      );
     }
 
     const { data: website, error: siteErr } = await supabase
@@ -51,9 +61,13 @@ export async function POST(
     return NextResponse.json(result);
   } catch (err: any) {
     console.error("Google Plan API Route Error:", err);
+    const isCreditError = err?.message?.toLowerCase().includes("insufficient ai credits");
     return NextResponse.json(
-      { error: err?.message || "Failed to generate Google Search campaign plan." },
-      { status: 500 }
+      {
+        error: err?.message || "Failed to generate Google Search campaign plan.",
+        code: isCreditError ? "INSUFFICIENT_CREDITS" : "PLAN_ERROR",
+      },
+      { status: isCreditError ? 402 : 500 }
     );
   }
 }

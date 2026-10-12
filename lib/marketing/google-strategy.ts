@@ -211,7 +211,7 @@ export async function generateGoogleSearchPlan(
 
   // 6. Check credit balance (5 AI credits)
   const REQUIRED_CREDITS = 5;
-  const creditCheck = await checkCreditBalance(userId, REQUIRED_CREDITS).catch(() => ({ allowed: true, balance: 100 }));
+  const creditCheck = await checkCreditBalance(userId, REQUIRED_CREDITS);
   if (!creditCheck.allowed) {
     throw new Error(`Insufficient AI credits. Required: ${REQUIRED_CREDITS}, Current Balance: ${creditCheck.balance}`);
   }
@@ -426,9 +426,10 @@ Generate the complete JSON Google Search campaign plan inside ===GOOGLE_PLAN_STA
   const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
   const dbClient = serviceKey && serviceKey !== "[SENSITIVE]" ? createAdminClient() : supabase;
 
-  await deductCreditsWithClient(dbClient, userId, REQUIRED_CREDITS, "GOOGLE_CAMPAIGN_PLAN", websiteId).catch((err: any) => {
-    console.warn("deductCreditsWithClient skipped in test runner mode:", err?.message || err);
-  });
+  const deducted = await deductCreditsWithClient(dbClient, userId, REQUIRED_CREDITS, "GOOGLE_CAMPAIGN_PLAN", websiteId);
+  if (!deducted) {
+    throw new Error(`Insufficient AI credits. Failed to deduct ${REQUIRED_CREDITS} credits.`);
+  }
 
   // 12. Persist draft into marketing_campaign_drafts
   const { data: draftRow, error: draftErr } = await dbClient

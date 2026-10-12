@@ -13,7 +13,12 @@ export async function POST(
 
     const {
       data: { user },
+      error: authErr,
     } = await supabase.auth.getUser();
+
+    if (authErr || !user) {
+      return NextResponse.json({ error: "Authentication required to approve marketing recommendations." }, { status: 401 });
+    }
 
     const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
     const dbClient = serviceKey && serviceKey !== "[SENSITIVE]" ? createAdminClient() : supabase;
@@ -26,13 +31,14 @@ export async function POST(
       .single();
 
     if (webErr || !website) {
-      return NextResponse.json({ error: "Website not found or access denied." }, { status: 404 });
+      return NextResponse.json({ error: "Website not found." }, { status: 404 });
     }
 
-    const effectiveUserId = user?.id || website.user_id;
-    if (user && website.user_id !== user.id) {
-      return NextResponse.json({ error: "Unauthorized access to optimization approval." }, { status: 403 });
+    if (website.user_id !== user.id) {
+      return NextResponse.json({ error: "Unauthorized access: You do not own this website." }, { status: 403 });
     }
+
+    const effectiveUserId = user.id;
 
     // 2. Fetch recommendation record
     const { data: rec, error: recErr } = await dbClient

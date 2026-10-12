@@ -738,7 +738,10 @@ Generate the complete JSON campaign plan inside ===CAMPAIGN_PLAN_START=== and ==
   const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
   const dbClient = serviceKey && serviceKey !== "[SENSITIVE]" ? createAdminClient() : supabase;
 
-  await deductCreditsWithClient(dbClient, userId, REQUIRED_CREDITS, "MARKETING_CAMPAIGN_PLAN", websiteId);
+  const deducted = await deductCreditsWithClient(dbClient, userId, REQUIRED_CREDITS, "MARKETING_CAMPAIGN_PLAN", websiteId);
+  if (!deducted) {
+    throw new Error(`Insufficient AI credits. Failed to deduct ${REQUIRED_CREDITS} credits.`);
+  }
 
   // 11. Persist reviewable draft to marketing_campaign_drafts
   const { data: draftRow, error: draftErr } = await dbClient

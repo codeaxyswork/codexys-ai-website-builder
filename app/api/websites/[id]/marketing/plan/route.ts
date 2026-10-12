@@ -101,7 +101,17 @@ export async function POST(
       );
     }
 
-    // 4. Parse payload
+    // 4. Rate limiting per User (10 requests per minute)
+    const { checkRateLimit } = await import("@/lib/rate-limit");
+    const rl = checkRateLimit(`mktg_plan_user_${user.id}`, { limit: 10, windowMs: 60 * 1000 });
+    if (!rl.success) {
+      return NextResponse.json(
+        { error: "Too many campaign planning requests. Please wait a moment before trying again." },
+        { status: 429 }
+      );
+    }
+
+    // 5. Parse payload
     const body = await req.json().catch(() => ({}));
     const userGoal = (body.userGoal || "").trim();
     const missingInputs = body.missingInputs;
@@ -113,7 +123,7 @@ export async function POST(
       );
     }
 
-    // 5. Generate Campaign Plan
+    // 6. Generate Campaign Plan (enforces 5 credits via lib/billing.ts)
     const result = await generateCampaignPlan(
       supabase,
       websiteId,
@@ -137,6 +147,12 @@ export async function POST(
     });
   } catch (error: any) {
     console.error("API /api/websites/[id]/marketing/plan POST Error:", error);
+    if (error?.message?.includes("Insufficient AI credits")) {
+      return NextResponse.json(
+        { error: error.message, code: "INSUFFICIENT_CREDITS" },
+        { status: 402 }
+      );
+    }
     return NextResponse.json(
       { error: error?.message || "Failed to generate AI campaign plan." },
       { status: 500 }
