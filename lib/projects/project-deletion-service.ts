@@ -384,8 +384,17 @@ export async function deleteProjectUniversally(
           .eq("website_id", websiteId);
 
         if (adminDelErr) {
-          console.warn(`[CHILD_TABLE_DELETE_WARN] Table ${table} error:`, adminDelErr.message);
-          report.remainingOrphanedResources.push(`table:${table}`);
+          // If the table does not exist in the active schema, it cannot have orphaned records
+          if (
+            adminDelErr.message.includes("Could not find the table") ||
+            adminDelErr.code === "PGRST205" ||
+            adminDelErr.code === "42P01"
+          ) {
+            // Optional table not present in current schema, ignore gracefully
+          } else {
+            console.warn(`[CHILD_TABLE_DELETE_WARN] Table ${table} error:`, adminDelErr.message);
+            report.remainingOrphanedResources.push(`table:${table}`);
+          }
         } else {
           report.childRecordsDeleted[table] = count || 0;
         }
@@ -401,7 +410,18 @@ export async function deleteProjectUniversally(
       }
     }
 
-    // 7. Parent Website Record Deletion
+    // 7. Parent Website Record Deletion Safeguard
+    // If storage cleanup experienced a partial failure, do NOT delete the parent website record.
+    // Keeping the parent website record allows users and automation to safely retry deletion
+    // until all storage assets are completely purged, preventing permanent orphaned objects.
+    if (report.storagePartialFailure) {
+      report.parentDeleted = false;
+      report.cleanupCompleted = false;
+      report.remainingOrphanedResources.push(`row:websites:${websiteId}`);
+      report.errors.push("Storage partial failure encountered; parent record preserved for safe retry.");
+      return report;
+    }
+
     let parentRowDeleted = false;
 
     // Attempt A: via userClient (if user session provided)

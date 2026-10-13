@@ -55,6 +55,14 @@ export function evictInMemoryJob(websiteId: string): void {
   inMemoryJobCache.delete(websiteId);
 }
 
+export function getActiveWorkerForWebsite(websiteId: string): WorkerSession | undefined {
+  return activeWorkers.get(websiteId);
+}
+
+export function registerActiveWorkerForWebsite(websiteId: string, session: WorkerSession): void {
+  activeWorkers.set(websiteId, session);
+}
+
 function getSafeAdminClient() {
   return createAdminClient();
 }
