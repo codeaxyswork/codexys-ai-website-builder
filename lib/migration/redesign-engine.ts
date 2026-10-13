@@ -56,6 +56,29 @@ function sanitizeText(str?: string): string {
 }
 
 /**
+ * Normalizes any image URL (relative, root-relative, protocol-relative, or absolute)
+ * against the source page URL.
+ */
+export function normalizeImageUrl(rawUrl?: string, baseUrl?: string): string {
+  if (!rawUrl || typeof rawUrl !== "string") return "";
+  const trimmed = rawUrl.trim();
+  if (!trimmed || trimmed.startsWith("javascript:")) return "";
+  if (trimmed.startsWith("data:")) {
+    // Preserve valid data URLs unless they are empty or 1x1 placeholders
+    if (trimmed.length < 20 || trimmed.includes("R0lGODlhAQAB")) return "";
+    return trimmed;
+  }
+  if (trimmed.startsWith("//")) return `https:${trimmed}`;
+  if (trimmed.startsWith("http://") || trimmed.startsWith("https://")) return trimmed;
+  if (!baseUrl) return trimmed;
+  try {
+    return new URL(trimmed, baseUrl).href;
+  } catch {
+    return trimmed;
+  }
+}
+
+/**
  * Builds a rich SourcePage object from a full Playwright BrowserPageSnapshot.
  */
 export function buildSourcePageFromBrowserSnapshot(
@@ -100,20 +123,23 @@ export function buildSourcePageFromBrowserSnapshot(
 
   const images: MigrationImage[] = [];
   $("img").each((_, el) => {
-    const src = $(el).attr("src") || $(el).attr("data-src") || $(el).attr("data-lazy-src") || "";
+    const rawSrc = $(el).attr("src") || $(el).attr("data-src") || $(el).attr("data-lazy-src") || $(el).attr("data-original") || "";
     const alt = $(el).attr("alt") || snapshot.title || "Website Image";
-    if (src && (src.startsWith("http://") || src.startsWith("https://"))) {
-      if (!images.some((i) => i.src === src)) {
-        images.push({ src, alt, role: "content" });
-      }
+    const src = normalizeImageUrl(rawSrc, snapshot.url);
+    if (src && !images.some((i) => i.src === src)) {
+      images.push({ src, alt, role: "content" });
     }
   });
 
   if (snapshot.assetUrls) {
+    const supportedExts = [".png", ".jpg", ".jpeg", ".webp", ".svg", ".avif", ".gif"];
     snapshot.assetUrls.forEach((u) => {
-      if (u && (u.endsWith(".png") || u.endsWith(".jpg") || u.endsWith(".jpeg") || u.endsWith(".webp") || u.endsWith(".svg"))) {
-        if (!images.some((i) => i.src === u)) {
-          images.push({ src: u, alt: snapshot.title, role: "content" });
+      if (!u) return;
+      const cleanPath = u.split("?")[0].split("#")[0].toLowerCase();
+      if (supportedExts.some((ext) => cleanPath.endsWith(ext))) {
+        const norm = normalizeImageUrl(u, snapshot.url);
+        if (norm && !images.some((i) => i.src === norm)) {
+          images.push({ src: norm, alt: snapshot.title, role: "content" });
         }
       }
     });
@@ -134,9 +160,10 @@ export function buildSourcePageFromBrowserSnapshot(
 
       const secImgs: MigrationImage[] = [];
       $sec.find("img").each((_, img) => {
-        const s = $(img).attr("src") || $(img).attr("data-src") || "";
+        const rawS = $(img).attr("src") || $(img).attr("data-src") || $(img).attr("data-lazy-src") || $(img).attr("data-original") || "";
         const a = $(img).attr("alt") || secHead || snapshot.title;
-        if (s && (s.startsWith("http://") || s.startsWith("https://"))) {
+        const s = normalizeImageUrl(rawS, snapshot.url);
+        if (s) {
           secImgs.push({ src: s, alt: a, role: "content" });
         }
       });
@@ -150,7 +177,7 @@ export function buildSourcePageFromBrowserSnapshot(
         }
       });
 
-      let type: any = idx === 0 ? "hero" : "content";
+      let type: MigrationSection["type"] = idx === 0 ? "hero" : "content";
       if (el.tagName.toLowerCase() === "header") type = "header";
       if (el.tagName.toLowerCase() === "footer") type = "footer";
 
@@ -180,8 +207,26 @@ export function buildSourcePageFromBrowserSnapshot(
     });
   }
 
-  const logoImg = images.find((i) => i.src.toLowerCase().includes("logo") || i.alt.toLowerCase().includes("logo"))?.src || images[0]?.src || "";
-  const heroBg = snapshot.slides?.[0]?.bgImage || images[0]?.src || "";
+  // 1. Dedicated Header / Navbar Logo Discovery (prioritizes header element, then explicit logo/brand keyword)
+  let headerLogo = "";
+  $("header img, nav img, .header img, .navbar img, [class*='logo'] img, a[class*='brand'] img, [id*='logo'] img").each((_, el) => {
+    if (headerLogo) return;
+    const raw = $(el).attr("src") || $(el).attr("data-src") || "";
+    const norm = normalizeImageUrl(raw, snapshot.url);
+    if (norm) headerLogo = norm;
+  });
+
+  if (!headerLogo) {
+    const explicitLogo = images.find(
+      (i) => i.src.toLowerCase().includes("logo") || i.alt.toLowerCase().includes("logo") || i.src.toLowerCase().includes("brand")
+    );
+    if (explicitLogo) headerLogo = explicitLogo.src;
+  }
+  const logoImg = headerLogo || (images.length > 0 ? images[0].src : "");
+
+  // 2. Hero Background / Hero Image: Prevent logo from being reused as hero card/background when other images exist
+  const candidateHeroImages = images.filter((i) => i.src !== logoImg);
+  const heroBg = snapshot.slides?.[0]?.bgImage || (candidateHeroImages.length > 0 ? candidateHeroImages[0].src : "");
 
   return {
     url: snapshot.url,
@@ -248,11 +293,13 @@ export function extractStructuredSourcePage(page: SourcePage) {
     heroBgImage: page.heroBgImage,
     headings,
     paragraphs,
-    images: images.map((img) => ({
-      src: img.src,
-      alt: img.alt || page.title,
-      role: img.role || "content",
-    })),
+    images: images
+      .map((img) => ({
+        src: normalizeImageUrl(img.src, page.url),
+        alt: img.alt || page.title,
+        role: img.role || "content",
+      }))
+      .filter((img) => Boolean(img.src)),
     links: links.map((l) => ({
       text: l.text,
       href: l.href,
@@ -434,7 +481,10 @@ export function convertPageToCodeaxysNativeRedesign(
     structured.paragraphs[0] ||
     ""
   );
-  const heroImgSrc = structured.images[0]?.src ? sanitizeText(structured.images[0].src) : "";
+  const nonLogoImages = structured.images.filter((i) => i.src !== structured.logoUrl);
+  const heroImgSrc = nonLogoImages[0]?.src
+    ? sanitizeText(nonLogoImages[0].src)
+    : (structured.images.length > 1 ? sanitizeText(structured.images[1].src) : "");
 
   bodyHtml += `
 <section class="relative py-20 px-6 max-w-7xl mx-auto my-6">
@@ -475,7 +525,7 @@ export function convertPageToCodeaxysNativeRedesign(
   const remainingSections = structured.sections.filter((s) => s.type !== "header" && s.type !== "footer");
 
   if (remainingSections.length > 0) {
-    remainingSections.forEach((sec, idx) => {
+    remainingSections.forEach((sec) => {
       const heading = sanitizeText(sec.heading);
       const subheading = sanitizeText(sec.subheading);
       const paras = sec.paragraphs.map(sanitizeText).filter(Boolean);

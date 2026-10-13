@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { requireAdmin, logAdminAction } from "@/lib/admin-auth";
-import { createClient } from "@/utils/supabase/server";
+import { createClient, createAdminClient } from "@/utils/supabase/server";
+import { deleteProjectUniversally } from "@/lib/projects/project-deletion-service";
 
 export async function DELETE(
   request: Request,
@@ -13,36 +14,37 @@ export async function DELETE(
     }
 
     const { id: websiteId } = await params;
-    const supabase = await createClient();
+    const dbClient = createAdminClient();
 
-    const { data: website } = await supabase
-      .from("websites")
-      .select("id, title, user_id")
-      .eq("id", websiteId)
-      .single();
-
-    if (!website) {
-      return NextResponse.json({ error: "Website not found." }, { status: 404 });
-    }
-
-    const { error: delErr } = await supabase.from("websites").delete().eq("id", websiteId);
-
-    if (delErr) {
-      return NextResponse.json({ error: delErr.message }, { status: 500 });
-    }
-
-    await logAdminAction({
-      adminId: adminCtx.user.id,
-      actionType: "WEBSITE_DELETED",
-      targetUserId: website.user_id,
-      targetWebsiteId: websiteId,
-      details: { websiteTitle: website.title },
+    const report = await deleteProjectUniversally({
+      websiteId,
+      userId: adminCtx.user.id,
+      isAdmin: true,
+      dbClient,
     });
 
-    return NextResponse.json({ success: true, message: "Website deleted by admin." });
-  } catch (err: any) {
+    if (!report.cleanupCompleted) {
+      if (report.errors.some((e) => e.includes("Website not found"))) {
+        return NextResponse.json({ error: "Website not found." }, { status: 404 });
+      }
+
+      console.error(`[ADMIN_DELETE_FAILURE] Website ${websiteId}:`, report.errors);
+      return NextResponse.json(
+        {
+          error: "Admin deletion encountered partial failures.",
+          details: report.errors,
+          orphanedResources: report.remainingOrphanedResources,
+          report,
+        },
+        { status: 500 }
+      );
+    }
+
+    return NextResponse.json({ success: true, message: "Website deleted by admin.", report });
+  } catch (err: unknown) {
+    const errorMsg = err instanceof Error ? err.message : "Failed to delete website.";
     console.error("DELETE Admin Website Error:", err);
-    return NextResponse.json({ error: err?.message || "Failed to delete website." }, { status: 500 });
+    return NextResponse.json({ error: errorMsg }, { status: 500 });
   }
 }
 
@@ -79,8 +81,9 @@ export async function POST(
     });
 
     return NextResponse.json({ success: true, message: "Website unpublished by admin." });
-  } catch (err: any) {
+  } catch (err: unknown) {
+    const errorMsg = err instanceof Error ? err.message : "Failed to unpublish website.";
     console.error("POST Admin Unpublish Website Error:", err);
-    return NextResponse.json({ error: err?.message || "Failed to unpublish website." }, { status: 500 });
+    return NextResponse.json({ error: errorMsg }, { status: 500 });
   }
 }

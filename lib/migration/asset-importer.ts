@@ -1,5 +1,5 @@
 import { createAdminClient } from "@/utils/supabase/server";
-import { isPrivateOrReservedIP, validateAndSanitizeUrl } from "./scanner";
+import { isPrivateOrReservedIP } from "./scanner";
 import { invalidateUserCache } from "@/lib/cache";
 import crypto from "crypto";
 
@@ -10,6 +10,9 @@ export interface AssetImportStats {
   failed: number;
   deduplicated: number;
   totalBytes: number;
+  failedUrls?: string[];
+  limitExceededCount?: number;
+  warning?: string;
 }
 
 export interface MigrationAssetImportResult {
@@ -65,7 +68,11 @@ export function isSupportedAssetUrl(urlStr: string): boolean {
     lower.includes("hotjar") ||
     lower.includes("statcounter") ||
     lower.includes("bat.bing.com") ||
-    lower.includes("pixel")
+    /\b(facebook|meta|fb|tiktok|linkedin|twitter|pinterest|snapchat|reddit|tracking|visitor|conversion)[-_.]?pixel\b/i.test(lower) ||
+    lower.includes("/tr/") ||
+    lower.includes("pixel.gif") ||
+    lower.includes("1x1.gif") ||
+    lower.includes("1x1.png")
   ) {
     return false;
   }
@@ -180,11 +187,16 @@ export function isSupportedAssetUrl(urlStr: string): boolean {
   return false;
 }
 
+export interface DiscoveredAsset {
+  rawUrl: string;
+  absoluteUrl: string;
+}
+
 /**
- * Deterministically scans HTML/CSS content to discover all referenced media assets.
- * Extracts src, srcset, data-*, video posters, icons, social preview metadata, and CSS url(...).
+ * Scans HTML or CSS content to discover all referenced media assets, preserving both the raw URL
+ * as found in source markup (which may be root-relative or relative) and the fully-qualified absolute URL.
  */
-export function extractAssetUrlsFromHtml(html: string, baseUrl: string): string[] {
+export function extractAssetMappingsFromHtml(html: string, baseUrl: string): DiscoveredAsset[] {
   if (!html) return [];
   const extracted = new Set<string>();
 
@@ -245,8 +257,10 @@ export function extractAssetUrlsFromHtml(html: string, baseUrl: string): string[
     }
   }
 
-  // Normalize all URLs against baseUrl
-  const absoluteUrls: string[] = [];
+  // Normalize all URLs against baseUrl, preserving raw-to-absolute pairs
+  const results: DiscoveredAsset[] = [];
+  const seenAbs = new Set<string>();
+
   for (const rel of extracted) {
     if (rel.startsWith("data:")) continue;
     let abs = rel;
@@ -258,14 +272,59 @@ export function extractAssetUrlsFromHtml(html: string, baseUrl: string): string[
       }
       const parsed = new URL(abs);
       if ((parsed.protocol === "http:" || parsed.protocol === "https:") && isSupportedAssetUrl(abs)) {
-        absoluteUrls.push(abs);
+        results.push({ rawUrl: rel, absoluteUrl: abs });
+        seenAbs.add(abs);
       }
     } catch {
       // Ignore invalid URLs
     }
   }
 
-  return Array.from(new Set(absoluteUrls));
+  return results;
+}
+
+/**
+ * Deterministically scans HTML/CSS content to discover all referenced media assets.
+ * Extracts src, srcset, data-*, video posters, icons, social preview metadata, and CSS url(...).
+ * Maintained for backwards compatibility with existing consumers.
+ */
+export function extractAssetUrlsFromHtml(html: string, baseUrl: string): string[] {
+  const mappings = extractAssetMappingsFromHtml(html, baseUrl);
+  return Array.from(new Set(mappings.map((m) => m.absoluteUrl)));
+}
+
+/**
+ * Safe, robust URL rewriting in HTML and CSS content.
+ * Safely replaces both absolute URLs and raw relative URLs without corrupting surrounding markup.
+ */
+export function rewriteAssetUrlInContent(content: string, targetUrl: string, replacementUrl: string): string {
+  if (!content || !targetUrl || !replacementUrl || targetUrl === replacementUrl) return content;
+
+  // 1. Direct replacement for absolute URLs and protocol-relative URLs
+  if (targetUrl.startsWith("http://") || targetUrl.startsWith("https://") || targetUrl.startsWith("//")) {
+    return content.replaceAll(targetUrl, replacementUrl);
+  }
+
+  // 2. Safe contextual replacement for relative URLs (e.g. "/images/hero.jpg" or "assets/logo.png")
+  let res = content;
+
+  // Attribute values: ="targetUrl" or ='targetUrl'
+  res = res.replaceAll(`="${targetUrl}"`, `="${replacementUrl}"`);
+  res = res.replaceAll(`='${targetUrl}'`, `='${replacementUrl}'`);
+
+  // CSS url(...): url("targetUrl"), url('targetUrl'), url(targetUrl)
+  res = res.replaceAll(`url("${targetUrl}")`, `url("${replacementUrl}")`);
+  res = res.replaceAll(`url('${targetUrl}')`, `url('${replacementUrl}')`);
+  res = res.replaceAll(`url(${targetUrl})`, `url(${replacementUrl})`);
+
+  // Responsive srcset candidate matching: ensures whitespace/quote/comma boundaries
+  if (res.includes(targetUrl)) {
+    const escaped = targetUrl.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+    const srcsetRegex = new RegExp(`(?<=["',\\s]|^)${escaped}(?=(\\s+[0-9]+[wx])|[,\\s"']|$)`, "g");
+    res = res.replace(srcsetRegex, replacementUrl);
+  }
+
+  return res;
 }
 
 /**
@@ -415,6 +474,7 @@ export async function importAndStoreMigrationAssets(
 
   const urlMap = new Map<string, string>();
   const allDiscoveredUrls = new Set<string>();
+  const absoluteToRawMap = new Map<string, Set<string>>();
 
   // 1. Gather all assets: From live browser DOM + static HTML/CSS scan
   for (const page of pages) {
@@ -427,14 +487,26 @@ export async function importAndStoreMigrationAssets(
       }
     }
 
-    // Assets discovered from HTML content
-    const urlsInPage = extractAssetUrlsFromHtml(page.html_content, baseUrl);
-    urlsInPage.forEach((u) => allDiscoveredUrls.add(u));
+    // Assets discovered from HTML content with raw relative mappings
+    const htmlMappings = extractAssetMappingsFromHtml(page.html_content, baseUrl);
+    for (const m of htmlMappings) {
+      allDiscoveredUrls.add(m.absoluteUrl);
+      if (!absoluteToRawMap.has(m.absoluteUrl)) {
+        absoluteToRawMap.set(m.absoluteUrl, new Set());
+      }
+      absoluteToRawMap.get(m.absoluteUrl)!.add(m.rawUrl);
+    }
 
-    // Assets discovered from CSS content
+    // Assets discovered from CSS content with raw relative mappings
     if (page.css_content) {
-      const urlsInCss = extractAssetUrlsFromHtml(page.css_content, baseUrl);
-      urlsInCss.forEach((u) => allDiscoveredUrls.add(u));
+      const cssMappings = extractAssetMappingsFromHtml(page.css_content, baseUrl);
+      for (const m of cssMappings) {
+        allDiscoveredUrls.add(m.absoluteUrl);
+        if (!absoluteToRawMap.has(m.absoluteUrl)) {
+          absoluteToRawMap.set(m.absoluteUrl, new Set());
+        }
+        absoluteToRawMap.get(m.absoluteUrl)!.add(m.rawUrl);
+      }
     }
   }
 
@@ -488,9 +560,14 @@ export async function importAndStoreMigrationAssets(
 
   const eligibleUrls = urlsToDownload.slice(0, MAX_IMPORT_ASSETS);
   stats.eligible = allDiscoveredUrls.size;
+  const limitExceeded = Math.max(0, urlsToDownload.length - MAX_IMPORT_ASSETS);
+  if (limitExceeded > 0) {
+    stats.limitExceededCount = limitExceeded;
+    stats.warning = `${limitExceeded} assets exceeded limit of ${MAX_IMPORT_ASSETS} and fall back to origin host.`;
+  }
 
   console.log(
-    `[ASSET_IMPORT_DISCOVERY] websiteId=${websiteId} detected=${stats.detected} alreadyImported=${stats.deduplicated} toDownload=${eligibleUrls.length}`
+    `[ASSET_IMPORT_DISCOVERY] websiteId=${websiteId} detected=${stats.detected} alreadyImported=${stats.deduplicated} toDownload=${eligibleUrls.length} limitExceeded=${limitExceeded}`
   );
 
   // 4. Download and store assets in bounded concurrency batches (6 parallel requests)
@@ -574,35 +651,52 @@ export async function importAndStoreMigrationAssets(
   }
 
   // 5. Universal Reference Rewriting across all captured pages (HTML and CSS)
-  if (urlMap.size > 0) {
-    // Sort mappings by sourceUrl length descending to prevent partial URL prefix replacement
-    const sortedReplacements = Array.from(urlMap.entries()).sort(
+  // Build a consolidated replacement mapping of target -> replacement
+  const replacementTargetMap = new Map<string, string>();
+
+  // A. Localized Supabase Storage assets
+  for (const [absUrl, publicUrl] of urlMap.entries()) {
+    replacementTargetMap.set(absUrl, publicUrl);
+    const htmlEncoded = absUrl.replaceAll("&", "&amp;");
+    if (htmlEncoded !== absUrl) replacementTargetMap.set(htmlEncoded, publicUrl);
+    const protoRelative = absUrl.replace(/^https?:/, "");
+    if (protoRelative !== absUrl) replacementTargetMap.set(protoRelative, publicUrl);
+
+    // Raw relative URLs matching this asset
+    const rawSet = absoluteToRawMap.get(absUrl);
+    if (rawSet) {
+      for (const rawUrl of rawSet) {
+        replacementTargetMap.set(rawUrl, publicUrl);
+        const rawEncoded = rawUrl.replaceAll("&", "&amp;");
+        if (rawEncoded !== rawUrl) replacementTargetMap.set(rawEncoded, publicUrl);
+      }
+    }
+  }
+
+  // B. Fallback for unimported / failed assets: Rewrite raw relative URLs to absolute origin URLs so they don't 404
+  for (const [absUrl, rawSet] of absoluteToRawMap.entries()) {
+    if (!urlMap.has(absUrl)) {
+      for (const rawUrl of rawSet) {
+        if (!rawUrl.startsWith("http://") && !rawUrl.startsWith("https://") && !rawUrl.startsWith("//")) {
+          if (!replacementTargetMap.has(rawUrl)) {
+            replacementTargetMap.set(rawUrl, absUrl);
+          }
+        }
+      }
+    }
+  }
+
+  if (replacementTargetMap.size > 0) {
+    // Sort mappings by target length descending to prevent partial URL prefix replacement
+    const sortedReplacements = Array.from(replacementTargetMap.entries()).sort(
       (a, b) => b[0].length - a[0].length
     );
 
     for (const page of pages) {
-      for (const [originalUrl, newPublicUrl] of sortedReplacements) {
-        // Direct absolute match
-        if (page.html_content.includes(originalUrl)) {
-          page.html_content = page.html_content.replaceAll(originalUrl, newPublicUrl);
-        }
-        if (page.css_content && page.css_content.includes(originalUrl)) {
-          page.css_content = page.css_content.replaceAll(originalUrl, newPublicUrl);
-        }
-
-        // HTML-encoded match (e.g. &amp; in URLs)
-        const htmlEncodedUrl = originalUrl.replaceAll("&", "&amp;");
-        if (htmlEncodedUrl !== originalUrl && page.html_content.includes(htmlEncodedUrl)) {
-          page.html_content = page.html_content.replaceAll(htmlEncodedUrl, newPublicUrl);
-        }
-
-        // Protocol-relative match (e.g. //domain.com/path/img.jpg)
-        const protoRelativeUrl = originalUrl.replace(/^https?:/, "");
-        if (protoRelativeUrl !== originalUrl && page.html_content.includes(protoRelativeUrl)) {
-          page.html_content = page.html_content.replaceAll(protoRelativeUrl, newPublicUrl);
-        }
-        if (page.css_content && protoRelativeUrl !== originalUrl && page.css_content.includes(protoRelativeUrl)) {
-          page.css_content = page.css_content.replaceAll(protoRelativeUrl, newPublicUrl);
+      for (const [targetUrl, newPublicUrl] of sortedReplacements) {
+        page.html_content = rewriteAssetUrlInContent(page.html_content, targetUrl, newPublicUrl);
+        if (page.css_content) {
+          page.css_content = rewriteAssetUrlInContent(page.css_content, targetUrl, newPublicUrl);
         }
       }
     }

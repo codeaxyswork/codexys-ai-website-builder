@@ -42,6 +42,19 @@ export interface WorkerSession {
 const activeWorkers = new Map<string, WorkerSession>();
 const inMemoryJobCache = new Map<string, MigrationJobRecord>();
 
+export function cancelActiveWorkerForWebsite(websiteId: string): boolean {
+  const session = activeWorkers.get(websiteId);
+  if (session) {
+    activeWorkers.delete(websiteId);
+  }
+  inMemoryJobCache.delete(websiteId);
+  return Boolean(session);
+}
+
+export function evictInMemoryJob(websiteId: string): void {
+  inMemoryJobCache.delete(websiteId);
+}
+
 function getSafeAdminClient() {
   return createAdminClient();
 }
@@ -564,6 +577,11 @@ export async function startOrResumeMigrationJob(
     }
 
     for (let i = 0; i < totalPages; i++) {
+      // Guard: Abort if website has been deleted or worker was cancelled
+      if (!activeWorkers.has(websiteId)) {
+        console.warn(`[MIGRATION_JOB_ABORTED] websiteId=${websiteId} worker cancelled or website deleted.`);
+        return null;
+      }
       session.lastPing = Date.now();
       const srcPage = pagesToMigrate[i];
       const pageStartTime = Date.now();

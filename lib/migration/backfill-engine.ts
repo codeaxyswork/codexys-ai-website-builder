@@ -1,5 +1,5 @@
 import { createAdminClient } from "@/utils/supabase/server";
-import { extractAssetUrlsFromHtml } from "./asset-importer";
+import { extractAssetMappingsFromHtml, rewriteAssetUrlInContent } from "./asset-importer";
 import { validateAndSanitizeUrl, isPrivateOrReservedIP } from "./scanner";
 import { invalidateUserCache } from "@/lib/cache";
 import crypto from "crypto";
@@ -50,7 +50,11 @@ function isSupportedAssetUrl(urlStr: string): boolean {
     lower.includes("facebook.net") ||
     lower.includes("doubleclick.net") ||
     lower.includes("connect.facebook.net") ||
-    lower.includes("pixel")
+    /\b(facebook|meta|fb|tiktok|linkedin|twitter|pinterest|snapchat|reddit|tracking|visitor|conversion)[-_.]?pixel\b/i.test(lower) ||
+    lower.includes("/tr/") ||
+    lower.includes("pixel.gif") ||
+    lower.includes("1x1.gif") ||
+    lower.includes("1x1.png")
   ) {
     return false;
   }
@@ -232,14 +236,27 @@ export async function runExistingMigrationAssetBackfill(
   // 4. Extract external asset URLs across all 20 pages
   const urlMap = new Map<string, string>(); // externalSourceUrl -> storedPublicUrl
   const allDiscoveredUrls = new Set<string>();
+  const absoluteToRawMap = new Map<string, Set<string>>();
 
   for (const p of pages) {
-    const urlsInPage = extractAssetUrlsFromHtml(p.html_content || "", baseUrl);
-    urlsInPage.forEach((u) => allDiscoveredUrls.add(u));
+    const htmlMappings = extractAssetMappingsFromHtml(p.html_content || "", baseUrl);
+    for (const m of htmlMappings) {
+      allDiscoveredUrls.add(m.absoluteUrl);
+      if (!absoluteToRawMap.has(m.absoluteUrl)) {
+        absoluteToRawMap.set(m.absoluteUrl, new Set());
+      }
+      absoluteToRawMap.get(m.absoluteUrl)!.add(m.rawUrl);
+    }
 
     if (p.css_content) {
-      const urlsInCss = extractAssetUrlsFromHtml(p.css_content, baseUrl);
-      urlsInCss.forEach((u) => allDiscoveredUrls.add(u));
+      const cssMappings = extractAssetMappingsFromHtml(p.css_content, baseUrl);
+      for (const m of cssMappings) {
+        allDiscoveredUrls.add(m.absoluteUrl);
+        if (!absoluteToRawMap.has(m.absoluteUrl)) {
+          absoluteToRawMap.set(m.absoluteUrl, new Set());
+        }
+        absoluteToRawMap.get(m.absoluteUrl)!.add(m.rawUrl);
+      }
     }
   }
 
@@ -337,42 +354,58 @@ export async function runExistingMigrationAssetBackfill(
   }
 
   // 6. Rewrite HTML and CSS in website_pages DB records
-  if (urlMap.size > 0) {
-    const sortedReplacements = Array.from(urlMap.entries()).sort(
+  const replacementTargetMap = new Map<string, string>();
+
+  // A. Localized Supabase Storage assets
+  for (const [absUrl, publicUrl] of urlMap.entries()) {
+    replacementTargetMap.set(absUrl, publicUrl);
+    const htmlEncoded = absUrl.replaceAll("&", "&amp;");
+    if (htmlEncoded !== absUrl) replacementTargetMap.set(htmlEncoded, publicUrl);
+    const protoRelative = absUrl.replace(/^https?:/, "");
+    if (protoRelative !== absUrl) replacementTargetMap.set(protoRelative, publicUrl);
+
+    const rawSet = absoluteToRawMap.get(absUrl);
+    if (rawSet) {
+      for (const rawUrl of rawSet) {
+        replacementTargetMap.set(rawUrl, publicUrl);
+        const rawEncoded = rawUrl.replaceAll("&", "&amp;");
+        if (rawEncoded !== rawUrl) replacementTargetMap.set(rawEncoded, publicUrl);
+      }
+    }
+  }
+
+  // B. Fallback for unimported / failed assets: Rewrite raw relative URLs to absolute origin URLs
+  for (const [absUrl, rawSet] of absoluteToRawMap.entries()) {
+    if (!urlMap.has(absUrl)) {
+      for (const rawUrl of rawSet) {
+        if (!rawUrl.startsWith("http://") && !rawUrl.startsWith("https://") && !rawUrl.startsWith("//")) {
+          if (!replacementTargetMap.has(rawUrl)) {
+            replacementTargetMap.set(rawUrl, absUrl);
+          }
+        }
+      }
+    }
+  }
+
+  if (replacementTargetMap.size > 0) {
+    const sortedReplacements = Array.from(replacementTargetMap.entries()).sort(
       (a, b) => b[0].length - a[0].length
     );
 
     for (const p of pages) {
       let htmlMod = p.html_content || "";
       let cssMod = p.css_content || "";
-      let isRewritten = false;
+      const initialHtml = htmlMod;
+      const initialCss = cssMod;
 
-      for (const [originalUrl, newPublicUrl] of sortedReplacements) {
-        if (htmlMod.includes(originalUrl)) {
-          htmlMod = htmlMod.replaceAll(originalUrl, newPublicUrl);
-          isRewritten = true;
-        }
-        if (cssMod && cssMod.includes(originalUrl)) {
-          cssMod = cssMod.replaceAll(originalUrl, newPublicUrl);
-          isRewritten = true;
-        }
-
-        const htmlEncodedUrl = originalUrl.replaceAll("&", "&amp;");
-        if (htmlEncodedUrl !== originalUrl && htmlMod.includes(htmlEncodedUrl)) {
-          htmlMod = htmlMod.replaceAll(htmlEncodedUrl, newPublicUrl);
-          isRewritten = true;
-        }
-
-        const protoRelativeUrl = originalUrl.replace(/^https?:/, "");
-        if (protoRelativeUrl !== originalUrl && htmlMod.includes(protoRelativeUrl)) {
-          htmlMod = htmlMod.replaceAll(protoRelativeUrl, newPublicUrl);
-          isRewritten = true;
-        }
-        if (cssMod && protoRelativeUrl !== originalUrl && cssMod.includes(protoRelativeUrl)) {
-          cssMod = cssMod.replaceAll(protoRelativeUrl, newPublicUrl);
-          isRewritten = true;
+      for (const [targetUrl, newPublicUrl] of sortedReplacements) {
+        htmlMod = rewriteAssetUrlInContent(htmlMod, targetUrl, newPublicUrl);
+        if (cssMod) {
+          cssMod = rewriteAssetUrlInContent(cssMod, targetUrl, newPublicUrl);
         }
       }
+
+      const isRewritten = htmlMod !== initialHtml || cssMod !== initialCss;
 
       if (isRewritten) {
         const { error: updateErr } = await db

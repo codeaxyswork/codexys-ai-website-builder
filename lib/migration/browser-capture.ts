@@ -488,13 +488,28 @@ async function captureSourcePageInternal(
                         img.getAttribute("data-large_image") ||
                         img.getAttribute("data-image");
 
+        const isPlaceholder = (s: string) => {
+          if (!s || s.startsWith("data:") || s.length < 5) return true;
+          const low = s.toLowerCase();
+          return (
+            low.includes("blank") ||
+            low.includes("placeholder") ||
+            low.includes("transparent") ||
+            low.includes("spacer") ||
+            low.includes("1x1") ||
+            low.includes("pixel.gif") ||
+            low.includes("lazyload")
+          );
+        };
+
         let bestSrc = rawSrc;
-        if (!bestSrc || bestSrc.startsWith("data:") || bestSrc.length < 5) {
-          if (currentSrc && !currentSrc.startsWith("data:")) {
-            bestSrc = currentSrc;
-          } else if (dataSrc && !dataSrc.startsWith("data:")) {
-            bestSrc = dataSrc;
-          }
+        if (currentSrc && !isPlaceholder(currentSrc)) {
+          bestSrc = currentSrc;
+        } else if (dataSrc && !isPlaceholder(dataSrc)) {
+          bestSrc = dataSrc;
+        } else if (isPlaceholder(bestSrc)) {
+          if (dataSrc && !dataSrc.startsWith("data:")) bestSrc = dataSrc;
+          else if (currentSrc && !currentSrc.startsWith("data:")) bestSrc = currentSrc;
         }
 
         if (bestSrc && !bestSrc.startsWith("data:")) {
@@ -511,14 +526,20 @@ async function captureSourcePageInternal(
           assetUrlsSet.add(toAbs(dataSrc));
         }
 
-        const srcset = img.getAttribute("srcset") || img.getAttribute("data-srcset") || img.getAttribute("data-lazy-srcset");
-        if (srcset) {
-          srcset.split(",").forEach((cand: string) => {
-            const u = cand.trim().split(/\s+/)[0];
+        const rawSrcset = img.getAttribute("srcset") || img.getAttribute("data-srcset") || img.getAttribute("data-lazy-srcset");
+        if (rawSrcset) {
+          const rewrittenCandidates = rawSrcset.split(",").map((cand: string) => {
+            const parts = cand.trim().split(/\s+/);
+            const u = parts[0];
+            const descriptor = parts.slice(1).join(" ");
             if (u && !u.startsWith("data:")) {
-              assetUrlsSet.add(toAbs(u));
+              const absCandidate = toAbs(u);
+              assetUrlsSet.add(absCandidate);
+              return descriptor ? `${absCandidate} ${descriptor}` : absCandidate;
             }
+            return cand.trim();
           });
+          img.setAttribute("srcset", rewrittenCandidates.join(", "));
         }
       });
 
@@ -530,14 +551,20 @@ async function captureSourcePageInternal(
           sou.setAttribute("src", abs);
           if (!abs.startsWith("data:")) assetUrlsSet.add(abs);
         }
-        const srcset = sou.getAttribute("srcset") || sou.getAttribute("data-srcset");
-        if (srcset) {
-          srcset.split(",").forEach((cand: string) => {
-            const u = cand.trim().split(/\s+/)[0];
+        const rawSrcset = sou.getAttribute("srcset") || sou.getAttribute("data-srcset");
+        if (rawSrcset) {
+          const rewrittenCandidates = rawSrcset.split(",").map((cand: string) => {
+            const parts = cand.trim().split(/\s+/);
+            const u = parts[0];
+            const descriptor = parts.slice(1).join(" ");
             if (u && !u.startsWith("data:")) {
-              assetUrlsSet.add(toAbs(u));
+              const absCandidate = toAbs(u);
+              assetUrlsSet.add(absCandidate);
+              return descriptor ? `${absCandidate} ${descriptor}` : absCandidate;
             }
+            return cand.trim();
           });
+          sou.setAttribute("srcset", rewrittenCandidates.join(", "));
         }
       });
 
@@ -654,6 +681,26 @@ async function captureSourcePageInternal(
             }
           }
         }
+      });
+
+      // Extract background images from computed styles for header, hero, banner, and section elements
+      // (Bypasses cross-origin CORS stylesheet SecurityError)
+      const computedBgCandidates = document.querySelectorAll(
+        "header, nav, #hero, .hero, .banner, .header, [class*='hero'], [class*='banner'], [class*='header'], [class*='slider'], section, [class*='background'], [class*='bg-'], [id*='hero'], [id*='banner']"
+      );
+      computedBgCandidates.forEach((el) => {
+        try {
+          const comp = window.getComputedStyle(el);
+          const bgImg = comp.backgroundImage || "";
+          if (bgImg && bgImg !== "none" && bgImg.includes("url(")) {
+            const matches = bgImg.matchAll(/url\((['"]?)(.*?)\1\)/gi);
+            for (const m of matches) {
+              if (m[2] && !m[2].startsWith("data:")) {
+                assetUrlsSet.add(toAbs(m[2]));
+              }
+            }
+          }
+        } catch {}
       });
 
       // Extract Multi-Slide Hero Sliders
