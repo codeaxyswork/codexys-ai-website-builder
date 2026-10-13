@@ -1,7 +1,16 @@
 import assert from "node:assert";
 import fs from "node:fs";
 import path from "node:path";
-import { checkCreditBalance, deductCreditsWithClient, refundCreditsWithClient } from "../lib/billing";
+import {
+  checkCreditBalance,
+  deductCreditsWithClient,
+  refundCreditsWithClient,
+  getUserUsage,
+  isSubscriptionActiveAndValid,
+  resolveSubscriptionPlan,
+  DEFAULT_FREE_PLAN,
+} from "../lib/billing";
+import { refundProbeCredits, checkAiVisibilityEntitlement } from "../lib/ai-visibility/credit-guard";
 import { checkRateLimit } from "../lib/rate-limit";
 import { CREDIT_COSTS, PLANS } from "../lib/constants";
 import { NextRequest } from "next/server";
@@ -43,9 +52,11 @@ try {
 
 interface MockDbOptions {
   rpcUnavailable?: boolean;
+  missingUserCreditsRow?: boolean;
 }
 
 function createMockDb(initialCredits: number = 100, options: MockDbOptions = {}) {
+  const userCreditsRowExists = !options.missingUserCreditsRow;
   let balance = initialCredits;
   let monthlyUsed = 0;
   let lifetimeUsed = 0;
@@ -57,6 +68,22 @@ function createMockDb(initialCredits: number = 100, options: MockDbOptions = {})
     actionType: string;
     createdAt: string;
   }> = [];
+
+  // Simulate PostgreSQL transactional advisory lock per user_id (pg_advisory_xact_lock)
+  // Ensures strict serialization even when user_credits row does not exist.
+  const userLocks = new Map<string, Promise<void>>();
+  const acquireUserLock = async (userId: string): Promise<() => void> => {
+    const prev = userLocks.get(userId) || Promise.resolve();
+    let release!: () => void;
+    const current = new Promise<void>((resolve) => {
+      release = resolve;
+    });
+    userLocks.set(userId, prev.then(() => current));
+    await prev;
+    return () => {
+      release();
+    };
+  };
 
   const mockDb: any = {
     _getBalance: () => balance,
@@ -72,83 +99,218 @@ function createMockDb(initialCredits: number = 100, options: MockDbOptions = {})
         };
       }
 
+      if (fnName === "_resolve_deduction_action_for_refund") {
+        return {
+          data: null,
+          error: new Error(
+            "permission denied for function _resolve_deduction_action_for_refund: internal helper cannot be invoked directly"
+          ),
+        };
+      }
+
       if (fnName === "deduct_user_credits") {
         const { p_user_id, p_credits, p_action_type, p_website_id } = params;
         if (!p_credits || p_credits <= 0) {
           return { data: false, error: null };
         }
-        if (balance < p_credits) {
-          return { data: false, error: null };
+        const release = await acquireUserLock(p_user_id);
+        try {
+          // Introduce microtask delay to simulate DB/network time and force concurrent interleaving
+          await new Promise((r) => setTimeout(r, 2));
+
+          if (!userCreditsRowExists) {
+            return { data: false, error: null };
+          }
+
+          if (balance < p_credits) {
+            return { data: false, error: null };
+          }
+          balance -= p_credits;
+          monthlyUsed += p_credits;
+          lifetimeUsed += p_credits;
+          transactions.push({
+            id: `tx_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`,
+            userId: p_user_id,
+            websiteId: p_website_id,
+            creditsUsed: p_credits,
+            actionType: p_action_type,
+            createdAt: new Date().toISOString(),
+          });
+          return { data: true, error: null };
+        } finally {
+          release();
         }
-        balance -= p_credits;
-        monthlyUsed += p_credits;
-        lifetimeUsed += p_credits;
-        transactions.push({
-          id: `tx_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`,
-          userId: p_user_id,
-          websiteId: p_website_id,
-          creditsUsed: p_credits,
-          actionType: p_action_type,
-          createdAt: new Date().toISOString(),
-        });
-        return { data: true, error: null };
       }
 
       if (fnName === "refund_user_credits") {
         const { p_user_id, p_credits, p_action_type, p_website_id } = params;
 
         // Validation
+        if (!p_user_id) {
+          return { data: false, error: null };
+        }
         if (!p_credits || p_credits <= 0 || !p_action_type || !p_action_type.trim()) {
           return { data: false, error: null };
         }
 
-        // Deduction-to-refund relationship verification (Postgres RPC logic):
-        // If action type follows 'refund:<action>', verify original deduction exists and refund <= deduction
-        if (p_action_type.startsWith("refund:")) {
-          const origAction = p_action_type.substring(7);
-          const origTx = [...transactions]
-            .reverse()
-            .find(
-              (t) =>
-                t.userId === p_user_id &&
-                t.actionType === origAction &&
-                t.creditsUsed > 0
-            );
-
-          if (!origTx) {
-            // No matching prior deduction exists -> reject refund
-            return { data: false, error: null };
-          }
-
-          if (p_credits > origTx.creditsUsed) {
-            // Refund amount exceeds original deduction -> reject refund
-            return { data: false, error: null };
-          }
-        }
-
-        // Idempotency check: prevent double refunds for same action_type
-        const existingRefund = transactions.find(
-          (t) =>
-            t.userId === p_user_id &&
-            t.actionType === p_action_type &&
-            t.creditsUsed < 0
-        );
-        if (existingRefund) {
+        // Security check: Reject any action type not following 'refund:' convention
+        if (!p_action_type.startsWith("refund:")) {
           return { data: false, error: null };
         }
 
-        balance += p_credits;
-        monthlyUsed = Math.max(0, monthlyUsed - p_credits);
-        lifetimeUsed = Math.max(0, lifetimeUsed - p_credits);
-        transactions.push({
-          id: `ref_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`,
-          userId: p_user_id,
-          websiteId: p_website_id,
-          creditsUsed: -p_credits,
-          actionType: p_action_type,
-          createdAt: new Date().toISOString(),
-        });
-        return { data: true, error: null };
+        const afterRefund = p_action_type.substring(7).trim();
+        if (!afterRefund) {
+          return { data: false, error: null };
+        }
+
+        // Transactional Advisory Lock: serializes simultaneous refund requests
+        // even when user_credits row is missing
+        const release = await acquireUserLock(p_user_id);
+        try {
+          await new Promise((r) => setTimeout(r, 2));
+
+          // Fail closed if user credit account does not exist
+          if (!userCreditsRowExists) {
+            return { data: false, error: null };
+          }
+
+          // Idempotency check: prevent double refunds for same action_type
+          const existingRefund = transactions.find(
+            (t) =>
+              t.userId === p_user_id &&
+              t.actionType === p_action_type &&
+              t.creditsUsed < 0
+          );
+          if (existingRefund) {
+            return { data: false, error: null };
+          }
+
+          // Unified Deterministic Deduction Resolver:
+          // Mirrors public._resolve_deduction_action_for_refund in Postgres RPC
+          const resolveDeductionActionForRefund = (userId: string, refundAction: string): string | null => {
+            if (!refundAction.startsWith("refund:")) return null;
+            const afterRefund = refundAction.substring(7).trim();
+            if (!afterRefund) return null;
+
+            // 1. Direct exact match check
+            const exactDeductions = transactions.filter(
+              (t) => t.userId === userId && t.actionType === afterRefund && t.creditsUsed > 0
+            );
+            if (exactDeductions.length > 1) return null; // Fail closed on duplicate deduction records
+            if (exactDeductions.length === 1) return exactDeductions[0].actionType;
+
+            // 2. Structured partial refund matching & candidate deduction resolution
+            const candidates: string[] = [];
+
+            // Probe prefix candidate
+            if (afterRefund.startsWith("ai_visibility_probe:")) {
+              const probeCand = afterRefund.substring(20);
+              if (probeCand) {
+                candidates.push(probeCand);
+                if (probeCand.includes("#")) {
+                  const lastH = probeCand.lastIndexOf("#");
+                  if (lastH > 0) candidates.push(probeCand.substring(0, lastH));
+                }
+                if (probeCand.includes(":")) {
+                  const lastC = probeCand.lastIndexOf(":");
+                  if (lastC > 0) {
+                    const subCand = probeCand.substring(0, lastC);
+                    candidates.push(subCand);
+                    if (subCand.includes(":")) {
+                      const secondLastC = subCand.lastIndexOf(":");
+                      if (secondLastC > 0) candidates.push(subCand.substring(0, secondLastC));
+                    }
+                  }
+                }
+              }
+            }
+
+            // Hash delimiter candidates
+            if (afterRefund.includes("#")) {
+              const lastHash = afterRefund.lastIndexOf("#");
+              if (lastHash > 0) candidates.push(afterRefund.substring(0, lastHash));
+              const firstHash = afterRefund.split("#")[0];
+              if (firstHash) candidates.push(firstHash);
+            }
+
+            // Colon delimiter candidates
+            if (afterRefund.includes(":")) {
+              const lastColon = afterRefund.lastIndexOf(":");
+              if (lastColon > 0) {
+                const cand1 = afterRefund.substring(0, lastColon);
+                candidates.push(cand1);
+                if (cand1.includes(":")) {
+                  const secondLastColon = cand1.lastIndexOf(":");
+                  if (secondLastColon > 0) {
+                    candidates.push(cand1.substring(0, secondLastColon));
+                  }
+                }
+              }
+            }
+
+            // Deduplicate and sort by length descending (longest prefix first)
+            const uniqueCandidates = Array.from(new Set(candidates))
+              .filter((c) => c && c !== afterRefund)
+              .sort((a, b) => b.length - a.length);
+
+            for (const cand of uniqueCandidates) {
+              const candMatches = transactions.filter(
+                (t) => t.userId === userId && t.actionType === cand && t.creditsUsed > 0
+              );
+              if (candMatches.length > 1) return null; // Fail closed on duplicates
+              if (candMatches.length === 1) return candMatches[0].actionType;
+            }
+
+            return null;
+          };
+
+          // Deduction-to-refund relationship verification:
+          // Deterministically resolve the authentic original deduction using the exact same resolver.
+          const matchedAction = resolveDeductionActionForRefund(p_user_id, p_action_type);
+          if (!matchedAction) {
+            return { data: false, error: null };
+          }
+
+          const origTx = transactions.find(
+            (t) => t.userId === p_user_id && t.actionType === matchedAction && t.creditsUsed > 0
+          );
+          if (!origTx) {
+            return { data: false, error: null };
+          }
+
+          // Cumulative refund calculation:
+          // Deterministically sum all previous refunds that resolve to this exact matchedAction.
+          // This eliminates loose prefix matching and ensures refunds for 'job_1' cannot be counted
+          // against 'job_1:task_2', or vice versa.
+          const alreadyRefunded = transactions
+            .filter((t) => {
+              if (t.userId !== p_user_id || t.creditsUsed >= 0 || !t.actionType.startsWith("refund:")) {
+                return false;
+              }
+              return resolveDeductionActionForRefund(p_user_id, t.actionType) === matchedAction;
+            })
+            .reduce((sum, t) => sum + (-t.creditsUsed), 0);
+
+          // Reject if cumulative refunds would exceed original deduction
+          if (alreadyRefunded + p_credits > origTx.creditsUsed) {
+            return { data: false, error: null };
+          }
+
+          balance += p_credits;
+          monthlyUsed = Math.max(0, monthlyUsed - p_credits);
+          lifetimeUsed = Math.max(0, lifetimeUsed - p_credits);
+          transactions.push({
+            id: `ref_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`,
+            userId: p_user_id,
+            websiteId: p_website_id,
+            creditsUsed: -p_credits,
+            actionType: p_action_type,
+            createdAt: new Date().toISOString(),
+          });
+          return { data: true, error: null };
+        } finally {
+          release();
+        }
       }
 
       return { data: null, error: new Error(`Unknown RPC ${fnName}`) };
@@ -174,6 +336,9 @@ function createMockDb(initialCredits: number = 100, options: MockDbOptions = {})
             }),
             single: async () => {
               if (table === "user_credits") {
+                if (!userCreditsRowExists) {
+                  return { data: null, error: new Error("Row not found") };
+                }
                 return { data: { balance, monthly_used: monthlyUsed, lifetime_used: lifetimeUsed }, error: null };
               }
               if (table === "websites") {
@@ -185,6 +350,9 @@ function createMockDb(initialCredits: number = 100, options: MockDbOptions = {})
             },
             maybeSingle: async () => {
               if (table === "user_credits") {
+                if (!userCreditsRowExists) {
+                  return { data: null, error: null };
+                }
                 return { data: { balance, monthly_used: monthlyUsed, lifetime_used: lifetimeUsed }, error: null };
               }
               return { data: null, error: null };
@@ -368,46 +536,735 @@ async function runAllTests() {
   }
 
   // ==========================================================================
-  // SECTION 8: DEDUCTION-TO-REFUND RELATIONSHIP & OVER-REFUND PROTECTION
+  // SECTION 8A: MISSING DEDUCTION RECORDS & PHANTOM REFUND REJECTION
   // ==========================================================================
-  console.log("--- [Mock Test 8] Deduction-to-Refund Validation & Over-Refund Rejection ---");
+  console.log("--- [Mock Test 8A] Missing Deduction Records & Phantom Refund Rejection ---");
   {
-    const relDb = createMockDb(100);
-
-    // 1. Attempting refund for an operation that was NEVER deducted
+    const missingDb = createMockDb(100);
     const phantomRefund = await refundCreditsWithClient(
-      relDb,
-      "user_rel",
+      missingDb,
+      "user_phantom",
       5,
       "refund:ai_blog_generation:phantom_op_never_deducted"
     );
     assert.strictEqual(phantomRefund, false, "Refund without prior deduction must be rejected");
-    assert.strictEqual(relDb._getBalance(), 100, "Balance must remain unchanged");
+    assert.strictEqual(missingDb._getBalance(), 100, "Balance must remain unchanged at 100");
+    console.log("✅ Passed: Missing deduction records strictly rejected without credit leakage.\n");
+  }
 
-    // 2. Legitimate deduction of 5 credits
-    await deductCreditsWithClient(relDb, "user_rel", 5, "ai_blog_generation:op_legit_5");
-    assert.strictEqual(relDb._getBalance(), 95);
+  // ==========================================================================
+  // SECTION 8B: NON-REFUND ACTION TYPES REJECTION (MANDATORY 'refund:' POLICY)
+  // ==========================================================================
+  console.log("--- [Mock Test 8B] Non-Refund Action Types Rejection (Mandatory 'refund:' Policy) ---");
+  {
+    const nonRefundDb = createMockDb(100);
+    await deductCreditsWithClient(nonRefundDb, "user_non_refund", 5, "ai_blog_generation:op_legit_deduct");
+    assert.strictEqual(nonRefundDb._getBalance(), 95);
 
-    // 3. Attempting to refund 15 credits for a 5 credit deduction
-    const overRefund = await refundCreditsWithClient(
-      relDb,
-      "user_rel",
-      15,
-      "refund:ai_blog_generation:op_legit_5"
-    );
-    assert.strictEqual(overRefund, false, "Refund amount exceeding original deduction must be rejected");
-    assert.strictEqual(relDb._getBalance(), 95, "Balance must remain 95");
-
-    // 4. Accurate refund of 5 credits succeeds
-    const legitRefund = await refundCreditsWithClient(
-      relDb,
-      "user_rel",
+    // 1. Attempt refund with arbitrary grant action
+    const grantRes = await refundCreditsWithClient(
+      nonRefundDb,
+      "user_non_refund",
       5,
-      "refund:ai_blog_generation:op_legit_5"
+      "credit_grant:welcome_bonus"
     );
-    assert.strictEqual(legitRefund, true, "Exact matching refund must succeed");
-    assert.strictEqual(relDb._getBalance(), 100, "Balance restored to 100");
-    console.log("✅ Passed: Deduction-to-refund validation prevents unauthorized or inflated refunds.\n");
+    assert.strictEqual(grantRes, false, "Non-refund action type 'credit_grant' must be rejected");
+
+    // 2. Attempt refund with original action type missing 'refund:' prefix
+    const bareRes = await refundCreditsWithClient(
+      nonRefundDb,
+      "user_non_refund",
+      5,
+      "ai_blog_generation:op_legit_deduct"
+    );
+    assert.strictEqual(bareRes, false, "Action type missing 'refund:' prefix must be rejected");
+
+    // 3. Attempt refund with empty prefix
+    const emptyRes = await refundCreditsWithClient(
+      nonRefundDb,
+      "user_non_refund",
+      5,
+      "refund:"
+    );
+    assert.strictEqual(emptyRes, false, "Action type with empty target must be rejected");
+
+    assert.strictEqual(nonRefundDb._getBalance(), 95, "Balance must remain intact at 95");
+    console.log("✅ Passed: Non-refund action types strictly rejected under mandatory convention.\n");
+  }
+
+  // ==========================================================================
+  // SECTION 8C: OVERLAPPING ACTION NAMES & UNAMBIGUOUS DEDUCTION ASSOCIATION
+  // ==========================================================================
+  console.log("--- [Mock Test 8C] Overlapping Action Names & Unambiguous Deduction Association ---");
+  {
+    const overlapDb = createMockDb(100);
+    // Two overlapping deductions for the same user:
+    // Deduction 1: 'job_batch_alpha' (cost 10)
+    // Deduction 2: 'job_batch_alpha:task_beta' (cost 5, shares prefix 'job_batch_alpha')
+    await deductCreditsWithClient(overlapDb, "user_overlap", 10, "job_batch_alpha");
+    await deductCreditsWithClient(overlapDb, "user_overlap", 5, "job_batch_alpha:task_beta");
+    assert.strictEqual(overlapDb._getBalance(), 85, "Balance is 85 after 15 total deductions");
+
+    // 1. Refund Deduction 2: 5 credits for 'refund:job_batch_alpha:task_beta'
+    const refDeduct2 = await refundCreditsWithClient(
+      overlapDb,
+      "user_overlap",
+      5,
+      "refund:job_batch_alpha:task_beta"
+    );
+    assert.strictEqual(refDeduct2, true, "Refund for Deduction 2 must succeed");
+    assert.strictEqual(overlapDb._getBalance(), 90, "Balance is 90 after refunding Deduction 2");
+
+    // 2. Deduction 2 cannot be double refunded
+    const dupRefDeduct2 = await refundCreditsWithClient(
+      overlapDb,
+      "user_overlap",
+      5,
+      "refund:job_batch_alpha:task_beta"
+    );
+    assert.strictEqual(dupRefDeduct2, false, "Duplicate refund for Deduction 2 must be rejected");
+
+    // 3. Partial refund 1 for Deduction 1: 6 credits for 'refund:job_batch_alpha:part_1'
+    // Must NOT count Deduction 2's refund against Deduction 1!
+    const part1Deduct1 = await refundCreditsWithClient(
+      overlapDb,
+      "user_overlap",
+      6,
+      "refund:job_batch_alpha:part_1"
+    );
+    assert.strictEqual(part1Deduct1, true, "Partial refund for Deduction 1 must succeed");
+    assert.strictEqual(overlapDb._getBalance(), 96, "Balance is 96 after 6 credit partial refund");
+
+    // 4. Partial refund 2 for Deduction 1: 4 credits for 'refund:job_batch_alpha:part_2'
+    const part2Deduct1 = await refundCreditsWithClient(
+      overlapDb,
+      "user_overlap",
+      4,
+      "refund:job_batch_alpha:part_2"
+    );
+    assert.strictEqual(part2Deduct1, true, "Exact second partial refund for Deduction 1 must succeed");
+    assert.strictEqual(overlapDb._getBalance(), 100, "Balance is fully restored to 100");
+
+    // 5. Attempting over-refund on Deduction 1: 1 credit
+    const overDeduct1 = await refundCreditsWithClient(
+      overlapDb,
+      "user_overlap",
+      1,
+      "refund:job_batch_alpha:part_3"
+    );
+    assert.strictEqual(overDeduct1, false, "Over-refund beyond 10 credits on Deduction 1 must fail");
+    assert.strictEqual(overlapDb._getBalance(), 100, "Balance remains 100");
+    console.log("✅ Passed: Overlapping action names resolved unambiguously without cross-talk.\n");
+  }
+
+  // ==========================================================================
+  // SECTION 8D: SINGLE OVER-REFUND & MULTIPLE PARTIAL REFUNDS WITH CUMULATIVE LIMITS
+  // ==========================================================================
+  console.log("--- [Mock Test 8D] Single Over-Refund & Multiple Partial Refunds with Cumulative Limits ---");
+  {
+    const partDb = createMockDb(100);
+    const opPartial = "op_partial_deduct_10";
+    const deductAction = `ai_blog_generation:${opPartial}`;
+
+    // 1. Deduct 10 credits
+    const deductSuccess = await deductCreditsWithClient(partDb, "user_partial_test", 10, deductAction);
+    assert.strictEqual(deductSuccess, true, "Deduction of 10 credits must succeed");
+    assert.strictEqual(partDb._getBalance(), 90, "Balance must be 90 after 10 credit deduction");
+
+    // 2. Single over-refund attempt: 15 credits on a 10 credit deduction
+    const singleOver = await refundCreditsWithClient(
+      partDb,
+      "user_partial_test",
+      15,
+      `refund:${deductAction}`
+    );
+    assert.strictEqual(singleOver, false, "Single over-refund exceeding original deduction must fail");
+    assert.strictEqual(partDb._getBalance(), 90);
+
+    // 3. Partial refund 1: 4 credits (action: refund:ai_blog_generation:op_partial_deduct_10:part_1)
+    const partRefund1 = await refundCreditsWithClient(
+      partDb,
+      "user_partial_test",
+      4,
+      `refund:${deductAction}:part_1`
+    );
+    assert.strictEqual(partRefund1, true, "First partial refund of 4 credits must succeed");
+    assert.strictEqual(partDb._getBalance(), 94, "Balance must increase to 94");
+
+    // 4. Partial refund 2: 4 credits (action: refund:ai_blog_generation:op_partial_deduct_10:part_2)
+    const partRefund2 = await refundCreditsWithClient(
+      partDb,
+      "user_partial_test",
+      4,
+      `refund:${deductAction}:part_2`
+    );
+    assert.strictEqual(partRefund2, true, "Second partial refund of 4 credits must succeed");
+    assert.strictEqual(partDb._getBalance(), 98, "Balance must increase to 98 (total 8 refunded)");
+
+    // 5. Over-refund attempt: 3 credits (cumulative 4 + 4 + 3 = 11 > 10)
+    const overRefundAttempt = await refundCreditsWithClient(
+      partDb,
+      "user_partial_test",
+      3,
+      `refund:${deductAction}:part_3`
+    );
+    assert.strictEqual(overRefundAttempt, false, "Cumulative over-refund (11 > 10) must be rejected");
+    assert.strictEqual(partDb._getBalance(), 98, "Balance must remain 98, unchanged after rejected over-refund");
+
+    // 6. Exact remaining refund: 2 credits (cumulative 4 + 4 + 2 = 10 <= 10)
+    const exactRemainingRefund = await refundCreditsWithClient(
+      partDb,
+      "user_partial_test",
+      2,
+      `refund:${deductAction}:part_4`
+    );
+    assert.strictEqual(exactRemainingRefund, true, "Exact remaining refund of 2 credits must succeed");
+    assert.strictEqual(partDb._getBalance(), 100, "Balance must be restored to 100");
+
+    // 7. Any further refund attempt must be rejected (already fully refunded 10/10)
+    const postFullRefund = await refundCreditsWithClient(
+      partDb,
+      "user_partial_test",
+      1,
+      `refund:${deductAction}:part_5`
+    );
+    assert.strictEqual(postFullRefund, false, "Refund beyond 100% of deduction must be rejected");
+    assert.strictEqual(partDb._getBalance(), 100, "Balance must remain exactly 100");
+    console.log("✅ Passed: Cumulative partial refunds accurately capped at 100% of original deduction.\n");
+  }
+
+  // ==========================================================================
+  // SECTION 8E: IDEMPOTENCY ON PARTIAL REFUNDS (DUPLICATE REJECTION)
+  // ==========================================================================
+  console.log("--- [Mock Test 8E] Idempotency on Partial Refunds (Duplicate Rejection) ---");
+  {
+    const dupDb = createMockDb(100);
+    const opDup = "op_partial_dup_check";
+    const deductAction = `ai_blog_generation:${opDup}`;
+
+    // Deduct 10 credits
+    await deductCreditsWithClient(dupDb, "user_dup_test", 10, deductAction);
+    assert.strictEqual(dupDb._getBalance(), 90);
+
+    // Apply partial refund of 4 credits
+    const firstPart = await refundCreditsWithClient(
+      dupDb,
+      "user_dup_test",
+      4,
+      `refund:${deductAction}:segment_1`
+    );
+    assert.strictEqual(firstPart, true, "First application of partial refund segment must succeed");
+    assert.strictEqual(dupDb._getBalance(), 94);
+
+    // Retrying the exact same segment must be rejected idempotently
+    const duplicatePart = await refundCreditsWithClient(
+      dupDb,
+      "user_dup_test",
+      4,
+      `refund:${deductAction}:segment_1`
+    );
+    assert.strictEqual(duplicatePart, false, "Duplicate partial refund attempt must be rejected idempotently");
+    assert.strictEqual(dupDb._getBalance(), 94, "Balance must remain unchanged at 94");
+    console.log("✅ Passed: Partial refund retry with identical action key rejected idempotently.\n");
+  }
+
+  // ==========================================================================
+  // SECTION 8F: CONCURRENT CUMULATIVE PARTIAL OVER-REFUND RACE SAFETY
+  // ==========================================================================
+  console.log("--- [Mock Test 8F] Concurrent Partial Refunds & Cumulative Over-Refund Race Safety ---");
+  {
+    const concurrentRaceDb = createMockDb(50);
+    const opConcurrent = "op_concurrent_partial_race";
+    const deductActionRace = `ai_edit:${opConcurrent}`;
+
+    // Deduct 10 credits
+    await deductCreditsWithClient(concurrentRaceDb, "user_concurrent_race", 10, deductActionRace);
+    assert.strictEqual(concurrentRaceDb._getBalance(), 40, "Balance is 40 after 10 credit deduction");
+
+    // Two concurrent requests: each asks for 6 credits (total 12 > 10)
+    const reqA = refundCreditsWithClient(
+      concurrentRaceDb,
+      "user_concurrent_race",
+      6,
+      `refund:${deductActionRace}:part_A`
+    );
+    const reqB = refundCreditsWithClient(
+      concurrentRaceDb,
+      "user_concurrent_race",
+      6,
+      `refund:${deductActionRace}:part_B`
+    );
+
+    const [resA, resB] = await Promise.all([reqA, reqB]);
+    const successCount = [resA, resB].filter((r) => r === true).length;
+    const failureCount = [resA, resB].filter((r) => r === false).length;
+
+    assert.strictEqual(successCount, 1, `Exactly 1 concurrent refund must succeed (got ${successCount})`);
+    assert.strictEqual(failureCount, 1, `Exactly 1 concurrent refund must be rejected for exceeding 10 credits (got ${failureCount})`);
+    assert.strictEqual(concurrentRaceDb._getBalance(), 46, "Balance must be exactly 46 (40 + 6), never 52");
+    console.log("✅ Passed: Concurrent partial refund race safely serialized; cumulative limit enforced.\n");
+  }
+
+  // ==========================================================================
+  // SECTION 8G: CONCURRENCY SAFETY WHEN USER CREDIT ROW IS MISSING
+  // ==========================================================================
+  console.log("--- [Mock Test 8G] Concurrency Safety When User Credit Row Is Missing ---");
+  {
+    const missingUserDb = createMockDb(0, { missingUserCreditsRow: true });
+    const opMissing = "op_missing_user_row_test";
+    const refundAction = `refund:ai_edit:${opMissing}`;
+
+    // 5 simultaneous refund requests hit server at the exact same millisecond
+    const refundPromises = Array.from({ length: 5 }).map(() =>
+      refundCreditsWithClient(missingUserDb, "user_without_row", 5, refundAction)
+    );
+    const results = await Promise.all(refundPromises);
+
+    const allFailed = results.every((r) => r === false);
+    assert.strictEqual(allFailed, true, "All concurrent refund requests for missing user row must fail closed");
+    assert.strictEqual(missingUserDb._getBalance(), 0, "Balance must remain unchanged at 0");
+    console.log("✅ Passed: Concurrent requests on missing user row safely serialized and fail closed.\n");
+  }
+
+  // ==========================================================================
+  // SECTION 8H: AI VISIBILITY PROBE CREDIT GUARD CALLER COMPATIBILITY
+  // ==========================================================================
+  console.log("--- [Mock Test 8H] AI Visibility Probe Credit Guard (refundProbeCredits) Compatibility ---");
+  {
+    const probeDb = createMockDb(50);
+    const probeActionKey = "probe_test_action_001";
+
+    // Deduct 3 credits for a batch probe
+    await deductCreditsWithClient(probeDb, "user_probe_test", 3, `ai_visibility_probe:${probeActionKey}`);
+    assert.strictEqual(probeDb._getBalance(), 47);
+
+    // Call refundProbeCredits from lib/ai-visibility/credit-guard.ts
+    const probeRefundRes = await refundProbeCredits(
+      probeDb,
+      "user_probe_test",
+      "site_probe_1",
+      3,
+      "Provider timeout",
+      probeActionKey
+    );
+    assert.strictEqual(probeRefundRes, true, "refundProbeCredits must succeed via refund_user_credits RPC");
+    assert.strictEqual(probeDb._getBalance(), 50, "Balance must be restored to 50");
+
+    // Duplicate call to refundProbeCredits must be rejected idempotently
+    const duplicateProbeRes = await refundProbeCredits(
+      probeDb,
+      "user_probe_test",
+      "site_probe_1",
+      3,
+      "Provider timeout retry",
+      probeActionKey
+    );
+    assert.strictEqual(duplicateProbeRes, false, "Duplicate refundProbeCredits must be rejected idempotently");
+    assert.strictEqual(probeDb._getBalance(), 50, "Balance must remain 50");
+    console.log("✅ Passed: refundProbeCredits caller compatibility and idempotency verified.\n");
+  }
+
+  // ==========================================================================
+  // SECTION 8I: DUPLICATE DEDUCTION RECORDS FAIL CLOSED (AMBIGUITY PREVENTION)
+  // ==========================================================================
+  console.log("--- [Mock Test 8I] Duplicate Deduction Records Fail Closed (Ambiguity Prevention) ---");
+  {
+    const dupDeductDb = createMockDb(100);
+    const dupAction = "job_repeated_operation";
+
+    // 1. User performs two distinct deductions using the exact same action key (e.g. without unique opId)
+    const deduct1 = await deductCreditsWithClient(dupDeductDb, "user_dup_deduct", 5, dupAction);
+    const deduct2 = await deductCreditsWithClient(dupDeductDb, "user_dup_deduct", 5, dupAction);
+    assert.strictEqual(deduct1, true);
+    assert.strictEqual(deduct2, true);
+    assert.strictEqual(dupDeductDb._getBalance(), 90, "Balance is 90 after two 5-credit deductions");
+
+    // 2. Exact match refund attempt: multiple deductions exist for dupAction -> MUST FAIL CLOSED (Requirement 3)
+    const exactRefundRes = await refundCreditsWithClient(
+      dupDeductDb,
+      "user_dup_deduct",
+      5,
+      `refund:${dupAction}`
+    );
+    assert.strictEqual(exactRefundRes, false, "Must fail closed when multiple deductions match exact action key");
+    assert.strictEqual(dupDeductDb._getBalance(), 90, "Balance must remain unchanged at 90");
+
+    // 3. Partial candidate refund attempt: candidate dupAction also has multiple deductions -> MUST FAIL CLOSED (Requirement 3)
+    const candRefundRes = await refundCreditsWithClient(
+      dupDeductDb,
+      "user_dup_deduct",
+      3,
+      `refund:${dupAction}#part_1`
+    );
+    assert.strictEqual(candRefundRes, false, "Must fail closed when candidate deduction has multiple records");
+    assert.strictEqual(dupDeductDb._getBalance(), 90, "Balance must remain unchanged at 90");
+    console.log("✅ Passed: Ambiguous duplicate deduction records strictly fail closed without credit leakage.\n");
+  }
+
+  // ==========================================================================
+  // SECTION 8J: OVERLAPPING ACTION KEYS WITH COLONS AND HASHES (# AND :)
+  // ==========================================================================
+  console.log("--- [Mock Test 8J] Overlapping Action Keys With Colons and Hashes (# and :) ---");
+  {
+    const complexDb = createMockDb(100);
+    // Two overlapping deductions containing both '#' and ':':
+    // Deduction 1: 'pipeline:stage#1:build' (cost 10)
+    // Deduction 2: 'pipeline:stage#1:build:sub#2' (cost 5, longer prefix overlap)
+    await deductCreditsWithClient(complexDb, "user_complex", 10, "pipeline:stage#1:build");
+    await deductCreditsWithClient(complexDb, "user_complex", 5, "pipeline:stage#1:build:sub#2");
+    assert.strictEqual(complexDb._getBalance(), 85, "Balance is 85 after 15 total deductions");
+
+    // 1. Partial refund for Deduction 2 (3 credits using '#part_1')
+    const refSub = await refundCreditsWithClient(
+      complexDb,
+      "user_complex",
+      3,
+      "refund:pipeline:stage#1:build:sub#2#part_1"
+    );
+    assert.strictEqual(refSub, true, "Partial refund for Deduction 2 must succeed");
+    assert.strictEqual(complexDb._getBalance(), 88, "Balance is 88 after 3 credit refund");
+
+    // 2. Partial refund 1 for Deduction 1 (6 credits using '#part_1')
+    // Must NOT count Deduction 2's refund against Deduction 1!
+    const refMainPart1 = await refundCreditsWithClient(
+      complexDb,
+      "user_complex",
+      6,
+      "refund:pipeline:stage#1:build#part_1"
+    );
+    assert.strictEqual(refMainPart1, true, "Partial refund for Deduction 1 must succeed");
+    assert.strictEqual(complexDb._getBalance(), 94, "Balance is 94 after 6 credit partial refund");
+
+    // 3. Partial refund 2 for Deduction 1 (4 credits using ':part_2')
+    const refMainPart2 = await refundCreditsWithClient(
+      complexDb,
+      "user_complex",
+      4,
+      "refund:pipeline:stage#1:build:part_2"
+    );
+    assert.strictEqual(refMainPart2, true, "Second partial refund for Deduction 1 must succeed");
+    assert.strictEqual(complexDb._getBalance(), 98, "Balance is 98 (Deduction 1 fully refunded: 6+4=10)");
+
+    // 4. Over-refund attempt on Deduction 1: 1 credit
+    const overRefundMain = await refundCreditsWithClient(
+      complexDb,
+      "user_complex",
+      1,
+      "refund:pipeline:stage#1:build#part_3"
+    );
+    assert.strictEqual(overRefundMain, false, "Over-refund beyond 10 credits on Deduction 1 must fail");
+    assert.strictEqual(complexDb._getBalance(), 98, "Balance remains 98");
+
+    // 5. Remaining refund for Deduction 2: 2 credits (reaches 3+2=5)
+    const refSubRemaining = await refundCreditsWithClient(
+      complexDb,
+      "user_complex",
+      2,
+      "refund:pipeline:stage#1:build:sub#2#part_2"
+    );
+    assert.strictEqual(refSubRemaining, true, "Remaining refund for Deduction 2 must succeed");
+    assert.strictEqual(complexDb._getBalance(), 100, "Balance is fully restored to 100");
+    console.log("✅ Passed: Overlapping action keys with colons and hashes resolved unambiguously.\n");
+  }
+
+  // ==========================================================================
+  // SECTION 8K: HIGH-CONCURRENCY MIXED REQUESTS (DUPLICATES, PARTIALS, & CONTENTION)
+  // ==========================================================================
+  console.log("--- [Mock Test 8K] High-Concurrency Mixed Requests (Duplicates, Partials, & Contention) ---");
+  {
+    const highRaceDb = createMockDb(100);
+    const baseAction = "batch_high_concurrency:job_alpha";
+
+    // Deduct 20 credits
+    await deductCreditsWithClient(highRaceDb, "user_high_race", 20, baseAction);
+    assert.strictEqual(highRaceDb._getBalance(), 80);
+
+    // Launch 10 simultaneous requests:
+    // - 4 attempts with same key "refund:batch_high_concurrency:job_alpha:part_1" (4 credits each) -> exactly 1 must succeed
+    // - 2 attempts with key "refund:batch_high_concurrency:job_alpha:part_2" (6 credits each) -> exactly 1 must succeed
+    // - 2 attempts with key "refund:batch_high_concurrency:job_alpha:part_3" (10 credits each) -> exactly 1 must succeed (total 4+6+10 = 20)
+    // - 2 attempts with key "refund:batch_high_concurrency:job_alpha:part_4" (5 credits each) -> both must fail (cumulative limit reached)
+    const requests = [
+      ...Array.from({ length: 4 }).map(() =>
+        refundCreditsWithClient(highRaceDb, "user_high_race", 4, `refund:${baseAction}:part_1`)
+      ),
+      ...Array.from({ length: 2 }).map(() =>
+        refundCreditsWithClient(highRaceDb, "user_high_race", 6, `refund:${baseAction}:part_2`)
+      ),
+      ...Array.from({ length: 2 }).map(() =>
+        refundCreditsWithClient(highRaceDb, "user_high_race", 10, `refund:${baseAction}:part_3`)
+      ),
+      ...Array.from({ length: 2 }).map(() =>
+        refundCreditsWithClient(highRaceDb, "user_high_race", 5, `refund:${baseAction}:part_4`)
+      ),
+    ];
+
+    const results = await Promise.all(requests);
+    const successes = results.filter((r) => r === true).length;
+    const failures = results.filter((r) => r === false).length;
+
+    assert.strictEqual(successes, 3, `Exactly 3 unique partial refund segments must succeed (got ${successes})`);
+    assert.strictEqual(failures, 7, `Exactly 7 duplicate/over-limit requests must be rejected (got ${failures})`);
+    assert.strictEqual(highRaceDb._getBalance(), 100, "Balance must be restored to exactly 100 (80 + 4 + 6 + 10)");
+    console.log("✅ Passed: High-concurrency mixed requests serialized safely under cumulative limits.\n");
+  }
+
+  // ==========================================================================
+  // SECTION 8L: OVERLAPPING AI_VISIBILITY_PROBE ACTIONS & PARTIAL REFUND SUFFIXES
+  // ==========================================================================
+  console.log("--- [Mock Test 8L] Overlapping ai_visibility_probe: Actions & Partial Refund Suffixes ---");
+  {
+    const probeOverlapDb = createMockDb(100);
+
+    // Two overlapping probe deductions:
+    // Deduction 1: 'probe_multi_run' (cost 3)
+    // Deduction 2: 'probe_multi_run:sub_check' (cost 1, longer prefix overlap)
+    await deductCreditsWithClient(probeOverlapDb, "user_probe_overlap", 3, "ai_visibility_probe:probe_multi_run");
+    await deductCreditsWithClient(probeOverlapDb, "user_probe_overlap", 1, "ai_visibility_probe:probe_multi_run:sub_check");
+    assert.strictEqual(probeOverlapDb._getBalance(), 96, "Balance is 96 after 4 total credits deducted");
+
+    // 1. Refund Deduction 2: 1 credit for sub_check
+    const refSubProbe = await refundCreditsWithClient(
+      probeOverlapDb,
+      "user_probe_overlap",
+      1,
+      "refund:ai_visibility_probe:probe_multi_run:sub_check"
+    );
+    assert.strictEqual(refSubProbe, true, "Refund for Deduction 2 must succeed");
+    assert.strictEqual(probeOverlapDb._getBalance(), 97, "Balance is 97");
+
+    // 2. Partial refund 1 for Deduction 1: 2 credits using '#part_1'
+    // Must NOT count Deduction 2's refund against Deduction 1!
+    const refMainPart1 = await refundCreditsWithClient(
+      probeOverlapDb,
+      "user_probe_overlap",
+      2,
+      "refund:ai_visibility_probe:probe_multi_run#part_1"
+    );
+    assert.strictEqual(refMainPart1, true, "Partial refund for Deduction 1 must succeed");
+    assert.strictEqual(probeOverlapDb._getBalance(), 99, "Balance is 99");
+
+    // 3. Partial refund 2 for Deduction 1: 1 credit using ':part_2' (reaches 2 + 1 = 3/3)
+    const refMainPart2 = await refundCreditsWithClient(
+      probeOverlapDb,
+      "user_probe_overlap",
+      1,
+      "refund:ai_visibility_probe:probe_multi_run:part_2"
+    );
+    assert.strictEqual(refMainPart2, true, "Exact second partial refund for Deduction 1 must succeed");
+    assert.strictEqual(probeOverlapDb._getBalance(), 100, "Balance is 100");
+
+    // 4. Over-refund attempt on Deduction 1: 1 credit
+    const overRefundMain = await refundCreditsWithClient(
+      probeOverlapDb,
+      "user_probe_overlap",
+      1,
+      "refund:ai_visibility_probe:probe_multi_run#part_3"
+    );
+    assert.strictEqual(overRefundMain, false, "Over-refund beyond 3 credits on Deduction 1 must fail");
+    assert.strictEqual(probeOverlapDb._getBalance(), 100, "Balance remains 100");
+
+    // 5. Duplicate refund on Deduction 2 must be rejected
+    const dupSubProbe = await refundCreditsWithClient(
+      probeOverlapDb,
+      "user_probe_overlap",
+      1,
+      "refund:ai_visibility_probe:probe_multi_run:sub_check"
+    );
+    assert.strictEqual(dupSubProbe, false, "Duplicate refund for Deduction 2 must fail");
+    assert.strictEqual(probeOverlapDb._getBalance(), 100);
+
+    // 6. Test with bare action key via refundProbeCredits
+    const bareProbeDb = createMockDb(50);
+    // Deduction with bare action key (e.g. from deductProbeCredits with actionKey)
+    await deductCreditsWithClient(bareProbeDb, "user_bare_probe", 3, "probe_live_batch");
+    await deductCreditsWithClient(bareProbeDb, "user_bare_probe", 1, "probe_live_batch:item_1");
+    assert.strictEqual(bareProbeDb._getBalance(), 46);
+
+    // Refund Deduction 2 via refundProbeCredits
+    const refundBareSub = await refundProbeCredits(
+      bareProbeDb,
+      "user_bare_probe",
+      "site_1",
+      1,
+      "timeout",
+      "probe_live_batch:item_1"
+    );
+    assert.strictEqual(refundBareSub, true, "refundProbeCredits for Deduction 2 must succeed");
+    assert.strictEqual(bareProbeDb._getBalance(), 47);
+
+    // Refund Deduction 1 via refundProbeCredits
+    const refundBareMain = await refundProbeCredits(
+      bareProbeDb,
+      "user_bare_probe",
+      "site_1",
+      3,
+      "timeout",
+      "probe_live_batch"
+    );
+    assert.strictEqual(refundBareMain, true, "refundProbeCredits for Deduction 1 must succeed");
+    assert.strictEqual(bareProbeDb._getBalance(), 50);
+
+    // Duplicate call to refundProbeCredits for Deduction 1 must fail idempotently
+    const dupBareMain = await refundProbeCredits(
+      bareProbeDb,
+      "user_bare_probe",
+      "site_1",
+      3,
+      "retry",
+      "probe_live_batch"
+    );
+    assert.strictEqual(dupBareMain, false, "Duplicate refundProbeCredits must fail");
+    assert.strictEqual(bareProbeDb._getBalance(), 50);
+
+    console.log("✅ Passed: Overlapping ai_visibility_probe: actions & partial suffixes resolved deterministically without cross-talk.\n");
+  }
+
+  // ==========================================================================
+  // SECTION 8M: HELPER FUNCTION PRIVILEGE & DIRECT INVOCATION RESTRICTION
+  // ==========================================================================
+  console.log("--- [Mock Test 8M] Helper Function Privilege & Direct Invocation Restriction ---");
+  {
+    const secDb = createMockDb(100);
+
+    // 1. Direct invocation of internal helper _resolve_deduction_action_for_refund via RPC is rejected
+    const directHelperRes = await secDb.rpc("_resolve_deduction_action_for_refund", {
+      p_user_id: "user_sec",
+      p_refund_action: "refund:job_test",
+    });
+    assert.strictEqual(directHelperRes.data, null, "Direct helper invocation must return null data");
+    assert.ok(
+      directHelperRes.error && directHelperRes.error.message.includes("permission denied"),
+      "Direct helper invocation must be rejected with permission denied"
+    );
+
+    // 2. Legitimate refund RPC succeeds and calls helper internally
+    await deductCreditsWithClient(secDb, "user_sec", 10, "job_test");
+    const refundRes = await refundCreditsWithClient(secDb, "user_sec", 10, "refund:job_test");
+    assert.strictEqual(refundRes, true, "refund_user_credits must succeed via internal helper call path");
+    assert.strictEqual(secDb._getBalance(), 100, "Balance restored to 100");
+
+    // 3. Static SQL Security Review: Assert grants and security settings in migration file
+    const sqlPath = path.resolve(__dirname, "../supabase/migrations/20261010_create_refund_user_credits_rpc.sql");
+    const sqlContent = fs.readFileSync(sqlPath, "utf-8");
+
+    // Both functions must have SECURITY DEFINER
+    const secDefinerMatches = sqlContent.match(/SECURITY DEFINER/g) || [];
+    assert.strictEqual(secDefinerMatches.length >= 2, true, "Both functions must specify SECURITY DEFINER");
+
+    // Both functions must have fixed search_path = public
+    const searchPathMatches = sqlContent.match(/SET search_path = public/g) || [];
+    assert.strictEqual(searchPathMatches.length >= 2, true, "Both functions must enforce SET search_path = public");
+
+    // Helper must revoke execute from service_role, anon, authenticated, PUBLIC
+    assert.ok(
+      sqlContent.includes("REVOKE EXECUTE ON FUNCTION public._resolve_deduction_action_for_refund(UUID, TEXT) FROM service_role;"),
+      "Helper function must revoke EXECUTE from service_role"
+    );
+    assert.ok(
+      sqlContent.includes("REVOKE EXECUTE ON FUNCTION public._resolve_deduction_action_for_refund(UUID, TEXT) FROM authenticated;"),
+      "Helper function must revoke EXECUTE from authenticated"
+    );
+    assert.ok(
+      sqlContent.includes("REVOKE EXECUTE ON FUNCTION public._resolve_deduction_action_for_refund(UUID, TEXT) FROM anon;"),
+      "Helper function must revoke EXECUTE from anon"
+    );
+    assert.ok(
+      sqlContent.includes("REVOKE EXECUTE ON FUNCTION public._resolve_deduction_action_for_refund(UUID, TEXT) FROM PUBLIC;"),
+      "Helper function must revoke EXECUTE from PUBLIC"
+    );
+    assert.ok(
+      !sqlContent.includes("GRANT EXECUTE ON FUNCTION public._resolve_deduction_action_for_refund(UUID, TEXT) TO service_role;"),
+      "Helper function must NOT grant EXECUTE directly to service_role"
+    );
+    assert.ok(
+      !sqlContent.includes("GRANT EXECUTE ON FUNCTION public._resolve_deduction_action_for_refund(UUID, TEXT) TO authenticated;"),
+      "Helper function must NOT grant EXECUTE directly to authenticated"
+    );
+    assert.ok(
+      !sqlContent.includes("GRANT EXECUTE ON FUNCTION public._resolve_deduction_action_for_refund(UUID, TEXT) TO anon;"),
+      "Helper function must NOT grant EXECUTE directly to anon"
+    );
+    assert.ok(
+      !sqlContent.includes("GRANT EXECUTE ON FUNCTION public._resolve_deduction_action_for_refund(UUID, TEXT) TO PUBLIC;"),
+      "Helper function must NOT grant EXECUTE directly to PUBLIC"
+    );
+
+    // Migration-safe dynamic ownership and privilege enforcement checks
+    assert.ok(
+      sqlContent.includes("pg_get_userbyid(proowner)"),
+      "Must dynamically query PostgreSQL catalog for refund_user_credits owner"
+    );
+    assert.ok(
+      sqlContent.includes("to_regprocedure('public.refund_user_credits(uuid, integer, text, uuid)')"),
+      "Must identify refund_user_credits using its exact function signature in pg_proc"
+    );
+    assert.ok(
+      sqlContent.includes("to_regprocedure('public._resolve_deduction_action_for_refund(uuid, text)')"),
+      "Must identify _resolve_deduction_action_for_refund using its exact function signature in pg_proc"
+    );
+    assert.ok(
+      sqlContent.includes("has_function_privilege(v_refund_owner, 'public._resolve_deduction_action_for_refund(uuid, text)', 'EXECUTE')"),
+      "Must rigorously assert that refund RPC owner has EXECUTE on internal helper"
+    );
+    assert.ok(
+      sqlContent.includes("has_function_privilege('service_role', 'public._resolve_deduction_action_for_refund(uuid, text)', 'EXECUTE')"),
+      "Must assert that service_role does NOT have direct EXECUTE on internal helper"
+    );
+    assert.ok(
+      sqlContent.includes("ALTER FUNCTION public._resolve_deduction_action_for_refund(UUID, TEXT) OWNER TO %I"),
+      "Must dynamically align helper ownership with refund RPC owner"
+    );
+    assert.ok(
+      sqlContent.includes("GRANT EXECUTE ON FUNCTION public._resolve_deduction_action_for_refund(UUID, TEXT) TO %I"),
+      "Must dynamically grant EXECUTE on helper strictly to refund RPC owner"
+    );
+
+    // Candidate prefix ordering must use subquery to prevent PostgreSQL SELECT DISTINCT / ORDER BY conflicts
+    assert.ok(
+      sqlContent.includes("ORDER BY length(sub.c) DESC"),
+      "Must order candidate prefixes via subquery to satisfy PostgreSQL SELECT DISTINCT constraints"
+    );
+
+    // Transaction atomicity envelope
+    assert.ok(
+      sqlContent.includes("BEGIN;"),
+      "Migration must explicitly begin a transaction (BEGIN;)"
+    );
+    assert.ok(
+      sqlContent.includes("COMMIT;"),
+      "Migration must explicitly commit the transaction (COMMIT;)"
+    );
+
+    // PUBLIC pseudo-role catalog ACL assertions
+    assert.ok(
+      sqlContent.includes("aclexplode(p.proacl) a"),
+      "Must inspect pg_proc.proacl using aclexplode for PUBLIC pseudo-role verification"
+    );
+    assert.ok(
+      sqlContent.includes("a.grantee = 0 AND a.privilege_type = 'EXECUTE'"),
+      "Must verify that grantee = 0 (PUBLIC) has no EXECUTE privilege in catalog ACL"
+    );
+
+    // refund_user_credits must grant execute strictly to service_role and revoke from public/anon/authenticated
+    assert.ok(
+      sqlContent.includes("GRANT EXECUTE ON FUNCTION public.refund_user_credits(UUID, INT, TEXT, UUID) TO service_role;"),
+      "refund_user_credits must grant EXECUTE strictly to service_role"
+    );
+    assert.ok(
+      sqlContent.includes("REVOKE EXECUTE ON FUNCTION public.refund_user_credits(UUID, INT, TEXT, UUID) FROM authenticated;"),
+      "refund_user_credits must revoke EXECUTE from authenticated"
+    );
+    assert.ok(
+      sqlContent.includes("REVOKE EXECUTE ON FUNCTION public.refund_user_credits(UUID, INT, TEXT, UUID) FROM anon;"),
+      "refund_user_credits must revoke EXECUTE from anon"
+    );
+    assert.ok(
+      sqlContent.includes("REVOKE EXECUTE ON FUNCTION public.refund_user_credits(UUID, INT, TEXT, UUID) FROM PUBLIC;"),
+      "refund_user_credits must revoke EXECUTE from PUBLIC"
+    );
+
+    console.log("✅ Passed: Helper function privileges, internal-only access path, and static security invariants verified.\n");
   }
 
   // ==========================================================================
@@ -572,8 +1429,377 @@ async function runAllTests() {
     console.log("✅ Passed: Privileged database write architecture, error handling, and cache invalidation verified.\n");
   }
 
+  // ==========================================================================
+  // SECTION 13: SUBSCRIPTION STATUS, EXPIRATION & ENTITLEMENT LIFECYCLE TESTS
+  // ==========================================================================
+  console.log("--- [Mock Test 13] Subscription Status, Expiration & Entitlement Lifecycle ---");
+  {
+    const now = new Date("2026-10-13T12:00:00.000Z");
+    const futureDate = "2026-11-13T12:00:00.000Z";
+    const pastDate = "2026-10-01T12:00:00.000Z";
+
+    // Test 13A: Active paid plan within valid billing period grants paid access
+    const activeProSub = {
+      plan_id: "pro",
+      status: "active",
+      current_period_end: futureDate,
+      cancel_at_period_end: false,
+    };
+    assert.strictEqual(
+      isSubscriptionActiveAndValid(activeProSub, now),
+      true,
+      "Active Pro subscription with future period end must be valid"
+    );
+
+    // Test 13B: Canceled subscription with cancel_at_period_end = true retains access until period end
+    const cancelAtPeriodEndActive = {
+      plan_id: "pro",
+      status: "active",
+      current_period_end: futureDate,
+      cancel_at_period_end: true,
+      canceled_at: "2026-10-10T12:00:00.000Z",
+    };
+    assert.strictEqual(
+      isSubscriptionActiveAndValid(cancelAtPeriodEndActive, now),
+      true,
+      "Active sub with cancel_at_period_end=true within billing period must preserve paid access"
+    );
+
+    const cancelAtPeriodEndCanceledStatus = {
+      plan_id: "pro",
+      status: "canceled",
+      current_period_end: futureDate,
+      cancel_at_period_end: true,
+      canceled_at: "2026-10-10T12:00:00.000Z",
+    };
+    assert.strictEqual(
+      isSubscriptionActiveAndValid(cancelAtPeriodEndCanceledStatus, now),
+      true,
+      "Canceled status with cancel_at_period_end=true within billing period must preserve paid access"
+    );
+
+    // Test 13C: Expired subscriptions must NOT retain paid-plan privileges indefinitely
+    const expiredActiveSub = {
+      plan_id: "pro",
+      status: "active",
+      current_period_end: pastDate,
+      cancel_at_period_end: false,
+    };
+    assert.strictEqual(
+      isSubscriptionActiveAndValid(expiredActiveSub, now),
+      false,
+      "Active sub with expired current_period_end must fail validation (no indefinite retention)"
+    );
+
+    const expiredCanceledSub = {
+      plan_id: "pro",
+      status: "canceled",
+      current_period_end: pastDate,
+      cancel_at_period_end: true,
+      canceled_at: "2026-09-15T12:00:00.000Z",
+    };
+    assert.strictEqual(
+      isSubscriptionActiveAndValid(expiredCanceledSub, now),
+      false,
+      "Canceled sub with expired current_period_end must fail validation"
+    );
+
+    // Test 13D: Immediate cancellation (cancel_at_period_end: false) revokes access immediately
+    const immediateCanceledSub = {
+      plan_id: "pro",
+      status: "canceled",
+      current_period_end: futureDate,
+      cancel_at_period_end: false,
+      canceled_at: "2026-10-12T12:00:00.000Z",
+    };
+    assert.strictEqual(
+      isSubscriptionActiveAndValid(immediateCanceledSub, now),
+      false,
+      "Immediate cancellation without period-end preservation must fail validation"
+    );
+
+    // Test 13E: Terminal / non-payment statuses fail closed
+    for (const badStatus of ["unpaid", "incomplete", "incomplete_expired", "past_due", "paused", "unknown"]) {
+      const badSub = {
+        plan_id: "pro",
+        status: badStatus,
+        current_period_end: futureDate,
+        cancel_at_period_end: false,
+      };
+      assert.strictEqual(
+        isSubscriptionActiveAndValid(badSub, now),
+        false,
+        `Status '${badStatus}' must fail validation`
+      );
+    }
+
+    // Test 13F: Invalid date / missing dates fail closed
+    assert.strictEqual(
+      isSubscriptionActiveAndValid({ plan_id: "pro", status: "active", current_period_end: "not-a-date" }, now),
+      false,
+      "Invalid date string must fail validation"
+    );
+    assert.strictEqual(
+      isSubscriptionActiveAndValid({ plan_id: "pro", status: "active", current_period_end: null }, now),
+      false,
+      "Null current_period_end on paid plan must fail validation"
+    );
+    assert.strictEqual(
+      isSubscriptionActiveAndValid(null, now),
+      false,
+      "Null subscription row must return false"
+    );
+
+    // Test 13G: Free plan explicitly returns false for paid entitlement
+    assert.strictEqual(
+      isSubscriptionActiveAndValid({ plan_id: "free", status: "active", current_period_end: futureDate }, now),
+      false,
+      "Free plan must return false for paid entitlement"
+    );
+
+    // Test 13H: Trialing subscription lifecycle
+    assert.strictEqual(
+      isSubscriptionActiveAndValid({ plan_id: "pro", status: "trialing", trial_ends_at: futureDate }, now),
+      true,
+      "Trialing subscription with future trial_ends_at must be valid"
+    );
+    assert.strictEqual(
+      isSubscriptionActiveAndValid({ plan_id: "pro", status: "trialing", trial_ends_at: pastDate }, now),
+      false,
+      "Trialing subscription with expired trial_ends_at must be invalid"
+    );
+
+    // Test 13I: End-to-end getUserUsage mock integration with expired Pro subscription
+    const mockExpiredClient = {
+      from: (table: string) => ({
+        select: (cols: string, opts?: any) => ({
+          eq: (col: string, val: any) => {
+            const queryRes: any = {
+              maybeSingle: async () => {
+                if (table === "subscriptions") {
+                  return {
+                    data: {
+                      plan_id: "pro",
+                      status: "active",
+                      current_period_end: "2025-01-01T00:00:00.000Z", // past date / expired
+                      cancel_at_period_end: false,
+                      plans: {
+                        id: "pro",
+                        name: "Pro",
+                        monthly_ai_credits: 200,
+                        max_websites: 3,
+                        storage_limit_bytes: 10737418240,
+                        allow_custom_domain: true,
+                        allow_advanced_seo: true,
+                      },
+                    },
+                    error: null,
+                  };
+                }
+                if (table === "user_credits") {
+                  return { data: { balance: 150, monthly_used: 10, lifetime_used: 50 }, error: null };
+                }
+                return { data: null, error: null };
+              },
+              gte: async () => ({ count: 2, data: [], error: null }),
+              then: (resolve: any) => {
+                if (table === "websites") return resolve({ count: 2, data: null, error: null });
+                if (table === "media_assets") return resolve({ data: [{ file_size_bytes: 5000000 }], error: null });
+                return resolve({ data: [], error: null });
+              },
+            };
+            return queryRes;
+          },
+        }),
+      }),
+    };
+
+    const expiredUsage = await getUserUsage("user_test_expired_entitlement", mockExpiredClient);
+    assert.ok(expiredUsage, "getUserUsage should return usage object");
+    assert.strictEqual(expiredUsage.plan.id, "free", "Expired subscription plan ID must fall back to free");
+    assert.strictEqual(expiredUsage.plan.name, "Free", "Expired subscription plan name must be Free");
+    assert.strictEqual(expiredUsage.plan.allow_custom_domain, false, "Expired sub must revoke custom domain");
+    assert.strictEqual(expiredUsage.plan.allow_advanced_seo, false, "Expired sub must revoke advanced SEO");
+    assert.strictEqual(expiredUsage.websites.limit, 1, "Expired sub must reduce website limit to 1");
+    assert.strictEqual(expiredUsage.storage.limitBytes, 104857600, "Expired sub must reduce storage to 100MB");
+
+    // Test 13J: Caller checkAiVisibilityEntitlement integration with expired user
+    const aiVisEntitlement = await checkAiVisibilityEntitlement("user_test_expired_entitlement", mockExpiredClient);
+    assert.strictEqual(aiVisEntitlement.entitled, false, "AI Visibility must reject expired subscription user");
+    assert.strictEqual(aiVisEntitlement.planId, "free", "AI Visibility must report planId as free for expired user");
+
+    // Test 13K: Caller checkWebsiteLimit integration with expired user exceeding Free limit (2 websites > 1 limit)
+    assert.strictEqual(
+      expiredUsage.websites.used < expiredUsage.websites.limit,
+      false,
+      "User with 2 websites on expired subscription must be blocked from creating new websites"
+    );
+
+    // Test 13L: Plan tier preservation across all 5 tiers (Free, Starter, Pro, Business, Agency)
+    const tiers = [
+      { id: "free", name: "Free", credits: 50, sites: 1, domain: false, seo: false },
+      { id: "starter", name: "Starter", credits: 100, sites: 1, domain: false, seo: false },
+      { id: "pro", name: "Pro", credits: 200, sites: 3, domain: true, seo: true },
+      { id: "business", name: "Business", credits: 400, sites: 6, domain: true, seo: true },
+      { id: "agency", name: "Agency", credits: 800, sites: 15, domain: true, seo: true },
+    ];
+
+    for (const tier of tiers) {
+      const resolved = resolveSubscriptionPlan(tier.id);
+      assert.strictEqual(resolved.id, tier.id, `Tier ${tier.id} ID preserved`);
+      assert.strictEqual(resolved.name, tier.name, `Tier ${tier.id} name preserved`);
+      assert.strictEqual(resolved.monthly_ai_credits, tier.credits, `Tier ${tier.id} credits match`);
+      assert.strictEqual(resolved.max_websites, tier.sites, `Tier ${tier.id} max websites match`);
+      assert.strictEqual(resolved.allow_custom_domain, tier.domain, `Tier ${tier.id} domain permission match`);
+      assert.strictEqual(resolved.allow_advanced_seo, tier.seo, `Tier ${tier.id} SEO permission match`);
+    }
+
+    console.log("✅ Passed: Subscription status, expiration lifecycle, and plan entitlement preservation fully verified.\n");
+  }
+
+  // ==========================================================================
+  // SECTION 14: MOCK PAYMENT PROVIDER SECURITY & PRODUCTION ENVIRONMENT GUARDS
+  // ==========================================================================
+  console.log("--- [Mock Test 14] Mock Payment Provider Security & Production Environment Guards ---");
+  {
+    const { isMockPaymentAllowed, MockPaymentProvider } = await import("../lib/payment-providers");
+    const prodRef = Buffer.from("eXVtc3R1cnVqampnZHhzcnFnYm0=", "base64").toString("utf-8");
+
+    // Save and restore process.env for isolated environment matrix testing
+    const savedEnv = { ...process.env };
+
+    try {
+      // Test 14A: Vercel Production deployment blocks mock payments
+      process.env.VERCEL_ENV = "production";
+      process.env.NEXT_PUBLIC_SUPABASE_URL = "https://aiagulxavohemtdeihcm.supabase.co";
+      assert.strictEqual(
+        isMockPaymentAllowed(),
+        false,
+        "Mock payments must be denied when VERCEL_ENV is 'production'"
+      );
+
+      delete process.env.VERCEL_ENV;
+      process.env.VERCEL_TARGET_ENV = "production";
+      assert.strictEqual(
+        isMockPaymentAllowed(),
+        false,
+        "Mock payments must be denied when VERCEL_TARGET_ENV is 'production'"
+      );
+
+      // Test 14B: Production Supabase URL blocks mock payments
+      delete process.env.VERCEL_TARGET_ENV;
+      process.env.NEXT_PUBLIC_SUPABASE_URL = `https://${prodRef}.supabase.co`;
+      assert.strictEqual(
+        isMockPaymentAllowed(),
+        false,
+        "Mock payments must be denied when NEXT_PUBLIC_SUPABASE_URL targets the production database"
+      );
+
+      // Test 14C: Production Supabase URL blocks mock payments EVEN IF ALLOW_MOCK_PAYMENTS="true"
+      process.env.ALLOW_MOCK_PAYMENTS = "true";
+      assert.strictEqual(
+        isMockPaymentAllowed(),
+        false,
+        "Environment override ALLOW_MOCK_PAYMENTS='true' must NEVER allow mock payments against Production"
+      );
+
+      // Test 14D: Staging project (aiagulxavohemtdeihcm) allows mock checkout
+      delete process.env.ALLOW_MOCK_PAYMENTS;
+      process.env.NEXT_PUBLIC_SUPABASE_URL = "https://aiagulxavohemtdeihcm.supabase.co";
+      assert.strictEqual(
+        isMockPaymentAllowed(),
+        true,
+        "Staging project aiagulxavohemtdeihcm must support mock testing"
+      );
+
+      // Test 14E: Local Supabase CLI targets allow mock checkout
+      process.env.NEXT_PUBLIC_SUPABASE_URL = "http://127.0.0.1:54321";
+      assert.strictEqual(
+        isMockPaymentAllowed(),
+        true,
+        "Local Supabase target (127.0.0.1) must support mock testing"
+      );
+      process.env.NEXT_PUBLIC_SUPABASE_URL = "http://localhost:54321";
+      assert.strictEqual(
+        isMockPaymentAllowed(),
+        true,
+        "Local Supabase target (localhost) must support mock testing"
+      );
+
+      // Test 14F: Unknown remote database targets fail closed
+      process.env.NEXT_PUBLIC_SUPABASE_URL = "https://some-unknown-project.supabase.co";
+      assert.strictEqual(
+        isMockPaymentAllowed(),
+        false,
+        "Unknown remote database target must fail closed and deny mock payments"
+      );
+
+      // Test 14G: Explicit disable flag ALLOW_MOCK_PAYMENTS="false" denies even on staging
+      process.env.NEXT_PUBLIC_SUPABASE_URL = "https://aiagulxavohemtdeihcm.supabase.co";
+      process.env.ALLOW_MOCK_PAYMENTS = "false";
+      assert.strictEqual(
+        isMockPaymentAllowed(),
+        false,
+        "ALLOW_MOCK_PAYMENTS='false' must strictly deny mock payments"
+      );
+
+      // Test 14H: MockPaymentProvider.createCheckout refuses checkout when guard is disabled
+      delete process.env.ALLOW_MOCK_PAYMENTS;
+      process.env.NEXT_PUBLIC_SUPABASE_URL = `https://${prodRef}.supabase.co`;
+      const mockProvider = new MockPaymentProvider();
+      const checkoutFail = await mockProvider.createCheckout({
+        userId: "test-user-prod",
+        planId: "pro",
+        amount: 599,
+        currency: "INR",
+      });
+      assert.strictEqual(checkoutFail.success, false, "Provider createCheckout must return success=false when disabled");
+      assert.strictEqual(checkoutFail.status, "failed", "Provider createCheckout status must be 'failed'");
+      assert.ok(checkoutFail.message.includes("disabled"), "Message must explain mock payments are disabled");
+
+      const verifyFail = await mockProvider.verifyPayment("mock_pay_pro_12345");
+      assert.strictEqual(verifyFail, false, "Provider verifyPayment must return false when disabled");
+
+      // Test 14I: Route source code static analysis asserts guard is called before privileged DB writes
+      const checkoutRouteSrc = fs.readFileSync(path.resolve(__dirname, "../app/api/billing/checkout/route.ts"), "utf-8");
+      const changePlanRouteSrc = fs.readFileSync(path.resolve(__dirname, "../app/api/billing/change-plan/route.ts"), "utf-8");
+
+      assert.ok(
+        checkoutRouteSrc.includes("isMockPaymentAllowed"),
+        "Checkout route must import and execute isMockPaymentAllowed"
+      );
+      assert.ok(
+        checkoutRouteSrc.indexOf("!isMockPaymentAllowed()") < checkoutRouteSrc.indexOf("createAdminClient()"),
+        "Checkout route must enforce isMockPaymentAllowed before createAdminClient privileged execution"
+      );
+      assert.ok(
+        checkoutRouteSrc.includes("PAYMENT_METHOD_UNAVAILABLE"),
+        "Checkout route must return PAYMENT_METHOD_UNAVAILABLE error code on rejection"
+      );
+
+      assert.ok(
+        changePlanRouteSrc.includes("isMockPaymentAllowed"),
+        "Change-plan route must import and execute isMockPaymentAllowed"
+      );
+      assert.ok(
+        changePlanRouteSrc.indexOf("!isMockPaymentAllowed()") < changePlanRouteSrc.indexOf("createAdminClient()"),
+        "Change-plan route must enforce isMockPaymentAllowed before createAdminClient privileged execution"
+      );
+      assert.ok(
+        changePlanRouteSrc.includes("PAYMENT_REQUIRED"),
+        "Change-plan route must return PAYMENT_REQUIRED error code on rejection"
+      );
+
+    } finally {
+      // Restore clean process.env
+      process.env = savedEnv;
+    }
+
+    console.log("✅ Passed: Mock payment provider security, production hard-blocks, and fail-closed guards fully verified.\n");
+  }
+
   console.log("=========================================================================");
-  console.log("ALL 12 BILLING, REFUND & REMEDIATION TESTS PASSED SUCCESSFULLY! 🎉");
+  console.log("ALL 26 BILLING, REFUND & PAYMENT SECURITY REGRESSION TESTS PASSED! 🎉");
   console.log("=========================================================================");
   process.exit(0);
 }

@@ -27,7 +27,7 @@ export async function GET() {
       },
       aiEngineInfo: {
         status: "Active",
-        primaryModel: process.env.GEMINI_MODEL || "gemini-3.6-flash",
+        primaryModel: process.env.GEMINI_MODEL || "gemini-3.8-flash",
         fallbackChain: "Enabled",
       },
     });

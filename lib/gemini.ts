@@ -151,7 +151,7 @@ export async function generateWebsite(
   console.log(`WEBSITE CONTENT LANG: ${options?.websiteLanguage || "auto"}`);
   console.log("REQUEST SENT TO GEMINI...");
 
-  const candidateModels = Array.from(new Set([model, "gemini-3.6-flash", "gemini-3.5-flash"]));
+  const candidateModels = Array.from(new Set([model, "gemini-3.8-flash", "gemini-3.6-flash"]));
   let lastError: any = null;
 
   for (const currentModel of candidateModels) {
@@ -167,7 +167,8 @@ export async function generateWebsite(
         throw new Error("Gemini returned an empty response.");
       }
 
-      console.log(`SUCCESSFUL RESPONSE RECEIVED FROM GEMINI (${currentModel})`);
+      const servedModel = response.modelVersion || currentModel;
+      console.log(`SUCCESSFUL RESPONSE RECEIVED FROM GEMINI (requested: ${currentModel}, served: ${servedModel})`);
       console.log(`RESPONSE LENGTH: ${responseText.length} characters`);
       console.log("==========================================");
 
@@ -175,6 +176,15 @@ export async function generateWebsite(
     } catch (error: any) {
       console.warn(`Model ${currentModel} failed:`, error?.message || error);
       lastError = error;
+
+      const errMsg = error?.message || String(error || "");
+      if (errMsg.includes("API key") || errMsg.includes("UNAUTHENTICATED") || errMsg.includes("401") || errMsg.includes("403")) {
+        console.error(`Non-retryable authentication error with Gemini API: ${errMsg}`);
+        break;
+      }
+      if (errMsg.includes("429") || errMsg.includes("503") || errMsg.includes("Quota") || errMsg.includes("UNAVAILABLE")) {
+        await new Promise((resolve) => setTimeout(resolve, 1500));
+      }
     }
   }
 
@@ -231,7 +241,7 @@ export async function editWebsite(
     });
   }
 
-  const candidateModels = Array.from(new Set([model, "gemini-3.6-flash", "gemini-3.5-flash"]));
+  const candidateModels = Array.from(new Set([model, "gemini-3.8-flash", "gemini-3.6-flash"]));
   let lastError: any = null;
 
   for (const currentModel of candidateModels) {
@@ -259,10 +269,24 @@ export async function editWebsite(
         throw new Error("Gemini returned an empty response for edit.");
       }
 
+      const servedModel = response?.modelVersion || currentModel;
+      console.log(`SUCCESSFUL EDIT RESPONSE RECEIVED FROM GEMINI (requested: ${currentModel}, served: ${servedModel})`);
+      console.log(`RESPONSE LENGTH: ${responseText.length} characters`);
+      console.log("==========================================");
+
       return parseMarkerDelimitedResponse(responseText, instruction);
     } catch (error: any) {
       console.warn(`Edit model ${currentModel} failed:`, error?.message || error);
       lastError = error;
+
+      const errMsg = error?.message || String(error || "");
+      if (errMsg.includes("API key") || errMsg.includes("UNAUTHENTICATED") || errMsg.includes("401") || errMsg.includes("403")) {
+        console.error(`Non-retryable authentication error on edit with Gemini API: ${errMsg}`);
+        break;
+      }
+      if (errMsg.includes("429") || errMsg.includes("503") || errMsg.includes("Quota") || errMsg.includes("UNAVAILABLE")) {
+        await new Promise((resolve) => setTimeout(resolve, 1500));
+      }
     }
   }
 

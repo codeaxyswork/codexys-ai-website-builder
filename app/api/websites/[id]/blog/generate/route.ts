@@ -131,7 +131,7 @@ WEBSITE TARGET KEYWORDS: ${siteKeywords || "General Industry Topics"}
 REQUESTED BLOG TOPIC: "${topic}"
       `;
 
-      const candidateModels = Array.from(new Set([model || "gemini-3.6-flash", "gemini-3.6-flash", "gemini-3.5-flash"]));
+      const candidateModels = Array.from(new Set([model || "gemini-3.8-flash", "gemini-3.8-flash", "gemini-3.6-flash"]));
       let rawResponseText = "";
       let lastError: any = null;
 
@@ -148,10 +148,22 @@ REQUESTED BLOG TOPIC: "${topic}"
           });
 
           rawResponseText = response.text || "";
-          if (rawResponseText.trim()) break;
+          if (rawResponseText.trim()) {
+            const servedModel = response.modelVersion || targetModel;
+            console.log(`[Blog Generate] Post generated (requested: ${targetModel}, served: ${servedModel})`);
+            break;
+          }
         } catch (err: any) {
           console.warn(`AI Blog Generation model ${targetModel} failed:`, err?.message || err);
           lastError = err;
+          const errMsg = err?.message || String(err || "");
+          if (errMsg.includes("API key") || errMsg.includes("UNAUTHENTICATED") || errMsg.includes("401") || errMsg.includes("403")) {
+            console.error(`[Blog Generate] Non-retryable authentication error on ${targetModel}: ${errMsg}`);
+            break;
+          }
+          if (errMsg.includes("429") || errMsg.includes("503") || errMsg.includes("Quota") || errMsg.includes("UNAVAILABLE")) {
+            await new Promise((resolve) => setTimeout(resolve, 1000));
+          }
         }
       }
 

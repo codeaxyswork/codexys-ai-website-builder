@@ -300,7 +300,7 @@ export default function AdminAnalyticsPage() {
               <div className="mt-8 p-4 bg-purple-50/60 rounded-xl border border-purple-100 text-xs text-purple-900 flex items-start gap-3">
                 <Sparkles className="w-4 h-4 text-purple-600 shrink-0 mt-0.5" />
                 <div>
-                  <span className="font-semibold">Engine Efficiency:</span> Primary model <code className="bg-purple-100 px-1 py-0.5 rounded font-mono">gemini-3.6-flash</code> is active with zero fallback latency reported.
+                  <span className="font-semibold">Engine Efficiency:</span> Primary model <code className="bg-purple-100 px-1 py-0.5 rounded font-mono">gemini-3.8-flash</code> is active with zero fallback latency reported.
                 </div>
               </div>
             </div>

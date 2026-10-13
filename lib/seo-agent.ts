@@ -906,7 +906,7 @@ ${historyText ? `=== RECENT CONVERSATION HISTORY ===\n${historyText}\n` : ""}
 ${params.userPrompt}
 `;
 
-  const candidateModels = Array.from(new Set([model || "gemini-3.6-flash", "gemini-3.6-flash", "gemini-3.5-flash"]));
+  const candidateModels = Array.from(new Set([model || "gemini-3.8-flash", "gemini-3.8-flash", "gemini-3.6-flash"]));
 
   let lastError: Error | null = null;
   for (const targetModel of candidateModels) {
@@ -918,6 +918,9 @@ ${params.userPrompt}
           responseMimeType: "application/json",
         },
       });
+
+      const servedModel = response.modelVersion || targetModel;
+      console.log(`[SEO Agent] Response received (requested: ${targetModel}, served: ${servedModel})`);
 
       const rawText = response.text || "";
       const cleaned = rawText.replace(/```json/gi, "").replace(/```/g, "").trim();
@@ -939,6 +942,14 @@ ${params.userPrompt}
     } catch (err: any) {
       console.warn(`SEO Agent Gemini model ${targetModel} failed:`, err?.message || err);
       lastError = err;
+      const errMsg = err?.message || String(err || "");
+      if (errMsg.includes("API key") || errMsg.includes("UNAUTHENTICATED") || errMsg.includes("401") || errMsg.includes("403")) {
+        console.error(`[SEO Agent] Non-retryable authentication error on ${targetModel}: ${errMsg}`);
+        break;
+      }
+      if (errMsg.includes("429") || errMsg.includes("503") || errMsg.includes("Quota") || errMsg.includes("UNAVAILABLE")) {
+        await new Promise((resolve) => setTimeout(resolve, 1000));
+      }
     }
   }
 

@@ -313,7 +313,7 @@ export default function AdminSettingsPage() {
               <div className="p-4 bg-slate-50 rounded-xl border border-slate-200">
                 <p className="text-xs font-medium text-slate-500">Primary Model</p>
                 <p className="text-base font-bold text-purple-700 font-mono mt-1">
-                  {aiInfo?.primaryModel || "gemini-3.6-flash"}
+                  {aiInfo?.primaryModel || "gemini-3.8-flash"}
                 </p>
               </div>
 

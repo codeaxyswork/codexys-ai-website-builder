@@ -145,9 +145,7 @@ export async function generateAssistantReply(
     const candidateModels = Array.from(new Set([
       primaryModel,
       "gemini-3.8-flash",
-      "gemini-3.6-flash",
-      "gemini-3.5-flash",
-      "gemini-3.1-pro-preview"
+      "gemini-3.6-flash"
     ]));
 
     for (const currentModel of candidateModels) {
@@ -164,6 +162,9 @@ export async function generateAssistantReply(
           });
 
           if (response.text && response.text.trim()) {
+            const servedModel = response.modelVersion || currentModel;
+            console.log(`[Assistant] Successful response (requested: ${currentModel}, served: ${servedModel})`);
+
             const replyText = response.text.trim();
             let suggestedPrompt: string | null = null;
             const promptMatch = replyText.match(/===PROMPT_START===([\s\S]*?)===PROMPT_END===/);
@@ -182,6 +183,11 @@ export async function generateAssistantReply(
           }
         } catch (err: any) {
           console.warn(`Assistant model ${currentModel} attempt ${attempt} failed:`, err?.message || err);
+          const errMsg = err?.message || String(err || "");
+          if (errMsg.includes("API key") || errMsg.includes("UNAUTHENTICATED") || errMsg.includes("401") || errMsg.includes("403")) {
+            console.error(`[Assistant] Non-retryable authentication error on ${currentModel}: ${errMsg}`);
+            break;
+          }
           if (String(err?.message || "").includes("429") || String(err?.message || "").includes("Quota")) {
             await new Promise((resolve) => setTimeout(resolve, 3500));
           }

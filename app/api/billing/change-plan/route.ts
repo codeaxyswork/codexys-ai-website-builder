@@ -3,6 +3,7 @@ import { createClient, createAdminClient } from "@/utils/supabase/server";
 import { PLANS } from "@/lib/constants";
 import { getUserUsage } from "@/lib/billing";
 import { invalidateUserCache } from "@/lib/cache";
+import { isMockPaymentAllowed } from "@/lib/payment-providers";
 
 export async function POST(request: Request) {
   try {
@@ -22,6 +23,17 @@ export async function POST(request: Request) {
 
     if (!targetPlan) {
       return NextResponse.json({ error: "Invalid target plan specified." }, { status: 400 });
+    }
+
+    // 0. Server-Side Environment Guard: Direct mock plan changes strictly forbidden in Production
+    if (!isMockPaymentAllowed()) {
+      return NextResponse.json(
+        {
+          error: "Direct mock plan changes are unavailable in the production environment. Please complete checkout with a live payment method.",
+          code: "PAYMENT_REQUIRED",
+        },
+        { status: 403 }
+      );
     }
 
     const currentUsage = await getUserUsage(user.id);

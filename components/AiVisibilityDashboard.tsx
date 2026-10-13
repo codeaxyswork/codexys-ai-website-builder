@@ -288,7 +288,7 @@ export function AiVisibilityDashboard({
     {
       name: "gemini",
       label: "Google Gemini",
-      model: "gemini-2.5-flash",
+      model: "gemini-3.8-flash",
       iconColor: "text-indigo-600",
     },
     {
@@ -889,7 +889,7 @@ export function AiVisibilityDashboard({
               <option value="all">All 4 AI Engines (Batch)</option>
               <option value="openai">OpenAI (gpt-4o-mini)</option>
               <option value="perplexity">Perplexity (sonar)</option>
-              <option value="gemini">Google Gemini (gemini-2.5-flash)</option>
+              <option value="gemini">Google Gemini (gemini-3.8-flash)</option>
               <option value="claude">Anthropic Claude (claude-3-5-sonnet)</option>
             </select>
           </div>

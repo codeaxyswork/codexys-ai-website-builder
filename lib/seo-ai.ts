@@ -57,8 +57,9 @@ ${htmlExcerpt}
 `;
 
   try {
+    const primaryModel = model || "gemini-3.8-flash";
     const response = await ai.models.generateContent({
-      model: model || "gemini-3.6-flash",
+      model: primaryModel,
       contents: [
         { role: "user", parts: [{ text: `${systemPrompt}\n\n${userPromptText}` }] },
       ],
@@ -66,6 +67,9 @@ ${htmlExcerpt}
         responseMimeType: "application/json",
       },
     });
+
+    const servedModel = response.modelVersion || primaryModel;
+    console.log(`[SEO AI Suggestions] Received response (served: ${servedModel})`);
 
     const text = response.text || "";
     const cleanedText = text.replace(/```json/gi, "").replace(/```/g, "").trim();

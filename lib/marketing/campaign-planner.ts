@@ -563,8 +563,8 @@ Budget Source: ${budgetSource}
 Generate the complete JSON campaign plan inside ===CAMPAIGN_PLAN_START=== and ===CAMPAIGN_PLAN_END=== now:
 `;
 
-  const primaryModel = model || "gemini-3.6-flash";
-  const candidateModels = Array.from(new Set([primaryModel, "gemini-3.6-flash", "gemini-3.5-flash"]));
+  const primaryModel = model || "gemini-3.8-flash";
+  const candidateModels = Array.from(new Set([primaryModel, "gemini-3.8-flash", "gemini-3.6-flash"]));
   let responseText: string | null = null;
   let lastError: any = null;
 

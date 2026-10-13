@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { createClient } from "@/utils/supabase/server";
+import { createClient, createAdminClient } from "@/utils/supabase/server";
 
 export async function POST() {
   try {
@@ -13,7 +13,9 @@ export async function POST() {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const { data: currentSub } = await supabase
+    const admin = createAdminClient();
+
+    const { data: currentSub } = await admin
       .from("subscriptions")
       .select("*")
       .eq("user_id", user.id)
@@ -28,7 +30,7 @@ export async function POST() {
 
     const now = new Date().toISOString();
 
-    const { data: updatedSub, error: updateErr } = await supabase
+    const { data: updatedSub, error: updateErr } = await admin
       .from("subscriptions")
       .update({
         cancel_at_period_end: true,

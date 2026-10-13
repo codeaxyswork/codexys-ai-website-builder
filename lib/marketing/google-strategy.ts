@@ -294,8 +294,8 @@ Budget Source: ${budgetSource}
 Generate the complete JSON Google Search campaign plan inside ===GOOGLE_PLAN_START=== and ===GOOGLE_PLAN_END=== now:
 `;
 
-  const primaryModel = model || "gemini-3.6-flash";
-  const candidateModels = Array.from(new Set([primaryModel, "gemini-3.6-flash", "gemini-3.5-flash"]));
+  const primaryModel = model || "gemini-3.8-flash";
+  const candidateModels = Array.from(new Set([primaryModel, "gemini-3.8-flash", "gemini-3.6-flash"]));
   let responseText: string | null = null;
 
   for (const currentModel of candidateModels) {

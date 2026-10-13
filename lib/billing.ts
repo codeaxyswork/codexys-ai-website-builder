@@ -1,5 +1,5 @@
 import { createClient } from "@/utils/supabase/server";
-import { CREDIT_COSTS, ERROR_CODES } from "./constants";
+import { CREDIT_COSTS, ERROR_CODES, PLANS } from "./constants";
 
 import { getCache, setCache, invalidateUserCache, CACHE_KEYS, CACHE_TTLS } from "./cache";
 
@@ -27,6 +27,133 @@ export interface UserUsageData {
   };
 }
 
+export const DEFAULT_FREE_PLAN = {
+  id: "free",
+  name: "Free",
+  monthly_ai_credits: 50,
+  max_websites: 1,
+  storage_limit_bytes: 104857600,
+  allow_custom_domain: false,
+  allow_advanced_seo: false,
+};
+
+/**
+ * Validates whether a subscription grants active paid-plan entitlements.
+ *
+ * Rules:
+ * - Paid plan required (plan_id !== 'free').
+ * - Must have a valid current_period_end date (or valid trial_ends_at for trials).
+ * - Expired subscriptions (current_period_end < asOf) fail closed and return false.
+ * - Active subscriptions within period return true.
+ * - Subscriptions with cancel_at_period_end = true maintain paid access until current_period_end.
+ * - Canceled subscriptions without cancel_at_period_end (or expired) return false.
+ * - Incomplete, unpaid, past_due, or invalid statuses return false.
+ */
+export function isSubscriptionActiveAndValid(sub: any, asOf: Date = new Date()): boolean {
+  if (!sub || typeof sub !== "object") {
+    return false;
+  }
+
+  const planId = typeof sub.plan_id === "string" ? sub.plan_id.toLowerCase().trim() : "";
+  if (!planId || planId === "free") {
+    return false;
+  }
+
+  const status = typeof sub.status === "string" ? sub.status.toLowerCase().trim() : "";
+  const now = asOf.getTime();
+
+  // Validate current_period_end if present
+  let periodEndMs: number | null = null;
+  if (sub.current_period_end) {
+    const parsedEnd = new Date(sub.current_period_end).getTime();
+    if (isNaN(parsedEnd)) {
+      // Invalid date format fails closed
+      return false;
+    }
+    periodEndMs = parsedEnd;
+  }
+
+  // A paid plan must have a valid billing period date or a valid trial end date
+  if (periodEndMs === null && !sub.trial_ends_at) {
+    return false;
+  }
+
+  // If billing period has passed, paid entitlement has expired
+  if (periodEndMs !== null && periodEndMs < now) {
+    return false;
+  }
+
+  // 1. Handle trialing status
+  if (status === "trialing") {
+    if (sub.trial_ends_at) {
+      const trialEndMs = new Date(sub.trial_ends_at).getTime();
+      if (isNaN(trialEndMs) || trialEndMs < now) {
+        return false;
+      }
+      return true;
+    }
+    return periodEndMs !== null && periodEndMs >= now;
+  }
+
+  // 2. Handle active status:
+  // - Standard active subscription within billing period
+  // - When cancel_at_period_end is true, access is preserved until current_period_end
+  if (status === "active") {
+    return periodEndMs !== null && periodEndMs >= now;
+  }
+
+  // 3. Handle canceled status:
+  // When cancel_at_period_end is true and current date is still before periodEndMs,
+  // access is preserved until the end of the paid billing period.
+  if (status === "canceled") {
+    const isCancelAtPeriodEnd =
+      sub.cancel_at_period_end === true || sub.cancel_at_period_end === "true";
+    if (isCancelAtPeriodEnd && periodEndMs !== null && periodEndMs >= now) {
+      return true;
+    }
+    return false;
+  }
+
+  // 4. Any other status (e.g. unpaid, past_due, incomplete, incomplete_expired, paused, invalid) fails closed
+  return false;
+}
+
+/**
+ * Resolves plan entitlement limits and capabilities from joined plans record
+ * or centralized static PLANS configuration fallback.
+ */
+export function resolveSubscriptionPlan(planId: string, subPlans?: any) {
+  const normId = (planId || "free").toLowerCase().trim();
+  const joined = Array.isArray(subPlans) ? subPlans[0] : subPlans;
+  const staticConfig = PLANS[normId] || PLANS.free;
+  const isPaidTierWithDomainAndSeo = ["pro", "business", "agency"].includes(normId);
+
+  return {
+    id: joined?.id || staticConfig.id || "free",
+    name: joined?.name || staticConfig.name || "Free",
+    monthly_ai_credits:
+      Number(joined?.monthly_ai_credits) ||
+      staticConfig.monthlyCredits ||
+      50,
+    max_websites:
+      Number(joined?.max_websites) ||
+      staticConfig.maxWebsites ||
+      1,
+    storage_limit_bytes:
+      Number(joined?.storage_limit_bytes) ||
+      staticConfig.storageLimitBytes ||
+      104857600,
+    allow_custom_domain:
+      joined?.allow_custom_domain !== undefined
+        ? Boolean(joined.allow_custom_domain)
+        : isPaidTierWithDomainAndSeo,
+    allow_advanced_seo:
+      joined?.allow_advanced_seo !== undefined
+        ? Boolean(joined.allow_advanced_seo)
+        : isPaidTierWithDomainAndSeo,
+  };
+}
+
 export async function getUserUsage(userId: string, customClient?: any): Promise<UserUsageData | null> {
   try {
     const cacheKey = CACHE_KEYS.userUsage(userId);
@@ -45,7 +172,9 @@ export async function getUserUsage(userId: string, customClient?: any): Promise<
     const [subRes, creditRes, monthlyOpsRes, websiteRes, assetsRes] = await Promise.all([
       supabase
         .from("subscriptions")
-        .select("plan_id, status, plans(*)")
+        .select(
+          "plan_id, status, current_period_start, current_period_end, cancel_at_period_end, canceled_at, trial_ends_at, plans(*)"
+        )
         .eq("user_id", userId)
         .maybeSingle(),
       supabase
@@ -74,15 +203,10 @@ export async function getUserUsage(userId: string, customClient?: any): Promise<
     const websiteCount = websiteRes.count;
     const assets = assetsRes.data || [];
 
-    const plan = (sub?.plans as any) || {
-      id: "free",
-      name: "Free",
-      monthly_ai_credits: 50,
-      max_websites: 1,
-      storage_limit_bytes: 104857600,
-      allow_custom_domain: false,
-      allow_advanced_seo: false,
-    };
+    const isPaidValid = isSubscriptionActiveAndValid(sub);
+    const plan = isPaidValid
+      ? resolveSubscriptionPlan(sub.plan_id, sub.plans)
+      : DEFAULT_FREE_PLAN;
 
     if (!creditRec) {
       // Auto-initialize credits for user if record is missing

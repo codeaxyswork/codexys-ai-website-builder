@@ -184,9 +184,8 @@ TRANSCRIPTION DIRECTIVES (CRITICAL):
     // 11. Candidate Gemini Transcription Models
     const candidateModels = [
       "gemini-3.5-transcribe",
-      "gemini-3.5-flash",
+      "gemini-3.8-flash",
       "gemini-3.6-flash",
-      "gemini-2.5-flash",
     ];
 
     let transcriptText = "";
@@ -207,6 +206,9 @@ TRANSCRIPTION DIRECTIVES (CRITICAL):
           ],
         });
 
+        const servedModel = response.modelVersion || currentModel;
+        console.log(`[Transcribe Endpoint] Successfully transcribed (requested: ${currentModel}, served: ${servedModel})`);
+
         const text = response.text ? response.text.trim() : "";
         transcriptText = text
           .replace(/^```[a-z]*\n?/i, "")
@@ -218,6 +220,14 @@ TRANSCRIPTION DIRECTIVES (CRITICAL):
       } catch (err: any) {
         console.warn(`[Transcribe Endpoint] Model ${currentModel} failed:`, err?.message || err);
         lastError = err;
+        const errMsg = err?.message || String(err || "");
+        if (errMsg.includes("API key") || errMsg.includes("UNAUTHENTICATED") || errMsg.includes("401") || errMsg.includes("403")) {
+          console.error(`[Transcribe Endpoint] Non-retryable authentication error on ${currentModel}: ${errMsg}`);
+          break;
+        }
+        if (errMsg.includes("429") || errMsg.includes("503") || errMsg.includes("Quota") || errMsg.includes("UNAVAILABLE")) {
+          await new Promise((resolve) => setTimeout(resolve, 1000));
+        }
       }
     }
 

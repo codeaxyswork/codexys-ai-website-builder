@@ -16,7 +16,7 @@ import { createNormalizedResponse, extractDomainFromUrl } from "../provider-abst
 
 export class GeminiVisibilityAdapter implements AiVisibilityProviderAdapter {
   readonly providerName: AiVisibilityProviderName = "gemini";
-  readonly defaultModel: string = process.env.GEMINI_MODEL || "gemini-1.5-flash";
+  readonly defaultModel: string = process.env.GEMINI_MODEL || "gemini-3.8-flash";
 
   constructor(model?: string) {
     if (model) {
@@ -139,11 +139,13 @@ export class GeminiVisibilityAdapter implements AiVisibilityProviderAdapter {
       const data = await response.json();
       const candidate = data?.candidates?.[0];
       const contentText = candidate?.content?.parts?.[0]?.text || "";
+      const servedModel = data?.modelVersion || this.defaultModel;
+      console.log(`[AI_VISIBILITY] Gemini probe executed (requested: ${this.defaultModel}, served: ${servedModel})`);
 
       // Extract Grounding Metadata Citations (verified Google Search Grounding)
       const groundingChunks = candidate?.groundingMetadata?.groundingChunks || [];
       const citations: CitationItem[] = groundingChunks
-        .map((chunk: any) => chunk.web?.uri)
+        .map((chunk: { web?: { uri?: string } }) => chunk.web?.uri)
         .filter((uri: string): uri is string => Boolean(uri))
         .map((url: string) => ({
           url,

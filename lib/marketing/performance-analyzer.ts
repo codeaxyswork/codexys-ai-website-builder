@@ -184,7 +184,7 @@ RESPONSE FORMAT (STRICT JSON ONLY):
     const { apiKey, model } = getGeminiConfig();
     const ai = new GoogleGenAI({ apiKey });
 
-    const candidateModels = Array.from(new Set([model, "gemini-3.6-flash", "gemini-3.5-flash"]));
+    const candidateModels = Array.from(new Set([model, "gemini-3.8-flash", "gemini-3.6-flash"]));
 
     for (const m of candidateModels) {
       try {
@@ -194,6 +194,8 @@ RESPONSE FORMAT (STRICT JSON ONLY):
         });
         if (response.text && response.text.trim()) {
           rawAiText = response.text;
+          const servedModel = response.modelVersion || m;
+          console.log(`[Performance Analyzer] Analysis generated (requested: ${m}, served: ${servedModel})`);
           break;
         }
       } catch (err: any) {

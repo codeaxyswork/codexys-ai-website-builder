@@ -637,7 +637,7 @@ export async function generateAIRedesignForPage(
   const { apiKey, model } = getGeminiConfig();
   const ai = new GoogleGenAI({ apiKey });
 
-  const candidateModels = Array.from(new Set([model || "gemini-3.6-flash", "gemini-3.6-flash", "gemini-3.5-flash"]));
+  const candidateModels = Array.from(new Set([model || "gemini-3.8-flash", "gemini-3.8-flash", "gemini-3.6-flash"]));
 
   const exactHeroHeadingStr = "POWERING ECOMMERCE GROWTH WITH BIGCOMMERCE EXPERTISE.";
   const structuredTextUpper = JSON.stringify(structured).toUpperCase();
@@ -711,6 +711,8 @@ Output the redesigned page HTML, CSS, and JS using the exact markers:
 
           responseText = response.text || "";
           usedModel = targetModel;
+          const servedVersion = response.modelVersion || targetModel;
+          console.log(`[AI_TRACE] Received redesign response from model: ${targetModel} (servedVersion: ${servedVersion})`);
           break; // Successfully received provider response
         } catch (err: any) {
           lastProviderError = err;

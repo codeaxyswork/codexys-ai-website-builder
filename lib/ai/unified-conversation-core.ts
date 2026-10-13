@@ -166,7 +166,7 @@ ${formattedHistory || "No prior history"}
 "${userPrompt}"
 `;
 
-  const candidateModels = Array.from(new Set([modelName, "gemini-3.8-flash", "gemini-3.6-flash", "gemini-3.5-flash"]));
+  const candidateModels = Array.from(new Set([modelName, "gemini-3.8-flash", "gemini-3.6-flash"]));
 
   const executeGeminiCall = async (): Promise<UnifiedRoutingResult> => {
     let lastErr: any = null;
@@ -182,6 +182,9 @@ ${formattedHistory || "No prior history"}
               responseMimeType: "application/json",
             },
           });
+
+          const servedModel = response.modelVersion || modelCandidate;
+          console.log(`[Unified Core] Route determined (requested: ${modelCandidate}, served: ${servedModel})`);
 
           const rawText = response.text || "";
           const cleanedText = rawText.replace(/```json/gi, "").replace(/```/g, "").trim();

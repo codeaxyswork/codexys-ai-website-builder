@@ -421,7 +421,7 @@ STRICT RULES FOR YOUR RESPONSE:
       const contents = sanitizeGeminiContents(history.slice(-12), userPrompt);
 
       const primaryModel = config.model || "gemini-3.8-flash";
-      const candidateModels = Array.from(new Set([primaryModel, "gemini-3.8-flash", "gemini-3.6-flash", "gemini-3.5-flash"]));
+      const candidateModels = Array.from(new Set([primaryModel, "gemini-3.8-flash", "gemini-3.6-flash"]));
 
       for (const currentModel of candidateModels) {
         for (let attempt = 1; attempt <= 2; attempt++) {
@@ -438,6 +438,8 @@ STRICT RULES FOR YOUR RESPONSE:
 
             if (res.text && res.text.trim()) {
               responseText = res.text.trim();
+              const servedModel = res.modelVersion || currentModel;
+              console.log(`[Unified Orchestrator] Summary generated (requested: ${currentModel}, served: ${servedModel})`);
               break;
             }
           } catch (err: any) {

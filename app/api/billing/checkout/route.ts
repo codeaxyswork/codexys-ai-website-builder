@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { createClient, createAdminClient } from "@/utils/supabase/server";
 import { PLANS } from "@/lib/constants";
-import { getPaymentProvider } from "@/lib/payment-providers";
+import { getPaymentProvider, isMockPaymentAllowed } from "@/lib/payment-providers";
 import { invalidateUserCache } from "@/lib/cache";
 
 export async function POST(request: Request) {
@@ -23,6 +23,17 @@ export async function POST(request: Request) {
     const plan = PLANS[planId];
     if (!plan) {
       return NextResponse.json({ error: "Invalid plan ID specified." }, { status: 400 });
+    }
+
+    // 0. Server-Side Environment Guard: Mock payments strictly forbidden in Production
+    if (!isMockPaymentAllowed()) {
+      return NextResponse.json(
+        {
+          error: "Mock checkout is unavailable in the production environment.",
+          code: "PAYMENT_METHOD_UNAVAILABLE",
+        },
+        { status: 403 }
+      );
     }
 
     // Process Mock Payment via Provider Abstraction Layer (using trusted server-side pricing)

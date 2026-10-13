@@ -147,7 +147,7 @@ DROP POLICY IF EXISTS "Users can view own subscription" ON public.subscriptions;
 CREATE POLICY "Users can view own subscription" ON public.subscriptions FOR SELECT USING (auth.uid() = user_id);
 
 DROP POLICY IF EXISTS "Users can update own subscription" ON public.subscriptions;
-CREATE POLICY "Users can update own subscription" ON public.subscriptions FOR UPDATE USING (auth.uid() = user_id);
+-- Subscription updates are strictly restricted to server-side service_role (createAdminClient).
 
 
 -- ---------------------------------------------------------------------
