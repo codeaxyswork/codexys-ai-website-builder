@@ -1,6 +1,46 @@
 import { GoogleGenAI } from "@google/genai";
 import { GenerationResponse, GeneratedFile, WebsitePlan, UploadedImage } from "./types";
 import { buildMultilingualSystemDirective } from "./multilingual";
+import {
+  logAITelemetry,
+  classifyGeminiError,
+  calculateBackoffWithJitter,
+  withTimeout,
+} from "./gemini-telemetry";
+
+export const SUPPORTED_GEMINI_MODELS = [
+  "gemini-3.8-flash",
+  "gemini-3.7-flash",
+  "gemini-3.6-flash",
+  "gemini-3.5-flash",
+] as const;
+
+export function getCandidateModels(primaryModel?: string): string[] {
+  const configured = (primaryModel || "gemini-3.8-flash").trim();
+  return Array.from(
+    new Set([
+      configured,
+      "gemini-3.8-flash",
+      "gemini-3.7-flash",
+      "gemini-3.6-flash",
+      "gemini-3.5-flash",
+    ])
+  );
+}
+
+export class GeminiAPIError extends Error {
+  statusCode: number;
+  failureCategory: string;
+  isCapacityOrRateLimit: boolean;
+
+  constructor(message: string, statusCode = 500, failureCategory = "INTERNAL_ERROR") {
+    super(message);
+    this.name = "GeminiAPIError";
+    this.statusCode = statusCode;
+    this.failureCategory = failureCategory;
+    this.isCapacityOrRateLimit = statusCode === 503 || statusCode === 429;
+  }
+}
 
 export function getGeminiConfig() {
   const apiKey = (process.env.GEMINI_API_KEY || "").trim();
@@ -151,46 +191,105 @@ export async function generateWebsite(
   console.log(`WEBSITE CONTENT LANG: ${options?.websiteLanguage || "auto"}`);
   console.log("REQUEST SENT TO GEMINI...");
 
-  const candidateModels = Array.from(new Set([model, "gemini-3.8-flash", "gemini-3.6-flash"]));
+  const candidateModels = getCandidateModels(model);
   let lastError: any = null;
 
-  for (const currentModel of candidateModels) {
-    try {
-      console.log(`ATTEMPTING GEMINI MODEL: ${currentModel}`);
-      const response = await ai.models.generateContent({
-        model: currentModel,
-        contents: contentsPayload,
-      });
+  for (let mIdx = 0; mIdx < candidateModels.length; mIdx++) {
+    const currentModel = candidateModels[mIdx];
+    const maxAttempts = mIdx === 0 ? 2 : 1;
 
-      const responseText = response.text;
-      if (!responseText || responseText.trim() === "") {
-        throw new Error("Gemini returned an empty response.");
-      }
+    for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+      const t0 = Date.now();
+      try {
+        console.log(`ATTEMPTING GEMINI MODEL: ${currentModel} (attempt ${attempt}/${maxAttempts})`);
+        const response = await withTimeout(
+          ai.models.generateContent({
+            model: currentModel,
+            contents: contentsPayload,
+          }),
+          45000,
+          `Gemini model ${currentModel} timed out after 45s.`
+        );
 
-      const servedModel = response.modelVersion || currentModel;
-      console.log(`SUCCESSFUL RESPONSE RECEIVED FROM GEMINI (requested: ${currentModel}, served: ${servedModel})`);
-      console.log(`RESPONSE LENGTH: ${responseText.length} characters`);
-      console.log("==========================================");
+        const responseText = response.text;
+        if (!responseText || responseText.trim() === "") {
+          throw new Error("Gemini returned an empty response.");
+        }
 
-      return parseMarkerDelimitedResponse(responseText, userPrompt);
-    } catch (error: any) {
-      console.warn(`Model ${currentModel} failed:`, error?.message || error);
-      lastError = error;
+        const servedModel = response.modelVersion || currentModel;
+        const latencyMs = Date.now() - t0;
 
-      const errMsg = error?.message || String(error || "");
-      if (errMsg.includes("API key") || errMsg.includes("UNAUTHENTICATED") || errMsg.includes("401") || errMsg.includes("403")) {
-        console.error(`Non-retryable authentication error with Gemini API: ${errMsg}`);
-        break;
-      }
-      if (errMsg.includes("429") || errMsg.includes("503") || errMsg.includes("Quota") || errMsg.includes("UNAVAILABLE")) {
-        await new Promise((resolve) => setTimeout(resolve, 1500));
+        logAITelemetry({
+          timestamp: new Date().toISOString(),
+          operation: "generate_website",
+          requestedModel: currentModel,
+          servedModel,
+          status: "SUCCESS",
+          statusCode: 200,
+          latencyMs,
+          attempt,
+          fallbackIndex: mIdx,
+          promptTokenCount: response.usageMetadata?.promptTokenCount,
+          candidatesTokenCount: response.usageMetadata?.candidatesTokenCount,
+          totalTokenCount: response.usageMetadata?.totalTokenCount,
+          promptLengthChars: promptText.length,
+          responseLengthChars: responseText.length,
+          hasImages: Boolean(images && images.length > 0),
+        });
+
+        console.log(`SUCCESSFUL RESPONSE RECEIVED FROM GEMINI (requested: ${currentModel}, served: ${servedModel})`);
+        console.log(`RESPONSE LENGTH: ${responseText.length} characters (latency: ${latencyMs}ms)`);
+        console.log("==========================================");
+
+        return parseMarkerDelimitedResponse(responseText, userPrompt);
+      } catch (error: any) {
+        const latencyMs = Date.now() - t0;
+        const classified = classifyGeminiError(error);
+        lastError = error;
+
+        logAITelemetry({
+          timestamp: new Date().toISOString(),
+          operation: "generate_website",
+          requestedModel: currentModel,
+          status: "FAILED",
+          statusCode: classified.statusCode,
+          failureCategory: classified.failureCategory,
+          latencyMs,
+          attempt,
+          fallbackIndex: mIdx,
+          promptLengthChars: promptText.length,
+          hasImages: Boolean(images && images.length > 0),
+        });
+
+        console.warn(`Model ${currentModel} attempt ${attempt} failed (${classified.failureCategory}):`, error?.message || error);
+
+        if (classified.isAuthError) {
+          console.error(`Non-retryable authentication error with Gemini API: ${error?.message || error}`);
+          const friendly = formatErrorMessage(error);
+          throw new GeminiAPIError(friendly, 401, "AUTH_ERROR");
+        }
+
+        if (attempt < maxAttempts && classified.isTransient) {
+          const delayMs = calculateBackoffWithJitter(attempt, 1000, 2500);
+          console.log(`[Gemini Retry] Retrying model ${currentModel} in ${delayMs}ms...`);
+          await new Promise((resolve) => setTimeout(resolve, delayMs));
+        } else if (mIdx < candidateModels.length - 1 && classified.isTransient) {
+          const delayMs = calculateBackoffWithJitter(1, 800, 1500);
+          console.log(`[Gemini Fallback] Switching to next fallback model in ${delayMs}ms...`);
+          await new Promise((resolve) => setTimeout(resolve, delayMs));
+        }
       }
     }
   }
 
   console.error("All Gemini API models failed:", lastError);
   console.log("==========================================");
-  throw new Error(formatErrorMessage(lastError));
+  const finalClassified = classifyGeminiError(lastError);
+  throw new GeminiAPIError(
+    formatErrorMessage(lastError),
+    finalClassified.statusCode,
+    finalClassified.failureCategory
+  );
 }
 
 export async function editWebsite(
@@ -241,56 +340,124 @@ export async function editWebsite(
     });
   }
 
-  const candidateModels = Array.from(new Set([model, "gemini-3.8-flash", "gemini-3.6-flash"]));
+  const candidateModels = getCandidateModels(model);
   let lastError: any = null;
 
-  for (const currentModel of candidateModels) {
-    try {
-      let response: any;
+  for (let mIdx = 0; mIdx < candidateModels.length; mIdx++) {
+    const currentModel = candidateModels[mIdx];
+    const maxAttempts = mIdx === 0 ? 2 : 1;
+
+    for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+      const t0 = Date.now();
       try {
-        response = await ai.models.generateContent({
-          model: currentModel,
-          contents: contentsPayload,
-        });
-      } catch (err: any) {
-        if (err?.message?.includes("INVALID_ARGUMENT") || err?.message?.includes("Unable to process input image")) {
-          console.warn(`Model ${currentModel} failed inlineData vision, retrying with HTTPS URL promptText directive...`);
-          response = await ai.models.generateContent({
-            model: currentModel,
-            contents: [promptText],
-          });
-        } else {
-          throw err;
+        let response: any;
+        try {
+          response = await withTimeout(
+            ai.models.generateContent({
+              model: currentModel,
+              contents: contentsPayload,
+            }),
+            45000,
+            `Gemini edit model ${currentModel} timed out after 45s.`
+          );
+        } catch (err: any) {
+          if (
+            err?.message?.includes("INVALID_ARGUMENT") ||
+            err?.message?.includes("Unable to process input image")
+          ) {
+            console.warn(
+              `Model ${currentModel} failed inlineData vision, retrying with HTTPS URL promptText directive...`
+            );
+            response = await withTimeout(
+              ai.models.generateContent({
+                model: currentModel,
+                contents: [promptText],
+              }),
+              45000,
+              `Gemini edit fallback model ${currentModel} timed out after 45s.`
+            );
+          } else {
+            throw err;
+          }
         }
-      }
 
-      const responseText = response.text;
-      if (!responseText || responseText.trim() === "") {
-        throw new Error("Gemini returned an empty response for edit.");
-      }
+        const responseText = response.text;
+        if (!responseText || responseText.trim() === "") {
+          throw new Error("Gemini returned an empty response for edit.");
+        }
 
-      const servedModel = response?.modelVersion || currentModel;
-      console.log(`SUCCESSFUL EDIT RESPONSE RECEIVED FROM GEMINI (requested: ${currentModel}, served: ${servedModel})`);
-      console.log(`RESPONSE LENGTH: ${responseText.length} characters`);
-      console.log("==========================================");
+        const servedModel = response?.modelVersion || currentModel;
+        const latencyMs = Date.now() - t0;
 
-      return parseMarkerDelimitedResponse(responseText, instruction);
-    } catch (error: any) {
-      console.warn(`Edit model ${currentModel} failed:`, error?.message || error);
-      lastError = error;
+        logAITelemetry({
+          timestamp: new Date().toISOString(),
+          operation: "edit_website",
+          requestedModel: currentModel,
+          servedModel,
+          status: "SUCCESS",
+          statusCode: 200,
+          latencyMs,
+          attempt,
+          fallbackIndex: mIdx,
+          promptTokenCount: response.usageMetadata?.promptTokenCount,
+          candidatesTokenCount: response.usageMetadata?.candidatesTokenCount,
+          totalTokenCount: response.usageMetadata?.totalTokenCount,
+          promptLengthChars: promptText.length,
+          responseLengthChars: responseText.length,
+          hasImages: Boolean(images && images.length > 0),
+        });
 
-      const errMsg = error?.message || String(error || "");
-      if (errMsg.includes("API key") || errMsg.includes("UNAUTHENTICATED") || errMsg.includes("401") || errMsg.includes("403")) {
-        console.error(`Non-retryable authentication error on edit with Gemini API: ${errMsg}`);
-        break;
-      }
-      if (errMsg.includes("429") || errMsg.includes("503") || errMsg.includes("Quota") || errMsg.includes("UNAVAILABLE")) {
-        await new Promise((resolve) => setTimeout(resolve, 1500));
+        console.log(`SUCCESSFUL EDIT RESPONSE RECEIVED FROM GEMINI (requested: ${currentModel}, served: ${servedModel})`);
+        console.log(`RESPONSE LENGTH: ${responseText.length} characters (latency: ${latencyMs}ms)`);
+        console.log("==========================================");
+
+        return parseMarkerDelimitedResponse(responseText, instruction);
+      } catch (error: any) {
+        const latencyMs = Date.now() - t0;
+        const classified = classifyGeminiError(error);
+        lastError = error;
+
+        logAITelemetry({
+          timestamp: new Date().toISOString(),
+          operation: "edit_website",
+          requestedModel: currentModel,
+          status: "FAILED",
+          statusCode: classified.statusCode,
+          failureCategory: classified.failureCategory,
+          latencyMs,
+          attempt,
+          fallbackIndex: mIdx,
+          promptLengthChars: promptText.length,
+          hasImages: Boolean(images && images.length > 0),
+        });
+
+        console.warn(`Edit model ${currentModel} attempt ${attempt} failed (${classified.failureCategory}):`, error?.message || error);
+
+        if (classified.isAuthError) {
+          console.error(`Non-retryable authentication error on edit with Gemini API: ${error?.message || error}`);
+          const friendly = formatErrorMessage(error);
+          throw new GeminiAPIError(friendly, 401, "AUTH_ERROR");
+        }
+
+        if (attempt < maxAttempts && classified.isTransient) {
+          const delayMs = calculateBackoffWithJitter(attempt, 1000, 2500);
+          console.log(`[Gemini Edit Retry] Retrying edit model ${currentModel} in ${delayMs}ms...`);
+          await new Promise((resolve) => setTimeout(resolve, delayMs));
+        } else if (mIdx < candidateModels.length - 1 && classified.isTransient) {
+          const delayMs = calculateBackoffWithJitter(1, 800, 1500);
+          console.log(`[Gemini Edit Fallback] Switching to next fallback model in ${delayMs}ms...`);
+          await new Promise((resolve) => setTimeout(resolve, delayMs));
+        }
       }
     }
   }
 
-  throw new Error(formatErrorMessage(lastError));
+  const finalClassified = classifyGeminiError(lastError);
+  throw new GeminiAPIError(
+    formatErrorMessage(lastError),
+    finalClassified.statusCode,
+    finalClassified.failureCategory
+  );
 }
 
 function formatErrorMessage(error: any): string {

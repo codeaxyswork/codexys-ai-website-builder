@@ -166,7 +166,15 @@ ${formattedHistory || "No prior history"}
 "${userPrompt}"
 `;
 
-  const candidateModels = Array.from(new Set([modelName, "gemini-3.8-flash", "gemini-3.6-flash"]));
+  const candidateModels = Array.from(
+    new Set([
+      modelName,
+      "gemini-3.8-flash",
+      "gemini-3.7-flash",
+      "gemini-3.6-flash",
+      "gemini-3.5-flash",
+    ])
+  );
 
   const executeGeminiCall = async (): Promise<UnifiedRoutingResult> => {
     let lastErr: any = null;

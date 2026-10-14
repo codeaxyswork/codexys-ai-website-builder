@@ -140,9 +140,20 @@ export async function POST(req: NextRequest) {
     console.error("API /api/edit Error:", error);
     const errorMessage = error?.message || "An unexpected error occurred during edit.";
     const isConfigError = errorMessage.includes("GEMINI_API_KEY");
-    const status = isConfigError ? 400 : 500;
+    const isCapacityOr503 =
+      error?.statusCode === 503 ||
+      error?.status === 503 ||
+      errorMessage.includes("503") ||
+      errorMessage.includes("high demand") ||
+      errorMessage.includes("UNAVAILABLE");
 
-    return NextResponse.json({ error: errorMessage }, { status: status });
+    const status = isConfigError ? 400 : isCapacityOr503 ? 503 : (error?.statusCode || error?.status || 500);
+    const headers: Record<string, string> = {};
+    if (status === 503) {
+      headers["Retry-After"] = "5";
+    }
+
+    return NextResponse.json({ error: errorMessage }, { status, headers });
   }
 }
 

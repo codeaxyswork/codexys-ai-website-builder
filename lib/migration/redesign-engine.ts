@@ -687,7 +687,15 @@ export async function generateAIRedesignForPage(
   const { apiKey, model } = getGeminiConfig();
   const ai = new GoogleGenAI({ apiKey });
 
-  const candidateModels = Array.from(new Set([model || "gemini-3.8-flash", "gemini-3.8-flash", "gemini-3.6-flash"]));
+  const candidateModels = Array.from(
+    new Set([
+      model || "gemini-3.8-flash",
+      "gemini-3.8-flash",
+      "gemini-3.7-flash",
+      "gemini-3.6-flash",
+      "gemini-3.5-flash",
+    ])
+  );
 
   const exactHeroHeadingStr = "POWERING ECOMMERCE GROWTH WITH BIGCOMMERCE EXPERTISE.";
   const structuredTextUpper = JSON.stringify(structured).toUpperCase();

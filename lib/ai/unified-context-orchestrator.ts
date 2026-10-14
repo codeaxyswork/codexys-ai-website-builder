@@ -420,8 +420,16 @@ STRICT RULES FOR YOUR RESPONSE:
 
       const contents = sanitizeGeminiContents(history.slice(-12), userPrompt);
 
-      const primaryModel = config.model || "gemini-3.8-flash";
-      const candidateModels = Array.from(new Set([primaryModel, "gemini-3.8-flash", "gemini-3.6-flash"]));
+      const primaryModel = config?.model || "gemini-3.8-flash";
+      const candidateModels = Array.from(
+        new Set([
+          primaryModel,
+          "gemini-3.8-flash",
+          "gemini-3.7-flash",
+          "gemini-3.6-flash",
+          "gemini-3.5-flash",
+        ])
+      );
 
       for (const currentModel of candidateModels) {
         for (let attempt = 1; attempt <= 2; attempt++) {

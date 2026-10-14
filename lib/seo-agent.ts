@@ -906,7 +906,15 @@ ${historyText ? `=== RECENT CONVERSATION HISTORY ===\n${historyText}\n` : ""}
 ${params.userPrompt}
 `;
 
-  const candidateModels = Array.from(new Set([model || "gemini-3.8-flash", "gemini-3.8-flash", "gemini-3.6-flash"]));
+  const candidateModels = Array.from(
+    new Set([
+      model || "gemini-3.8-flash",
+      "gemini-3.8-flash",
+      "gemini-3.7-flash",
+      "gemini-3.6-flash",
+      "gemini-3.5-flash",
+    ])
+  );
 
   let lastError: Error | null = null;
   for (const targetModel of candidateModels) {

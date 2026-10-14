@@ -1,5 +1,6 @@
 import { GoogleGenAI } from "@google/genai";
-import { getGeminiConfig } from "../gemini";
+import { getGeminiConfig, getCandidateModels } from "../gemini";
+import { logAITelemetry, classifyGeminiError } from "../gemini-telemetry";
 import { buildMarketingBusinessContext, MarketingBusinessContext } from "./business-context";
 import { checkCreditBalance, deductCreditsWithClient } from "../billing";
 import { createAdminClient } from "./meta-client";
@@ -294,25 +295,75 @@ Budget Source: ${budgetSource}
 Generate the complete JSON Google Search campaign plan inside ===GOOGLE_PLAN_START=== and ===GOOGLE_PLAN_END=== now:
 `;
 
-  const primaryModel = model || "gemini-3.8-flash";
-  const candidateModels = Array.from(new Set([primaryModel, "gemini-3.8-flash", "gemini-3.6-flash"]));
+  const candidateModels = getCandidateModels(model);
   let responseText: string | null = null;
 
-  for (const currentModel of candidateModels) {
+  for (let mIdx = 0; mIdx < candidateModels.length; mIdx++) {
+    const currentModel = candidateModels[mIdx];
+    const t0 = Date.now();
     try {
-      const timeoutPromise = new Promise<null>((resolve) => setTimeout(() => resolve(null), 800));
+      const timeoutPromise = new Promise<null>((resolve) => setTimeout(() => resolve(null), 8000));
       const aiPromise = ai.models.generateContent({
         model: currentModel,
         contents: [promptText],
         config: { temperature: 0.3 },
-      }).then(r => r.text || null).catch(() => null);
+      });
 
-      const result = await Promise.race([aiPromise, timeoutPromise]);
-      if (result && result.trim()) {
-        responseText = result;
+      const rawResponse = await Promise.race([aiPromise, timeoutPromise]);
+      const latencyMs = Date.now() - t0;
+
+      if (rawResponse && (rawResponse as any).text && (rawResponse as any).text.trim()) {
+        responseText = (rawResponse as any).text.trim();
+        const servedModel = (rawResponse as any).modelVersion || currentModel;
+
+        logAITelemetry({
+          timestamp: new Date().toISOString(),
+          operation: "google_strategy",
+          requestedModel: currentModel,
+          servedModel,
+          status: "SUCCESS",
+          statusCode: 200,
+          latencyMs,
+          attempt: 1,
+          fallbackIndex: mIdx,
+          promptTokenCount: (rawResponse as any).usageMetadata?.promptTokenCount,
+          candidatesTokenCount: (rawResponse as any).usageMetadata?.candidatesTokenCount,
+          totalTokenCount: (rawResponse as any).usageMetadata?.totalTokenCount,
+          promptLengthChars: promptText.length,
+          responseLengthChars: responseText?.length || 0,
+        });
+
+        console.log(`[Google Strategy] Generated strategy (requested: ${currentModel}, served: ${servedModel}, latency: ${latencyMs}ms)`);
         break;
+      } else {
+        logAITelemetry({
+          timestamp: new Date().toISOString(),
+          operation: "google_strategy",
+          requestedModel: currentModel,
+          status: "FAILED",
+          statusCode: 504,
+          failureCategory: "TIMEOUT",
+          latencyMs,
+          attempt: 1,
+          fallbackIndex: mIdx,
+          promptLengthChars: promptText.length,
+        });
       }
     } catch (err: any) {
+      const latencyMs = Date.now() - t0;
+      const classified = classifyGeminiError(err);
+      logAITelemetry({
+        timestamp: new Date().toISOString(),
+        operation: "google_strategy",
+        requestedModel: currentModel,
+        status: "FAILED",
+        statusCode: classified.statusCode,
+        failureCategory: classified.failureCategory,
+        latencyMs,
+        attempt: 1,
+        fallbackIndex: mIdx,
+        promptLengthChars: promptText.length,
+      });
       console.warn(`Google strategy model ${currentModel} failed:`, err?.message || err);
     }
   }

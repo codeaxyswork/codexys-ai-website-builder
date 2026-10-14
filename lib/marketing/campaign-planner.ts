@@ -564,7 +564,15 @@ Generate the complete JSON campaign plan inside ===CAMPAIGN_PLAN_START=== and ==
 `;
 
   const primaryModel = model || "gemini-3.8-flash";
-  const candidateModels = Array.from(new Set([primaryModel, "gemini-3.8-flash", "gemini-3.6-flash"]));
+  const candidateModels = Array.from(
+    new Set([
+      primaryModel,
+      "gemini-3.8-flash",
+      "gemini-3.7-flash",
+      "gemini-3.6-flash",
+      "gemini-3.5-flash",
+    ])
+  );
   let responseText: string | null = null;
   let lastError: any = null;
 

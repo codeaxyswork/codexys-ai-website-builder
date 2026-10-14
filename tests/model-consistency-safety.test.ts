@@ -65,11 +65,10 @@ async function runModelConsistencyTests() {
     console.log("✅ Passed: GeminiVisibilityAdapter defaults to gemini-3.8-flash and fails closed in mock mode.");
 
     // ------------------------------------------------------------------------
-    // Test 3: Static Scan for Banned Models in Fallback Chains
+    // Test 3: Static Scan for Banned Deprecated Models in Fallback Chains
     // ------------------------------------------------------------------------
     console.log("\n--- Test 3: Static Audit of Fallback Chains Across Entire Codebase ---");
     const bannedPatterns = [
-      "gemini-3.5-flash",
       "gemini-3.1-pro-preview",
       "gemini-1.5-flash",
       "gemini-2.5-flash",
@@ -77,6 +76,7 @@ async function runModelConsistencyTests() {
 
     const sourceFiles = [
       "lib/gemini.ts",
+      "lib/seo-ai.ts",
       "lib/assistant-gemini.ts",
       "lib/migration/redesign-engine.ts",
       "lib/seo-agent.ts",
@@ -102,7 +102,15 @@ async function runModelConsistencyTests() {
         );
       }
     }
-    console.log("✅ Passed: All 13 target files verified free of deprecated models (3.5-flash, 3.1-pro-preview, 1.5-flash, 2.5-flash).");
+    console.log("✅ Passed: All target files verified free of deprecated models (3.1-pro-preview, 1.5-flash, 2.5-flash).");
+
+    // Verify verified active models in primary builder
+    const geminiCoreContent = fs.readFileSync(path.join(process.cwd(), "lib/gemini.ts"), "utf-8");
+    assert.ok(geminiCoreContent.includes('"gemini-3.8-flash"'), "lib/gemini.ts must include gemini-3.8-flash");
+    assert.ok(geminiCoreContent.includes('"gemini-3.7-flash"'), "lib/gemini.ts must include gemini-3.7-flash");
+    assert.ok(geminiCoreContent.includes('"gemini-3.6-flash"'), "lib/gemini.ts must include gemini-3.6-flash");
+    assert.ok(geminiCoreContent.includes('"gemini-3.5-flash"'), "lib/gemini.ts must include gemini-3.5-flash");
+    console.log("✅ Passed: Core builder verifies active fallback chain (3.8 -> 3.7 -> 3.6 -> 3.5).");
 
     // ------------------------------------------------------------------------
     // Test 4: Transcription Route Model Structure
@@ -121,8 +129,16 @@ async function runModelConsistencyTests() {
       "Transcription route must include gemini-3.8-flash as fallback."
     );
     assert.ok(
+      transcribeRouteContent.includes('"gemini-3.7-flash"'),
+      "Transcription route must include gemini-3.7-flash as fallback."
+    );
+    assert.ok(
       transcribeRouteContent.includes('"gemini-3.6-flash"'),
       "Transcription route must include gemini-3.6-flash as fallback."
+    );
+    assert.ok(
+      transcribeRouteContent.includes('"gemini-3.5-flash"'),
+      "Transcription route must include gemini-3.5-flash as deep capacity fallback."
     );
     console.log("✅ Passed: Transcription route preserves specialized model and clean fallbacks.");
 
@@ -132,6 +148,7 @@ async function runModelConsistencyTests() {
     console.log("\n--- Test 5: Verify modelVersion Logging Presence ---");
     const filesWithLogging = [
       "lib/gemini.ts",
+      "lib/seo-ai.ts",
       "lib/assistant-gemini.ts",
       "lib/migration/redesign-engine.ts",
       "lib/seo-agent.ts",

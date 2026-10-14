@@ -1,5 +1,11 @@
 import { GoogleGenAI } from "@google/genai";
-import { getGeminiConfig } from "./gemini";
+import { getGeminiConfig, getCandidateModels } from "./gemini";
+import {
+  logAITelemetry,
+  classifyGeminiError,
+  calculateBackoffWithJitter,
+  withTimeout,
+} from "./gemini-telemetry";
 import { buildMultilingualSystemDirective } from "./multilingual";
 import { analyzeUnifiedConversationIntent } from "./ai/unified-conversation-core";
 import { generateOrchestratedAgentReply } from "./ai/unified-context-orchestrator";
@@ -141,29 +147,51 @@ export async function generateAssistantReply(
 
     const contents = sanitizeGeminiContents(history.slice(-20), finalPrompt);
 
-    const primaryModel = model || "gemini-3.8-flash";
-    const candidateModels = Array.from(new Set([
-      primaryModel,
-      "gemini-3.8-flash",
-      "gemini-3.6-flash"
-    ]));
+    const candidateModels = getCandidateModels(model);
 
-    for (const currentModel of candidateModels) {
-      for (let attempt = 1; attempt <= 2; attempt++) {
+    for (let mIdx = 0; mIdx < candidateModels.length; mIdx++) {
+      const currentModel = candidateModels[mIdx];
+      const maxAttempts = mIdx === 0 ? 2 : 1;
+
+      for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+        const t0 = Date.now();
         try {
-          const response = await ai.models.generateContent({
-            model: currentModel,
-            contents,
-            config: {
-              systemInstruction: `${GENERAL_ASSISTANT_SYSTEM_PROMPT}\n\n${langDirective}`,
-              temperature: 0.7,
-              maxOutputTokens: 1024,
-            },
-          });
+          const response = await withTimeout(
+            ai.models.generateContent({
+              model: currentModel,
+              contents,
+              config: {
+                systemInstruction: `${GENERAL_ASSISTANT_SYSTEM_PROMPT}\n\n${langDirective}`,
+                temperature: 0.7,
+                maxOutputTokens: 1024,
+              },
+            }),
+            25000,
+            `Assistant model ${currentModel} timed out after 25s.`
+          );
 
           if (response.text && response.text.trim()) {
             const servedModel = response.modelVersion || currentModel;
-            console.log(`[Assistant] Successful response (requested: ${currentModel}, served: ${servedModel})`);
+            const latencyMs = Date.now() - t0;
+
+            logAITelemetry({
+              timestamp: new Date().toISOString(),
+              operation: "assistant_chat",
+              requestedModel: currentModel,
+              servedModel,
+              status: "SUCCESS",
+              statusCode: 200,
+              latencyMs,
+              attempt,
+              fallbackIndex: mIdx,
+              promptTokenCount: response.usageMetadata?.promptTokenCount,
+              candidatesTokenCount: response.usageMetadata?.candidatesTokenCount,
+              totalTokenCount: response.usageMetadata?.totalTokenCount,
+              promptLengthChars: finalPrompt.length,
+              responseLengthChars: response.text.length,
+            });
+
+            console.log(`[Assistant] Successful response (requested: ${currentModel}, served: ${servedModel}, latency: ${latencyMs}ms)`);
 
             const replyText = response.text.trim();
             let suggestedPrompt: string | null = null;
@@ -182,14 +210,35 @@ export async function generateAssistantReply(
             };
           }
         } catch (err: any) {
-          console.warn(`Assistant model ${currentModel} attempt ${attempt} failed:`, err?.message || err);
-          const errMsg = err?.message || String(err || "");
-          if (errMsg.includes("API key") || errMsg.includes("UNAUTHENTICATED") || errMsg.includes("401") || errMsg.includes("403")) {
-            console.error(`[Assistant] Non-retryable authentication error on ${currentModel}: ${errMsg}`);
+          const latencyMs = Date.now() - t0;
+          const classified = classifyGeminiError(err);
+
+          logAITelemetry({
+            timestamp: new Date().toISOString(),
+            operation: "assistant_chat",
+            requestedModel: currentModel,
+            status: "FAILED",
+            statusCode: classified.statusCode,
+            failureCategory: classified.failureCategory,
+            latencyMs,
+            attempt,
+            fallbackIndex: mIdx,
+            promptLengthChars: finalPrompt.length,
+          });
+
+          console.warn(`Assistant model ${currentModel} attempt ${attempt} failed (${classified.failureCategory}):`, err?.message || err);
+
+          if (classified.isAuthError) {
+            console.error(`[Assistant] Non-retryable authentication error on ${currentModel}: ${err?.message || err}`);
             break;
           }
-          if (String(err?.message || "").includes("429") || String(err?.message || "").includes("Quota")) {
-            await new Promise((resolve) => setTimeout(resolve, 3500));
+
+          if (attempt < maxAttempts && classified.isTransient) {
+            const delayMs = calculateBackoffWithJitter(attempt, 1000, 2500);
+            await new Promise((resolve) => setTimeout(resolve, delayMs));
+          } else if (mIdx < candidateModels.length - 1 && classified.isTransient) {
+            const delayMs = calculateBackoffWithJitter(1, 800, 1500);
+            await new Promise((resolve) => setTimeout(resolve, delayMs));
           }
         }
       }

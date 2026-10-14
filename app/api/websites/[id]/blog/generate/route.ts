@@ -131,7 +131,15 @@ WEBSITE TARGET KEYWORDS: ${siteKeywords || "General Industry Topics"}
 REQUESTED BLOG TOPIC: "${topic}"
       `;
 
-      const candidateModels = Array.from(new Set([model || "gemini-3.8-flash", "gemini-3.8-flash", "gemini-3.6-flash"]));
+      const candidateModels = Array.from(
+        new Set([
+          model || "gemini-3.8-flash",
+          "gemini-3.8-flash",
+          "gemini-3.7-flash",
+          "gemini-3.6-flash",
+          "gemini-3.5-flash",
+        ])
+      );
       let rawResponseText = "";
       let lastError: any = null;
 
