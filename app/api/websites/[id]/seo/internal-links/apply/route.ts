@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/utils/supabase/server";
+import { checkAdvancedSeoEntitlement } from "@/lib/billing";
 
 export async function POST(
   req: NextRequest,
@@ -25,6 +26,15 @@ export async function POST(
 
     if (siteError || !website) {
       return NextResponse.json({ error: "Website not found or access denied." }, { status: 404 });
+    }
+
+    // 3. Plan Entitlement Check (Pro, Business, or Agency required)
+    const seoCheck = await checkAdvancedSeoEntitlement(user.id, supabase);
+    if (!seoCheck.entitled) {
+      return NextResponse.json(
+        { error: seoCheck.reason, code: "UPGRADE_REQUIRED", requiredTier: "pro" },
+        { status: 403 }
+      );
     }
 
     const body = await req.json();

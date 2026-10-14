@@ -29,7 +29,7 @@ export async function POST(
     if (!canUseFeature(planId, "ai_seo")) {
       return NextResponse.json(
         {
-          error: "Applying AI SEO fixes requires a Pro or Agency subscription plan.",
+          error: "Applying AI SEO fixes requires a Pro, Business, or Agency subscription plan.",
           code: "UPGRADE_REQUIRED",
         },
         { status: 403 }

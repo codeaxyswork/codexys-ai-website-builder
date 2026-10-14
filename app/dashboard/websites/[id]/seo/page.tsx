@@ -469,8 +469,9 @@ export default function SEODashboardPage({ params }: SEODashboardPageProps) {
     }
   };
 
-  const canUseAI = allowAdvancedSeo || userPlan === "pro" || userPlan === "agency";
-  const canUseSchema = userPlan === "pro" || userPlan === "agency";
+  const isProOrAbove = ["pro", "business", "agency"].includes(userPlan);
+  const canUseAI = allowAdvancedSeo || isProOrAbove;
+  const canUseSchema = isProOrAbove;
   const canUseIntegrations = userPlan === "agency";
 
   if (loading) {

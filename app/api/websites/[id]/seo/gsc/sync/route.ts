@@ -7,6 +7,7 @@ import {
   saveGscCredentials,
 } from "@/lib/gsc-client";
 import { invalidateWebsiteCache } from "@/lib/cache";
+import { checkAdvancedSeoEntitlement } from "@/lib/billing";
 
 export async function POST(
   request: Request,
@@ -34,6 +35,15 @@ export async function POST(
 
     if (siteErr || !website) {
       return NextResponse.json({ error: "Website not found or access denied." }, { status: 404 });
+    }
+
+    // Plan Entitlement Check (Pro, Business, or Agency required)
+    const seoCheck = await checkAdvancedSeoEntitlement(user.id, supabase);
+    if (!seoCheck.entitled) {
+      return NextResponse.json(
+        { error: seoCheck.reason, code: "UPGRADE_REQUIRED", requiredTier: "pro" },
+        { status: 403 }
+      );
     }
 
     // Fetch active GSC integration metadata

@@ -1638,7 +1638,7 @@ async function runAllTests() {
     // Test 13L: Plan tier preservation across all 5 tiers (Free, Starter, Pro, Business, Agency)
     const tiers = [
       { id: "free", name: "Free", credits: 50, sites: 1, domain: false, seo: false },
-      { id: "starter", name: "Starter", credits: 100, sites: 1, domain: false, seo: false },
+      { id: "starter", name: "Starter", credits: 100, sites: 1, domain: true, seo: false },
       { id: "pro", name: "Pro", credits: 200, sites: 3, domain: true, seo: true },
       { id: "business", name: "Business", credits: 400, sites: 6, domain: true, seo: true },
       { id: "agency", name: "Agency", credits: 800, sites: 15, domain: true, seo: true },

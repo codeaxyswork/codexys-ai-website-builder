@@ -38,7 +38,7 @@ const FAQ_ITEMS = [
   {
     question: "What is included in every plan?",
     answer:
-      "Every plan includes AI website generation, website editing, unlimited page creation, responsive design tools, global styling controls, and the complete SEO Intelligence Suite.",
+      "Every plan includes AI website generation, website editing, unlimited page creation, responsive design tools, global styling controls, and essential Basic SEO features.",
   },
   {
     question: "How many websites can I create?",
@@ -51,11 +51,13 @@ const FAQ_ITEMS = [
   },
   {
     question: "Can I connect my own domain?",
-    answer: "Yes. You can connect and publish your website using your own custom domain.",
+    answer:
+      "Yes. Starter includes 1 custom domain with an active paid subscription. Pro, Business, and Agency plans include custom domain connections for all your websites. Free plan includes fast hosting on your custom Codeaxys subdomain.",
   },
   {
     question: "Is SEO included in all plans?",
-    answer: "Yes. The complete SEO Intelligence Suite is included with all plans.",
+    answer:
+      "Yes. All plans include Basic SEO essentials (metadata, on-page analyzer, sitemaps). Advanced intelligence tools (Technical Crawling, Competitor Analysis, Internal Links, Content Studio, and GSC Sync) are included in Pro, Business, and Agency plans.",
   },
   {
     question: "Can I edit my website after it is generated?",
@@ -80,7 +82,7 @@ const FAQ_ITEMS = [
   {
     question: "Do I need separate tools for SEO?",
     answer:
-      "No. Codeaxys includes its SEO Intelligence Suite directly within the platform, so you can manage your website SEO from the same system.",
+      "No. Codeaxys includes Basic SEO directly within all plans, and provides the full Advanced SEO Intelligence Suite in Pro, Business, and Agency plans.",
   },
 ];
 
@@ -184,53 +186,36 @@ export default function PricingPage() {
       ],
     },
     {
-      title: "Full SEO Intelligence Suite",
+      title: "Basic SEO & On-Page Essentials",
       icon: Search,
-      description: "Comprehensive end-to-end SEO analytics, automated optimization, and keyword intelligence.",
+      description: "Essential on-page SEO metadata, Cheerio health audits, and search engine previews.",
       badgeColor: "bg-emerald-100 text-emerald-800 border-emerald-200",
       iconColor: "text-emerald-600 bg-emerald-50 border-emerald-200",
       featured: true,
       features: [
-        "SEO Command Center",
-        "SEO Overview",
-        "Technical Crawl",
-        "Content Studio",
-        "Competitor Intelligence",
-        "Content Gap Analysis",
-        "AEO / AI Search",
-        "Topical Authority",
-        "Opportunity Engine",
-        "SEO Autopilot",
-        "Performance",
-        "Monitoring",
-        "Organic SEO",
-        "Technical SEO",
-        "Internal Links",
-        "Local SEO",
-        "Content & Blog",
-        "Pages",
-        "Keywords / Rankings",
-        "Google Search Console",
-        "SEO AI Agent",
-        "AI SEO Fixes",
-        "Unified SEO Health",
+        "On-Page Meta Title & Description",
+        "OpenGraph & Social Previews",
+        "Cheerio SEO Health Audit",
+        "Image Alt-Tag Analysis",
+        "Robots.txt & Sitemap Auto-Gen",
+        "Focus Keyword Targeting",
+        "Search Result Previews",
+        "Basic SEO Scorecard",
       ],
     },
     {
-      title: "Website Management",
+      title: "Website Hosting & Domains",
       icon: Globe,
-      description: "Custom domain publishing, security, DNS configuration, and clean code export.",
+      description: "Fast cloud hosting, custom domain connections, DNS configuration, and clean code export.",
       badgeColor: "bg-indigo-100 text-indigo-800 border-indigo-200",
       iconColor: "text-indigo-600 bg-indigo-50 border-indigo-200",
       features: [
-        "Custom Domain Connection",
-        "Website Publishing",
-        "Website Unpublishing",
-        "Website Dashboard",
-        "Website Settings",
-        "SEO Settings",
-        "Website Management",
-        "HTML Export",
+        "Fast Subdomain Hosting (All Plans)",
+        "1 Custom Domain (Starter Plan)",
+        "Custom Domains (Pro, Business, Agency)",
+        "Website Publishing & Live Hosting",
+        "Website Dashboard & Settings",
+        "Clean HTML Export",
       ],
     },
     {
@@ -286,7 +271,7 @@ export default function PricingPage() {
             Build Stunning AI Websites at Any Scale
           </h1>
           <p className="text-base text-slate-600 leading-relaxed max-w-2xl mx-auto font-normal">
-            Choose the plan that fits your business needs. Every plan includes full access to our AI Website Builder and Full SEO Intelligence Suite.
+            Choose the plan that fits your business needs. Every plan includes full access to our AI Website Builder, Visual Canvas, and Basic SEO Essentials.
           </p>
         </div>
 
@@ -335,6 +320,16 @@ export default function PricingPage() {
                       <span className="font-semibold text-slate-600">Storage</span>
                       <strong className="font-extrabold text-emerald-700">{plan.storageLimitFormatted}</strong>
                     </div>
+
+                    <div className="flex items-center justify-between text-xs py-1.5 px-3 bg-blue-50/70 border border-blue-100 rounded-xl">
+                      <span className="font-semibold text-slate-600">Custom Domain</span>
+                      <strong className="font-extrabold text-blue-700">{plan.id === "starter" ? "1 Custom Domain" : "Custom Domains"}</strong>
+                    </div>
+
+                    <div className="flex items-center justify-between text-xs py-1.5 px-3 bg-amber-50/70 border border-amber-100 rounded-xl">
+                      <span className="font-semibold text-slate-600">SEO Suite</span>
+                      <strong className="font-extrabold text-amber-700">{plan.id === "starter" ? "Basic SEO" : "Advanced SEO Suite"}</strong>
+                    </div>
                   </div>
                 </div>
 
@@ -368,12 +363,12 @@ export default function PricingPage() {
               All Plans Include
             </h2>
             <p className="text-sm sm:text-base text-slate-600 leading-relaxed max-w-2xl mx-auto font-normal">
-              No hidden feature lockouts. Every subscription tier grants complete access to our AI Website Builder, visual editing suite, full SEO intelligence system, and management tools.
+              Every subscription tier includes our AI Website Builder, visual editing canvas, essential on-page SEO, and fast cloud hosting.
             </p>
           </div>
 
           <div className="space-y-8 relative z-10 w-full">
-            {/* HERO FEATURE BLOCK: Full SEO Intelligence Suite (Dark Luxury Banner) */}
+            {/* HERO FEATURE BLOCK: Tiered SEO Suite Architecture */}
             <div className="bg-gradient-to-r from-slate-950 via-purple-950 to-slate-950 text-white rounded-3xl p-8 sm:p-10 border border-purple-500/40 shadow-2xl relative overflow-hidden w-full">
               {/* Subtle Glowing Radial Light Glow */}
               <div className="absolute top-0 right-0 w-96 h-96 bg-purple-600/20 rounded-full blur-3xl pointer-events-none" />
@@ -389,77 +384,90 @@ export default function PricingPage() {
                     <div>
                       <div className="flex items-center gap-2">
                         <h3 className="text-xl sm:text-2xl font-black text-white tracking-tight">
-                          Full SEO Intelligence Suite
+                          SEO Intelligence & Audit Suite
                         </h3>
-                        <span className="bg-emerald-500/20 text-emerald-300 text-[10px] font-extrabold uppercase px-2.5 py-0.5 rounded-full border border-emerald-500/40">
-                          Included in All Plans
+                        <span className="bg-purple-500/30 text-purple-200 text-[10px] font-extrabold uppercase px-2.5 py-0.5 rounded-full border border-purple-400/40">
+                          Tiered Access: Basic on All Plans • Advanced on Pro+
                         </span>
                       </div>
                       <p className="text-xs text-slate-300 mt-1 font-medium">
-                        Comprehensive end-to-end SEO analytics, AI search optimization, automated crawling, and keyword intelligence.
+                        Essential on-page SEO included in all tiers; Deep technical crawls, competitor intelligence, and automated fixes on Pro, Business, and Agency plans.
                       </p>
                     </div>
                   </div>
                 </div>
 
-                {/* 23 Features Organized into 4 Sub-Groups */}
+                {/* 4 Feature Groups clearly labeled */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 w-full">
                   {/* Group 1 */}
                   <div className="space-y-3 bg-purple-950/50 p-4 rounded-2xl border border-purple-800/60 w-full">
-                    <h4 className="text-xs font-extrabold uppercase tracking-wider text-purple-300 flex items-center gap-1.5">
-                      <Sparkles className="w-3.5 h-3.5 text-purple-400" /> Command & Analytics
-                    </h4>
+                    <div className="flex items-center justify-between">
+                      <h4 className="text-xs font-extrabold uppercase tracking-wider text-purple-300 flex items-center gap-1.5">
+                        <Sparkles className="w-3.5 h-3.5 text-purple-400" /> Basic SEO Essentials
+                      </h4>
+                      <span className="text-[9px] font-bold uppercase px-1.5 py-0.5 rounded bg-emerald-500/20 text-emerald-300">All Plans</span>
+                    </div>
                     <ul className="space-y-2 text-xs font-medium text-slate-200">
-                      <li className="flex items-center gap-2"><CheckCircle2 className="w-3.5 h-3.5 text-emerald-400 shrink-0" /> SEO Command Center</li>
-                      <li className="flex items-center gap-2"><CheckCircle2 className="w-3.5 h-3.5 text-emerald-400 shrink-0" /> SEO Overview</li>
-                      <li className="flex items-center gap-2"><CheckCircle2 className="w-3.5 h-3.5 text-emerald-400 shrink-0" /> Technical Crawl</li>
-                      <li className="flex items-center gap-2"><CheckCircle2 className="w-3.5 h-3.5 text-emerald-400 shrink-0" /> Content Studio</li>
-                      <li className="flex items-center gap-2"><CheckCircle2 className="w-3.5 h-3.5 text-emerald-400 shrink-0" /> Competitor Intelligence</li>
-                      <li className="flex items-center gap-2"><CheckCircle2 className="w-3.5 h-3.5 text-emerald-400 shrink-0" /> Content Gap Analysis</li>
+                      <li className="flex items-center gap-2"><CheckCircle2 className="w-3.5 h-3.5 text-emerald-400 shrink-0" /> On-Page Meta Title & Description</li>
+                      <li className="flex items-center gap-2"><CheckCircle2 className="w-3.5 h-3.5 text-emerald-400 shrink-0" /> OpenGraph & Social Previews</li>
+                      <li className="flex items-center gap-2"><CheckCircle2 className="w-3.5 h-3.5 text-emerald-400 shrink-0" /> Local Cheerio Health Audit</li>
+                      <li className="flex items-center gap-2"><CheckCircle2 className="w-3.5 h-3.5 text-emerald-400 shrink-0" /> Image Alt-Tag Scanner</li>
+                      <li className="flex items-center gap-2"><CheckCircle2 className="w-3.5 h-3.5 text-emerald-400 shrink-0" /> Robots.txt & Sitemap Generator</li>
+                      <li className="flex items-center gap-2"><CheckCircle2 className="w-3.5 h-3.5 text-emerald-400 shrink-0" /> Focus Keyword Targeting</li>
                     </ul>
                   </div>
 
                   {/* Group 2 */}
                   <div className="space-y-3 bg-purple-950/50 p-4 rounded-2xl border border-purple-800/60 w-full">
-                    <h4 className="text-xs font-extrabold uppercase tracking-wider text-indigo-300 flex items-center gap-1.5">
-                      <Zap className="w-3.5 h-3.5 text-indigo-400" /> AI & Search Engine
-                    </h4>
+                    <div className="flex items-center justify-between">
+                      <h4 className="text-xs font-extrabold uppercase tracking-wider text-indigo-300 flex items-center gap-1.5">
+                        <Zap className="w-3.5 h-3.5 text-indigo-400" /> Technical & Links
+                      </h4>
+                      <span className="text-[9px] font-bold uppercase px-1.5 py-0.5 rounded bg-purple-500/30 text-purple-200">Pro+</span>
+                    </div>
                     <ul className="space-y-2 text-xs font-medium text-slate-200">
-                      <li className="flex items-center gap-2"><CheckCircle2 className="w-3.5 h-3.5 text-emerald-400 shrink-0" /> AEO / AI Search</li>
-                      <li className="flex items-center gap-2"><CheckCircle2 className="w-3.5 h-3.5 text-emerald-400 shrink-0" /> Topical Authority</li>
-                      <li className="flex items-center gap-2"><CheckCircle2 className="w-3.5 h-3.5 text-emerald-400 shrink-0" /> Opportunity Engine</li>
-                      <li className="flex items-center gap-2"><CheckCircle2 className="w-3.5 h-3.5 text-emerald-400 shrink-0" /> SEO Autopilot</li>
-                      <li className="flex items-center gap-2"><CheckCircle2 className="w-3.5 h-3.5 text-emerald-400 shrink-0" /> Organic SEO</li>
-                      <li className="flex items-center gap-2"><CheckCircle2 className="w-3.5 h-3.5 text-emerald-400 shrink-0" /> Technical SEO</li>
+                      <li className="flex items-center gap-2"><CheckCircle2 className="w-3.5 h-3.5 text-indigo-400 shrink-0" /> Deep Technical Site Crawl</li>
+                      <li className="flex items-center gap-2"><CheckCircle2 className="w-3.5 h-3.5 text-indigo-400 shrink-0" /> Internal Linking Graph Engine</li>
+                      <li className="flex items-center gap-2"><CheckCircle2 className="w-3.5 h-3.5 text-indigo-400 shrink-0" /> Crawl Health Diagnostics</li>
+                      <li className="flex items-center gap-2"><CheckCircle2 className="w-3.5 h-3.5 text-indigo-400 shrink-0" /> Broken Link & Redirect Tracker</li>
+                      <li className="flex items-center gap-2"><CheckCircle2 className="w-3.5 h-3.5 text-indigo-400 shrink-0" /> Page Load & Core Web Vitals</li>
+                      <li className="flex items-center gap-2"><CheckCircle2 className="w-3.5 h-3.5 text-indigo-400 shrink-0" /> Automated Schema Markup</li>
                     </ul>
                   </div>
 
                   {/* Group 3 */}
                   <div className="space-y-3 bg-purple-950/50 p-4 rounded-2xl border border-purple-800/60 w-full">
-                    <h4 className="text-xs font-extrabold uppercase tracking-wider text-cyan-300 flex items-center gap-1.5">
-                      <Globe className="w-3.5 h-3.5 text-cyan-400" /> Structure & Integrations
-                    </h4>
+                    <div className="flex items-center justify-between">
+                      <h4 className="text-xs font-extrabold uppercase tracking-wider text-cyan-300 flex items-center gap-1.5">
+                        <Globe className="w-3.5 h-3.5 text-cyan-400" /> Intelligence Studio
+                      </h4>
+                      <span className="text-[9px] font-bold uppercase px-1.5 py-0.5 rounded bg-purple-500/30 text-purple-200">Pro+</span>
+                    </div>
                     <ul className="space-y-2 text-xs font-medium text-slate-200">
-                      <li className="flex items-center gap-2"><CheckCircle2 className="w-3.5 h-3.5 text-emerald-400 shrink-0" /> Internal Links</li>
-                      <li className="flex items-center gap-2"><CheckCircle2 className="w-3.5 h-3.5 text-emerald-400 shrink-0" /> Local SEO</li>
-                      <li className="flex items-center gap-2"><CheckCircle2 className="w-3.5 h-3.5 text-emerald-400 shrink-0" /> Content & Blog</li>
-                      <li className="flex items-center gap-2"><CheckCircle2 className="w-3.5 h-3.5 text-emerald-400 shrink-0" /> Pages Management</li>
-                      <li className="flex items-center gap-2"><CheckCircle2 className="w-3.5 h-3.5 text-emerald-400 shrink-0" /> Keywords / Rankings</li>
-                      <li className="flex items-center gap-2"><CheckCircle2 className="w-3.5 h-3.5 text-emerald-400 shrink-0" /> Google Search Console</li>
+                      <li className="flex items-center gap-2"><CheckCircle2 className="w-3.5 h-3.5 text-cyan-400 shrink-0" /> Competitor Domain Tracking</li>
+                      <li className="flex items-center gap-2"><CheckCircle2 className="w-3.5 h-3.5 text-cyan-400 shrink-0" /> Content Gap Discovery</li>
+                      <li className="flex items-center gap-2"><CheckCircle2 className="w-3.5 h-3.5 text-cyan-400 shrink-0" /> Topical Authority Mapping</li>
+                      <li className="flex items-center gap-2"><CheckCircle2 className="w-3.5 h-3.5 text-cyan-400 shrink-0" /> SEO Content Studio</li>
+                      <li className="flex items-center gap-2"><CheckCircle2 className="w-3.5 h-3.5 text-cyan-400 shrink-0" /> Opportunity Scan Engine</li>
+                      <li className="flex items-center gap-2"><CheckCircle2 className="w-3.5 h-3.5 text-cyan-400 shrink-0" /> Google Search Console Sync</li>
                     </ul>
                   </div>
 
                   {/* Group 4 */}
                   <div className="space-y-3 bg-purple-950/50 p-4 rounded-2xl border border-purple-800/60 w-full">
-                    <h4 className="text-xs font-extrabold uppercase tracking-wider text-emerald-300 flex items-center gap-1.5">
-                      <ShieldCheck className="w-3.5 h-3.5 text-emerald-400" /> AI Agent & Health
-                    </h4>
+                    <div className="flex items-center justify-between">
+                      <h4 className="text-xs font-extrabold uppercase tracking-wider text-emerald-300 flex items-center gap-1.5">
+                        <ShieldCheck className="w-3.5 h-3.5 text-emerald-400" /> AI Agent & Reports
+                      </h4>
+                      <span className="text-[9px] font-bold uppercase px-1.5 py-0.5 rounded bg-purple-500/30 text-purple-200">Pro & Agency</span>
+                    </div>
                     <ul className="space-y-2 text-xs font-medium text-slate-200">
-                      <li className="flex items-center gap-2"><CheckCircle2 className="w-3.5 h-3.5 text-emerald-400 shrink-0" /> SEO AI Agent</li>
-                      <li className="flex items-center gap-2"><CheckCircle2 className="w-3.5 h-3.5 text-emerald-400 shrink-0" /> AI SEO Fixes</li>
-                      <li className="flex items-center gap-2"><CheckCircle2 className="w-3.5 h-3.5 text-emerald-400 shrink-0" /> Unified SEO Health</li>
-                      <li className="flex items-center gap-2"><CheckCircle2 className="w-3.5 h-3.5 text-emerald-400 shrink-0" /> Real-time Performance</li>
-                      <li className="flex items-center gap-2"><CheckCircle2 className="w-3.5 h-3.5 text-emerald-400 shrink-0" /> Continuous Monitoring</li>
+                      <li className="flex items-center gap-2"><CheckCircle2 className="w-3.5 h-3.5 text-emerald-400 shrink-0" /> Autonomous SEO AI Agent</li>
+                      <li className="flex items-center gap-2"><CheckCircle2 className="w-3.5 h-3.5 text-emerald-400 shrink-0" /> One-Click AI SEO Fixes</li>
+                      <li className="flex items-center gap-2"><CheckCircle2 className="w-3.5 h-3.5 text-emerald-400 shrink-0" /> SEO Autopilot Engine</li>
+                      <li className="flex items-center gap-2"><CheckCircle2 className="w-3.5 h-3.5 text-emerald-400 shrink-0" /> Real-time Performance Metrics</li>
+                      <li className="flex items-center gap-2"><CheckCircle2 className="w-3.5 h-3.5 text-emerald-400 shrink-0" /> Automated Audit Reports</li>
+                      <li className="flex items-center gap-2"><CheckCircle2 className="w-3.5 h-3.5 text-emerald-400 shrink-0" /> Agency White-Label Reports (Agency)</li>
                     </ul>
                   </div>
                 </div>
@@ -556,17 +564,17 @@ export default function PricingPage() {
                   </div>
 
                   <p className="text-xs text-slate-600 leading-relaxed font-medium">
-                    Custom domain publishing, security, DNS configuration, and clean HTML code export.
+                    Fast cloud hosting, custom domain connections, DNS configuration, and clean HTML code export.
                   </p>
 
                   <ul className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 pt-3 border-t border-slate-100 text-xs font-semibold text-slate-700">
-                    <li className="flex items-center gap-2"><CheckCircle2 className="w-4 h-4 text-indigo-600 shrink-0" /> Custom Domain Connection</li>
+                    <li className="flex items-center gap-2"><CheckCircle2 className="w-4 h-4 text-indigo-600 shrink-0" /> Fast Subdomain Hosting (All Plans)</li>
+                    <li className="flex items-center gap-2"><CheckCircle2 className="w-4 h-4 text-indigo-600 shrink-0" /> 1 Custom Domain (Starter Plan)</li>
+                    <li className="flex items-center gap-2"><CheckCircle2 className="w-4 h-4 text-indigo-600 shrink-0" /> Custom Domains (Pro, Business, Agency)</li>
                     <li className="flex items-center gap-2"><CheckCircle2 className="w-4 h-4 text-indigo-600 shrink-0" /> Website Publishing</li>
                     <li className="flex items-center gap-2"><CheckCircle2 className="w-4 h-4 text-indigo-600 shrink-0" /> Website Unpublishing</li>
                     <li className="flex items-center gap-2"><CheckCircle2 className="w-4 h-4 text-indigo-600 shrink-0" /> Website Dashboard</li>
-                    <li className="flex items-center gap-2"><CheckCircle2 className="w-4 h-4 text-indigo-600 shrink-0" /> Website Settings</li>
                     <li className="flex items-center gap-2"><CheckCircle2 className="w-4 h-4 text-indigo-600 shrink-0" /> SEO Settings</li>
-                    <li className="flex items-center gap-2"><CheckCircle2 className="w-4 h-4 text-indigo-600 shrink-0" /> Website Management</li>
                     <li className="flex items-center gap-2"><CheckCircle2 className="w-4 h-4 text-indigo-600 shrink-0" /> HTML Export</li>
                   </ul>
                 </div>

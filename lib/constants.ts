@@ -67,6 +67,8 @@ export const PLANS: Record<string, PlanConfig> = {
       "1 Website",
       "100 AI Credits / Month",
       "2 GB Storage Quota",
+      "1 Custom Domain Included",
+      "Basic SEO Essentials",
     ],
   },
   pro: {
@@ -83,6 +85,8 @@ export const PLANS: Record<string, PlanConfig> = {
       "3 Websites",
       "200 AI Credits / Month",
       "10 GB Storage Quota",
+      "Custom Domains Included",
+      "Full Advanced SEO Intelligence Suite",
     ],
   },
   business: {
@@ -98,6 +102,8 @@ export const PLANS: Record<string, PlanConfig> = {
       "6 Websites",
       "400 AI Credits / Month",
       "30 GB Storage Quota",
+      "Custom Domains Included",
+      "Full Advanced SEO Intelligence Suite",
     ],
   },
   agency: {
@@ -113,6 +119,9 @@ export const PLANS: Record<string, PlanConfig> = {
       "15 Websites",
       "800 AI Credits / Month",
       "100 GB Storage Quota",
+      "Custom Domains Included",
+      "Full Advanced SEO Intelligence Suite",
+      "Advanced Integrations",
     ],
   },
   free: {
@@ -128,6 +137,8 @@ export const PLANS: Record<string, PlanConfig> = {
       "1 Website",
       "50 AI Credits / Month",
       "100 MB Storage Quota",
+      "Subdomain Hosting",
+      "Basic SEO Essentials",
     ],
   },
 };

@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { createServerClient } from "@supabase/ssr";
 import { cookies } from "next/headers";
 import { runCompetitorGapAnalysis } from "@/lib/seo-competitors/gap-engine";
+import { checkAdvancedSeoEntitlement } from "@/lib/billing";
 
 export async function POST(
   request: NextRequest,
@@ -32,6 +33,15 @@ export async function POST(
 
     if (authError || !user) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    // Plan Entitlement Check (Pro, Business, or Agency required)
+    const seoCheck = await checkAdvancedSeoEntitlement(user.id, supabase);
+    if (!seoCheck.entitled) {
+      return NextResponse.json(
+        { error: seoCheck.reason, code: "UPGRADE_REQUIRED", requiredTier: "pro" },
+        { status: 403 }
+      );
     }
 
     const { data: competitor } = await supabase

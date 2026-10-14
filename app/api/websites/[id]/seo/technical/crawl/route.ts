@@ -6,6 +6,7 @@ import { runTechnicalCrawl } from '@/lib/seo-technical/crawler';
 import { analyzeTechnicalCrawl } from '@/lib/seo-technical/technical-analyzer';
 import { getWebsitePublicUrl } from '@/lib/domain-resolver';
 import { checkRateLimit } from '@/lib/rate-limit';
+import { checkAdvancedSeoEntitlement } from '@/lib/billing';
 
 export async function GET(
   request: Request,
@@ -77,6 +78,19 @@ export async function POST(
 
     if (!user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
+    // 0. Plan Entitlement Check (Pro, Business, or Agency required)
+    const seoCheck = await checkAdvancedSeoEntitlement(user.id, supabase);
+    if (!seoCheck.entitled) {
+      return NextResponse.json(
+        {
+          error: seoCheck.reason,
+          code: 'UPGRADE_REQUIRED',
+          requiredTier: 'pro',
+        },
+        { status: 403 }
+      );
     }
 
     // 1. Per-User Rate Limiting (max 2 crawl requests per minute)

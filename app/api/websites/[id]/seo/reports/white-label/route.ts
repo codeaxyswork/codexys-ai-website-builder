@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/utils/supabase/server";
 import { saveWhiteLabelConfig } from "@/lib/seo-reports/engine";
+import { getUserUsage } from "@/lib/billing";
+import { canUseFeature } from "@/lib/features";
 
 export async function GET(
   req: NextRequest,
@@ -54,6 +56,20 @@ export async function POST(
 
     if (!user) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    // White label branding is exclusively available to Agency subscribers
+    const usage = await getUserUsage(user.id);
+    const planId = usage?.plan?.id || "free";
+    if (!canUseFeature(planId, "advanced_integrations")) {
+      return NextResponse.json(
+        {
+          error: "White-label SEO reporting requires an Agency subscription plan.",
+          code: "UPGRADE_REQUIRED",
+          requiredTier: "agency",
+        },
+        { status: 403 }
+      );
     }
 
     const body = await req.json();

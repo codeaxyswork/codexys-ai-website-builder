@@ -97,11 +97,31 @@ export async function PUT(
     if (!allowCustomDomain) {
       return NextResponse.json(
         {
-          error: "Custom domain connection requires a Pro or Agency subscription plan.",
+          error: "Custom domain connection requires an active Starter, Pro, Business, or Agency subscription plan.",
           code: "UPGRADE_REQUIRED",
         },
         { status: 403 }
       );
+    }
+
+    // Enforce Starter plan 1 custom domain limit
+    if (usage?.plan?.id === "starter") {
+      const { data: existingDomainSites } = await supabase
+        .from("websites")
+        .select("id")
+        .eq("user_id", user.id)
+        .neq("id", websiteId)
+        .not("custom_domain", "is", null);
+
+      if (existingDomainSites && existingDomainSites.length >= 1) {
+        return NextResponse.json(
+          {
+            error: "Starter plan includes 1 custom domain. Please upgrade to Pro for multiple custom domains.",
+            code: "UPGRADE_REQUIRED",
+          },
+          { status: 403 }
+        );
+      }
     }
 
     // Verify website ownership

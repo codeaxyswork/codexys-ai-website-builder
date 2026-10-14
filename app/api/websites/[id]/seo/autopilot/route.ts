@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/utils/supabase/server";
 import { getAutopilotSettings, updateAutopilotSettings, runAutopilotCycle } from "@/lib/seo-opportunities/autopilot";
+import { checkAdvancedSeoEntitlement } from "@/lib/billing";
 
 interface RouteParams {
   params: Promise<{ id: string }>;
@@ -82,6 +83,15 @@ export async function PUT(req: NextRequest, { params }: RouteParams) {
 
     if (!user) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    // Plan Entitlement Check (Pro, Business, or Agency required)
+    const seoCheck = await checkAdvancedSeoEntitlement(user.id, supabase);
+    if (!seoCheck.entitled) {
+      return NextResponse.json(
+        { error: seoCheck.reason, code: "UPGRADE_REQUIRED", requiredTier: "pro" },
+        { status: 403 }
+      );
     }
 
     const body = await req.json();

@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/utils/supabase/server";
 import { runGEOAnalysis } from "@/lib/seo-geo/engine";
+import { checkAdvancedSeoEntitlement } from "@/lib/billing";
 
 export async function GET(
   request: Request,
@@ -16,6 +17,15 @@ export async function GET(
 
     if (!user) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    // Plan Entitlement Check (Pro, Business, or Agency required)
+    const seoCheck = await checkAdvancedSeoEntitlement(user.id, supabase);
+    if (!seoCheck.entitled) {
+      return NextResponse.json(
+        { error: seoCheck.reason, code: "UPGRADE_REQUIRED", requiredTier: "pro" },
+        { status: 403 }
+      );
     }
 
     const geoResult = await runGEOAnalysis(supabase, websiteId, user.id);

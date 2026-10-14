@@ -21,7 +21,21 @@ export const PLAN_PERMISSIONS: Record<string, PlanFeatures> = {
     analytics: false,
     advanced_integrations: false,
   },
+  starter: {
+    basic_seo: true,
+    ai_seo: false,
+    advanced_schema: false,
+    analytics: false,
+    advanced_integrations: false,
+  },
   pro: {
+    basic_seo: true,
+    ai_seo: true,
+    advanced_schema: true,
+    analytics: true,
+    advanced_integrations: false,
+  },
+  business: {
     basic_seo: true,
     ai_seo: true,
     advanced_schema: true,
@@ -38,7 +52,15 @@ export const PLAN_PERMISSIONS: Record<string, PlanFeatures> = {
 };
 
 export function canUseFeature(planId: string | undefined | null, feature: FeatureKey): boolean {
-  const normalizedPlan = (planId || "free").toLowerCase();
+  const normalizedPlan = (planId || "free").toLowerCase().trim();
   const plan = PLAN_PERMISSIONS[normalizedPlan] || PLAN_PERMISSIONS.free;
   return Boolean(plan[feature]);
+}
+
+export function isAdvancedSeoPlan(planId: string | undefined | null): boolean {
+  return canUseFeature(planId, "ai_seo");
+}
+
+export function isAgencyPlan(planId: string | undefined | null): boolean {
+  return canUseFeature(planId, "advanced_integrations");
 }

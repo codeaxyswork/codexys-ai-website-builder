@@ -3,6 +3,7 @@ import { createServerClient } from "@supabase/ssr";
 import { cookies } from "next/headers";
 import { runAEOAnalysis } from "@/lib/seo-aeo/engine";
 import { runTopicalAuthorityAnalysis } from "@/lib/seo-aeo/topical-authority";
+import { checkAdvancedSeoEntitlement } from "@/lib/billing";
 
 export async function GET(
   request: NextRequest,
@@ -45,7 +46,16 @@ export async function GET(
       return NextResponse.json({ analysis: existing });
     }
 
-    // Run initial scan if none exists
+    // If no existing record, check plan entitlement before running fresh analysis
+    const seoCheck = await checkAdvancedSeoEntitlement(user.id, supabase);
+    if (!seoCheck.entitled) {
+      return NextResponse.json(
+        { error: seoCheck.reason, code: "UPGRADE_REQUIRED", requiredTier: "pro" },
+        { status: 403 }
+      );
+    }
+
+    // Run initial scan if entitled
     const aeoResult = await runAEOAnalysis(supabase, websiteId, user.id);
     const topicalResult = await runTopicalAuthorityAnalysis(supabase, websiteId, user.id);
 
@@ -94,6 +104,15 @@ export async function POST(
 
     if (authError || !user) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    // Plan Entitlement Check (Pro, Business, or Agency required)
+    const seoCheck = await checkAdvancedSeoEntitlement(user.id, supabase);
+    if (!seoCheck.entitled) {
+      return NextResponse.json(
+        { error: seoCheck.reason, code: "UPGRADE_REQUIRED", requiredTier: "pro" },
+        { status: 403 }
+      );
     }
 
     const aeoResult = await runAEOAnalysis(supabase, websiteId, user.id);

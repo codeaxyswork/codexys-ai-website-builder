@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/utils/supabase/server";
 import { analyzeInternalLinks } from "@/lib/internal-linking-engine";
+import { checkAdvancedSeoEntitlement } from "@/lib/billing";
 
 export async function GET(
   req: NextRequest,
@@ -28,7 +29,7 @@ export async function GET(
       return NextResponse.json({ error: "Website not found or access denied." }, { status: 404 });
     }
 
-    // 3. Fetch cached internal links analysis
+    // 3. Fetch cached internal links analysis (readable historical data grace)
     const { data: linkRow } = await supabase
       .from("website_internal_links")
       .select("*")
@@ -45,7 +46,15 @@ export async function GET(
       });
     }
 
-    // If no row exists yet, run initial analysis
+    // If no row exists yet, verify Advanced SEO entitlement before computing fresh analysis
+    const seoCheck = await checkAdvancedSeoEntitlement(user.id, supabase);
+    if (!seoCheck.entitled) {
+      return NextResponse.json(
+        { error: seoCheck.reason, code: "UPGRADE_REQUIRED", requiredTier: "pro" },
+        { status: 403 }
+      );
+    }
+
     return await computeAndStoreInternalLinks(supabase, website, user.id);
   } catch (err: any) {
     console.error("GET internal-links error:", err);
@@ -77,6 +86,15 @@ export async function POST(
 
     if (siteError || !website) {
       return NextResponse.json({ error: "Website not found or access denied." }, { status: 404 });
+    }
+
+    // 3. Plan Entitlement Check (Pro, Business, or Agency required)
+    const seoCheck = await checkAdvancedSeoEntitlement(user.id, supabase);
+    if (!seoCheck.entitled) {
+      return NextResponse.json(
+        { error: seoCheck.reason, code: "UPGRADE_REQUIRED", requiredTier: "pro" },
+        { status: 403 }
+      );
     }
 
     return await computeAndStoreInternalLinks(supabase, website, user.id);

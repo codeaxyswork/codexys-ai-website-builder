@@ -433,9 +433,9 @@ export default function DomainManagementPage({ params }: DomainPageProps) {
             <div className="flex items-start gap-3">
               <span className="text-xl">⭐</span>
               <div>
-                <h4 className="text-sm font-bold text-amber-900">Pro or Agency Plan Required</h4>
+                <h4 className="text-sm font-bold text-amber-900">Active Paid Plan Required</h4>
                 <p className="text-xs text-amber-800 mt-0.5">
-                  Connecting custom domains (e.g. yourbrand.com) requires upgrading to a Pro or Agency subscription plan.
+                  Connecting custom domains (e.g. yourbrand.com) requires an active Starter, Pro, Business, or Agency subscription plan.
                 </p>
               </div>
             </div>

@@ -126,7 +126,8 @@ export function resolveSubscriptionPlan(planId: string, subPlans?: any) {
   const normId = (planId || "free").toLowerCase().trim();
   const joined = Array.isArray(subPlans) ? subPlans[0] : subPlans;
   const staticConfig = PLANS[normId] || PLANS.free;
-  const isPaidTierWithDomainAndSeo = ["pro", "business", "agency"].includes(normId);
+  const isPaidTierWithDomain = ["starter", "pro", "business", "agency"].includes(normId);
+  const isPaidTierWithAdvancedSeo = ["pro", "business", "agency"].includes(normId);
 
   return {
     id: joined?.id || staticConfig.id || "free",
@@ -144,14 +145,76 @@ export function resolveSubscriptionPlan(planId: string, subPlans?: any) {
       staticConfig.storageLimitBytes ||
       104857600,
     allow_custom_domain:
-      joined?.allow_custom_domain !== undefined
-        ? Boolean(joined.allow_custom_domain)
-        : isPaidTierWithDomainAndSeo,
+      normId === "starter"
+        ? true
+        : joined?.allow_custom_domain !== undefined
+          ? Boolean(joined.allow_custom_domain)
+          : isPaidTierWithDomain,
     allow_advanced_seo:
       joined?.allow_advanced_seo !== undefined
         ? Boolean(joined.allow_advanced_seo)
-        : isPaidTierWithDomainAndSeo,
+        : isPaidTierWithAdvancedSeo,
   };
+}
+
+export interface AdvancedSeoEntitlementResult {
+  entitled: boolean;
+  allowed: boolean;
+  planId: string;
+  planName: string;
+  plan: string;
+  reason?: string;
+}
+
+/**
+ * Checks whether an authenticated user has an active Pro, Business, or Agency subscription,
+ * or an explicit allow_advanced_seo entitlement flag.
+ *
+ * Free and Starter plans return entitled: false.
+ * Expired subscriptions fail closed and return entitled: false.
+ */
+export async function checkAdvancedSeoEntitlement(
+  userId: string,
+  customClient?: any
+): Promise<AdvancedSeoEntitlementResult> {
+  try {
+    const usage = await getUserUsage(userId, customClient);
+    const planId = (usage?.plan?.id || "free").toLowerCase().trim();
+    const planName = usage?.plan?.name || "Free";
+    const allowAdvancedSeo = Boolean(usage?.plan?.allow_advanced_seo);
+
+    // Eligible plans: Pro, Business, Agency, or any plan configured with allow_advanced_seo: true
+    const entitled = allowAdvancedSeo || planId === "pro" || planId === "business" || planId === "agency";
+
+    if (!entitled) {
+      return {
+        entitled: false,
+        allowed: false,
+        planId,
+        planName,
+        plan: planId,
+        reason: `Advanced SEO features require a Pro, Business, or Agency subscription. Your current plan (${planName}) includes Basic SEO only.`,
+      };
+    }
+
+    return {
+      entitled: true,
+      allowed: true,
+      planId,
+      planName,
+      plan: planId,
+    };
+  } catch (err: any) {
+    console.error("[Billing] checkAdvancedSeoEntitlement error:", err);
+    return {
+      entitled: false,
+      allowed: false,
+      planId: "unknown",
+      planName: "Unknown",
+      plan: "unknown",
+      reason: "Failed to verify Advanced SEO plan entitlement.",
+    };
+  }
 }
 
 export interface MarketingPlanEntitlementResult {
