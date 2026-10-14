@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { createAdminClient, createClient } from "@/utils/supabase/server";
 import { renderBlogPostHTML } from "@/lib/blog-renderer";
 import { assemblePublishedWebsite } from "@/lib/site-renderer";
+import { checkWebsitePublicVisibility, renderWebsiteSuspendedHTML } from "@/lib/lifecycle/website-lifecycle-engine";
 
 export const dynamic = "force-dynamic";
 export const fetchCache = "force-no-store";
@@ -22,7 +23,7 @@ export async function GET(
     // 1. Fetch website by published_slug OR custom_domain
     const { data: website, error: webErr } = await supabase
       .from("websites")
-      .select("id, user_id, title, published_slug, custom_domain, is_published, design_plan")
+      .select("id, user_id, title, published_slug, custom_domain, is_published, design_plan, created_at")
       .or(`published_slug.eq.${cleanSlug},custom_domain.eq.${cleanSlug},custom_domain.eq.${rootDomainSlug}`)
       .maybeSingle();
 
@@ -34,29 +35,47 @@ export async function GET(
     }
 
     // Security & Preview Check: If website is unpublished draft, allow access ONLY to authenticated owner OR when preview parameter is present
-    if (!website.is_published) {
-      let isOwner = false;
-      let isPreview = false;
-      try {
-        const urlObj = new URL(request.url);
-        isPreview = urlObj.searchParams.get("preview") === "true" || urlObj.searchParams.get("preview") === "1";
-      } catch {}
+    let isOwner = false;
+    let isPreview = false;
+    try {
+      const urlObj = new URL(request.url);
+      isPreview = urlObj.searchParams.get("preview") === "true" || urlObj.searchParams.get("preview") === "1";
+    } catch {}
 
-      try {
-        const authSupabase = await createClient();
-        const { data: authData } = await authSupabase.auth.getUser();
-        if (authData?.user?.id && authData.user.id === website.user_id) {
-          isOwner = true;
-        }
-      } catch {
-        // Non-owner
+    try {
+      const authSupabase = await createClient();
+      const { data: authData } = await authSupabase.auth.getUser();
+      if (authData?.user?.id && authData.user.id === website.user_id) {
+        isOwner = true;
       }
+    } catch {
+      // Non-owner
+    }
 
+    if (!website.is_published) {
       if (!isOwner && !isPreview) {
         return new Response(render404HTML("Website Not Found"), {
           status: 404,
           headers: { "Content-Type": "text/html; charset=utf-8" },
         });
+      }
+    }
+
+    // Lifecycle & Suspension Gate: If published, verify public visibility (10-day trial or active paid plan)
+    if (website.is_published) {
+      const visibility = await checkWebsitePublicVisibility(website, supabase);
+      if (!visibility.isPubliclyVisible) {
+        // If owner or preview mode, allow viewing in dashboard with warning
+        if (!isOwner && !isPreview) {
+          return new Response(renderWebsiteSuspendedHTML(website.title), {
+            status: 503,
+            headers: {
+              "Content-Type": "text/html; charset=utf-8",
+              "Cache-Control": "no-cache, no-store, must-revalidate",
+              "X-Robots-Tag": "noindex, nofollow",
+            },
+          });
+        }
       }
     }
 

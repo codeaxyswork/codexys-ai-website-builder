@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { createAdminClient, createClient } from "@/utils/supabase/server";
 import { assemblePublishedWebsite } from "@/lib/site-renderer";
-import { getCachedSiteData, setCachedSiteData } from "@/lib/site-cache";
+import { getCachedSiteData, setCachedSiteData, invalidateCachedSiteData } from "@/lib/site-cache";
 import { getWebsitePublicUrl, getWebsitePageUrl, getWebsitePreviewUrl } from "@/lib/domain-resolver";
 import { checkWebsitePublicVisibility, renderWebsiteSuspendedHTML } from "@/lib/lifecycle/website-lifecycle-engine";
 export const dynamic = "force-dynamic";
@@ -19,23 +19,6 @@ export async function GET(
     const pathStr = pathSegments.join("/");
     const cleanSlug = slug.toLowerCase().trim().replace(/\/+$/, "");
 
-    // 0. Instant Memory Cache Check (0ms response time on repeat views)
-    const cacheKey = `subpage_${cleanSlug}_${pathStr.toLowerCase().trim().replace(/^\/+|\/+$/g, "")}`;
-    const cachedHtml = getCachedSiteData<string>(cacheKey);
-    if (cachedHtml) {
-      const dur = (performance.now() - t0).toFixed(1);
-      console.log(`[PUBLIC_SUBPAGE_CACHE_HIT] slug=${slug} subpath=${pathStr} total=${dur}ms`);
-      return new Response(cachedHtml, {
-        status: 200,
-        headers: {
-          "Content-Type": "text/html; charset=utf-8",
-          "Cache-Control": "no-cache, no-store, must-revalidate",
-          "X-Content-Type-Options": "nosniff",
-          "X-Frame-Options": "SAMEORIGIN",
-          "Server-Timing": `total;dur=${dur}, cache;dur=0`,
-        },
-      });
-    }
     // Fast-fail non-migrated static assets (CSS, JS, images, fonts) in 0.1ms to prevent server queue saturation
     const isStaticAsset = /\.(css|js|png|jpg|jpeg|gif|svg|ico|woff|woff2|ttf|map)$/i.test(pathStr) || pathStr.includes("wp-content/") || pathStr.includes("wp-includes/");
     if (isStaticAsset) {
@@ -100,6 +83,10 @@ export async function GET(
     if (website.is_published) {
       const visibility = await checkWebsitePublicVisibility(website, supabase);
       if (!visibility.isPubliclyVisible) {
+        // Evict any stale cache for this website so suspended sites cannot be served from cache
+        invalidateCachedSiteData(cleanSlug);
+        if (website.published_slug) invalidateCachedSiteData(website.published_slug);
+
         // If owner or preview mode, allow viewing in dashboard with warning
         if (!isOwner && !isPreview) {
           return new Response(renderWebsiteSuspendedHTML(website.title), {
@@ -112,6 +99,24 @@ export async function GET(
           });
         }
       }
+    }
+
+    // Memory Cache Check: Only serve cached HTML if website is verified publicly visible (or owner/preview)
+    const cacheKey = `subpage_${cleanSlug}_${pathStr.toLowerCase().trim().replace(/^\/+|\/+$/g, "")}`;
+    const cachedHtml = !isPreview ? getCachedSiteData<string>(cacheKey) : null;
+    if (cachedHtml) {
+      const dur = (performance.now() - t0).toFixed(1);
+      console.log(`[PUBLIC_SUBPAGE_CACHE_HIT] slug=${slug} subpath=${pathStr} total=${dur}ms`);
+      return new Response(cachedHtml, {
+        status: 200,
+        headers: {
+          "Content-Type": "text/html; charset=utf-8",
+          "Cache-Control": "no-cache, no-store, must-revalidate",
+          "X-Content-Type-Options": "nosniff",
+          "X-Frame-Options": "SAMEORIGIN",
+          "Server-Timing": `total;dur=${dur}, cache;dur=0`,
+        },
+      });
     }
 
     const hostHeader = (request.headers.get("host") || "").split(":")[0].toLowerCase().trim();

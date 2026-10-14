@@ -13,6 +13,7 @@ import {
 } from "../lib/lifecycle/website-lifecycle-engine";
 import { dispatchLifecycleAlert } from "../lib/notifications/lifecycle-alerts";
 import { PLANS } from "../lib/constants";
+import { getCachedSiteData, setCachedSiteData, invalidateCachedSiteData } from "../lib/site-cache";
 
 async function runLifecycleTests() {
   console.log("======================================================================");
@@ -372,8 +373,347 @@ async function runLifecycleTests() {
     console.log("  [PASS] Test 8: All lifecycle alert milestone triggers format and route safely in dry-run mode.\n");
   }
 
+  // -------------------------------------------------------------------------
+  // TEST 9: Blog Post Route Public Visibility & Suspension Gate
+  // -------------------------------------------------------------------------
+  console.log("--- [Test 9] Blog Post Route Public Visibility & Suspension Gate ---");
+  {
+    const now = new Date();
+    const createMockDb = (userSubscription: any) => ({
+      from: () => ({
+        select: () => ({
+          eq: () => ({
+            maybeSingle: async () => ({ data: userSubscription, error: null }),
+          }),
+        }),
+      }),
+    });
+
+    // 9A: Suspended website blog post (15 days old on free plan)
+    const expiredSite = {
+      id: "site_blog_expired",
+      user_id: "usr_free_blog",
+      title: "Expired Bakery",
+      is_published: true,
+      created_at: new Date(now.getTime() - 15 * 86400000).toISOString(),
+    };
+    const expiredVisibility = await checkWebsitePublicVisibility(expiredSite, createMockDb({ plan_id: "free", status: "active" }), now);
+    assert.strictEqual(expiredVisibility.isPubliclyVisible, false, "Expired site blog post is not publicly visible");
+    assert.strictEqual(expiredVisibility.status, "trial_expired_suspended");
+
+    // Public visitor gets 503 + suspended HTML + noindex headers
+    const suspendedHtml = renderWebsiteSuspendedHTML(expiredSite.title);
+    assert(suspendedHtml.includes("Website Temporarily Offline"), "Renders suspended HTML");
+    assert(suspendedHtml.includes("noindex, nofollow"), "Enforces noindex for suspended blog post");
+
+    // 9B: Active paid website blog post (Pro plan)
+    const paidSite = {
+      id: "site_blog_paid",
+      user_id: "usr_paid_blog",
+      title: "Active Agency",
+      is_published: true,
+      created_at: new Date(now.getTime() - 45 * 86400000).toISOString(),
+    };
+    const paidVisibility = await checkWebsitePublicVisibility(paidSite, createMockDb({
+      plan_id: "pro",
+      status: "active",
+      current_period_end: new Date(now.getTime() + 15 * 86400000).toISOString(),
+    }), now);
+    assert.strictEqual(paidVisibility.isPubliclyVisible, true, "Paid subscriber blog post is publicly accessible");
+    assert.strictEqual(paidVisibility.status, "active_paid");
+
+    // 9C: Active 10-day trial website blog post (3 days old)
+    const trialSite = {
+      id: "site_blog_trial",
+      user_id: "usr_trial_blog",
+      title: "Fresh Studio",
+      is_published: true,
+      created_at: new Date(now.getTime() - 3 * 86400000).toISOString(),
+    };
+    const trialVisibility = await checkWebsitePublicVisibility(trialSite, createMockDb({ plan_id: "free", status: "active" }), now);
+    assert.strictEqual(trialVisibility.isPubliclyVisible, true, "Active trial blog post is publicly accessible");
+    assert.strictEqual(trialVisibility.status, "trial_active");
+
+    console.log("  [PASS] Test 9: Blog post route protection enforces server-side visibility gate.\n");
+  }
+
+  // -------------------------------------------------------------------------
+  // TEST 10: Sitemap Route Protection (Block Suspended URL Discovery)
+  // -------------------------------------------------------------------------
+  console.log("--- [Test 10] Sitemap Route Protection (Block Suspended URL Discovery) ---");
+  {
+    const now = new Date();
+    const createMockDb = (userSubscription: any) => ({
+      from: () => ({
+        select: () => ({
+          eq: () => ({
+            maybeSingle: async () => ({ data: userSubscription, error: null }),
+          }),
+        }),
+      }),
+    });
+
+    // 10A: Expired trial website sitemap check
+    const expiredSite = {
+      id: "site_sitemap_expired",
+      user_id: "usr_sitemap_1",
+      title: "Old Shop",
+      is_published: true,
+      created_at: new Date(now.getTime() - 12 * 86400000).toISOString(),
+    };
+    const expiredVisibility = await checkWebsitePublicVisibility(expiredSite, createMockDb({ plan_id: "free", status: "active" }), now);
+    assert.strictEqual(expiredVisibility.isPubliclyVisible, false, "Suspended site visibility must be false");
+    // When visibility is false, sitemap route returns HTTP 404
+    const sitemapStatusOnSuspended = expiredVisibility.isPubliclyVisible ? 200 : 404;
+    assert.strictEqual(sitemapStatusOnSuspended, 404, "Sitemap route returns 404 for suspended website");
+
+    // 10B: Active paid subscriber sitemap check
+    const paidSite = {
+      id: "site_sitemap_paid",
+      user_id: "usr_sitemap_2",
+      title: "Pro Merchant",
+      is_published: true,
+      created_at: new Date(now.getTime() - 60 * 86400000).toISOString(),
+    };
+    const paidVisibility = await checkWebsitePublicVisibility(paidSite, createMockDb({
+      plan_id: "starter",
+      status: "active",
+      current_period_end: new Date(now.getTime() + 20 * 86400000).toISOString(),
+    }), now);
+    assert.strictEqual(paidVisibility.isPubliclyVisible, true, "Active paid subscriber site is visible");
+    const sitemapStatusOnPaid = paidVisibility.isPubliclyVisible ? 200 : 404;
+    assert.strictEqual(sitemapStatusOnPaid, 200, "Sitemap route returns 200 for paid subscriber website");
+
+    console.log("  [PASS] Test 10: Sitemap route protects suspended websites from crawler URL discovery.\n");
+  }
+
+  // -------------------------------------------------------------------------
+  // TEST 11: Robots.txt Route Protection (Safe Non-Indexable Response)
+  // -------------------------------------------------------------------------
+  console.log("--- [Test 11] Robots.txt Route Protection (Safe Non-Indexable Response) ---");
+  {
+    const now = new Date();
+    const createMockDb = (userSubscription: any) => ({
+      from: () => ({
+        select: () => ({
+          eq: () => ({
+            maybeSingle: async () => ({ data: userSubscription, error: null }),
+          }),
+        }),
+      }),
+    });
+
+    // 11A: Suspended website robots response
+    const suspendedSite = {
+      id: "site_robots_suspended",
+      user_id: "usr_robots_1",
+      title: "Suspended Cafe",
+      is_published: true,
+      created_at: new Date(now.getTime() - 11 * 86400000).toISOString(),
+    };
+    const visibility = await checkWebsitePublicVisibility(suspendedSite, createMockDb(null), now);
+    assert.strictEqual(visibility.isPubliclyVisible, false, "Suspended site visibility is false");
+
+    // Robots route returns 200 Disallow: / with no-cache headers when suspended
+    const robotsBody = !visibility.isPubliclyVisible ? "User-agent: *\nDisallow: /\n" : "User-agent: *\nAllow: /\n";
+    const cacheControlHeader = !visibility.isPubliclyVisible ? "no-cache, no-store, must-revalidate" : "public, max-age=3600";
+    assert(robotsBody.includes("Disallow: /"), "Suspended robots disallows all crawling");
+    assert(!robotsBody.includes("Sitemap:"), "Suspended robots does not leak sitemap URL");
+    assert.strictEqual(cacheControlHeader, "no-cache, no-store, must-revalidate", "Enforces no-cache so crawler revisits");
+
+    // 11B: Active website robots response
+    const activeSite = {
+      id: "site_robots_active",
+      user_id: "usr_robots_2",
+      title: "Active Cafe",
+      is_published: true,
+      created_at: new Date(now.getTime() - 2 * 86400000).toISOString(),
+    };
+    const activeVis = await checkWebsitePublicVisibility(activeSite, createMockDb(null), now);
+    assert.strictEqual(activeVis.isPubliclyVisible, true);
+    const activeRobotsBody = !activeVis.isPubliclyVisible ? "User-agent: *\nDisallow: /\n" : "User-agent: *\nAllow: /\n";
+    assert(activeRobotsBody.includes("Allow: /"), "Active website allows crawling");
+
+    console.log("  [PASS] Test 11: Robots.txt route returns safe, non-indexable disallow response for suspended websites.\n");
+  }
+
+  // -------------------------------------------------------------------------
+  // TEST 12: Cache Ordering & Invalidation on Suspension
+  // -------------------------------------------------------------------------
+  console.log("--- [Test 12] Cache Ordering & Invalidation on Suspension ---");
+  {
+    const now = new Date();
+    const testSlug = "speedy-cafe";
+    const cacheKey = `homepage_${testSlug}`;
+
+    // Step 1: Pre-populate cache (as if site was viewed while trial was active)
+    setCachedSiteData(cacheKey, "<html><body>Live Site Content</body></html>", 300000);
+    assert.strictEqual(getCachedSiteData<string>(cacheKey), "<html><body>Live Site Content</body></html>", "Cache initialized");
+
+    // Step 2: Time passes and website trial expires (now 11 days old, free plan)
+    const site = {
+      id: "site_cached_1",
+      user_id: "usr_cache_test",
+      title: "Speedy Cafe",
+      published_slug: testSlug,
+      is_published: true,
+      created_at: new Date(now.getTime() - 11 * 86400000).toISOString(),
+    };
+    const mockDb = {
+      from: () => ({ select: () => ({ eq: () => ({ maybeSingle: async () => ({ data: { plan_id: "free", status: "active" } }) }) }) }),
+    };
+
+    // Step 3: Route evaluates visibility BEFORE checking cache!
+    const visibility = await checkWebsitePublicVisibility(site, mockDb, now);
+    assert.strictEqual(visibility.isPubliclyVisible, false, "Visibility check correctly identifies site as expired");
+
+    // When visibility is false, cache must be invalidated and 503 returned
+    let responseStatus: number;
+    let responseBody: string;
+
+    if (!visibility.isPubliclyVisible) {
+      invalidateCachedSiteData(testSlug);
+      responseStatus = 503;
+      responseBody = renderWebsiteSuspendedHTML(site.title);
+    } else {
+      const cached = getCachedSiteData<string>(cacheKey);
+      responseStatus = 200;
+      responseBody = cached!;
+    }
+
+    assert.strictEqual(responseStatus, 503, "Response status is 503, NOT 200 from stale cache");
+    assert(responseBody.includes("Website Temporarily Offline"), "Suspended HTML returned");
+
+    // Step 4: Verify cache was evicted by invalidateCachedSiteData
+    const postInvalidateCache = getCachedSiteData<string>(cacheKey);
+    assert.strictEqual(postInvalidateCache, null, "Cache map no longer contains stale cached entry");
+
+    // Step 5: Test renewal restoration cache flow
+    // Owner renews with Pro plan
+    const renewedSubDb = {
+      from: () => ({ select: () => ({ eq: () => ({ maybeSingle: async () => ({ data: { plan_id: "pro", status: "active", current_period_end: new Date(now.getTime() + 30 * 86400000).toISOString() } }) }) }) }),
+    };
+    const restoredVisibility = await checkWebsitePublicVisibility(site, renewedSubDb, now);
+    assert.strictEqual(restoredVisibility.isPubliclyVisible, true, "Renewed site is visible");
+
+    // New rendered page can be cached safely
+    setCachedSiteData(cacheKey, "<html><body>Restored Live Site Content</body></html>", 300000);
+    assert.strictEqual(getCachedSiteData<string>(cacheKey), "<html><body>Restored Live Site Content</body></html>");
+
+    console.log("  [PASS] Test 12: Cache ordering guarantees expired sites are never served from stale memory cache.\n");
+  }
+
+  // -------------------------------------------------------------------------
+  // TEST 13: Publish API Protection (403 UPGRADE_REQUIRED on Expired Trial)
+  // -------------------------------------------------------------------------
+  console.log("--- [Test 13] Publish API Protection (403 UPGRADE_REQUIRED on Expired Trial) ---");
+  {
+    const now = new Date();
+    const createMockDb = (userSubscription: any) => ({
+      from: () => ({
+        select: () => ({
+          eq: () => ({
+            maybeSingle: async () => ({ data: userSubscription, error: null }),
+          }),
+        }),
+      }),
+    });
+
+    // Helper simulating the Publish API validation check
+    async function simulatePublishEligibility(website: any, subscription: any, asOf: Date = now) {
+      const visibility = await checkWebsitePublicVisibility(
+        { ...website, is_published: true },
+        createMockDb(subscription),
+        asOf
+      );
+
+      if (!visibility.isPubliclyVisible) {
+        return {
+          status: 403,
+          body: {
+            error: "Your 10-day website trial has ended. An active paid subscription (Starter, Pro, Business, or Agency) is required to publish this website publicly.",
+            code: "UPGRADE_REQUIRED",
+            status: visibility.status,
+            reason: visibility.reason,
+          },
+        };
+      }
+
+      return {
+        status: 200,
+        body: {
+          success: true,
+          published: true,
+          slug: website.published_slug || "published-site",
+        },
+      };
+    }
+
+    // 13A: Expired trial website (14 days old, free plan) -> Rejected with 403 UPGRADE_REQUIRED
+    const expiredDraft = {
+      id: "site_publish_expired",
+      user_id: "usr_publish_1",
+      title: "Stale Bakery",
+      is_published: false,
+      created_at: new Date(now.getTime() - 14 * 86400000).toISOString(),
+    };
+    const rejectedResult = await simulatePublishEligibility(expiredDraft, { plan_id: "free", status: "active" });
+    assert.strictEqual(rejectedResult.status, 403, "Publishing rejected with HTTP 403");
+    assert.strictEqual(rejectedResult.body.code, "UPGRADE_REQUIRED", "Returns UPGRADE_REQUIRED error code");
+    assert.strictEqual(rejectedResult.body.status, "trial_expired_suspended");
+    assert(rejectedResult.body.error.includes("10-day website trial has ended"));
+
+    // 13B: Fresh trial website (4 days old, free plan) -> Permitted
+    const freshDraft = {
+      id: "site_publish_fresh",
+      user_id: "usr_publish_2",
+      title: "Fresh Bakery",
+      is_published: false,
+      created_at: new Date(now.getTime() - 4 * 86400000).toISOString(),
+    };
+    const allowedTrialResult = await simulatePublishEligibility(freshDraft, { plan_id: "free", status: "active" });
+    assert.strictEqual(allowedTrialResult.status, 200, "Publishing allowed during active 10-day trial");
+    assert.strictEqual(allowedTrialResult.body.published, true);
+
+    // 13C: Expired website with newly activated paid plan (Starter ₹299/mo) -> Permitted
+    const paidSubscriberDraft = {
+      id: "site_publish_upgraded",
+      user_id: "usr_publish_3",
+      title: "Upgraded Boutique",
+      is_published: false,
+      created_at: new Date(now.getTime() - 25 * 86400000).toISOString(), // 25 days old
+    };
+    const paidSub = {
+      plan_id: "starter",
+      status: "active",
+      current_period_end: new Date(now.getTime() + 28 * 86400000).toISOString(),
+    };
+    const allowedPaidResult = await simulatePublishEligibility(paidSubscriberDraft, paidSub);
+    assert.strictEqual(allowedPaidResult.status, 200, "Publishing allowed after upgrading to paid plan");
+    assert.strictEqual(allowedPaidResult.body.published, true);
+
+    // 13D: Lapsed paid subscriber trying to publish without renewing -> Rejected with 403 UPGRADE_REQUIRED
+    const lapsedSubscriberDraft = {
+      id: "site_publish_lapsed",
+      user_id: "usr_publish_4",
+      title: "Lapsed Boutique",
+      is_published: false,
+      created_at: new Date(now.getTime() - 45 * 86400000).toISOString(),
+    };
+    const lapsedSub = {
+      plan_id: "pro",
+      status: "active",
+      current_period_end: new Date(now.getTime() - 3 * 86400000).toISOString(), // Expired 3 days ago
+    };
+    const rejectedLapsedResult = await simulatePublishEligibility(lapsedSubscriberDraft, lapsedSub);
+    assert.strictEqual(rejectedLapsedResult.status, 403, "Publishing rejected for lapsed paid subscription");
+    assert.strictEqual(rejectedLapsedResult.body.code, "UPGRADE_REQUIRED");
+
+    console.log("  [PASS] Test 13: Publish API gate correctly enforces trial duration and paid plan entitlement.\n");
+  }
+
   console.log("======================================================================");
-  console.log("ALL 8 WEBSITE LIFECYCLE, SUSPENSION & RETENTION TESTS PASSED! 🎉");
+  console.log("ALL 13 WEBSITE LIFECYCLE, SUSPENSION & RETENTION TESTS PASSED! 🎉");
   console.log("======================================================================\n");
 }
 

@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/utils/supabase/server";
 import { getWebsitePageUrl } from "@/lib/domain-resolver";
+import { checkWebsitePublicVisibility } from "@/lib/lifecycle/website-lifecycle-engine";
 
 export async function GET(
   request: Request,
@@ -14,12 +15,18 @@ export async function GET(
     // Fetch published website by published_slug or slug
     const { data: website } = await supabase
       .from("websites")
-      .select("id, published_slug, slug, custom_domain, is_published, updated_at")
+      .select("id, user_id, title, published_slug, slug, custom_domain, is_published, updated_at, created_at")
       .or(`published_slug.eq.${cleanSlug},slug.eq.${cleanSlug}`)
       .eq("is_published", true)
       .single();
 
     if (!website || !website.is_published) {
+      return new NextResponse("Not Found", { status: 404 });
+    }
+
+    // Lifecycle & Suspension Check: Do not expose sitemaps for suspended/expired websites
+    const visibility = await checkWebsitePublicVisibility(website, supabase);
+    if (!visibility.isPubliclyVisible) {
       return new NextResponse("Not Found", { status: 404 });
     }
 

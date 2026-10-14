@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/utils/supabase/server";
+import { checkWebsitePublicVisibility } from "@/lib/lifecycle/website-lifecycle-engine";
 
 export async function GET(
   request: Request,
@@ -12,7 +13,7 @@ export async function GET(
 
     const { data: website } = await supabase
       .from("websites")
-      .select("id, published_slug, is_published")
+      .select("id, user_id, title, published_slug, is_published, created_at")
       .or(`published_slug.eq.${cleanSlug},slug.eq.${cleanSlug}`)
       .eq("is_published", true)
       .single();
@@ -21,6 +22,18 @@ export async function GET(
       return new NextResponse("User-agent: *\nDisallow: /", {
         status: 404,
         headers: { "Content-Type": "text/plain; charset=utf-8" },
+      });
+    }
+
+    // Lifecycle & Suspension Gate: If website is suspended/expired, return safe non-indexable robots response
+    const visibility = await checkWebsitePublicVisibility(website, supabase);
+    if (!visibility.isPubliclyVisible) {
+      return new NextResponse("User-agent: *\nDisallow: /\n", {
+        status: 200,
+        headers: {
+          "Content-Type": "text/plain; charset=utf-8",
+          "Cache-Control": "no-cache, no-store, must-revalidate",
+        },
       });
     }
 

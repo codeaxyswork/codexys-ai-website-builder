@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/utils/supabase/server";
+import { checkWebsitePublicVisibility } from "@/lib/lifecycle/website-lifecycle-engine";
+import { invalidateCachedSiteData } from "@/lib/site-cache";
 
 export async function POST(
   request: NextRequest,
@@ -44,6 +46,24 @@ export async function POST(
       return NextResponse.json(
         { error: "Website must have valid page content before publishing." },
         { status: 400 }
+      );
+    }
+
+    // 2.5. Lifecycle & Trial Protection: Verify website is eligible for public publishing
+    const visibility = await checkWebsitePublicVisibility(
+      { ...website, is_published: true },
+      supabase
+    );
+
+    if (!visibility.isPubliclyVisible) {
+      return NextResponse.json(
+        {
+          error: "Your 10-day website trial has ended. An active paid subscription (Starter, Pro, Business, or Agency) is required to publish this website publicly.",
+          code: "UPGRADE_REQUIRED",
+          status: visibility.status,
+          reason: visibility.reason,
+        },
+        { status: 403 }
       );
     }
 
@@ -93,6 +113,12 @@ export async function POST(
 
     if (updateError) {
       return NextResponse.json({ error: updateError.message }, { status: 500 });
+    }
+
+    // Invalidate stale cache for this website to ensure fresh state is served
+    invalidateCachedSiteData(uniqueSlug);
+    if (website.published_slug && website.published_slug !== uniqueSlug) {
+      invalidateCachedSiteData(website.published_slug);
     }
 
     // 5. Deterministically resolve production URL using single source of truth
