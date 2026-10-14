@@ -3,6 +3,7 @@ import { createAdminClient, createClient } from "@/utils/supabase/server";
 import { assemblePublishedWebsite } from "@/lib/site-renderer";
 import { getCachedSiteData, setCachedSiteData } from "@/lib/site-cache";
 import { getWebsitePublicUrl, getWebsitePreviewUrl } from "@/lib/domain-resolver";
+import { checkWebsitePublicVisibility, renderWebsiteSuspendedHTML } from "@/lib/lifecycle/website-lifecycle-engine";
 export const dynamic = "force-dynamic";
 export const fetchCache = "force-no-store";
 export const revalidate = 0;
@@ -42,7 +43,7 @@ export async function GET(
     const tWebStart = performance.now();
     const { data: website, error: websiteErr } = await supabase
       .from("websites")
-      .select("id, user_id, title, published_slug, slug, custom_domain, custom_domain_verified, custom_domain_status, www_domain_configured, is_published, design_plan")
+      .select("id, user_id, title, published_slug, slug, custom_domain, custom_domain_verified, custom_domain_status, www_domain_configured, is_published, design_plan, created_at")
       .or(`published_slug.eq.${cleanSlug},slug.eq.${cleanSlug},custom_domain.eq.${cleanSlug},custom_domain.eq.${rootDomainSlug}`)
       .maybeSingle();
     const tWebEnd = performance.now();
@@ -54,30 +55,49 @@ export async function GET(
       });
     }
 
+    // Check if authenticated user is the website owner or preview mode is requested
+    let isOwner = false;
+    let isPreview = false;
+    try {
+      const urlObj = new URL(request.url);
+      isPreview = urlObj.searchParams.get("preview") === "true" || urlObj.searchParams.get("preview") === "1";
+    } catch {}
+
+    try {
+      const authSupabase = await createClient();
+      const { data: authData } = await authSupabase.auth.getUser();
+      if (authData?.user?.id && authData.user.id === website.user_id) {
+        isOwner = true;
+      }
+    } catch {
+      // Non-owner
+    }
+
     // Security Check: If website is unpublished draft, allow access ONLY to authenticated owner OR when preview parameter is present
     if (!website.is_published) {
-      let isOwner = false;
-      let isPreview = false;
-      try {
-        const urlObj = new URL(request.url);
-        isPreview = urlObj.searchParams.get("preview") === "true" || urlObj.searchParams.get("preview") === "1";
-      } catch {}
-
-      try {
-        const authSupabase = await createClient();
-        const { data: authData } = await authSupabase.auth.getUser();
-        if (authData?.user?.id && authData.user.id === website.user_id) {
-          isOwner = true;
-        }
-      } catch {
-        // Non-owner
-      }
-
       if (!isOwner && !isPreview) {
         return new Response(render404HTML("Website Not Found"), {
           status: 404,
           headers: { "Content-Type": "text/html; charset=utf-8" },
         });
+      }
+    }
+
+    // Lifecycle & Suspension Gate: If published, verify public visibility (10-day trial or active paid plan)
+    if (website.is_published) {
+      const visibility = await checkWebsitePublicVisibility(website, supabase);
+      if (!visibility.isPubliclyVisible) {
+        // If owner or preview mode, allow viewing in dashboard with warning
+        if (!isOwner && !isPreview) {
+          return new Response(renderWebsiteSuspendedHTML(website.title), {
+            status: 503,
+            headers: {
+              "Content-Type": "text/html; charset=utf-8",
+              "Cache-Control": "no-cache, no-store, must-revalidate",
+              "X-Robots-Tag": "noindex, nofollow",
+            },
+          });
+        }
       }
     }
 

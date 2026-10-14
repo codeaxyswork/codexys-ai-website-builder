@@ -8,16 +8,23 @@ export interface WebsiteTrialStatus {
   message: string;
 }
 
+export const TRIAL_DURATION_DAYS = 10;
+export const TRIAL_DURATION_MS = TRIAL_DURATION_DAYS * 24 * 60 * 60 * 1000; // 240 hours
+
 /**
- * Calculates 3-Day (72-hour) preview trial status based on website created_at timestamp and subscription plan.
- * GUARANTEE: Never deletes website data or pages upon trial expiry.
+ * Calculates 10-Day (240-hour) initial trial status based on website created_at timestamp and subscription plan.
+ * GUARANTEE: Never deletes website data or pages upon trial expiry; safe 90-day retention applies.
  */
 export function getWebsiteTrialStatus(
   createdAt: string | Date | null | undefined,
   planId: string = "free",
   isPublished: boolean = false
 ): WebsiteTrialStatus {
-  if (planId !== "free" || isPublished) {
+  const normPlan = (planId || "free").toLowerCase().trim();
+  const hasPaidPlan = normPlan !== "free";
+
+  // If user has an active paid plan (Starter, Pro, Business, Agency), the site has permanent active hosting
+  if (hasPaidPlan) {
     return {
       status: "permanent",
       badgeLabel: isPublished ? "Published" : "Pro Workspace",
@@ -25,27 +32,27 @@ export function getWebsiteTrialStatus(
       daysRemaining: null,
       hoursRemaining: null,
       isExpired: false,
-      message: "Permanent access active.",
+      message: "Permanent access active on paid subscription.",
     };
   }
 
+  // Free accounts receive a 10-day initial trial for each new website
   if (!createdAt) {
     return {
       status: "trial_active",
-      badgeLabel: "Preview Active (3 days left)",
+      badgeLabel: "Trial Active (10 days left)",
       badgeColor: "purple",
-      daysRemaining: 3,
-      hoursRemaining: 72,
+      daysRemaining: 10,
+      hoursRemaining: 240,
       isExpired: false,
-      message: "3-day website preview active.",
+      message: "10-day website trial active.",
     };
   }
 
   const createdTime = new Date(createdAt).getTime();
   const now = Date.now();
   const ageMs = now - createdTime;
-  const trialDurationMs = 3 * 24 * 60 * 60 * 1000; // 72 hours in ms
-  const remainingMs = trialDurationMs - ageMs;
+  const remainingMs = TRIAL_DURATION_MS - ageMs;
 
   if (remainingMs > 0) {
     const hoursRemaining = Math.max(1, Math.ceil(remainingMs / (1000 * 60 * 60)));
@@ -53,8 +60,8 @@ export function getWebsiteTrialStatus(
 
     const label =
       daysRemaining > 1
-        ? `Preview Active (${daysRemaining} days left)`
-        : `Preview Active (${hoursRemaining}h left)`;
+        ? `Trial Active (${daysRemaining} days left)`
+        : `Trial Active (${hoursRemaining}h left)`;
 
     return {
       status: "trial_active",
@@ -63,20 +70,21 @@ export function getWebsiteTrialStatus(
       daysRemaining,
       hoursRemaining,
       isExpired: false,
-      message: `Your 3-day website preview is active (${
+      message: `Your 10-day website trial is active (${
         daysRemaining > 1 ? `${daysRemaining} days` : `${hoursRemaining} hours`
-      } remaining). All edits and code remain saved.`,
+      } remaining). All edits, pages, and media remain saved.`,
     };
   }
 
   return {
     status: "trial_expired",
-    badgeLabel: "3-Day Preview Trial Expired",
+    badgeLabel: "10-Day Trial Expired",
     badgeColor: "amber",
     daysRemaining: 0,
     hoursRemaining: 0,
     isExpired: true,
     message:
-      "Your 3-day website preview trial has ended. Your website code, design, and pages remain safely saved. Upgrade your plan to host on custom domains or publish permanently.",
+      "Your 10-day website trial has ended. Your website code, design, and pages remain safely preserved for 90 days. Upgrade your plan to make your website live permanently or connect a custom domain.",
   };
 }
+
