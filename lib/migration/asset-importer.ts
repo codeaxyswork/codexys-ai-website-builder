@@ -1,6 +1,7 @@
 import { createAdminClient } from "@/utils/supabase/server";
 import { isPrivateOrReservedIP } from "./scanner";
 import { invalidateUserCache } from "@/lib/cache";
+import { getUserUsage } from "@/lib/billing";
 import crypto from "crypto";
 
 export interface AssetImportStats {
@@ -12,6 +13,7 @@ export interface AssetImportStats {
   totalBytes: number;
   failedUrls?: string[];
   limitExceededCount?: number;
+  storageQuotaExceededCount?: number;
   warning?: string;
 }
 
@@ -570,6 +572,19 @@ export async function importAndStoreMigrationAssets(
     `[ASSET_IMPORT_DISCOVERY] websiteId=${websiteId} detected=${stats.detected} alreadyImported=${stats.deduplicated} toDownload=${eligibleUrls.length} limitExceeded=${limitExceeded}`
   );
 
+  // 3b. Fetch current user storage usage and quota limits
+  let currentStorageBytes = 0;
+  let storageLimitBytes = 104857600; // Default 100 MB for Free tier
+  try {
+    const usage = await getUserUsage(userId, db);
+    if (usage) {
+      currentStorageBytes = usage.storage.usedBytes;
+      storageLimitBytes = usage.storage.limitBytes;
+    }
+  } catch (usageErr: any) {
+    console.warn(`[ASSET_IMPORT] Non-fatal warning fetching user usage:`, usageErr?.message || usageErr);
+  }
+
   // 4. Download and store assets in bounded concurrency batches (6 parallel requests)
   const BATCH_SIZE = 6;
   for (let i = 0; i < eligibleUrls.length; i += BATCH_SIZE) {
@@ -604,6 +619,20 @@ export async function importAndStoreMigrationAssets(
             return;
           }
 
+          // Enforce cumulative storage quota check
+          if (currentStorageBytes + buffer.length > storageLimitBytes) {
+            console.warn(
+              `[ASSET_IMPORT] Storage quota exceeded for user ${userId} (${currentStorageBytes} + ${buffer.length} > ${storageLimitBytes}). Retaining original remote asset URL ${sourceUrl}`
+            );
+            urlMap.set(sourceUrl, sourceUrl);
+            stats.storageQuotaExceededCount = (stats.storageQuotaExceededCount || 0) + 1;
+            stats.warning = `Storage quota limit reached (${Math.round(storageLimitBytes / (1024 * 1024))} MB). Remaining media assets fall back to original remote URLs.`;
+            return;
+          }
+
+          // Atomically reserve storage before async upload to avoid race conditions
+          currentStorageBytes += buffer.length;
+
           // Upload to Supabase Storage website-assets bucket
           const { error: uploadError } = await db.storage
             .from("website-assets")
@@ -614,6 +643,7 @@ export async function importAndStoreMigrationAssets(
 
           if (uploadError) {
             console.warn(`[ASSET_IMPORT] Storage upload error for ${fileName}:`, uploadError.message);
+            currentStorageBytes -= buffer.length; // Revert reservation
             stats.failed++;
             return;
           }
@@ -621,6 +651,7 @@ export async function importAndStoreMigrationAssets(
           const { data: publicData } = db.storage.from("website-assets").getPublicUrl(storagePath);
           const publicUrl = publicData?.publicUrl || "";
           if (!publicUrl) {
+            currentStorageBytes -= buffer.length; // Revert reservation
             stats.failed++;
             return;
           }

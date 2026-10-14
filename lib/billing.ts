@@ -154,6 +154,63 @@ export function resolveSubscriptionPlan(planId: string, subPlans?: any) {
   };
 }
 
+export interface MarketingPlanEntitlementResult {
+  entitled: boolean;
+  allowed: boolean;
+  planId: string;
+  planName: string;
+  plan: string;
+  reason?: string;
+}
+
+/**
+ * Checks whether an authenticated user has the required Pro, Business, or Agency entitlement
+ * to use AI Marketing Campaign Planning (Meta & Google ad strategy generation).
+ */
+export async function checkMarketingPlanEntitlement(
+  userId: string,
+  customClient?: any
+): Promise<MarketingPlanEntitlementResult> {
+  try {
+    const usage = await getUserUsage(userId, customClient);
+    const planId = (usage?.plan?.id || "free").toLowerCase().trim();
+    const planName = usage?.plan?.name || "Free";
+    const allowAdvancedSeo = Boolean(usage?.plan?.allow_advanced_seo);
+
+    // Eligible plans: Pro, Business, Agency, or any plan configured with allow_advanced_seo: true
+    const entitled = allowAdvancedSeo || planId === "pro" || planId === "business" || planId === "agency";
+
+    if (!entitled) {
+      return {
+        entitled: false,
+        allowed: false,
+        planId,
+        planName,
+        plan: planId,
+        reason: `AI Marketing Campaign Planning requires a Pro, Business, or Agency subscription. Your current plan (${planName}) does not include this feature.`,
+      };
+    }
+
+    return {
+      entitled: true,
+      allowed: true,
+      planId,
+      planName,
+      plan: planId,
+    };
+  } catch (err: any) {
+    console.error("[Billing] checkMarketingPlanEntitlement error:", err);
+    return {
+      entitled: false,
+      allowed: false,
+      planId: "unknown",
+      planName: "Unknown",
+      plan: "unknown",
+      reason: "Failed to verify marketing plan entitlement.",
+    };
+  }
+}
+
 export async function getUserUsage(userId: string, customClient?: any): Promise<UserUsageData | null> {
   try {
     const cacheKey = CACHE_KEYS.userUsage(userId);

@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/utils/supabase/server";
 import { createAdminClient } from "@/lib/marketing/meta-client";
 import { executeMetaCampaignPublish } from "@/lib/marketing/meta-publisher";
+import { checkMarketingPlanEntitlement } from "@/lib/billing";
 
 export async function POST(
   req: NextRequest,
@@ -15,6 +16,19 @@ export async function POST(
     const { data: { user }, error: authError } = await supabase.auth.getUser();
     if (authError || !user) {
       return NextResponse.json({ error: "Unauthorized access." }, { status: 401 });
+    }
+
+    // 1b. Enforce marketing campaign plan entitlement (Pro, Business, Agency)
+    const entitlement = await checkMarketingPlanEntitlement(user.id, supabase);
+    if (!entitlement.allowed) {
+      return NextResponse.json(
+        {
+          error: "PLAN_UPGRADE_REQUIRED",
+          message: entitlement.reason,
+          plan: entitlement.plan,
+        },
+        { status: 403 }
+      );
     }
 
     const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;

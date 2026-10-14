@@ -3,6 +3,7 @@ import { getGeminiConfig, getCandidateModels } from "../gemini";
 import { logAITelemetry, classifyGeminiError } from "../gemini-telemetry";
 import { buildMarketingBusinessContext, MarketingBusinessContext } from "./business-context";
 import { checkCreditBalance, deductCreditsWithClient } from "../billing";
+import { CREDIT_COSTS } from "../constants";
 import { createAdminClient } from "./meta-client";
 import { scoreLandingPage, recommendLeadDestination } from "./campaign-planner";
 
@@ -169,7 +170,8 @@ export async function generateGoogleSearchPlan(
   websiteId: string,
   userId: string,
   userGoal: string,
-  missingInputs?: { dailyBudget?: number; durationDays?: number; targetLocation?: string }
+  missingInputs?: { dailyBudget?: number; durationDays?: number; targetLocation?: string },
+  options?: { skipCreditDeduction?: boolean; operationId?: string }
 ): Promise<{
   success: boolean;
   needsMoreInfo?: boolean;
@@ -210,11 +212,13 @@ export async function generateGoogleSearchPlan(
     }
   }
 
-  // 6. Check credit balance (5 AI credits)
-  const REQUIRED_CREDITS = 5;
-  const creditCheck = await checkCreditBalance(userId, REQUIRED_CREDITS);
-  if (!creditCheck.allowed) {
-    throw new Error(`Insufficient AI credits. Required: ${REQUIRED_CREDITS}, Current Balance: ${creditCheck.balance}`);
+  // 6. Check credit balance if not handled by caller (5 AI credits)
+  const REQUIRED_CREDITS = CREDIT_COSTS.MARKETING_PLAN;
+  if (!options?.skipCreditDeduction) {
+    const creditCheck = await checkCreditBalance(userId, REQUIRED_CREDITS);
+    if (!creditCheck.allowed) {
+      throw new Error(`Insufficient AI credits. Required: ${REQUIRED_CREDITS}, Current Balance: ${creditCheck.balance}`);
+    }
   }
 
   // 7. Invoke Gemini AI for Google Search Strategy
@@ -473,13 +477,17 @@ Generate the complete JSON Google Search campaign plan inside ===GOOGLE_PLAN_STA
     createdAt: new Date().toISOString(),
   };
 
-  // 11. Deduct credits (5 credits)
+  // 11. Deduct credits if not already deducted upfront by caller
   const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
   const dbClient = serviceKey && serviceKey !== "[SENSITIVE]" ? createAdminClient() : supabase;
 
-  const deducted = await deductCreditsWithClient(dbClient, userId, REQUIRED_CREDITS, "GOOGLE_CAMPAIGN_PLAN", websiteId);
-  if (!deducted) {
-    throw new Error(`Insufficient AI credits. Failed to deduct ${REQUIRED_CREDITS} credits.`);
+  if (!options?.skipCreditDeduction) {
+    const opId = options?.operationId || crypto.randomUUID();
+    const deductAction = `google_campaign_plan:${opId}`;
+    const deducted = await deductCreditsWithClient(dbClient, userId, REQUIRED_CREDITS, deductAction, websiteId);
+    if (!deducted) {
+      throw new Error(`Insufficient AI credits. Failed to deduct ${REQUIRED_CREDITS} credits.`);
+    }
   }
 
   // 12. Persist draft into marketing_campaign_drafts

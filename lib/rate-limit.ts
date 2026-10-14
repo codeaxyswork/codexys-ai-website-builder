@@ -18,7 +18,7 @@ const memoryStore = new Map<string, RateLimitTracker>();
 
 // Cleanup stale entries every 5 minutes to prevent memory leak
 if (typeof setInterval !== "undefined") {
-  setInterval(() => {
+  const timer = setInterval(() => {
     const now = Date.now();
     for (const [key, data] of memoryStore.entries()) {
       if (now > data.resetTime) {
@@ -26,6 +26,9 @@ if (typeof setInterval !== "undefined") {
       }
     }
   }, 5 * 60 * 1000);
+  if (timer && typeof (timer as any).unref === "function") {
+    (timer as any).unref();
+  }
 }
 
 export function checkRateLimit(

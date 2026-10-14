@@ -2,6 +2,13 @@ import { NextResponse } from "next/server";
 import { createClient } from "@/utils/supabase/server";
 import { generateGoogleSearchPlan } from "@/lib/marketing/google-strategy";
 import { checkRateLimit } from "@/lib/rate-limit";
+import {
+  checkMarketingPlanEntitlement,
+  checkCreditBalance,
+  deductCredits,
+  refundCredits,
+} from "@/lib/billing";
+import { CREDIT_COSTS, ERROR_CODES } from "@/lib/constants";
 
 export async function POST(
   req: Request,
@@ -20,7 +27,7 @@ export async function POST(
       return NextResponse.json({ error: "Unauthorized access" }, { status: 401 });
     }
 
-    // Rate Limiting (10 requests per minute per user)
+    // 1. Rate Limiting (10 requests per minute per user)
     const rl = checkRateLimit(`google_plan_${user.id}`, { limit: 10, windowMs: 60 * 1000 });
     if (!rl.success) {
       return NextResponse.json(
@@ -29,6 +36,7 @@ export async function POST(
       );
     }
 
+    // 2. Website Ownership Check
     const { data: website, error: siteErr } = await supabase
       .from("websites")
       .select("id, user_id")
@@ -37,6 +45,21 @@ export async function POST(
 
     if (siteErr || !website || website.user_id !== user.id) {
       return NextResponse.json({ error: "Website not found or access denied" }, { status: 403 });
+    }
+
+    // 3. Plan Entitlement Verification (Pro, Business, Agency, or active marketing entitlement)
+    const entitlement = await checkMarketingPlanEntitlement(user.id, supabase);
+    if (!entitlement.entitled) {
+      return NextResponse.json(
+        {
+          error:
+            entitlement.reason ||
+            "AI Marketing Campaign Planning requires a Pro, Business, or Agency subscription.",
+          code: "PLAN_UPGRADE_REQUIRED",
+          currentPlan: entitlement.planId,
+        },
+        { status: 403 }
+      );
     }
 
     const body = await req.json().catch(() => ({}));
@@ -50,15 +73,67 @@ export async function POST(
       );
     }
 
-    const result = await generateGoogleSearchPlan(
-      supabase,
-      websiteId,
-      user.id,
-      userGoal.trim(),
-      missingInputs
-    );
+    // 4. Check credit balance upfront (CREDIT_COSTS.MARKETING_PLAN = 5)
+    const creditCost = CREDIT_COSTS.MARKETING_PLAN;
+    const creditCheck = await checkCreditBalance(user.id, creditCost, supabase);
+    if (!creditCheck.allowed) {
+      return NextResponse.json(
+        {
+          error: `Insufficient AI credits. You need ${creditCost} credits to generate a Google Search campaign plan (Balance: ${creditCheck.balance}).`,
+          code: ERROR_CODES.INSUFFICIENT_CREDITS,
+          remainingCredits: creditCheck.balance,
+        },
+        { status: 402 }
+      );
+    }
 
-    return NextResponse.json(result);
+    const opId = crypto.randomUUID();
+    const deductAction = `google_campaign_plan:${opId}`;
+    const refundAction = `refund:${deductAction}`;
+
+    // 5. Deduct credits upfront atomically
+    const deducted = await deductCredits(user.id, creditCost, deductAction, websiteId);
+    if (!deducted) {
+      return NextResponse.json(
+        {
+          error: `Insufficient AI credits. Failed to deduct ${creditCost} credits.`,
+          code: ERROR_CODES.INSUFFICIENT_CREDITS,
+          remainingCredits: creditCheck.balance,
+        },
+        { status: 402 }
+      );
+    }
+
+    // 6. Generate Google Search Plan with failure refund protection
+    try {
+      const result = await generateGoogleSearchPlan(
+        supabase,
+        websiteId,
+        user.id,
+        userGoal.trim(),
+        missingInputs,
+        { skipCreditDeduction: true, operationId: opId }
+      );
+
+      if (result.needsMoreInfo) {
+        // If the planner requires more user inputs, refund the credits upfront
+        await refundCredits(user.id, creditCost, refundAction, websiteId);
+        return NextResponse.json({
+          ...result,
+          remainingCredits: creditCheck.balance,
+        });
+      }
+
+      return NextResponse.json({
+        ...result,
+        creditsDeducted: creditCost,
+        remainingCredits: Math.max(0, creditCheck.balance - creditCost),
+      });
+    } catch (genErr: any) {
+      console.warn("Google campaign plan generation failed, refunding credits:", genErr?.message || genErr);
+      await refundCredits(user.id, creditCost, refundAction, websiteId);
+      throw genErr;
+    }
   } catch (err: any) {
     console.error("Google Plan API Route Error:", err);
     const isCreditError = err?.message?.toLowerCase().includes("insufficient ai credits");

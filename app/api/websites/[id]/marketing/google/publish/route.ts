@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { createClient } from "@/utils/supabase/server";
 import { publishGoogleCampaign, GooglePublisherApprovalSnapshot } from "@/lib/marketing/google-publisher";
 import { loadGoogleAdsCredentials } from "@/lib/google-ads-client";
+import { checkMarketingPlanEntitlement } from "@/lib/billing";
 
 export async function POST(
   req: Request,
@@ -18,6 +19,19 @@ export async function POST(
 
     if (authError || !user) {
       return NextResponse.json({ error: "Unauthorized access" }, { status: 401 });
+    }
+
+    // Enforce marketing campaign plan entitlement (Pro, Business, Agency)
+    const entitlement = await checkMarketingPlanEntitlement(user.id, supabase);
+    if (!entitlement.allowed) {
+      return NextResponse.json(
+        {
+          error: "PLAN_UPGRADE_REQUIRED",
+          message: entitlement.reason,
+          plan: entitlement.plan,
+        },
+        { status: 403 }
+      );
     }
 
     const { data: website, error: siteErr } = await supabase

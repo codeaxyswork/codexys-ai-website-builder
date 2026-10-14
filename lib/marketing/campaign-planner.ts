@@ -2,6 +2,7 @@ import { GoogleGenAI } from "@google/genai";
 import { getGeminiConfig } from "../gemini";
 import { buildMarketingBusinessContext, MarketingBusinessContext } from "./business-context";
 import { checkCreditBalance, deductCreditsWithClient } from "../billing";
+import { CREDIT_COSTS } from "../constants";
 import { createAdminClient } from "./meta-client";
 
 export interface AdCopyVariation {
@@ -409,7 +410,8 @@ export async function generateCampaignPlan(
   websiteId: string,
   userId: string,
   userGoal: string,
-  missingInputs?: { dailyBudget?: number; durationDays?: number; targetLocation?: string }
+  missingInputs?: { dailyBudget?: number; durationDays?: number; targetLocation?: string },
+  options?: { skipCreditDeduction?: boolean; operationId?: string }
 ): Promise<{
   success: boolean;
   needsMoreInfo?: boolean;
@@ -451,11 +453,13 @@ export async function generateCampaignPlan(
     }
   }
 
-  // 6. Check credit balance (Strategy = 3 credits, Ad Copy = 2 credits => Total 5 credits)
-  const REQUIRED_CREDITS = 5;
-  const creditCheck = await checkCreditBalance(userId, REQUIRED_CREDITS);
-  if (!creditCheck.allowed) {
-    throw new Error(`Insufficient AI credits. Required: ${REQUIRED_CREDITS}, Current Balance: ${creditCheck.balance}`);
+  // 6. Check credit balance if not handled by caller (Strategy = 3 credits, Ad Copy = 2 credits => Total 5 credits)
+  const REQUIRED_CREDITS = CREDIT_COSTS.MARKETING_PLAN;
+  if (!options?.skipCreditDeduction) {
+    const creditCheck = await checkCreditBalance(userId, REQUIRED_CREDITS);
+    if (!creditCheck.allowed) {
+      throw new Error(`Insufficient AI credits. Required: ${REQUIRED_CREDITS}, Current Balance: ${creditCheck.balance}`);
+    }
   }
 
   // 7. Invoke Gemini AI engine for Campaign Strategy & 3 Ad Copy Variations
@@ -742,13 +746,17 @@ Generate the complete JSON campaign plan inside ===CAMPAIGN_PLAN_START=== and ==
   // Build & Validate Structured Campaign Spec for Phase 3 Execution
   strategy.spec = buildCampaignSpecFromStrategy(context, strategy);
 
-  // 10. Deduct AI credits (5 credits total for strategy + copy generation)
+  // 10. Deduct AI credits if not already deducted upfront by caller
   const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
   const dbClient = serviceKey && serviceKey !== "[SENSITIVE]" ? createAdminClient() : supabase;
 
-  const deducted = await deductCreditsWithClient(dbClient, userId, REQUIRED_CREDITS, "MARKETING_CAMPAIGN_PLAN", websiteId);
-  if (!deducted) {
-    throw new Error(`Insufficient AI credits. Failed to deduct ${REQUIRED_CREDITS} credits.`);
+  if (!options?.skipCreditDeduction) {
+    const opId = options?.operationId || crypto.randomUUID();
+    const deductAction = `marketing_campaign_plan:${opId}`;
+    const deducted = await deductCreditsWithClient(dbClient, userId, REQUIRED_CREDITS, deductAction, websiteId);
+    if (!deducted) {
+      throw new Error(`Insufficient AI credits. Failed to deduct ${REQUIRED_CREDITS} credits.`);
+    }
   }
 
   // 11. Persist reviewable draft to marketing_campaign_drafts

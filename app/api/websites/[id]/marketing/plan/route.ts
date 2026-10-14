@@ -2,6 +2,13 @@ import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/utils/supabase/server";
 import { getWebsiteMetaAssets } from "@/lib/marketing/meta-client";
 import { generateCampaignPlan, getLatestCampaignDraft } from "@/lib/marketing/campaign-planner";
+import {
+  checkMarketingPlanEntitlement,
+  checkCreditBalance,
+  deductCredits,
+  refundCredits,
+} from "@/lib/billing";
+import { CREDIT_COSTS, ERROR_CODES } from "@/lib/constants";
 
 export async function GET(
   req: NextRequest,
@@ -88,20 +95,36 @@ export async function POST(
       );
     }
 
-    // 3. Validate selected Meta assets exist (Phase 2A requirement)
+    // 3. Plan Entitlement Verification (Pro, Business, Agency, or active marketing entitlement)
+    const entitlement = await checkMarketingPlanEntitlement(user.id, supabase);
+    if (!entitlement.entitled) {
+      return NextResponse.json(
+        {
+          error:
+            entitlement.reason ||
+            "AI Marketing Campaign Planning requires a Pro, Business, or Agency subscription.",
+          code: "PLAN_UPGRADE_REQUIRED",
+          currentPlan: entitlement.planId,
+        },
+        { status: 403 }
+      );
+    }
+
+    // 4. Validate selected Meta assets exist (Phase 2A requirement)
     const metaAssets = await getWebsiteMetaAssets(supabase, websiteId);
     if (!metaAssets.selectedAdAccount || !metaAssets.selectedPage) {
       return NextResponse.json(
         {
           success: false,
           setupRequired: true,
-          error: "A Meta Ad Account and Facebook Page must be selected in Meta Advertising settings before creating a campaign plan.",
+          error:
+            "A Meta Ad Account and Facebook Page must be selected in Meta Advertising settings before creating a campaign plan.",
         },
         { status: 400 }
       );
     }
 
-    // 4. Rate limiting per User (10 requests per minute)
+    // 5. Rate limiting per User (10 requests per minute)
     const { checkRateLimit } = await import("@/lib/rate-limit");
     const rl = checkRateLimit(`mktg_plan_user_${user.id}`, { limit: 10, windowMs: 60 * 1000 });
     if (!rl.success) {
@@ -111,7 +134,7 @@ export async function POST(
       );
     }
 
-    // 5. Parse payload
+    // 6. Parse payload
     const body = await req.json().catch(() => ({}));
     const userGoal = (body.userGoal || "").trim();
     const missingInputs = body.missingInputs;
@@ -123,28 +146,75 @@ export async function POST(
       );
     }
 
-    // 6. Generate Campaign Plan (enforces 5 credits via lib/billing.ts)
-    const result = await generateCampaignPlan(
-      supabase,
-      websiteId,
-      user.id,
-      userGoal,
-      missingInputs
-    );
-
-    if (result.needsMoreInfo) {
-      return NextResponse.json({
-        success: true,
-        needsMoreInfo: true,
-        missingQuestions: result.missingQuestions,
-      });
+    // 7. Check credit balance upfront (CREDIT_COSTS.MARKETING_PLAN = 5)
+    const creditCost = CREDIT_COSTS.MARKETING_PLAN;
+    const creditCheck = await checkCreditBalance(user.id, creditCost, supabase);
+    if (!creditCheck.allowed) {
+      return NextResponse.json(
+        {
+          error: `Insufficient AI credits. You need ${creditCost} credits to generate an AI marketing campaign plan (Balance: ${creditCheck.balance}).`,
+          code: ERROR_CODES.INSUFFICIENT_CREDITS,
+          remainingCredits: creditCheck.balance,
+        },
+        { status: 402 }
+      );
     }
 
-    return NextResponse.json({
-      success: true,
-      draftId: result.draftId,
-      strategy: result.strategy,
-    });
+    const opId =
+      req.headers.get("x-request-id") ||
+      req.headers.get("idempotency-key") ||
+      body?.requestId ||
+      crypto.randomUUID();
+    const deductAction = `marketing_campaign_plan:${opId}`;
+    const refundAction = `refund:${deductAction}`;
+
+    // 8. Deduct credits upfront atomically
+    const deducted = await deductCredits(user.id, creditCost, deductAction, websiteId);
+    if (!deducted) {
+      return NextResponse.json(
+        {
+          error: `Insufficient AI credits. Failed to deduct ${creditCost} credits.`,
+          code: ERROR_CODES.INSUFFICIENT_CREDITS,
+          remainingCredits: creditCheck.balance,
+        },
+        { status: 402 }
+      );
+    }
+
+    // 9. Generate Campaign Plan with failure refund protection
+    try {
+      const result = await generateCampaignPlan(
+        supabase,
+        websiteId,
+        user.id,
+        userGoal,
+        missingInputs,
+        { skipCreditDeduction: true, operationId: opId }
+      );
+
+      if (result.needsMoreInfo) {
+        // If the planner requires more user inputs, refund the credits upfront
+        await refundCredits(user.id, creditCost, refundAction, websiteId);
+        return NextResponse.json({
+          success: true,
+          needsMoreInfo: true,
+          missingQuestions: result.missingQuestions,
+          remainingCredits: creditCheck.balance,
+        });
+      }
+
+      return NextResponse.json({
+        success: true,
+        draftId: result.draftId,
+        strategy: result.strategy,
+        creditsDeducted: creditCost,
+        remainingCredits: Math.max(0, creditCheck.balance - creditCost),
+      });
+    } catch (genErr: any) {
+      console.warn("Marketing campaign plan generation failed, refunding credits:", genErr?.message || genErr);
+      await refundCredits(user.id, creditCost, refundAction, websiteId);
+      throw genErr;
+    }
   } catch (error: any) {
     console.error("API /api/websites/[id]/marketing/plan POST Error:", error);
     if (error?.message?.includes("Insufficient AI credits")) {
