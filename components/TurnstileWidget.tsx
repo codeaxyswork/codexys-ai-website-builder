@@ -61,21 +61,22 @@ export const TurnstileWidget = forwardRef<TurnstileWidgetRef, TurnstileWidgetPro
     const [status, setStatus] = useState<"loading" | "ready" | "success" | "expired" | "error">("loading");
     const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
+    // Keep stable callback refs to avoid recreating the widget on parent callback identity changes
+    const callbacksRef = useRef({ onSuccess, onExpire, onError });
+    callbacksRef.current = { onSuccess, onExpire, onError };
+
     const siteKey = (propSiteKey || process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY || "").trim();
 
-    const handleSuccess = useCallback(
-      (token: string) => {
-        setStatus("success");
-        setErrorMessage(null);
-        onSuccess(token);
-      },
-      [onSuccess]
-    );
+    const handleSuccess = useCallback((token: string) => {
+      setStatus("success");
+      setErrorMessage(null);
+      callbacksRef.current.onSuccess(token);
+    }, []);
 
     const handleExpire = useCallback(() => {
       setStatus("expired");
-      if (onExpire) {
-        onExpire();
+      if (callbacksRef.current.onExpire) {
+        callbacksRef.current.onExpire();
       }
       // Automatically reset to obtain a fresh token
       if (widgetIdRef.current && window.turnstile) {
@@ -85,19 +86,16 @@ export const TurnstileWidget = forwardRef<TurnstileWidgetRef, TurnstileWidgetPro
           // ignore
         }
       }
-    }, [onExpire]);
+    }, []);
 
-    const handleError = useCallback(
-      (code?: string) => {
-        setStatus("error");
-        const msg = code ? `Security verification error (${code})` : "Security verification failed";
-        setErrorMessage(msg);
-        if (onError) {
-          onError(msg);
-        }
-      },
-      [onError]
-    );
+    const handleError = useCallback((code?: string) => {
+      setStatus("error");
+      const msg = code ? `Security verification error (${code})` : "Security verification failed";
+      setErrorMessage(msg);
+      if (callbacksRef.current.onError) {
+        callbacksRef.current.onError(msg);
+      }
+    }, []);
 
     const reset = useCallback(() => {
       if (widgetIdRef.current && window.turnstile) {
@@ -162,9 +160,11 @@ export const TurnstileWidget = forwardRef<TurnstileWidgetRef, TurnstileWidgetPro
         setStatus("error");
         const msg = err instanceof Error ? err.message : "Failed to initialize security verification widget";
         setErrorMessage(msg);
-        if (onError) onError(msg);
+        if (callbacksRef.current.onError) {
+          callbacksRef.current.onError(msg);
+        }
       }
-    }, [siteKey, handleSuccess, handleExpire, handleError, theme, size, onError]);
+    }, [siteKey, handleSuccess, handleExpire, handleError, theme, size]);
 
     useEffect(() => {
       if (!siteKey) {
@@ -173,52 +173,57 @@ export const TurnstileWidget = forwardRef<TurnstileWidgetRef, TurnstileWidgetPro
         return;
       }
 
+      let checkInterval: NodeJS.Timeout | null = null;
+      let timeout: NodeJS.Timeout | null = null;
+
       // Check if turnstile script already loaded
       if (window.turnstile) {
         renderWidget();
-        return;
-      }
-
-      // Check if script tag is already in DOM
-      let script = document.querySelector<HTMLScriptElement>(`script[src*="turnstile/v0/api.js"]`);
-      if (!script) {
-        script = document.createElement("script");
-        script.src = TURNSTILE_SCRIPT_SRC;
-        script.async = true;
-        script.defer = true;
-        script.id = "cloudflare-turnstile-script";
-        document.head.appendChild(script);
-      }
-
-      const checkInterval = setInterval(() => {
-        if (window.turnstile) {
-          clearInterval(checkInterval);
-          renderWidget();
+      } else {
+        // Check if script tag is already in DOM
+        let script = document.querySelector<HTMLScriptElement>(`script[src*="turnstile/v0/api.js"]`);
+        if (!script) {
+          script = document.createElement("script");
+          script.src = TURNSTILE_SCRIPT_SRC;
+          script.async = true;
+          script.defer = true;
+          script.id = "cloudflare-turnstile-script";
+          document.head.appendChild(script);
         }
-      }, 50);
 
-      const timeout = setTimeout(() => {
-        clearInterval(checkInterval);
-        if (!window.turnstile) {
-          setStatus("error");
-          const msg = "Security check script failed to load. Please check your network or ad blocker.";
-          setErrorMessage(msg);
-          if (onError) onError(msg);
-        }
-      }, 8000);
+        checkInterval = setInterval(() => {
+          if (window.turnstile) {
+            if (checkInterval) clearInterval(checkInterval);
+            renderWidget();
+          }
+        }, 50);
+
+        timeout = setTimeout(() => {
+          if (checkInterval) clearInterval(checkInterval);
+          if (!window.turnstile) {
+            setStatus("error");
+            const msg = "Security check script failed to load. Please check your network or ad blocker.";
+            setErrorMessage(msg);
+            if (callbacksRef.current.onError) {
+              callbacksRef.current.onError(msg);
+            }
+          }
+        }, 8000);
+      }
 
       return () => {
-        clearInterval(checkInterval);
-        clearTimeout(timeout);
+        if (checkInterval) clearInterval(checkInterval);
+        if (timeout) clearTimeout(timeout);
         if (widgetIdRef.current && window.turnstile) {
           try {
             window.turnstile.remove(widgetIdRef.current);
           } catch {
             // ignore
           }
+          widgetIdRef.current = null;
         }
       };
-    }, [siteKey, renderWidget, onError]);
+    }, [siteKey, renderWidget]);
 
     if (!siteKey) {
       return (

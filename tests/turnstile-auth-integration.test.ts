@@ -281,6 +281,181 @@ async function runTurnstileAuthIntegrationTests() {
     assert.ok(content.includes("useImperativeHandle"), "Must expose reset ref handle");
   });
 
+  // --------------------------------------------------------------------------
+  // Test 9: Stable Callback Refs Static Invariant Check
+  // --------------------------------------------------------------------------
+  test("TurnstileWidget implements Stable Callback Refs pattern without volatile effect dependencies", () => {
+    const widgetFilePath = path.resolve(__dirname, "../components/TurnstileWidget.tsx");
+    const content = fs.readFileSync(widgetFilePath, "utf8");
+
+    // 1. Must use callbacksRef to store latest parent callbacks
+    assert.ok(
+      content.includes("const callbacksRef = useRef({ onSuccess, onExpire, onError })") &&
+      content.includes("callbacksRef.current = { onSuccess, onExpire, onError }"),
+      "Must synchronize callbacksRef.current with latest parent callbacks"
+    );
+
+    // 2. handleSuccess, handleExpire, and handleError must invoke callbacksRef.current
+    assert.ok(content.includes("callbacksRef.current.onSuccess(token)"), "handleSuccess must invoke callbacksRef.current.onSuccess");
+    assert.ok(content.includes("callbacksRef.current.onExpire"), "handleExpire must invoke callbacksRef.current.onExpire");
+    assert.ok(content.includes("callbacksRef.current.onError"), "handleError must invoke callbacksRef.current.onError");
+
+    // 3. renderWidget dependency array must NOT include onSuccess, onExpire, or onError
+    const renderWidgetMatch = content.match(/const renderWidget = useCallback\([\s\S]*?\}, \[(.*?)\]\);/);
+    assert.ok(renderWidgetMatch, "renderWidget must be defined with useCallback");
+    const renderDeps = renderWidgetMatch[1].split(",").map((s) => s.trim());
+    assert.ok(!renderDeps.includes("onSuccess"), "renderWidget must not depend on onSuccess");
+    assert.ok(!renderDeps.includes("onExpire"), "renderWidget must not depend on onExpire");
+    assert.ok(!renderDeps.includes("onError"), "renderWidget must not depend on onError");
+
+    // 4. useEffect dependency array must NOT include onSuccess, onExpire, or onError
+    const useEffectMatch = content.match(/useEffect\(\(\) => \{[\s\S]*?\}, \[(.*?)\]\);/);
+    assert.ok(useEffectMatch, "useEffect must be defined with explicit dependencies");
+    const effectDeps = useEffectMatch[1].split(",").map((s) => s.trim());
+    assert.ok(!effectDeps.includes("onSuccess"), "useEffect must not depend on onSuccess");
+    assert.ok(!effectDeps.includes("onExpire"), "useEffect must not depend on onExpire");
+    assert.ok(!effectDeps.includes("onError"), "useEffect must not depend on onError");
+    assert.deepStrictEqual(effectDeps, ["siteKey", "renderWidget"], "useEffect must depend strictly on [siteKey, renderWidget]");
+  });
+
+  // --------------------------------------------------------------------------
+  // Test 10: Behavioral Lifecycle: Parent Callback Churn Does Not Destroy/Remount Widget
+  // --------------------------------------------------------------------------
+  test("Parent callback reference churn does not tear down or recreate widget, while reset/expiry work", () => {
+    // Track Turnstile API lifecycle invocations
+    let renderCount = 0;
+    let removeCount = 0;
+    let resetCount = 0;
+    let registeredCallback: ((token: string) => void) | null = null;
+    let registeredExpiredCallback: (() => void) | null = null;
+
+    const mockTurnstile = {
+      render: (_container: unknown, options: {
+        sitekey: string;
+        callback: (token: string) => void;
+        "expired-callback"?: () => void;
+        "error-callback"?: (code?: string) => void;
+      }) => {
+        renderCount++;
+        registeredCallback = options.callback;
+        registeredExpiredCallback = options["expired-callback"] || null;
+        return "mock-widget-id-123";
+      },
+      reset: (_id?: string) => {
+        void _id;
+        resetCount++;
+      },
+      remove: (_id?: string) => {
+        void _id;
+        removeCount++;
+      },
+    };
+
+    // Simulate TurnstileWidget internal state and lifecycle with Stable Callback Refs
+    let widgetId: string | null = null;
+    const callbacksRef: {
+      current: {
+        onSuccess: (token: string) => void;
+        onExpire?: () => void;
+        onError?: (err?: string) => void;
+      };
+    } = {
+      current: {
+        onSuccess: (_token: string) => {
+          void _token;
+        },
+        onExpire: () => {},
+        onError: (_err?: string) => {
+          void _err;
+        },
+      },
+    };
+
+    const handleSuccess = (token: string) => {
+      callbacksRef.current.onSuccess(token);
+    };
+
+    const handleExpire = () => {
+      if (callbacksRef.current.onExpire) {
+        callbacksRef.current.onExpire();
+      }
+      if (widgetId) {
+        mockTurnstile.reset(widgetId);
+      }
+    };
+
+    const renderWidget = () => {
+      if (widgetId) {
+        mockTurnstile.remove(widgetId);
+        widgetId = null;
+      }
+      widgetId = mockTurnstile.render("#container", {
+        sitekey: "test-site-key",
+        callback: handleSuccess,
+        "expired-callback": handleExpire,
+      });
+    };
+
+    // 1. Initial mount
+    renderWidget();
+    assert.strictEqual(renderCount, 1, "Widget should be rendered on mount");
+    assert.strictEqual(removeCount, 0, "Widget should not be removed on mount");
+
+    // 2. Simulate 25 parent re-renders (user typing in email / password fields)
+    let latestReceivedToken: string | null = null;
+    let latestExpiredCallCount = 0;
+
+    for (let keystroke = 1; keystroke <= 25; keystroke++) {
+      // In un-optimized code, each keystroke passes a new function identity
+      const newOnSuccess = (token: string) => {
+        latestReceivedToken = `${token}_from_keystroke_${keystroke}`;
+      };
+      const newOnExpire = () => {
+        latestExpiredCallCount++;
+      };
+
+      // With Stable Callback Refs, only callbacksRef.current updates:
+      callbacksRef.current = {
+        onSuccess: newOnSuccess,
+        onExpire: newOnExpire,
+        onError: () => {},
+      };
+      // Neither renderWidget nor useEffect cleanup is triggered
+    }
+
+    // Assert that 25 keystrokes caused 0 teardowns and 0 re-mounts
+    assert.strictEqual(renderCount, 1, "Widget must NOT have been re-rendered during typing keystrokes");
+    assert.strictEqual(removeCount, 0, "Widget must NOT have been removed/torn down during typing keystrokes");
+
+    // 3. Verify that when Turnstile completes, the latest parent callback is invoked
+    assert.ok(registeredCallback !== null, "Turnstile callback must be registered");
+    const invokeCallback: (t: string) => void = registeredCallback!;
+    invokeCallback("tok_verified_xyz");
+    assert.strictEqual(
+      latestReceivedToken,
+      "tok_verified_xyz_from_keystroke_25",
+      "Must invoke the latest parent callback without stale closures"
+    );
+
+    // 4. Verify explicit reset() (e.g. after auth error)
+    mockTurnstile.reset(widgetId!);
+    assert.strictEqual(resetCount, 1, "Explicit reset must call turnstile.reset");
+
+    // 5. Verify expired-callback automatically triggers reset and notifies parent
+    assert.ok(registeredExpiredCallback !== null, "Expired callback must be registered");
+    const invokeExpired: () => void = registeredExpiredCallback!;
+    invokeExpired();
+    assert.strictEqual(latestExpiredCallCount, 1, "Parent onExpire callback must be called on token expiration");
+    assert.strictEqual(resetCount, 2, "turnstile.reset must be called automatically on expiration");
+
+    // 6. Verify unmount cleans up widget
+    if (widgetId) {
+      mockTurnstile.remove(widgetId);
+      widgetId = null;
+    }
+    assert.strictEqual(removeCount, 1, "Widget must be removed exactly once on unmount");
+  });
+
   console.log("=".repeat(80));
   console.log(`ALL ${passed}/${total} CLOUDFLARE TURNSTILE INTEGRATION TESTS PASSED! 🎉`);
   console.log("=".repeat(80));

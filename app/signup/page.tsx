@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, useCallback } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { createClient, getAuthRedirectUrl } from "@/utils/supabase/client";
@@ -19,6 +19,21 @@ export default function SignupPage() {
   const [captchaToken, setCaptchaToken] = useState<string | null>(null);
   const turnstileRef = useRef<TurnstileWidgetRef>(null);
   const router = useRouter();
+
+  const handleTurnstileSuccess = useCallback((token: string) => {
+    setCaptchaToken(token);
+    setError(null);
+  }, []);
+
+  const handleTurnstileExpire = useCallback(() => {
+    setCaptchaToken(null);
+    setError("Security verification expired. Please complete it again.");
+  }, []);
+
+  const handleTurnstileError = useCallback((err?: string) => {
+    setCaptchaToken(null);
+    setError(err || "Security verification failed. Please try again.");
+  }, []);
 
   React.useEffect(() => {
     if (typeof window !== "undefined") {
@@ -273,18 +288,9 @@ export default function SignupPage() {
 
             <TurnstileWidget
               ref={turnstileRef}
-              onSuccess={(token) => {
-                setCaptchaToken(token);
-                setError(null);
-              }}
-              onExpire={() => {
-                setCaptchaToken(null);
-                setError("Security verification expired. Please complete it again.");
-              }}
-              onError={(err) => {
-                setCaptchaToken(null);
-                setError(err || "Security verification failed. Please try again.");
-              }}
+              onSuccess={handleTurnstileSuccess}
+              onExpire={handleTurnstileExpire}
+              onError={handleTurnstileError}
             />
 
             <button
