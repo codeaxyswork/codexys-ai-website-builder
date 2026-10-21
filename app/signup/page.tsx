@@ -1,10 +1,11 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useRef } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { createClient, getAuthRedirectUrl } from "@/utils/supabase/client";
 import { Wand2, Sparkles, ArrowRight, Loader2, AlertCircle, Lock, Mail, User, CheckCircle2 } from "lucide-react";
+import { TurnstileWidget, type TurnstileWidgetRef } from "@/components/TurnstileWidget";
 
 export default function SignupPage() {
   const [fullName, setFullName] = useState("");
@@ -15,6 +16,8 @@ export default function SignupPage() {
   const [successMsg, setSuccessMsg] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [googleLoading, setGoogleLoading] = useState(false);
+  const [captchaToken, setCaptchaToken] = useState<string | null>(null);
+  const turnstileRef = useRef<TurnstileWidgetRef>(null);
   const router = useRouter();
 
   React.useEffect(() => {
@@ -71,6 +74,11 @@ export default function SignupPage() {
       return;
     }
 
+    if (!captchaToken) {
+      setError("Please complete the security check before creating your account.");
+      return;
+    }
+
     setLoading(true);
 
     try {
@@ -84,12 +92,15 @@ export default function SignupPage() {
             full_name: fullName.trim(),
           },
           emailRedirectTo: getAuthRedirectUrl(),
+          captchaToken,
         },
       });
 
       if (authError) {
         setError(authError.message);
         setLoading(false);
+        setCaptchaToken(null);
+        turnstileRef.current?.reset();
         return;
       }
 
@@ -101,6 +112,8 @@ export default function SignupPage() {
         setEmail("");
         setPassword("");
         setConfirmPassword("");
+        setCaptchaToken(null);
+        turnstileRef.current?.reset();
         setSuccessMsg(
           "Account created successfully! Please check your email to confirm your registration, or sign in now."
         );
@@ -109,6 +122,8 @@ export default function SignupPage() {
     } catch (err: any) {
       setError(err?.message || "An unexpected error occurred during signup.");
       setLoading(false);
+      setCaptchaToken(null);
+      turnstileRef.current?.reset();
     }
   };
 
@@ -256,9 +271,25 @@ export default function SignupPage() {
               </div>
             </div>
 
+            <TurnstileWidget
+              ref={turnstileRef}
+              onSuccess={(token) => {
+                setCaptchaToken(token);
+                setError(null);
+              }}
+              onExpire={() => {
+                setCaptchaToken(null);
+                setError("Security verification expired. Please complete it again.");
+              }}
+              onError={(err) => {
+                setCaptchaToken(null);
+                setError(err || "Security verification failed. Please try again.");
+              }}
+            />
+
             <button
               type="submit"
-              disabled={loading || googleLoading}
+              disabled={loading || googleLoading || !captchaToken}
               className="w-full py-3 px-4 rounded-xl font-semibold text-xs text-white bg-purple-600 hover:bg-purple-700 active:scale-[0.99] transition-all shadow-md shadow-purple-600/20 disabled:opacity-50 flex items-center justify-center gap-2 mt-2"
             >
               {loading ? (

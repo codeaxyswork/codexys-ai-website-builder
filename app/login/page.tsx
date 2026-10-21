@@ -1,10 +1,11 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useRef } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { createClient, getAuthRedirectUrl } from "@/utils/supabase/client";
 import { Wand2, Sparkles, ArrowRight, Loader2, AlertCircle, Lock, Mail, CheckCircle2 } from "lucide-react";
+import { TurnstileWidget, type TurnstileWidgetRef } from "@/components/TurnstileWidget";
 
 export default function LoginPage() {
   const [email, setEmail] = useState("");
@@ -13,6 +14,8 @@ export default function LoginPage() {
   const [message, setMessage] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [googleLoading, setGoogleLoading] = useState(false);
+  const [captchaToken, setCaptchaToken] = useState<string | null>(null);
+  const turnstileRef = useRef<TurnstileWidgetRef>(null);
   const router = useRouter();
 
   React.useEffect(() => {
@@ -63,6 +66,11 @@ export default function LoginPage() {
       return;
     }
 
+    if (!captchaToken) {
+      setError("Please complete the security check before signing in.");
+      return;
+    }
+
     setLoading(true);
 
     try {
@@ -70,11 +78,16 @@ export default function LoginPage() {
       const { error: authError } = await supabase.auth.signInWithPassword({
         email: email.trim(),
         password,
+        options: {
+          captchaToken,
+        },
       });
 
       if (authError) {
         setError(authError.message);
         setLoading(false);
+        setCaptchaToken(null);
+        turnstileRef.current?.reset();
         return;
       }
 
@@ -85,6 +98,8 @@ export default function LoginPage() {
     } catch (err: any) {
       setError(err?.message || "An unexpected error occurred during login.");
       setLoading(false);
+      setCaptchaToken(null);
+      turnstileRef.current?.reset();
     }
   };
 
@@ -194,9 +209,25 @@ export default function LoginPage() {
               </div>
             </div>
 
+            <TurnstileWidget
+              ref={turnstileRef}
+              onSuccess={(token) => {
+                setCaptchaToken(token);
+                setError(null);
+              }}
+              onExpire={() => {
+                setCaptchaToken(null);
+                setError("Security verification expired. Please complete it again.");
+              }}
+              onError={(err) => {
+                setCaptchaToken(null);
+                setError(err || "Security verification failed. Please try again.");
+              }}
+            />
+
             <button
               type="submit"
-              disabled={loading || googleLoading}
+              disabled={loading || googleLoading || !captchaToken}
               className="w-full py-3 px-4 rounded-xl font-semibold text-xs text-white bg-purple-600 hover:bg-purple-700 active:scale-[0.99] transition-all shadow-md shadow-purple-600/20 disabled:opacity-50 flex items-center justify-center gap-2 mt-2"
             >
               {loading ? (
