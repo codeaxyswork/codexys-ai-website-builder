@@ -145,7 +145,7 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen w-screen bg-white flex flex-col items-center justify-center p-4 sm:p-6 text-slate-900 relative overflow-y-auto">
+    <div className="min-h-screen w-full bg-white flex flex-col items-center justify-center p-4 sm:p-6 text-slate-900 relative overflow-x-hidden overflow-y-auto">
       {/* Background Soft Purple Glow */}
       <div className="absolute top-1/3 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[350px] bg-gradient-to-tr from-purple-100/40 via-purple-50/50 to-indigo-50/30 rounded-full blur-3xl pointer-events-none -z-10" />
 
@@ -162,7 +162,7 @@ export default function LoginPage() {
         </Link>
 
         {/* Main Clean White Login Card */}
-        <div className="w-full bg-white border border-slate-200 rounded-2xl p-6 sm:p-8 shadow-xl shadow-slate-200/60">
+        <div className="w-full bg-white border border-slate-200 rounded-2xl px-4 py-6 sm:p-8 shadow-xl shadow-slate-200/60">
           <div className="mb-6 text-center">
             <h1 className="text-2xl font-extrabold text-slate-900 tracking-tight">Welcome back</h1>
             <p className="text-slate-600 text-xs mt-1">Sign in to manage your AI generated websites</p>

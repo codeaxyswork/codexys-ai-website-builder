@@ -32,6 +32,7 @@ declare global {
           size?: "normal" | "compact" | "flexible";
           retry?: "auto" | "never";
           "retry-interval"?: number;
+          "refresh-expired"?: "auto" | "manual" | "never";
         }
       ) => string;
       reset: (widgetId: string) => void;
@@ -143,6 +144,11 @@ export const TurnstileWidget = forwardRef<TurnstileWidgetRef, TurnstileWidgetPro
         widgetIdRef.current = null;
       }
 
+      // Ensure container element is clean before rendering to avoid duplicate iframes
+      if (containerRef.current) {
+        containerRef.current.innerHTML = "";
+      }
+
       try {
         const id = window.turnstile.render(containerRef.current, {
           sitekey: siteKey,
@@ -152,6 +158,8 @@ export const TurnstileWidget = forwardRef<TurnstileWidgetRef, TurnstileWidgetPro
           theme,
           size,
           retry: "auto",
+          "retry-interval": 8000,
+          "refresh-expired": "auto",
         });
         widgetIdRef.current = id;
         setStatus("ready");
@@ -235,12 +243,15 @@ export const TurnstileWidget = forwardRef<TurnstileWidgetRef, TurnstileWidgetPro
     }
 
     return (
-      <div className={`flex flex-col items-center justify-center my-2 ${className}`}>
+      <div className={`w-full flex flex-col items-center justify-center my-2 ${className}`}>
         {/* Container for Cloudflare Turnstile */}
-        <div ref={containerRef} className="min-h-[65px] flex items-center justify-center" />
+        <div
+          ref={containerRef}
+          className="w-full flex items-center justify-center min-h-[65px] max-w-full overflow-hidden"
+        />
 
-        {/* Loading placeholder when initializing */}
-        {status === "loading" && (
+        {/* Loading placeholder when initializing before widget renders */}
+        {status === "loading" && !widgetIdRef.current && (
           <div className="flex items-center gap-2 text-xs text-slate-500 py-2">
             <Loader2 className="w-4 h-4 animate-spin text-purple-600" />
             <span>Verifying security environment...</span>

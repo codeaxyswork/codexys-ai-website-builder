@@ -456,6 +456,53 @@ async function runTurnstileAuthIntegrationTests() {
     assert.strictEqual(removeCount, 1, "Widget must be removed exactly once on unmount");
   });
 
+  // --------------------------------------------------------------------------
+  // Test 11: Container Clearance & Native Cloudflare Render Configuration
+  // --------------------------------------------------------------------------
+  test("TurnstileWidget clears container before rendering and passes native Cloudflare options", () => {
+    const widgetFilePath = path.resolve(__dirname, "../components/TurnstileWidget.tsx");
+    const content = fs.readFileSync(widgetFilePath, "utf8");
+
+    // Must clean containerRef before rendering to eliminate duplicate iframes
+    assert.ok(
+      content.includes('containerRef.current.innerHTML = ""'),
+      "Must clear containerRef.current.innerHTML before rendering to prevent duplicate iframes"
+    );
+
+    // Must configure native Cloudflare retry and refresh-expired options
+    assert.ok(
+      content.includes('retry: "auto"') || content.includes('"retry": "auto"'),
+      "Must configure native auto retry"
+    );
+    assert.ok(content.includes('"refresh-expired": "auto"'), "Must configure native auto token refresh");
+  });
+
+  // --------------------------------------------------------------------------
+  // Test 12: Responsive Form Presentation & Mobile Overflow Prevention Invariants
+  // --------------------------------------------------------------------------
+  test("Login and Signup pages enforce responsive containers and prevent horizontal mobile overflow", () => {
+    const loginFilePath = path.resolve(__dirname, "../app/login/page.tsx");
+    const signupFilePath = path.resolve(__dirname, "../app/signup/page.tsx");
+
+    const loginContent = fs.readFileSync(loginFilePath, "utf8");
+    const signupContent = fs.readFileSync(signupFilePath, "utf8");
+
+    // 1. Must use w-full with overflow-x-hidden rather than w-screen to prevent horizontal scrollbars
+    assert.ok(!loginContent.includes("w-screen"), "LoginPage must not use w-screen (which causes horizontal scrollbars)");
+    assert.ok(!signupContent.includes("w-screen"), "SignupPage must not use w-screen (which causes horizontal scrollbars)");
+    assert.ok(loginContent.includes("overflow-x-hidden"), "LoginPage must enforce overflow-x-hidden");
+    assert.ok(signupContent.includes("overflow-x-hidden"), "SignupPage must enforce overflow-x-hidden");
+
+    // 2. Card padding must use mobile-responsive px-4 py-6 sm:p-8
+    assert.ok(loginContent.includes("px-4 py-6 sm:p-8"), "LoginPage card must use responsive mobile padding px-4 py-6 sm:p-8");
+    assert.ok(signupContent.includes("px-4 py-6 sm:p-8"), "SignupPage card must use responsive mobile padding px-4 py-6 sm:p-8");
+
+    // 3. Turnstile container must specify overflow-hidden and max-w-full
+    const widgetContent = fs.readFileSync(path.resolve(__dirname, "../components/TurnstileWidget.tsx"), "utf8");
+    assert.ok(widgetContent.includes("overflow-hidden"), "Turnstile container must have overflow-hidden");
+    assert.ok(widgetContent.includes("max-w-full"), "Turnstile container must have max-w-full");
+  });
+
   console.log("=".repeat(80));
   console.log(`ALL ${passed}/${total} CLOUDFLARE TURNSTILE INTEGRATION TESTS PASSED! 🎉`);
   console.log("=".repeat(80));
