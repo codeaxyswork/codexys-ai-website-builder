@@ -35,6 +35,19 @@ const nextConfig: NextConfig = {
           },
         ],
       },
+      {
+        source: "/api/templates-preview/:path*",
+        headers: [
+          {
+            key: "Cache-Control",
+            value: "public, max-age=86400, stale-while-revalidate=604800",
+          },
+          {
+            key: "X-Frame-Options",
+            value: "SAMEORIGIN",
+          },
+        ],
+      },
     ];
   },
 };
