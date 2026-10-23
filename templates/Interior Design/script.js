@@ -357,17 +357,18 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Section Reveals
     // About Us images and text split
+    const isMobileReveal = window.innerWidth <= 900;
     gsap.fromTo('.about-images-wrapper', 
-      { x: -50, opacity: 0 }, 
-      { x: 0, opacity: 1, duration: 1.2, ease: 'power3.out', scrollTrigger: {
+      { x: isMobileReveal ? 0 : -50, y: isMobileReveal ? 30 : 0, opacity: 0 }, 
+      { x: 0, y: 0, opacity: 1, duration: 1.2, ease: 'power3.out', scrollTrigger: {
         trigger: '.about',
         start: 'top 80%',
       }}
     );
 
     gsap.fromTo('.about-content', 
-      { x: 50, opacity: 0 }, 
-      { x: 0, opacity: 1, duration: 1.2, ease: 'power3.out', scrollTrigger: {
+      { x: isMobileReveal ? 0 : 50, y: isMobileReveal ? 30 : 0, opacity: 0 }, 
+      { x: 0, y: 0, opacity: 1, duration: 1.2, ease: 'power3.out', scrollTrigger: {
         trigger: '.about',
         start: 'top 80%',
       }}

@@ -350,22 +350,28 @@ header.scrolled .logo a {
 .offcanvas {
   position: fixed;
   top: 0;
-  right: -450px;
+  right: 0;
   width: 450px;
+  max-width: 100vw;
   height: 100vh;
   background-color: var(--color-bg-dark);
   z-index: 1000;
   box-shadow: -10px 0 30px rgba(0, 0, 0, 0.5);
-  transition: var(--transition-smooth);
+  transition: transform 0.4s ease, visibility 0.4s;
   padding: 80px 50px;
   display: flex;
   flex-direction: column;
   justify-content: space-between;
   overflow-y: auto;
+  transform: translateX(100%);
+  visibility: hidden;
+  pointer-events: none;
 }
 
 .offcanvas.open {
-  right: 0;
+  transform: translateX(0);
+  visibility: visible;
+  pointer-events: auto;
 }
 
 .offcanvas-close {
@@ -536,7 +542,7 @@ header.scrolled .logo a {
 @media (max-width: 480px) {
   .offcanvas {
     width: 100%;
-    right: -100%;
+    right: 0;
   }
 }
 
@@ -910,9 +916,28 @@ header.scrolled .logo a {
 }
 
 @media (max-width: 991px) {
+  .about {
+    overflow: hidden;
+  }
   .about-images-wrapper {
     margin-bottom: 80px;
     padding-right: 0;
+  }
+  .about-stats {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 20px;
+  }
+}
+
+@media (max-width: 480px) {
+  .about-stats {
+    grid-template-columns: 1fr;
+    gap: 15px;
+  }
+  .about-experience-badge {
+    left: 0;
+    top: 0;
+    padding: 15px;
   }
 }
 
@@ -1073,7 +1098,9 @@ header.scrolled .logo a {
 
 .portfolio-filters {
   display: flex;
-  gap: 30px;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 15px;
   margin-top: 20px;
 }
 
@@ -2160,6 +2187,41 @@ footer {
   .lightbox-arrow-left { left: 0px; }
   .lightbox-arrow-right { right: 0px; }
   .lightbox-content-wrapper { width: 95%; }
+  .offcanvas {
+    width: 100%;
+    padding: 60px 24px;
+  }
+  .why-features {
+    grid-template-columns: 1fr;
+  }
+  .insta-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  .container {
+    padding-left: 20px;
+    padding-right: 20px;
+  }
+  html, body {
+    overflow-x: hidden;
+    max-width: 100vw;
+  }
+}
+
+@media (max-width: 480px) {
+  .section-title {
+    font-size: clamp(1.4rem, 5vw, 1.8rem);
+    letter-spacing: 0.05em;
+  }
+  .insta-grid {
+    grid-template-columns: 1fr;
+  }
+  .portfolio-filters {
+    gap: 8px;
+  }
+  .filter-btn {
+    font-size: 0.75rem;
+    padding: 6px 10px;
+  }
 }
 
 /* ==========================================================================

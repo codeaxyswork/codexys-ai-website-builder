@@ -44,14 +44,18 @@
   box-sizing: border-box;
   margin: 0;
   padding: 0;
+}
+
+html, body {
   scroll-behavior: smooth;
+  overflow-x: hidden;
+  max-width: 100vw;
 }
 
 body {
   font-family: var(--font-primary);
   background-color: var(--color-bg-darkest);
   color: var(--color-text-primary);
-  overflow-x: hidden;
   line-height: 1.6;
   -webkit-font-smoothing: antialiased;
 }
@@ -417,6 +421,8 @@ header nav {
   z-index: 0;
   width: 500px;
   height: 500px;
+  max-width: 80vw;
+  max-height: 80vw;
   background: var(--color-primary);
   top: -100px;
   right: -100px;
@@ -986,6 +992,11 @@ header nav {
   align-items: center;
   width: 100%;
   height: 350px;
+}
+
+.stats-circle-svg {
+  max-width: 100%;
+  height: auto;
 }
 
 /* --- Products Section --- */
@@ -2282,6 +2293,15 @@ footer {
 }
 
 @media (max-width: 768px) {
+  .hero-glow-1 {
+    right: 0;
+    max-width: 60vw;
+  }
+
+  .container {
+    padding: 0 1.25rem;
+  }
+
   .nav-links {
     position: fixed;
     top: 0;
@@ -2294,10 +2314,14 @@ footer {
     transition: var(--transition-smooth);
     border-left: 1px solid var(--color-border);
     box-shadow: -10px 0 30px rgba(0,0,0,0.5);
+    visibility: hidden;
+    pointer-events: none;
   }
   
   .nav-links.active {
     right: 0;
+    visibility: visible;
+    pointer-events: auto;
   }
   
   .hamburger {
@@ -2352,6 +2376,16 @@ footer {
     gap: 0;
   }
   
+  .contact-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .contact-grid > * {
+    min-width: 0;
+  }
+  .contact-form-panel {
+    padding: 2rem 1.25rem;
+  }
+  
   .footer-grid {
     grid-template-columns: 1fr;
     gap: 2.5rem;
@@ -2363,3 +2397,4 @@ footer {
     text-align: center;
   }
 }
+
