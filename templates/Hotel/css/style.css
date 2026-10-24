@@ -8749,33 +8749,67 @@ body {
   height: 18px;
   cursor: pointer;
   z-index: 1010;
+  background: transparent;
+  border: none;
+  padding: 0;
+  outline: none;
 
 }
 
 .luxury-hotel .hamburger-menu .bar {
 
   width: 100%;
-  height: 1.5px;
+  height: 2px;
   background-color: var(--color-text-light);
-  transition: var(--transition-fast);
+  border-radius: 2px;
+  transition: transform 0.35s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.3s ease, background-color 0.3s ease;
 
 }
 
 .luxury-hotel .hamburger-menu.active .bar:nth-child(1) {
 
-  transform: translateY(8.5px) rotate(45deg);
+  transform: translateY(8px) rotate(45deg);
+  background-color: var(--color-gold);
 
 }
 
 .luxury-hotel .hamburger-menu.active .bar:nth-child(2) {
 
   opacity: 0;
+  transform: scaleX(0);
 
 }
 
 .luxury-hotel .hamburger-menu.active .bar:nth-child(3) {
 
-  transform: translateY(-8.5px) rotate(-45deg);
+  transform: translateY(-8px) rotate(-45deg);
+  background-color: var(--color-gold);
+
+}
+
+/* Mobile Drawer Overlay */
+.luxury-hotel .mobile-drawer-overlay {
+
+  position: fixed;
+  inset: 0;
+  width: 100vw;
+  height: 100vh;
+  background-color: rgba(5, 7, 10, 0.72);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  z-index: 998;
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transition: opacity 0.4s cubic-bezier(0.16, 1, 0.3, 1), visibility 0.4s ease;
+
+}
+
+.luxury-hotel .mobile-drawer-overlay.active {
+
+  opacity: 1;
+  visibility: visible;
+  pointer-events: auto;
 
 }
 
@@ -8785,14 +8819,21 @@ body {
   position: fixed;
   top: 0;
   right: -100%;
-  width: 80%;
-  max-width: 400px;
+  width: 82%;
+  max-width: 380px;
   height: 100vh;
-  background-color: var(--color-obsidian-light);
-  border-left: 1px solid var(--color-border-dark);
+  height: 100dvh;
+  background-color: var(--color-obsidian-light, #16181d);
+  border-left: 1px solid var(--color-border-dark, rgba(197, 168, 128, 0.15));
+  box-shadow: -15px 0 40px rgba(0, 0, 0, 0.6);
   z-index: 999;
-  padding: 120px 40px 40px;
-  transition: right 0.5s cubic-bezier(0.77, 0, 0.175, 1);
+  padding: 110px 36px 40px;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  transition: right 0.45s cubic-bezier(0.16, 1, 0.3, 1);
 
 }
 
@@ -8811,6 +8852,27 @@ body {
 
 }
 
+.luxury-hotel .mobile-drawer .mobile-nav li {
+
+  opacity: 0;
+  transform: translateX(24px);
+  transition: opacity 0.35s cubic-bezier(0.16, 1, 0.3, 1), transform 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+
+}
+
+.luxury-hotel .mobile-drawer.active .mobile-nav li {
+
+  opacity: 1;
+  transform: translateX(0);
+
+}
+
+.luxury-hotel .mobile-drawer.active .mobile-nav li:nth-child(1) { transition-delay: 0.12s; }
+.luxury-hotel .mobile-drawer.active .mobile-nav li:nth-child(2) { transition-delay: 0.18s; }
+.luxury-hotel .mobile-drawer.active .mobile-nav li:nth-child(3) { transition-delay: 0.24s; }
+.luxury-hotel .mobile-drawer.active .mobile-nav li:nth-child(4) { transition-delay: 0.30s; }
+.luxury-hotel .mobile-drawer.active .mobile-nav li:nth-child(5) { transition-delay: 0.36s; }
+
 .luxury-hotel .mobile-nav-link {
 
   font-size: 1rem;
@@ -8819,6 +8881,7 @@ body {
   letter-spacing: 0.15em;
   color: var(--color-text-ivory);
   display: block;
+  transition: color 0.3s ease, padding-left 0.3s ease;
 
 }
 
@@ -8833,6 +8896,18 @@ body {
 
   display: block;
   width: 100%;
+  text-align: center;
+  opacity: 0;
+  transform: translateY(16px);
+  transition: opacity 0.35s ease, transform 0.35s ease, background-color 0.3s ease;
+
+}
+
+.luxury-hotel .mobile-drawer.active .btn-drawer-book {
+
+  opacity: 1;
+  transform: translateY(0);
+  transition: opacity 0.35s ease 0.42s, transform 0.35s ease 0.42s, background-color 0.3s ease;
 
 }
 
@@ -8875,11 +8950,20 @@ body {
 
 }
 
-.luxury-hotel .hero-slide.active {
+.luxury-hotel .hero-slide.prev-active {
 
   opacity: 1;
   visibility: visible;
   z-index: 2;
+  clip-path: circle(150% at 50% 50%);
+
+}
+
+.luxury-hotel .hero-slide.active {
+
+  opacity: 1;
+  visibility: visible;
+  z-index: 3;
   clip-path: circle(150% at 50% 50%);
 
 }

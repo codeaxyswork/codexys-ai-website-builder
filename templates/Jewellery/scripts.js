@@ -47,23 +47,16 @@ document.addEventListener('DOMContentLoaded', () => {
   // === MOBILE NAVIGATION MENU ===
   const menuToggleBtn = document.querySelector('.menu-toggle');
   const navMenu = document.querySelector('.nav-menu');
-  const menuToggleIcon = menuToggleBtn.querySelector('svg');
 
-  const toggleMenu = () => {
-    navMenu.classList.toggle('open');
-    // Change icon representation from hamburger to close
-    if (navMenu.classList.contains('open')) {
-      menuToggleIcon.innerHTML = `
-        <line x1="18" y1="6" x2="6" y2="18"></line>
-        <line x1="6" y1="6" x2="18" y2="18"></line>
-      `;
-    } else {
-      menuToggleIcon.innerHTML = `
-        <line x1="4" y1="12" x2="20" y2="12"></line>
-        <line x1="4" y1="6" x2="20" y2="6"></line>
-        <line x1="4" y1="18" x2="20" y2="18"></line>
-      `;
+  const toggleMenu = (e) => {
+    if (e && e.stopPropagation) {
+      e.stopPropagation();
     }
+    const isOpen = navMenu.classList.toggle('open');
+    if (menuToggleBtn) {
+      menuToggleBtn.classList.toggle('menu-open', isOpen);
+    }
+    document.body.classList.toggle('menu-open', isOpen);
   };
 
   const navMenuCloseBtn = document.querySelector('.nav-menu-close');
@@ -71,7 +64,9 @@ document.addEventListener('DOMContentLoaded', () => {
     navMenuCloseBtn.addEventListener('click', toggleMenu);
   }
 
-  menuToggleBtn.addEventListener('click', toggleMenu);
+  if (menuToggleBtn) {
+    menuToggleBtn.addEventListener('click', toggleMenu);
+  }
 
   // Close menu when clicking nav item
   navItems.forEach(item => {
@@ -82,10 +77,16 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   });
 
-
   // Close menu when clicking outside
   document.addEventListener('click', (e) => {
-    if (navMenu.classList.contains('open') && !navMenu.contains(e.target) && !menuToggleBtn.contains(e.target)) {
+    if (navMenu.classList.contains('open') && !navMenu.contains(e.target) && (!menuToggleBtn || !menuToggleBtn.contains(e.target))) {
+      toggleMenu();
+    }
+  });
+
+  // Close menu on Escape key
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && navMenu.classList.contains('open')) {
       toggleMenu();
     }
   });

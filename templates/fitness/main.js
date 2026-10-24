@@ -519,6 +519,20 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   };
 
-  window.addEventListener('scroll', handleScrollStacking);
+  window.addEventListener('scroll', handleScrollStacking, { passive: true });
+  handleScrollStacking();
+
+  // Allow clicking card headers to smoothly bring that card into view
+  cards.forEach((card) => {
+    const cardHeader = card.querySelector('.accordion-card-header');
+    if (cardHeader) {
+      cardHeader.style.cursor = 'pointer';
+      cardHeader.addEventListener('click', () => {
+        const headerOffset = window.innerWidth <= 768 ? 75 : 100;
+        const targetY = card.getBoundingClientRect().top + window.scrollY - headerOffset;
+        window.scrollTo({ top: targetY, behavior: 'smooth' });
+      });
+    }
+  });
 });
 

@@ -604,21 +604,21 @@ export function AIBuiltTemplatesShowcase() {
           className="fixed inset-0 z-[9999] w-screen h-screen bg-slate-950 overflow-hidden animate-in fade-in duration-200"
         >
           {/* Top Info Pill */}
-          <div className="fixed top-4 left-4 sm:top-6 sm:left-6 z-[10000] pointer-events-none">
-            <div className="flex items-center gap-2.5 px-4 py-2 rounded-full bg-slate-900/90 text-white backdrop-blur-md shadow-2xl border border-white/20 text-xs font-semibold">
-              <span className="w-2 h-2 rounded-full bg-purple-400 animate-pulse" />
-              <span>{selectedTemplate.name}</span>
-              <span className="text-slate-400 text-[11px] hidden sm:inline">• {selectedTemplate.category}</span>
+          <div className="fixed top-[calc(env(safe-area-inset-top,0px)+56px)] left-4 sm:top-6 sm:left-6 z-[10000] pointer-events-none max-w-[calc(100vw-130px)]">
+            <div className="flex items-center gap-2.5 px-3.5 sm:px-4 py-2 rounded-full bg-slate-900/90 text-white backdrop-blur-md shadow-2xl border border-white/20 text-xs font-semibold shadow-black/40">
+              <span className="w-2 h-2 rounded-full bg-purple-400 animate-pulse shrink-0" />
+              <span className="truncate max-w-[110px] min-[380px]:max-w-[160px] sm:max-w-none">{selectedTemplate.name}</span>
+              <span className="text-slate-400 text-[11px] hidden sm:inline shrink-0">• {selectedTemplate.category}</span>
             </div>
           </div>
 
           {/* Minimal, unobtrusive floating Close button at top-right corner */}
-          <div className="fixed top-4 right-4 sm:top-6 sm:right-6 z-[10000]">
+          <div className="fixed top-[calc(env(safe-area-inset-top,0px)+56px)] right-4 sm:top-6 sm:right-6 z-[10000]">
             <button
               type="button"
               onClick={handleClosePreview}
               aria-label="Close preview"
-              className="group flex items-center gap-2 px-4 py-2 rounded-full bg-slate-900/90 hover:bg-slate-950 text-white backdrop-blur-md shadow-2xl border border-white/20 text-xs font-bold transition-all duration-200 hover:scale-105 active:scale-95 cursor-pointer"
+              className="group flex items-center gap-2 px-4 py-2 rounded-full bg-slate-900/90 hover:bg-slate-950 text-white backdrop-blur-md shadow-2xl border border-white/20 text-xs font-bold transition-all duration-200 hover:scale-105 active:scale-95 cursor-pointer shadow-black/40"
             >
               <span>Close</span>
               <X className="w-4 h-4 text-slate-300 group-hover:text-white transition-colors" />

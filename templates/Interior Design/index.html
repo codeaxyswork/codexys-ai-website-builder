@@ -33,56 +33,67 @@
 
   <!-- ==========================================================================
        Header / Navigation Bar
-       ========================================================================== */ -->
+       ========================================================================== -->
+  <header id="main-header" class="main-header">
+    <div class="container header-container">
+      <!-- Left: Website Logo / Brand Name -->
+      <div class="logo">
+        <a href="#hero" aria-label="SAVOYE Luxury Studio">
+          <span class="brand-name">SAVOYE</span>
+          <span class="brand-dot"></span>
+        </a>
+      </div>
 
+      <!-- Center / Right: Desktop Navigation Links -->
+      <nav class="desktop-nav" aria-label="Desktop Navigation">
+        <ul class="nav-links">
+          <li><a href="#hero" class="active">Home</a></li>
+          <li><a href="#about">About</a></li>
+          <li><a href="#services">Services</a></li>
+          <li><a href="#portfolio">Portfolio</a></li>
+          <li><a href="#process">Process</a></li>
+          <li><a href="#why-us">Why Us</a></li>
+          <li><a href="#gallery">Gallery</a></li>
+          <li><a href="#contact">Contact</a></li>
+        </ul>
+      </nav>
+
+      <!-- Right: Action CTA & Mobile Menu Toggle -->
+      <div class="header-right">
+        <a href="#contact" class="header-cta-btn">
+          <span>Inquire</span>
+          <i class="fa-solid fa-arrow-right"></i>
+        </a>
+        <button type="button" class="menu-toggle" id="menu-toggle-btn" aria-label="Toggle Navigation Menu">
+          <span></span>
+          <span></span>
+          <span></span>
+        </button>
+      </div>
+    </div>
+  </header>
 
   <!-- ==========================================================================
        Off-Canvas Sidebar Menu
-       ========================================================================== */ -->
+       ========================================================================== -->
   <aside class="offcanvas" id="offcanvas-menu">
     <div class="offcanvas-close" id="offcanvas-close-btn">
       <i class="fa-solid fa-times"></i>
     </div>
     <div>
-      <div class="offcanvas-logo">Ailand</div>
+      <div class="offcanvas-logo">SAVOYE<span class="brand-dot"></span></div>
       <ul class="offcanvas-nav">
+        <li><a href="#hero" class="offcanvas-link">Home</a></li>
         <li><a href="#about" class="offcanvas-link">About Us</a></li>
         <li><a href="#services" class="offcanvas-link">Services</a></li>
         <li><a href="#portfolio" class="offcanvas-link">Portfolio</a></li>
         <li><a href="#process" class="offcanvas-link">Process</a></li>
         <li><a href="#why-us" class="offcanvas-link">Why Choose Us</a></li>
         <li><a href="#gallery" class="offcanvas-link">Gallery</a></li>
-        <li><a href="#reviews" class="offcanvas-link">Reviews</a></li>
-        <li><a href="#faq" class="offcanvas-link">FAQ</a></li>
-        <li><a href="#cta" class="offcanvas-link">CTA</a></li>
-        <li><a href="#contact" class="offcanvas-link">Contact Form</a></li>
+        <li><a href="#contact" class="offcanvas-link">Contact</a></li>
       </ul>
     </div>
 
-    <!-- Instagram Feed Showcase inside offcanvas -->
-    <div class="offcanvas-insta">
-      <h4>Check Instagram Post</h4>
-      <div class="insta-grid">
-        <div class="insta-item">
-          <img src="https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?auto=format&fit=crop&w=150&q=80" alt="Instagram Post 1">
-        </div>
-        <div class="insta-item">
-          <img src="https://images.unsplash.com/photo-1600566753190-17f0baa2a6c3?auto=format&fit=crop&w=150&q=80" alt="Instagram Post 2">
-        </div>
-        <div class="insta-item">
-          <img src="https://images.unsplash.com/photo-1600585154526-990dced4db0d?auto=format&fit=crop&w=150&q=80" alt="Instagram Post 3">
-        </div>
-        <div class="insta-item">
-          <img src="https://images.unsplash.com/photo-1600121848594-d8644e57abad?auto=format&fit=crop&w=150&q=80" alt="Instagram Post 4">
-        </div>
-        <div class="insta-item">
-          <img src="https://images.unsplash.com/photo-1600210492493-0946911123ea?auto=format&fit=crop&w=150&q=80" alt="Instagram Post 5">
-        </div>
-        <div class="insta-item">
-          <img src="https://images.unsplash.com/photo-1617806118233-18e1db207f62?auto=format&fit=crop&w=150&q=80" alt="Instagram Post 6">
-        </div>
-      </div>
-    </div>
 
     <!-- Quick Info inside offcanvas -->
     <div class="offcanvas-info">

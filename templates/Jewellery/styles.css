@@ -1920,6 +1920,17 @@ footer {
   .menu-toggle {
     display: block;
     z-index: 1000;
+    transition: opacity var(--transition-fast), visibility var(--transition-fast);
+  }
+
+  .menu-toggle.menu-open {
+    opacity: 0;
+    pointer-events: none;
+    visibility: hidden;
+  }
+
+  body.menu-open {
+    overflow: hidden;
   }
   
   .menu-toggle svg {

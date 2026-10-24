@@ -30,31 +30,64 @@ const $$ = (selector, context = document) => [...context.querySelectorAll(select
 (function initMobileMenu() {
   const hamburger = $('#hamburger-btn');
   const mobileMenu = $('#mobile-menu');
+  const header = $('#header');
   if (!hamburger || !mobileMenu) return;
 
+  const openMenu = () => {
+    mobileMenu.classList.add('is-open');
+    hamburger.classList.add('is-active');
+    hamburger.setAttribute('aria-expanded', 'true');
+    header?.classList.add('is-menu-open');
+    document.body.style.overflow = 'hidden';
+  };
+
+  const closeMenu = () => {
+    mobileMenu.classList.remove('is-open');
+    hamburger.classList.remove('is-active');
+    hamburger.setAttribute('aria-expanded', 'false');
+    header?.classList.remove('is-menu-open');
+    document.body.style.overflow = '';
+  };
+
   const toggleMenu = () => {
-    const isOpen = mobileMenu.classList.toggle('is-open');
-    hamburger.classList.toggle('is-active', isOpen);
-    hamburger.setAttribute('aria-expanded', String(isOpen));
-    document.body.style.overflow = isOpen ? 'hidden' : '';
+    if (mobileMenu.classList.contains('is-open')) {
+      closeMenu();
+    } else {
+      openMenu();
+    }
   };
 
   hamburger.addEventListener('click', toggleMenu);
 
-  // Close on link click
-  $$('.mobile-menu__link, .mobile-menu .btn', mobileMenu).forEach(link => {
-    link.addEventListener('click', () => {
-      mobileMenu.classList.remove('is-open');
-      hamburger.classList.remove('is-active');
-      hamburger.setAttribute('aria-expanded', 'false');
-      document.body.style.overflow = '';
+  // Close on link click and smooth scroll with header offset
+  $$('.mobile-menu__link, .mobile-menu .btn, .mobile-menu a', mobileMenu).forEach(link => {
+    link.addEventListener('click', (e) => {
+      const href = link.getAttribute('href');
+      closeMenu();
+
+      if (href && href.startsWith('#')) {
+        const target = $(href);
+        if (target) {
+          e.preventDefault();
+          const headerOffset = window.innerWidth <= 900 ? 68 : 80;
+          const targetY = target.getBoundingClientRect().top + window.scrollY - headerOffset;
+          window.scrollTo({ top: targetY, behavior: 'smooth' });
+        }
+      }
     });
   });
 
   // Close on Escape
   document.addEventListener('keydown', e => {
     if (e.key === 'Escape' && mobileMenu.classList.contains('is-open')) {
-      toggleMenu();
+      closeMenu();
+    }
+  });
+
+  // Auto-close if resized past mobile breakpoint
+  window.addEventListener('resize', () => {
+    if (window.innerWidth > 900 && mobileMenu.classList.contains('is-open')) {
+      closeMenu();
     }
   });
 })();

@@ -5,37 +5,78 @@ document.addEventListener('DOMContentLoaded', () => {
   // ==========================================================================
   const navToggle = document.getElementById('nav-toggle');
   const navMenu = document.getElementById('nav-menu');
-  const menuIcon = navToggle.querySelector('i');
+  const navBackdrop = document.getElementById('nav-backdrop');
+  const header = document.getElementById('header');
+
+  function openMobileMenu() {
+    if (!navMenu || !navToggle) return;
+    navMenu.classList.add('active');
+    header?.classList.add('menu-open');
+    navBackdrop?.classList.add('active');
+    document.body.classList.add('mobile-nav-open');
+    navToggle.setAttribute('aria-expanded', 'true');
+    navToggle.classList.add('active');
+    navToggle.innerHTML = '<i data-lucide="x"></i>';
+    if (window.lucide) lucide.createIcons();
+  }
+
+  function closeMobileMenu() {
+    if (!navMenu || !navToggle) return;
+    navMenu.classList.remove('active');
+    header?.classList.remove('menu-open');
+    navBackdrop?.classList.remove('active');
+    document.body.classList.remove('mobile-nav-open');
+    navToggle.setAttribute('aria-expanded', 'false');
+    navToggle.classList.remove('active');
+    navToggle.innerHTML = '<i data-lucide="menu"></i>';
+    if (window.lucide) lucide.createIcons();
+  }
 
   if (navToggle && navMenu) {
-    navToggle.addEventListener('click', () => {
-      navMenu.classList.toggle('active');
+    navToggle.addEventListener('click', (e) => {
+      e.stopPropagation();
       const isActive = navMenu.classList.contains('active');
-      
-      // Update Lucide icon dynamically
       if (isActive) {
-        navToggle.innerHTML = '<i data-lucide="x"></i>';
+        closeMobileMenu();
       } else {
-        navToggle.innerHTML = '<i data-lucide="menu"></i>';
+        openMobileMenu();
       }
-      lucide.createIcons();
     });
 
-    // Close menu when a link is clicked
-    const navLinks = document.querySelectorAll('.nav-link');
-    navLinks.forEach(link => {
+    // Close menu when any interactive item inside navMenu is clicked
+    const allMenuLinks = navMenu.querySelectorAll('a, button');
+    allMenuLinks.forEach(link => {
       link.addEventListener('click', () => {
-        navMenu.classList.remove('active');
-        navToggle.innerHTML = '<i data-lucide="menu"></i>';
-        lucide.createIcons();
+        closeMobileMenu();
       });
+    });
+
+    // Close when tapping backdrop
+    if (navBackdrop) {
+      navBackdrop.addEventListener('click', () => {
+        closeMobileMenu();
+      });
+    }
+
+    // Close on Escape key press
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && navMenu.classList.contains('active')) {
+        closeMobileMenu();
+      }
+    });
+
+    // Auto-close if resized past mobile breakpoint
+    window.addEventListener('resize', () => {
+      if (window.innerWidth > 1024 && navMenu.classList.contains('active')) {
+        closeMobileMenu();
+      }
     });
   }
 
   // ==========================================================================
   // 2. HEADER SCROLL & THEME MANAGEMENT
   // ==========================================================================
-  const header = document.getElementById('header');
+  // Header element already declared in Section 1
   const navLogo = document.querySelector('.nav-logo');
   const navLinks = document.querySelectorAll('.nav-link');
   const toggleBtn = document.querySelector('.nav-toggle');
@@ -275,7 +316,7 @@ document.addEventListener('DOMContentLoaded', () => {
       const sectionTop = current.offsetTop - 120;
       const sectionId = current.getAttribute('id');
       
-      const navLink = document.querySelector(`.nav-menu a[href*=${sectionId}]`);
+      const navLink = document.querySelector(`.nav-menu .nav-link[href*="${sectionId}"]`);
 
       if (navLink) {
         if (scrollY > sectionTop && scrollY <= sectionTop + sectionHeight) {

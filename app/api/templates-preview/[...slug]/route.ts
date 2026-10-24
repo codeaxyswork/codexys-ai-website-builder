@@ -3,6 +3,7 @@ import fs from "fs";
 import path from "path";
 
 export const dynamic = "force-dynamic";
+export const maxDuration = 15;
 
 const TEMPLATES_DIR = path.resolve(process.cwd(), "templates");
 

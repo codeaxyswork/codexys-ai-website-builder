@@ -170,39 +170,90 @@ document.addEventListener("DOMContentLoaded", function () {
   })();
 
   // ============================================================
-  // 3. MOBILE MENU TOGGLE
+  // 3. PREMIUM MOBILE NAVIGATION CONTROLLER
   // ============================================================
-  var mobileMenuToggle = document.getElementById("mobile-menu-toggle");
-  var mobileMenuPanel = document.getElementById("mobile-menu-panel");
+  function initTravelMobileNav() {
+    var toggle = document.getElementById("mobile-menu-toggle");
+    var panel = document.getElementById("mobile-menu-panel");
+    var overlay = document.getElementById("mobile-menu-overlay");
+    var closeBtn = document.getElementById("mobile-menu-close");
+    var header = document.querySelector("header[data-sticky-header]");
+    if (!toggle || !panel) return;
 
-  if (mobileMenuToggle && mobileMenuPanel) {
-    var iconOpen = mobileMenuToggle.querySelector(".mobile-menu-icon-open");
-    var iconClose = mobileMenuToggle.querySelector(".mobile-menu-icon-close");
+    var iconOpen = toggle.querySelector(".mobile-menu-icon-open");
+    var iconClose = toggle.querySelector(".mobile-menu-icon-close");
 
-    mobileMenuToggle.addEventListener("click", function () {
-      var isHidden = mobileMenuPanel.classList.contains("hidden");
-      if (isHidden) {
-        mobileMenuPanel.classList.remove("hidden");
-        mobileMenuPanel.classList.add("block");
-        if (iconOpen) iconOpen.style.display = "none";
-        if (iconClose) iconClose.style.display = "block";
+    function openMenu() {
+      panel.classList.add("active");
+      toggle.classList.add("is-active");
+      toggle.setAttribute("aria-expanded", "true");
+      if (overlay) overlay.classList.add("active");
+      if (header) header.classList.add("menu-open");
+      if (iconOpen) iconOpen.style.display = "none";
+      if (iconClose) iconClose.style.display = "block";
+      document.body.style.overflow = "hidden";
+      document.body.classList.add("menu-open");
+    }
+
+    function closeMenu() {
+      panel.classList.remove("active");
+      toggle.classList.remove("is-active");
+      toggle.setAttribute("aria-expanded", "false");
+      if (overlay) overlay.classList.remove("active");
+      if (header) header.classList.remove("menu-open");
+      if (iconOpen) iconOpen.style.display = "block";
+      if (iconClose) iconClose.style.display = "none";
+      document.body.style.overflow = "";
+      document.body.classList.remove("menu-open");
+    }
+
+    toggle.addEventListener("click", function (e) {
+      e.preventDefault();
+      e.stopPropagation();
+      if (panel.classList.contains("active")) {
+        closeMenu();
       } else {
-        mobileMenuPanel.classList.remove("block");
-        mobileMenuPanel.classList.add("hidden");
-        if (iconOpen) iconOpen.style.display = "block";
-        if (iconClose) iconClose.style.display = "none";
+        openMenu();
       }
     });
 
-    mobileMenuPanel.querySelectorAll("a").forEach(function (link) {
+    if (closeBtn) {
+      closeBtn.addEventListener("click", function (e) {
+        e.preventDefault();
+        e.stopPropagation();
+        closeMenu();
+      });
+    }
+
+    if (overlay) {
+      overlay.addEventListener("click", function (e) {
+        e.preventDefault();
+        closeMenu();
+      });
+    }
+
+    // Close when any navigation anchor link inside the panel is clicked
+    panel.querySelectorAll("a").forEach(function (link) {
       link.addEventListener("click", function () {
-        mobileMenuPanel.classList.remove("block");
-        mobileMenuPanel.classList.add("hidden");
-        if (iconOpen) iconOpen.style.display = "block";
-        if (iconClose) iconClose.style.display = "none";
+        closeMenu();
       });
     });
+
+    // Close on Escape key press
+    document.addEventListener("keydown", function (e) {
+      if (e.key === "Escape" && panel.classList.contains("active")) {
+        closeMenu();
+      }
+    });
+
+    // Close automatically when viewport expands to desktop
+    window.addEventListener("resize", function () {
+      if (window.innerWidth >= 768 && panel.classList.contains("active")) {
+        closeMenu();
+      }
+    });
   }
+  initTravelMobileNav();
 
   // ============================================================
   // 4. ANIMATED COUNTERS (Intersection Observer)

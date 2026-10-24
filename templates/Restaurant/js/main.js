@@ -76,97 +76,38 @@ document.addEventListener("DOMContentLoaded", function() {
   });
 
   // ============================================================
-  // 2.5. STICKY HEADER & LOGO SWAP
+  // 2.5. STICKY HEADER SCROLL BEHAVIOR
   // ============================================================
   (function() {
-    var header = document.querySelector("header[data-sticky-header]");
+    var header = document.querySelector("header.fixed, header[data-sticky-header], #restaurant-header") || document.querySelector("header");
     if (!header) return;
 
-    var isSticky = header.getAttribute("data-sticky-header") === "true";
-    var bgStyle = header.getAttribute("data-bg-style") || "solid-white";
-    var defaultLogoUrl = header.getAttribute("data-default-logo-url") || "";
-    var stickyLogoUrl = header.getAttribute("data-sticky-logo-url") || "";
-    var transparentLogoUrl = header.getAttribute("data-transparent-logo-url") || "";
-    var headerPadding = parseInt(header.getAttribute("data-header-padding") || "16", 10);
-    var logoImg = header.querySelector("img[alt='Website Logo']");
-    var innerContainer = header.querySelector(".max-w-7xl");
-
-    var initBgColor = header.getAttribute("data-init-bg-color") || "#ffffff";
-    var initMenuColor = header.getAttribute("data-init-menu-color") || "#1f2937";
-    var initMenuHoverColor = header.getAttribute("data-init-menu-hover-color") || "#4f46e5";
-    var initActiveMenuColor = header.getAttribute("data-init-active-menu-color") || "#4f46e5";
-    var initBtnColor = header.getAttribute("data-init-btn-color") || "#4f46e5";
-    var initBtnHoverColor = header.getAttribute("data-init-btn-hover-color") || "#4f46e5";
-
-    var stickyBgColor = header.getAttribute("data-sticky-bg-color") || "#ffffff";
-    var stickyMenuColor = header.getAttribute("data-sticky-menu-color") || "#1f2937";
-    var stickyMenuHoverColor = header.getAttribute("data-sticky-menu-hover-color") || "#4f46e5";
-    var stickyActiveMenuColor = header.getAttribute("data-sticky-active-menu-color") || "#4f46e5";
-    var stickyBtnColor = header.getAttribute("data-sticky-btn-color") || "#4f46e5";
-    var stickyBtnHoverColor = header.getAttribute("data-sticky-btn-hover-color") || "#4f46e5";
-
-    var initialBoxShadow = header.style.boxShadow || "";
-    var initialBg = header.style.backgroundColor || "";
-    var initialBackgroundImage = header.style.backgroundImage || "";
-    var initialBackdrop = header.style.backdropFilter || "";
-    var initialWebkitBackdrop = header.style.webkitBackdropFilter || "";
-    var initialBorderBottom = header.style.borderBottom || "";
-
     function updateHeaderScroll() {
-      var scrolled = window.scrollY > 10;
+      var scrollY = window.scrollY || window.pageYOffset || (document.documentElement ? document.documentElement.scrollTop : 0) || (document.body ? document.body.scrollTop : 0) || 0;
+      var isScrolled = scrollY > 15;
 
-      if (logoImg) {
-        if (scrolled && isSticky && stickyLogoUrl) {
-          logoImg.setAttribute("src", stickyLogoUrl);
-        } else if (!scrolled && (bgStyle === "transparent" || bgStyle === "glass") && transparentLogoUrl) {
-          logoImg.setAttribute("src", transparentLogoUrl);
-        } else {
-          logoImg.setAttribute("src", defaultLogoUrl);
-        }
-      }
-
-      if (innerContainer) {
-        var currentPadding = (scrolled && isSticky) ? Math.max(headerPadding * 0.65, 8) : headerPadding;
-        innerContainer.style.paddingTop = currentPadding + "px";
-        innerContainer.style.paddingBottom = currentPadding + "px";
-      }
-
-      if (scrolled && isSticky) {
-        header.classList.add("shadow-[0_2px_20px_rgba(0,0,0,0.08)]");
-        header.style.backgroundColor = stickyBgColor;
-        header.style.backdropFilter = "";
-        header.style.webkitBackdropFilter = "";
-        header.style.boxShadow = "0 2px 20px rgba(0,0,0,0.08)";
-        header.style.borderBottom = "";
-
-        header.style.setProperty("--menu-color", stickyMenuColor);
-        header.style.setProperty("--menu-hover-color", stickyMenuHoverColor);
-        header.style.setProperty("--active-menu-color", stickyActiveMenuColor);
-        header.style.setProperty("--btn-color", stickyBtnColor);
-        header.style.setProperty("--btn-hover-color", stickyBtnHoverColor);
+      if (isScrolled) {
+        header.classList.add("header-scrolled", "is-scrolled");
+        header.style.backgroundColor = "#ffffff";
+        header.style.boxShadow = "0 4px 20px -2px rgba(0, 0, 0, 0.08), 0 2px 6px -1px rgba(0, 0, 0, 0.04)";
+        header.style.paddingTop = "14px";
+        header.style.paddingBottom = "14px";
       } else {
-        header.classList.remove("shadow-[0_2px_20px_rgba(0,0,0,0.08)]");
-        header.style.backgroundColor = initialBg;
-        header.style.backgroundImage = initialBackgroundImage;
-        header.style.backdropFilter = initialBackdrop;
-        header.style.webkitBackdropFilter = initialWebkitBackdrop;
-        header.style.boxShadow = initialBoxShadow;
-        header.style.borderBottom = initialBorderBottom;
-
-        header.style.setProperty("--menu-color", initMenuColor);
-        header.style.setProperty("--menu-hover-color", initMenuHoverColor);
-        header.style.setProperty("--active-menu-color", initActiveMenuColor);
-        header.style.setProperty("--btn-color", initBtnColor);
-        header.style.setProperty("--btn-hover-color", initBtnHoverColor);
+        header.classList.remove("header-scrolled", "is-scrolled");
+        header.style.backgroundColor = "transparent";
+        header.style.boxShadow = "none";
+        header.style.paddingTop = "";
+        header.style.paddingBottom = "";
       }
     }
 
-    if (isSticky) {
-      window.addEventListener("scroll", updateHeaderScroll, { passive: true });
-      updateHeaderScroll();
-    } else {
-      updateHeaderScroll();
-    }
+    window.addEventListener("scroll", updateHeaderScroll, { passive: true });
+    window.addEventListener("touchmove", updateHeaderScroll, { passive: true });
+    window.addEventListener("resize", updateHeaderScroll, { passive: true });
+
+    updateHeaderScroll();
+    setTimeout(updateHeaderScroll, 50);
+    setTimeout(updateHeaderScroll, 200);
   })();
 
   // ============================================================

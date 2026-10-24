@@ -4,13 +4,15 @@ document.addEventListener('DOMContentLoaded', () => {
   // Header Scroll State & Active Nav Link Highlighting
   // ==========================================================================
   const header = document.getElementById('main-header');
-  const sections = document.querySelectorAll('section');
+  const sections = document.querySelectorAll('section[id]');
   const navLinks = document.querySelectorAll('.nav-links a');
 
-  window.addEventListener('scroll', () => {
-    // Add scrolled class for glassmorphism background
+  function updateHeaderScroll() {
+    const scrollY = window.scrollY || window.pageYOffset || (document.documentElement ? document.documentElement.scrollTop : 0) || 0;
+    
+    // Add scrolled class for frosted luxury background & shadow
     if (header) {
-      if (window.scrollY > 50) {
+      if (scrollY > 25) {
         header.classList.add('scrolled');
       } else {
         header.classList.remove('scrolled');
@@ -18,22 +20,28 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // Highlighting active section link
-    let current = '';
+    let current = 'hero';
     sections.forEach(section => {
-      const sectionTop = section.offsetTop - 150;
+      const sectionTop = section.offsetTop - 180;
       const sectionHeight = section.clientHeight;
-      if (window.scrollY >= sectionTop && window.scrollY < sectionTop + sectionHeight) {
-        current = section.getAttribute('id');
+      if (scrollY >= sectionTop && scrollY < sectionTop + sectionHeight) {
+        current = section.getAttribute('id') || current;
       }
     });
 
     navLinks.forEach(link => {
       link.classList.remove('active');
-      if (link.getAttribute('href').slice(1) === current) {
+      const href = link.getAttribute('href');
+      if (href && href.slice(1) === current) {
         link.classList.add('active');
       }
     });
-  });
+  }
+
+  window.addEventListener('scroll', updateHeaderScroll, { passive: true });
+  window.addEventListener('resize', updateHeaderScroll, { passive: true });
+  updateHeaderScroll();
+  setTimeout(updateHeaderScroll, 100);
 
   // ==========================================================================
   // Off-Canvas Sidebar Navigation Toggle
@@ -45,27 +53,40 @@ document.addEventListener('DOMContentLoaded', () => {
   const offcanvasLinks = document.querySelectorAll('.offcanvas-link');
 
   const openOffcanvas = () => {
-    offcanvasMenu.classList.add('open');
-    overlayBg.classList.add('visible');
-    document.body.style.overflow = 'hidden'; // Stop background scrolling
+    if (offcanvasMenu) offcanvasMenu.classList.add('open');
+    if (overlayBg) overlayBg.classList.add('visible');
+    if (menuToggleBtn) menuToggleBtn.classList.add('active');
+    document.body.style.overflow = 'hidden';
   };
 
   const closeOffcanvas = () => {
-    offcanvasMenu.classList.remove('open');
-    overlayBg.classList.remove('visible');
+    if (offcanvasMenu) offcanvasMenu.classList.remove('open');
+    if (overlayBg) overlayBg.classList.remove('visible');
+    if (menuToggleBtn) menuToggleBtn.classList.remove('active');
     document.body.style.overflow = '';
   };
 
   if (menuToggleBtn) {
-    menuToggleBtn.addEventListener('click', openOffcanvas);
+    menuToggleBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      openOffcanvas();
+    });
   }
   if (offcanvasCloseBtn) {
     offcanvasCloseBtn.addEventListener('click', closeOffcanvas);
   }
-  overlayBg.addEventListener('click', closeOffcanvas);
+  if (overlayBg) {
+    overlayBg.addEventListener('click', closeOffcanvas);
+  }
 
   offcanvasLinks.forEach(link => {
     link.addEventListener('click', closeOffcanvas);
+  });
+
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && offcanvasMenu && offcanvasMenu.classList.contains('open')) {
+      closeOffcanvas();
+    }
   });
 
   // ==========================================================================

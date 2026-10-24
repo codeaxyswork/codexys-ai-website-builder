@@ -1340,7 +1340,270 @@ document.addEventListener("DOMContentLoaded", function() {
     }
   }
 
+  // ============================================================
+  // 13. HOTEL MOBILE HAMBURGER NAVIGATION
+  // ============================================================
+  function initHotelMobileNav() {
+    var hamburgerBtn = document.getElementById("hamburger-toggle");
+    var mobileDrawer = document.getElementById("mobile-drawer");
+    if (!hamburgerBtn || !mobileDrawer) return;
+
+    var overlay = document.getElementById("mobile-drawer-overlay");
+    if (!overlay) {
+      overlay = document.createElement("div");
+      overlay.id = "mobile-drawer-overlay";
+      overlay.className = "mobile-drawer-overlay";
+      overlay.setAttribute("aria-hidden", "true");
+      mobileDrawer.parentNode.insertBefore(overlay, mobileDrawer);
+    }
+
+    function openMenu() {
+      hamburgerBtn.classList.add("active");
+      mobileDrawer.classList.add("active");
+      overlay.classList.add("active");
+      hamburgerBtn.setAttribute("aria-expanded", "true");
+      document.body.style.overflow = "hidden";
+    }
+
+    function closeMenu() {
+      hamburgerBtn.classList.remove("active");
+      mobileDrawer.classList.remove("active");
+      overlay.classList.remove("active");
+      hamburgerBtn.setAttribute("aria-expanded", "false");
+      document.body.style.overflow = "";
+    }
+
+    function toggleMenu() {
+      if (mobileDrawer.classList.contains("active")) {
+        closeMenu();
+      } else {
+        openMenu();
+      }
+    }
+
+    hamburgerBtn.addEventListener("click", function(e) {
+      e.stopPropagation();
+      toggleMenu();
+    });
+
+    overlay.addEventListener("click", function() {
+      closeMenu();
+    });
+
+    mobileDrawer.querySelectorAll("a, button").forEach(function(link) {
+      link.addEventListener("click", function() {
+        closeMenu();
+      });
+    });
+
+    document.addEventListener("keydown", function(e) {
+      if (e.key === "Escape" && mobileDrawer.classList.contains("active")) {
+        closeMenu();
+      }
+    });
+
+    window.addEventListener("resize", function() {
+      if (window.innerWidth > 1024 && mobileDrawer.classList.contains("active")) {
+        closeMenu();
+      }
+    });
+  }
+
+  // ============================================================
+  // 14. HOTEL HERO CAROUSEL / SLIDER
+  // ============================================================
+  function initHotelHeroSlider() {
+    var heroSection = document.getElementById("hero");
+    var slider = document.getElementById("hero-slider");
+    if (!slider) return;
+
+    var slides = slider.querySelectorAll(".hero-slide");
+    if (slides.length <= 1) return;
+
+    var prevBtn = document.getElementById("hero-prev");
+    var nextBtn = document.getElementById("hero-next");
+    var dotsContainer = document.getElementById("slider-dots");
+    var dots = dotsContainer ? dotsContainer.querySelectorAll(".dot") : [];
+    var progressBar = document.getElementById("slider-progress");
+
+    var currentIndex = 0;
+    var totalSlides = slides.length;
+    var autoPlayDuration = 6000;
+    var autoPlayTimer = null;
+    var transitionTimeout = null;
+    var isTransitioning = false;
+
+    // Ensure initial slide state
+    slides.forEach(function(slide, idx) {
+      if (idx === 0) {
+        slide.classList.add("active");
+        slide.classList.remove("prev-active");
+      } else {
+        slide.classList.remove("active", "prev-active");
+      }
+    });
+
+    if (dots.length > 0) {
+      dots.forEach(function(dot, idx) {
+        dot.classList.toggle("active", idx === 0);
+      });
+    }
+
+    function startProgress() {
+      if (!progressBar) return;
+      progressBar.style.transition = "none";
+      progressBar.style.width = "0%";
+      void progressBar.offsetWidth; // Force reflow
+      progressBar.style.transition = "width " + autoPlayDuration + "ms linear";
+      progressBar.style.width = "100%";
+    }
+
+    function resetProgress() {
+      if (!progressBar) return;
+      progressBar.style.transition = "none";
+      progressBar.style.width = "0%";
+    }
+
+    function goToSlide(targetIndex, userTriggered) {
+      if (isTransitioning) return;
+      if (targetIndex === currentIndex) return;
+
+      var prevIndex = currentIndex;
+      currentIndex = (targetIndex + totalSlides) % totalSlides;
+      isTransitioning = true;
+
+      var prevSlide = slides[prevIndex];
+      var nextSlide = slides[currentIndex];
+
+      slides.forEach(function(s) {
+        s.classList.remove("prev-active");
+      });
+
+      prevSlide.classList.remove("active");
+      prevSlide.classList.add("prev-active");
+
+      nextSlide.classList.add("active");
+
+      if (dots.length > 0) {
+        dots.forEach(function(dot, idx) {
+          dot.classList.toggle("active", idx === currentIndex);
+        });
+      }
+
+      startProgress();
+
+      if (transitionTimeout) clearTimeout(transitionTimeout);
+      transitionTimeout = setTimeout(function() {
+        prevSlide.classList.remove("prev-active");
+        isTransitioning = false;
+      }, 1600);
+
+      if (userTriggered) {
+        setTimeout(function() {
+          isTransitioning = false;
+        }, 400);
+      }
+
+      resetAutoPlay();
+    }
+
+    function startAutoPlay() {
+      stopAutoPlay();
+      startProgress();
+      autoPlayTimer = setInterval(function() {
+        goToSlide(currentIndex + 1, false);
+      }, autoPlayDuration);
+    }
+
+    function stopAutoPlay() {
+      if (autoPlayTimer) {
+        clearInterval(autoPlayTimer);
+        autoPlayTimer = null;
+      }
+      resetProgress();
+    }
+
+    function resetAutoPlay() {
+      stopAutoPlay();
+      startAutoPlay();
+    }
+
+    if (nextBtn) {
+      nextBtn.addEventListener("click", function(e) {
+        e.preventDefault();
+        goToSlide(currentIndex + 1, true);
+      });
+    }
+
+    if (prevBtn) {
+      prevBtn.addEventListener("click", function(e) {
+        e.preventDefault();
+        goToSlide(currentIndex - 1, true);
+      });
+    }
+
+    if (dots.length > 0) {
+      dots.forEach(function(dot, idx) {
+        dot.addEventListener("click", function(e) {
+          e.preventDefault();
+          goToSlide(idx, true);
+        });
+      });
+    }
+
+    if (heroSection) {
+      heroSection.addEventListener("mouseenter", function() {
+        stopAutoPlay();
+      });
+      heroSection.addEventListener("mouseleave", function() {
+        startAutoPlay();
+      });
+    }
+
+    // Touch swipe support for mobile
+    var touchStartX = 0;
+    var touchStartY = 0;
+    slider.addEventListener("touchstart", function(e) {
+      if (e.touches && e.touches.length > 0) {
+        touchStartX = e.touches[0].clientX;
+        touchStartY = e.touches[0].clientY;
+      }
+    }, { passive: true });
+
+    slider.addEventListener("touchend", function(e) {
+      if (e.changedTouches && e.changedTouches.length > 0) {
+        var diffX = e.changedTouches[0].clientX - touchStartX;
+        var diffY = e.changedTouches[0].clientY - touchStartY;
+        if (Math.abs(diffX) > 40 && Math.abs(diffX) > Math.abs(diffY)) {
+          if (diffX < 0) {
+            goToSlide(currentIndex + 1, true);
+          } else {
+            goToSlide(currentIndex - 1, true);
+          }
+        }
+      }
+    }, { passive: true });
+
+    // Keyboard navigation
+    document.addEventListener("keydown", function(e) {
+      if (!heroSection) return;
+      var rect = heroSection.getBoundingClientRect();
+      var inView = rect.top < window.innerHeight && rect.bottom > 0;
+      if (inView) {
+        if (e.key === "ArrowRight") {
+          goToSlide(currentIndex + 1, true);
+        } else if (e.key === "ArrowLeft") {
+          goToSlide(currentIndex - 1, true);
+        }
+      }
+    });
+
+    startAutoPlay();
+  }
+
   // ── Initialize everything ──
+  initHotelMobileNav();
+  initHotelHeroSlider();
   initReviewsCarousel();
   initSaaSProductCarousel();
   initFaqAccordion();

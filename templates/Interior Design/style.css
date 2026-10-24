@@ -40,6 +40,7 @@
 
 html {
   scroll-behavior: smooth;
+  scroll-padding-top: 85px;
   overflow-x: hidden;
   font-size: 16px;
 }
@@ -223,29 +224,38 @@ h1, h2, h3, h4, h5, h6 {
    Header & Navigation
    ========================================================================== */
 header {
-  position: absolute;
+  position: fixed;
   top: 0;
   left: 0;
   width: 100%;
-  z-index: 100;
-  transition: var(--transition-smooth);
-  padding: 30px 0;
-  background-color: #1a1b1e;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  z-index: 998;
+  padding: 24px 0;
+  background-color: rgba(18, 19, 22, 0.72);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  transition: background-color 0.4s cubic-bezier(0.16, 1, 0.3, 1),
+              padding 0.4s cubic-bezier(0.16, 1, 0.3, 1),
+              box-shadow 0.4s cubic-bezier(0.16, 1, 0.3, 1),
+              border-color 0.4s ease;
 }
 
 header.scrolled {
-  position: fixed;
-  background-color: rgba(26, 27, 30, 0.96);
-  backdrop-filter: blur(12px);
-  padding: 15px 0;
-  box-shadow: 0 4px 30px rgba(0, 0, 0, 0.08);
+  background-color: rgba(15, 16, 19, 0.96) !important;
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  padding: 14px 0 !important;
+  border-bottom: 1px solid rgba(197, 168, 128, 0.22) !important;
+  box-shadow: 0 10px 30px -5px rgba(0, 0, 0, 0.5), 0 2px 8px rgba(0, 0, 0, 0.2) !important;
 }
 
 header .container {
   display: flex;
-  justify-content: flex-end;
+  justify-content: space-between;
   align-items: center;
+  width: 92%;
+  max-width: 1440px;
+  margin: 0 auto;
 }
 
 .logo {
@@ -254,31 +264,72 @@ header .container {
 }
 
 .logo a {
+  display: inline-flex;
+  align-items: center;
   font-family: var(--font-heading);
-  font-size: 1.8rem;
+  font-size: 1.75rem;
   font-weight: 700;
   color: var(--color-text-light);
-  letter-spacing: 0.15em;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  transition: opacity 0.3s ease;
 }
 
-header.scrolled .logo a {
-  color: var(--color-text-light);
+.logo a:hover {
+  opacity: 0.9;
+}
+
+.logo .brand-dot,
+.offcanvas-logo .brand-dot {
+  display: inline-block;
+  width: 6px;
+  height: 6px;
+  background-color: var(--color-accent-gold);
+  border-radius: 50%;
+  margin-left: 5px;
+  vertical-align: middle;
+  box-shadow: 0 0 10px rgba(197, 168, 128, 0.6);
+}
+
+.desktop-nav {
+  display: flex;
+  align-items: center;
 }
 
 .nav-links {
   display: flex;
-  gap: 20px;
+  align-items: center;
+  gap: 26px;
 }
 
 .nav-links a {
   font-family: var(--font-heading);
-  font-size: 0.75rem;
+  font-size: 0.78rem;
   font-weight: 500;
-  color: rgba(255, 255, 255, 0.75);
-  letter-spacing: 0.15em;
+  color: rgba(255, 255, 255, 0.85);
+  letter-spacing: 0.18em;
   text-transform: uppercase;
   position: relative;
-  padding: 5px 0;
+  padding: 8px 0;
+  display: inline-block;
+  transition: color 0.3s ease;
+}
+
+.nav-links a::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  width: 0;
+  height: 1.5px;
+  background-color: var(--color-accent-gold);
+  transition: width 0.35s cubic-bezier(0.16, 1, 0.3, 1), left 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.nav-links a:hover::after,
+.nav-links a.active::after {
+  width: 100%;
+  left: 0;
 }
 
 .nav-links a:hover,
@@ -286,43 +337,59 @@ header.scrolled .logo a {
   color: var(--color-accent-gold);
 }
 
-.nav-links a::after {
-  content: '';
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  width: 0;
-  height: 2px;
-  background-color: var(--color-accent-gold);
-  transition: var(--transition-fast);
-}
-
-.nav-links a:hover::after,
-.nav-links a.active::after {
-  width: 100%;
-}
-
 .header-right {
   display: flex;
   align-items: center;
-  gap: 30px;
+  gap: 20px;
 }
 
-.contact-phone {
+.header-cta-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 9px 22px;
+  border: 1px solid rgba(197, 168, 128, 0.7);
+  background: rgba(197, 168, 128, 0.1);
+  color: #ffffff;
   font-family: var(--font-heading);
-  font-size: 0.8rem;
-  font-weight: 700;
-  color: var(--color-text-light);
-  letter-spacing: 0.1em;
+  font-size: 0.75rem;
+  font-weight: 500;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  transition: all 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+  border-radius: 2px;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.header-cta-btn:hover {
+  background: var(--color-accent-gold);
+  color: #111111;
+  border-color: var(--color-accent-gold);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 15px rgba(197, 168, 128, 0.35);
+}
+
+.header-cta-btn i {
+  font-size: 0.65rem;
+  transition: transform 0.3s ease;
+}
+
+.header-cta-btn:hover i {
+  transform: translateX(3px);
 }
 
 .menu-toggle {
   display: flex;
   flex-direction: column;
   justify-content: space-between;
-  width: 25px;
-  height: 18px;
+  width: 28px;
+  height: 20px;
+  background: transparent;
+  border: none;
+  padding: 0;
   cursor: pointer;
+  position: relative;
 }
 
 .menu-toggle span {
@@ -330,16 +397,61 @@ header.scrolled .logo a {
   width: 100%;
   height: 2px;
   background-color: var(--color-text-light);
-  transition: var(--transition-fast);
+  border-radius: 2px;
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .menu-toggle:hover span:nth-child(2) {
-  width: 70%;
+  width: 65%;
   margin-left: auto;
+  background-color: var(--color-accent-gold);
+}
+
+.menu-toggle:hover span {
+  background-color: var(--color-accent-gold);
+}
+
+@media (max-width: 1100px) {
+  .nav-links {
+    gap: 16px;
+  }
+  .nav-links a {
+    font-size: 0.72rem;
+    letter-spacing: 0.14em;
+  }
 }
 
 @media (max-width: 991px) {
-  .nav-links, .contact-phone {
+  .desktop-nav {
+    display: none;
+  }
+  header {
+    padding: 18px 0;
+  }
+  header.scrolled {
+    padding: 13px 0;
+  }
+  .logo a {
+    font-size: 1.5rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .header-cta-btn {
+    padding: 7px 14px;
+    font-size: 0.68rem;
+    letter-spacing: 0.12em;
+  }
+  .header-right {
+    gap: 14px;
+  }
+  .logo a {
+    font-size: 1.35rem;
+  }
+}
+
+@media (max-width: 360px) {
+  .header-cta-btn {
     display: none;
   }
 }

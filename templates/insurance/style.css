@@ -2437,5 +2437,13 @@ footer {
     padding-left: 1rem !important;
     padding-right: 1rem !important;
   }
+  .logo-container {
+    font-size: 1.35rem;
+  }
+  .logo-icon-svg {
+    width: 28px;
+    height: 28px;
+  }
 }
+
 
