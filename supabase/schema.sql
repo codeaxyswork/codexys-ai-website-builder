@@ -69,6 +69,25 @@ ALTER TABLE public.admin_audit_logs ENABLE ROW LEVEL SECURITY;
 DROP POLICY IF EXISTS "Admins can view audit logs" ON public.admin_audit_logs;
 CREATE POLICY "Admins can view audit logs" ON public.admin_audit_logs FOR SELECT USING (public.is_admin(auth.uid()));
 
+CREATE TABLE IF NOT EXISTS public.admin_idempotency_records (
+  idempotency_key TEXT PRIMARY KEY,
+  admin_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
+  target_user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
+  action_type TEXT NOT NULL,
+  adjustment_type TEXT NOT NULL,
+  amount INTEGER NOT NULL,
+  request_hash TEXT NOT NULL,
+  response_payload JSONB NOT NULL,
+  created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS idx_admin_idempotency_created ON public.admin_idempotency_records(created_at);
+ALTER TABLE public.admin_idempotency_records ENABLE ROW LEVEL SECURITY;
+REVOKE ALL ON TABLE public.admin_idempotency_records FROM PUBLIC;
+REVOKE ALL ON TABLE public.admin_idempotency_records FROM anon;
+REVOKE ALL ON TABLE public.admin_idempotency_records FROM authenticated;
+GRANT ALL ON TABLE public.admin_idempotency_records TO service_role;
+
 CREATE TABLE IF NOT EXISTS public.platform_settings (
   setting_key TEXT PRIMARY KEY,
   setting_value JSONB DEFAULT '{}'::jsonb,
@@ -131,8 +150,12 @@ CREATE TABLE IF NOT EXISTS public.subscriptions (
   plan_id TEXT NOT NULL REFERENCES public.plans(id) DEFAULT 'free',
   status TEXT NOT NULL DEFAULT 'active',
   billing_provider TEXT DEFAULT 'mock',
+  billing_interval TEXT NOT NULL DEFAULT 'monthly',
+  duration_months INTEGER NOT NULL DEFAULT 1,
+  discount_percent NUMERIC(5, 2) NOT NULL DEFAULT 0.00,
   current_period_start TIMESTAMPTZ DEFAULT NOW(),
   current_period_end TIMESTAMPTZ DEFAULT (NOW() + INTERVAL '30 days'),
+  last_credit_refreshed_at TIMESTAMPTZ DEFAULT NOW(),
   cancel_at_period_end BOOLEAN DEFAULT false,
   canceled_at TIMESTAMPTZ,
   trial_ends_at TIMESTAMPTZ,
@@ -164,6 +187,11 @@ CREATE TABLE IF NOT EXISTS public.billing_transactions (
   amount INTEGER DEFAULT 0,
   currency TEXT DEFAULT 'INR',
   status TEXT NOT NULL DEFAULT 'completed',
+  billing_interval TEXT DEFAULT 'monthly',
+  duration_months INTEGER DEFAULT 1,
+  discount_percent NUMERIC(5, 2) DEFAULT 0.00,
+  discount_amount NUMERIC(10, 2) DEFAULT 0.00,
+  original_amount NUMERIC(10, 2),
   metadata JSONB DEFAULT '{}'::jsonb,
   created_at TIMESTAMPTZ DEFAULT NOW()
 );
@@ -184,13 +212,26 @@ CREATE TABLE IF NOT EXISTS public.user_credits (
   monthly_used INTEGER NOT NULL DEFAULT 0,
   last_refreshed_at TIMESTAMPTZ DEFAULT NOW(),
   created_at TIMESTAMPTZ DEFAULT NOW(),
-  updated_at TIMESTAMPTZ DEFAULT NOW()
+  updated_at TIMESTAMPTZ DEFAULT NOW(),
+  CONSTRAINT check_user_credits_balance_non_negative CHECK (balance >= 0)
 );
 
 ALTER TABLE public.user_credits ENABLE ROW LEVEL SECURITY;
 
 DROP POLICY IF EXISTS "Users can view own credits" ON public.user_credits;
 CREATE POLICY "Users can view own credits" ON public.user_credits FOR SELECT USING (auth.uid() = user_id);
+
+DO $$
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_constraint 
+    WHERE conname = 'check_user_credits_balance_non_negative'
+      AND conrelid = 'public.user_credits'::regclass
+  ) THEN
+    ALTER TABLE public.user_credits
+      ADD CONSTRAINT check_user_credits_balance_non_negative CHECK (balance >= 0);
+  END IF;
+END $$;
 
 
 -- ---------------------------------------------------------------------
@@ -680,6 +721,262 @@ REVOKE EXECUTE ON FUNCTION public.deduct_user_credits(UUID, INT, TEXT, UUID) FRO
 REVOKE EXECUTE ON FUNCTION public.deduct_user_credits(UUID, INT, TEXT, UUID) FROM anon;
 GRANT EXECUTE ON FUNCTION public.deduct_user_credits(UUID, INT, TEXT, UUID) TO authenticated;
 GRANT EXECUTE ON FUNCTION public.deduct_user_credits(UUID, INT, TEXT, UUID) TO service_role;
+
+CREATE OR REPLACE FUNCTION public.admin_adjust_user_credits(
+  p_admin_id UUID,
+  p_user_id UUID,
+  p_amount INT,
+  p_type TEXT,
+  p_idempotency_key TEXT,
+  p_reason TEXT DEFAULT NULL
+) RETURNS JSONB AS $$
+DECLARE
+  v_current_balance INT;
+  v_new_balance INT;
+  v_credit_delta INT;
+  v_row_exists BOOLEAN := FALSE;
+  v_norm_key TEXT;
+  v_norm_type TEXT;
+  v_norm_reason TEXT;
+  v_request_hash TEXT;
+  v_existing RECORD;
+BEGIN
+  -- 1. Security Check: Direct execution restricted strictly to service_role
+  IF auth.role() = 'authenticated' OR auth.role() = 'anon' THEN
+    RAISE EXCEPTION 'Unauthorized: admin_adjust_user_credits can only be executed by service_role';
+  END IF;
+
+  -- 2. Validate p_admin_id administrator status
+  IF p_admin_id IS NULL OR NOT public.is_admin(p_admin_id) THEN
+    RETURN jsonb_build_object(
+      'success', false,
+      'code', 'UNAUTHORIZED',
+      'error', 'Caller does not possess verified administrative privileges.'
+    );
+  END IF;
+
+  -- 3. Input Validation
+  IF p_user_id IS NULL THEN
+    RETURN jsonb_build_object('success', false, 'code', 'INVALID_TARGET', 'error', 'Target user_id is required.');
+  END IF;
+
+  IF p_amount IS NULL THEN
+    RETURN jsonb_build_object('success', false, 'code', 'INVALID_AMOUNT', 'error', 'Credit amount cannot be null.');
+  END IF;
+
+  v_norm_type := lower(trim(COALESCE(p_type, '')));
+  IF v_norm_type NOT IN ('add', 'set') THEN
+    RETURN jsonb_build_object('success', false, 'code', 'INVALID_TYPE', 'error', 'Adjustment type must be "add" or "set".');
+  END IF;
+
+  IF v_norm_type = 'add' AND p_amount = 0 THEN
+    RETURN jsonb_build_object('success', false, 'code', 'ZERO_AMOUNT', 'error', 'Adjustment amount cannot be zero for "add".');
+  END IF;
+
+  IF v_norm_type = 'set' AND p_amount < 0 THEN
+    RETURN jsonb_build_object('success', false, 'code', 'NEGATIVE_SET', 'error', 'Credit balance cannot be set to a negative number.');
+  END IF;
+
+  -- 4. Mandatory Idempotency Key Validation
+  v_norm_key := trim(COALESCE(p_idempotency_key, ''));
+  IF v_norm_key = '' THEN
+    RETURN jsonb_build_object('success', false, 'code', 'IDEMPOTENCY_KEY_REQUIRED', 'error', 'Idempotency key is mandatory.');
+  END IF;
+
+  v_norm_reason := lower(trim(COALESCE(NULLIF(trim(p_reason), ''), 'admin_adjustment')));
+
+  -- 5. Concurrency Serialization: Strict Two-Tier Advisory Lock Ordering
+  -- Tier 1: Lock on Idempotency Key (Global across all operations)
+  PERFORM pg_advisory_xact_lock(('x' || substr(md5('idempotency_key:' || v_norm_key), 1, 16))::bit(64)::bigint);
+
+  -- Tier 2: Lock on Target User ID
+  PERFORM pg_advisory_xact_lock(('x' || substr(md5('credit_target_user:' || p_user_id::text), 1, 16))::bit(64)::bigint);
+
+  -- 6. Check for Existing Idempotency Record & Fingerprint Validation
+  v_request_hash := encode(digest(
+    lower(trim(p_admin_id::text)) || '|' ||
+    lower(trim(p_user_id::text)) || '|' ||
+    'adjust_credits|' ||
+    v_norm_type || '|' ||
+    p_amount::text || '|' ||
+    v_norm_reason,
+    'sha256'
+  ), 'hex');
+
+  SELECT * INTO v_existing
+  FROM public.admin_idempotency_records
+  WHERE idempotency_key = v_norm_key;
+
+  IF FOUND THEN
+    -- Validate request fingerprint against existing record
+    IF v_existing.admin_id != p_admin_id OR
+       v_existing.target_user_id != p_user_id OR
+       v_existing.request_hash != v_request_hash THEN
+      RETURN jsonb_build_object(
+        'success', false,
+        'code', 'IDEMPOTENCY_KEY_REUSE_CONFLICT',
+        'error', 'Idempotency key collision: This key was previously used for a different operation or parameter set.'
+      );
+    END IF;
+
+    -- Return cached response without mutating state
+    RETURN jsonb_build_object(
+      'success', true,
+      'status', 'idempotent_replay',
+      'idempotent', true,
+      'oldBalance', (v_existing.response_payload->>'oldBalance')::INT,
+      'newBalance', (v_existing.response_payload->>'newBalance')::INT,
+      'message', 'Request previously processed. Returned cached result without duplicate modification.'
+    );
+  END IF;
+
+  -- 7. Verify Target User Exists in profiles
+  IF NOT EXISTS (SELECT 1 FROM public.profiles WHERE id = p_user_id) THEN
+    RETURN jsonb_build_object('success', false, 'code', 'USER_NOT_FOUND', 'error', 'Target user profile not found.');
+  END IF;
+
+  -- 8. Read Current Credit Record (with FOR UPDATE row lock if row exists)
+  SELECT balance INTO v_current_balance
+  FROM public.user_credits
+  WHERE user_id = p_user_id
+  FOR UPDATE;
+
+  IF v_current_balance IS NOT NULL THEN
+    v_row_exists := TRUE;
+  ELSE
+    v_row_exists := FALSE;
+    v_current_balance := 50; -- Default initial balance
+  END IF;
+
+  -- 9. Calculate New Balance and Invariant Check
+  IF v_norm_type = 'set' THEN
+    v_new_balance := p_amount;
+    v_credit_delta := v_new_balance - v_current_balance;
+  ELSE
+    v_new_balance := v_current_balance + p_amount;
+    v_credit_delta := p_amount;
+  END IF;
+
+  IF v_new_balance < 0 THEN
+    -- Return immediately with zero side effects: no row is created or modified
+    RETURN jsonb_build_object(
+      'success', false,
+      'code', 'INSUFFICIENT_CREDITS',
+      'error', format('Adjustment would result in a negative credit balance (%s). Current balance is %s.', v_new_balance, v_current_balance),
+      'currentBalance', v_current_balance
+    );
+  END IF;
+
+  -- 10. Atomic Database Writes
+  -- 10A. Balance Update or Insert
+  IF v_row_exists THEN
+    UPDATE public.user_credits
+    SET balance = v_new_balance,
+        updated_at = NOW()
+    WHERE user_id = p_user_id;
+  ELSE
+    INSERT INTO public.user_credits (
+      user_id,
+      balance,
+      monthly_used,
+      lifetime_used,
+      created_at,
+      updated_at
+    ) VALUES (
+      p_user_id,
+      v_new_balance,
+      0,
+      0,
+      NOW(),
+      NOW()
+    );
+  END IF;
+
+  -- 10B. Credit Ledger Write (Negative sign for credits added/granted)
+  INSERT INTO public.ai_credit_transactions (
+    user_id,
+    website_id,
+    credits_used,
+    action_type,
+    created_at
+  ) VALUES (
+    p_user_id,
+    NULL,
+    -v_credit_delta,
+    v_norm_reason,
+    NOW()
+  );
+
+  -- 10C. Admin Audit Log Write
+  INSERT INTO public.admin_audit_logs (
+    admin_id,
+    action_type,
+    target_user_id,
+    details,
+    created_at
+  ) VALUES (
+    p_admin_id,
+    'ADMIN_CREDITS_ADJUSTED',
+    p_user_id,
+    jsonb_build_object(
+      'oldBalance', v_current_balance,
+      'newBalance', v_new_balance,
+      'adjustment', p_amount,
+      'type', v_norm_type,
+      'reason', v_norm_reason,
+      'idempotencyKey', v_norm_key
+    ),
+    NOW()
+  );
+
+  -- 10D. Idempotency Record Write
+  INSERT INTO public.admin_idempotency_records (
+    idempotency_key,
+    admin_id,
+    target_user_id,
+    action_type,
+    adjustment_type,
+    amount,
+    request_hash,
+    response_payload,
+    created_at
+  ) VALUES (
+    v_norm_key,
+    p_admin_id,
+    p_user_id,
+    'adjust_credits',
+    v_norm_type,
+    p_amount,
+    v_request_hash,
+    jsonb_build_object(
+      'success', true,
+      'oldBalance', v_current_balance,
+      'newBalance', v_new_balance,
+      'adjustment', p_amount,
+      'type', v_norm_type
+    ),
+    NOW()
+  );
+
+  -- 11. Return Success Result
+  RETURN jsonb_build_object(
+    'success', true,
+    'status', 'complete',
+    'idempotent', false,
+    'oldBalance', v_current_balance,
+    'newBalance', v_new_balance,
+    'adjustment', p_amount,
+    'type', v_norm_type,
+    'message', format('User credits updated to %s.', v_new_balance)
+  );
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER SET search_path = public, extensions;
+
+REVOKE EXECUTE ON FUNCTION public.admin_adjust_user_credits(UUID, UUID, INT, TEXT, TEXT, TEXT) FROM PUBLIC;
+REVOKE EXECUTE ON FUNCTION public.admin_adjust_user_credits(UUID, UUID, INT, TEXT, TEXT, TEXT) FROM anon;
+REVOKE EXECUTE ON FUNCTION public.admin_adjust_user_credits(UUID, UUID, INT, TEXT, TEXT, TEXT) FROM authenticated;
+GRANT EXECUTE ON FUNCTION public.admin_adjust_user_credits(UUID, UUID, INT, TEXT, TEXT, TEXT) TO service_role;
+
 
 
 -- ---------------------------------------------------------------------
@@ -1432,10 +1729,211 @@ CREATE INDEX IF NOT EXISTS idx_seo_unified_scores_user_id ON public.seo_unified_
 CREATE INDEX IF NOT EXISTS idx_seo_unified_scores_created_at ON public.seo_unified_scores(website_id, created_at DESC);
 
 
+-- =====================================================================
+-- 27. DATA API EXPLICIT PERMISSION GRANTS (OCTOBER 30, 2026 COMPLIANCE)
+-- =====================================================================
 
+-- ---------------------------------------------------------------------
+-- 27A. SCHEMA & SEQUENCE PRIVILEGES
+-- ---------------------------------------------------------------------
+GRANT USAGE ON SCHEMA public TO anon, authenticated, service_role;
+REVOKE CREATE ON SCHEMA public FROM PUBLIC, anon, authenticated;
 
+REVOKE ALL ON ALL SEQUENCES IN SCHEMA public FROM PUBLIC, anon;
+GRANT USAGE, SELECT ON ALL SEQUENCES IN SCHEMA public TO authenticated, service_role;
 
+-- ---------------------------------------------------------------------
+-- 27B. FUNCTION & RPC PRIVILEGES
+-- ---------------------------------------------------------------------
+-- Admin check helper (used in RLS policies)
+REVOKE ALL ON FUNCTION public.is_admin(UUID) FROM PUBLIC, anon, authenticated;
+GRANT EXECUTE ON FUNCTION public.is_admin(UUID) TO authenticated, service_role;
 
+-- Sequential invoice generation (server-only)
+REVOKE ALL ON FUNCTION public.get_next_invoice_number(TEXT) FROM PUBLIC, anon, authenticated;
+GRANT EXECUTE ON FUNCTION public.get_next_invoice_number(TEXT) TO service_role;
 
+-- Atomic credit deduction RPC (authenticated clients & server workflows)
+REVOKE ALL ON FUNCTION public.deduct_user_credits(UUID, INT, TEXT, UUID) FROM PUBLIC, anon;
+GRANT EXECUTE ON FUNCTION public.deduct_user_credits(UUID, INT, TEXT, UUID) TO authenticated, service_role;
 
+-- Atomic credit refund RPC (server service_role only)
+REVOKE ALL ON FUNCTION public.refund_user_credits(UUID, INT, TEXT, UUID) FROM PUBLIC, anon, authenticated;
+GRANT EXECUTE ON FUNCTION public.refund_user_credits(UUID, INT, TEXT, UUID) TO service_role;
+
+-- Internal refund resolver helper (zero RPC exposure)
+REVOKE ALL ON FUNCTION public._resolve_deduction_action_for_refund(UUID, TEXT) FROM PUBLIC, anon, authenticated, service_role;
+
+-- Auth new user creation trigger (trigger execution only, zero Data API)
+REVOKE ALL ON FUNCTION public.handle_new_user() FROM PUBLIC, anon, authenticated;
+GRANT EXECUTE ON FUNCTION public.handle_new_user() TO service_role;
+
+-- ---------------------------------------------------------------------
+-- 27C. TIER 1: PUBLIC CATALOG & PLATFORM SETTINGS (CLIENT READ-ONLY)
+-- ---------------------------------------------------------------------
+GRANT SELECT ON TABLE public.plans TO anon, authenticated;
+GRANT ALL ON TABLE public.plans TO service_role;
+
+GRANT SELECT ON TABLE public.addons TO anon, authenticated;
+GRANT ALL ON TABLE public.addons TO service_role;
+
+GRANT SELECT ON TABLE public.platform_settings TO anon, authenticated;
+GRANT ALL ON TABLE public.platform_settings TO service_role;
+
+-- ---------------------------------------------------------------------
+-- 27D. TIER 2: PUBLISHED WEBSITE CONTENT (ANON READ PUBLISHED, AUTH CRUD)
+-- ---------------------------------------------------------------------
+GRANT SELECT ON TABLE public.websites TO anon;
+GRANT SELECT, INSERT, UPDATE, DELETE ON TABLE public.websites TO authenticated;
+GRANT ALL ON TABLE public.websites TO service_role;
+
+GRANT SELECT ON TABLE public.website_pages TO anon;
+GRANT SELECT, INSERT, UPDATE, DELETE ON TABLE public.website_pages TO authenticated;
+GRANT ALL ON TABLE public.website_pages TO service_role;
+
+GRANT SELECT ON TABLE public.website_seo TO anon;
+GRANT SELECT, INSERT, UPDATE, DELETE ON TABLE public.website_seo TO authenticated;
+GRANT ALL ON TABLE public.website_seo TO service_role;
+
+GRANT SELECT ON TABLE public.website_page_seo TO anon;
+GRANT SELECT, INSERT, UPDATE, DELETE ON TABLE public.website_page_seo TO authenticated;
+GRANT ALL ON TABLE public.website_page_seo TO service_role;
+
+GRANT SELECT ON TABLE public.blog_posts TO anon;
+GRANT SELECT, INSERT, UPDATE, DELETE ON TABLE public.blog_posts TO authenticated;
+GRANT ALL ON TABLE public.blog_posts TO service_role;
+
+-- ---------------------------------------------------------------------
+-- 27E. TIER 3: CUSTOMER PRIVATE WORKSPACE & SEO/MARKETING (LEAST PRIVILEGE)
+-- ---------------------------------------------------------------------
+-- Full CRUD Tables (SELECT, INSERT, UPDATE, DELETE backed by RLS)
+GRANT SELECT, INSERT, UPDATE, DELETE ON TABLE
+  public.media_assets,
+  public.marketing_leads,
+  public.seo_analysis_jobs,
+  public.seo_integrations,
+  public.gsc_search_analytics,
+  public.website_internal_links,
+  public.website_local_seo,
+  public.website_monitoring_schedules,
+  public.seo_monitoring_events,
+  public.website_third_party_seo_integrations,
+  public.website_aeo_analysis,
+  public.seo_competitors,
+  public.competitor_analyses,
+  public.content_briefs,
+  public.seo_opportunities,
+  public.seo_autopilot_settings,
+  public.seo_autopilot_activity,
+  public.technical_crawl_issues,
+  public.google_ads_keyword_cache,
+  public.marketing_connections,
+  public.marketing_ad_accounts,
+  public.marketing_pages,
+  public.marketing_instagram_accounts,
+  public.website_ai_visibility_configs,
+  public.marketing_campaign_drafts,
+  public.marketing_campaign_executions,
+  public.marketing_insights,
+  public.marketing_optimization_recommendations,
+  public.marketing_action_logs
+TO authenticated;
+
+-- Non-Updatable Audit / Run Logs (SELECT, INSERT, DELETE backed by RLS - No UPDATE)
+GRANT SELECT, INSERT, DELETE ON TABLE
+  public.seo_analysis_history,
+  public.seo_unified_scores,
+  public.technical_crawl_runs
+TO authenticated;
+
+-- Non-Deletable Operational Records (SELECT, INSERT, UPDATE backed by RLS - No DELETE)
+GRANT SELECT, INSERT, UPDATE ON TABLE
+  public.ai_visibility_alerts
+TO authenticated;
+
+-- Append-Only Event Logs & Snapshots (SELECT, INSERT backed by RLS - No UPDATE, No DELETE)
+GRANT SELECT, INSERT ON TABLE
+  public.seo_ai_visibility_logs,
+  public.content_revisions,
+  public.content_refresh_runs,
+  public.ai_visibility_monitoring_runs,
+  public.seo_integration_requests
+TO authenticated;
+
+-- Profiles: Column-Level Grants (Prevent Self-Role Escalation)
+GRANT SELECT ON TABLE public.profiles TO authenticated;
+GRANT UPDATE (full_name, avatar_url, updated_at) ON TABLE public.profiles TO authenticated;
+GRANT INSERT (id, full_name, avatar_url, updated_at) ON TABLE public.profiles TO authenticated;
+
+-- Grant ALL on Tier 3 tables to service_role
+GRANT ALL ON TABLE
+  public.media_assets,
+  public.marketing_leads,
+  public.seo_analysis_jobs,
+  public.seo_integrations,
+  public.gsc_search_analytics,
+  public.website_internal_links,
+  public.website_local_seo,
+  public.website_monitoring_schedules,
+  public.seo_monitoring_events,
+  public.website_third_party_seo_integrations,
+  public.website_aeo_analysis,
+  public.seo_competitors,
+  public.competitor_analyses,
+  public.content_briefs,
+  public.seo_opportunities,
+  public.seo_autopilot_settings,
+  public.seo_autopilot_activity,
+  public.technical_crawl_issues,
+  public.google_ads_keyword_cache,
+  public.marketing_connections,
+  public.marketing_ad_accounts,
+  public.marketing_pages,
+  public.marketing_instagram_accounts,
+  public.website_ai_visibility_configs,
+  public.marketing_campaign_drafts,
+  public.marketing_campaign_executions,
+  public.marketing_insights,
+  public.marketing_optimization_recommendations,
+  public.marketing_action_logs,
+  public.seo_analysis_history,
+  public.seo_unified_scores,
+  public.technical_crawl_runs,
+  public.ai_visibility_alerts,
+  public.seo_ai_visibility_logs,
+  public.content_revisions,
+  public.content_refresh_runs,
+  public.ai_visibility_monitoring_runs,
+  public.seo_integration_requests,
+  public.profiles
+TO service_role;
+
+-- ---------------------------------------------------------------------
+-- 27F. TIER 4: SENSITIVE BILLING, SUBSCRIPTIONS & ENTITLEMENTS
+-- ---------------------------------------------------------------------
+GRANT SELECT ON TABLE public.subscriptions TO authenticated;
+GRANT ALL ON TABLE public.subscriptions TO service_role;
+
+GRANT SELECT ON TABLE public.billing_transactions TO authenticated;
+GRANT ALL ON TABLE public.billing_transactions TO service_role;
+
+GRANT SELECT ON TABLE public.user_credits TO authenticated;
+GRANT ALL ON TABLE public.user_credits TO service_role;
+
+GRANT SELECT ON TABLE public.ai_credit_transactions TO authenticated;
+GRANT ALL ON TABLE public.ai_credit_transactions TO service_role;
+
+GRANT SELECT ON TABLE public.user_addons TO authenticated;
+GRANT ALL ON TABLE public.user_addons TO service_role;
+
+GRANT SELECT ON TABLE public.admin_audit_logs TO authenticated;
+GRANT ALL ON TABLE public.admin_audit_logs TO service_role;
+
+-- ---------------------------------------------------------------------
+-- 27G. TIER 5: STRICTLY SERVER-ONLY SECRETS & CREDENTIALS
+-- ---------------------------------------------------------------------
+GRANT ALL ON TABLE public.invoice_sequences TO service_role;
+GRANT ALL ON TABLE public.google_ads_oauth_credentials TO service_role;
+GRANT ALL ON TABLE public.gsc_oauth_credentials TO service_role;
+GRANT ALL ON TABLE public.marketing_webhook_events TO service_role;
 

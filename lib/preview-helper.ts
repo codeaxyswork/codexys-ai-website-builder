@@ -185,6 +185,33 @@ export const EDITOR_BRIDGE_SCRIPT = `
 </script>
 `;
 
+export const PREVIEW_NAVIGATION_SCRIPT = `
+<script id="codeaxys-preview-navigation">
+(function() {
+  if (window.__codeaxys_nav_initialized) return;
+  window.__codeaxys_nav_initialized = true;
+
+  document.addEventListener('click', function(e) {
+    var a = e.target && e.target.closest ? e.target.closest('a') : null;
+    if (!a) return;
+    var href = a.getAttribute('href');
+    if (!href) return;
+    if (href.startsWith('#')) return;
+    if (/^(https?:|mailto:|tel:|javascript:)/i.test(href)) {
+      if (!href.startsWith('javascript:')) {
+        a.setAttribute('target', '_blank');
+      }
+      return;
+    }
+    e.preventDefault();
+    try {
+      window.parent.postMessage({ type: 'CODEAXYS_NAVIGATE_PAGE', path: href }, '*');
+    } catch (err) {}
+  }, true);
+})();
+</script>
+`;
+
 export function assemblePreviewDoc(
   html: string = "",
   css: string = "",
@@ -197,6 +224,7 @@ export function assemblePreviewDoc(
   const isFullDoc = lowerHtml.includes("<!doctype") || lowerHtml.includes("<html");
 
   const editBridge = isEditMode ? EDITOR_BRIDGE_SCRIPT : "";
+  const navScript = PREVIEW_NAVIGATION_SCRIPT;
 
   if (isFullDoc) {
     let doc = html;
@@ -216,8 +244,8 @@ export function assemblePreviewDoc(
       }
     }
 
-    // Inject JS & Edit Bridge into </body>
-    const scriptContent = `${js ? `<script>\n// FRONTEND INTERACTIVITY\ntry {\n${js}\n} catch (e) { console.error('Preview JS Error:', e); }\n</script>` : ""}\n${editBridge}`;
+    // Inject JS, Nav Bridge & Edit Bridge into </body>
+    const scriptContent = `${js ? `<script>\n// FRONTEND INTERACTIVITY\ntry {\n${js}\n} catch (e) { console.error('Preview JS Error:', e); }\n</script>` : ""}\n${navScript}\n${editBridge}`;
 
     if (scriptContent.trim()) {
       if (doc.includes("</body>")) {
@@ -247,6 +275,7 @@ try {
 ${js || ""}
 } catch (e) { console.error('Preview JS Error:', e); }
   </script>
+${navScript}
 ${editBridge}
 </body>
 </html>`;

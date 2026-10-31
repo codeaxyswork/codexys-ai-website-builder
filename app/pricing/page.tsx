@@ -3,86 +3,294 @@
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { PLANS, PlanConfig } from "@/lib/constants";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { MockCheckoutModal } from "@/components/MockCheckoutModal";
+import { calculatePlanPrice, BillingInterval } from "@/lib/billing-periods";
+import { ADDON_CATALOG } from "@/lib/addons/catalog";
 import {
-  Wand2,
-  Palette,
-  Search,
-  Globe,
-  Zap,
-  CheckCircle2,
   Sparkles,
-  Layers,
-  FileCode2,
-  BarChart3,
   Sliders,
+  Layout,
+  Smartphone,
   ShieldCheck,
+  ArrowRightLeft,
+  Palette,
+  Mail,
+  FileText,
+  Link2,
+  FileCode,
+  Activity,
+  Code2,
+  Target,
+  Globe,
+  Bot,
+  PenTool,
+  Hash,
+  Compass,
+  Calendar,
+  Clock,
+  Send,
+  BarChart2,
+  Share2,
+  Search,
   ChevronDown,
+  Info,
+  CheckCircle2,
+  ArrowRight,
   HelpCircle,
+  AppWindow,
+  Cloud,
+  Megaphone,
+  SearchCheck,
+  ChartNoAxesCombined,
+  Settings2,
+  FilePen,
+  CalendarDays,
+  ChartPie,
 } from "lucide-react";
 
-const FAQ_ITEMS = [
+// Existing approved add-on pricing from centralized add-on catalog
+export const ADDON_PRICE_MONTHLY =
+  ADDON_CATALOG.digital_marketing_meta_suite?.pricing?.monthlyPriceUnapproved || 349;
+export const ADDON_PRICE_ANNUAL =
+  ADDON_CATALOG.digital_marketing_meta_suite?.pricing?.annualPriceUnapproved || 3490;
+
+// Approved FAQ items preserved
+export const FAQ_ITEMS = [
   {
     question: "What is Codeaxys AI Website Builder?",
     answer:
-      "Codeaxys is an AI powered website builder that helps you create, edit, and manage professional websites using simple instructions without needing to write code.",
+      "Codeaxys is an AI-powered website builder that helps you create, edit, and manage professional websites using simple conversational instructions without needing to write code.",
   },
   {
     question: "Do I need coding knowledge to use Codeaxys?",
     answer:
-      "No. You can create and customize your website using AI and visual editing tools without technical coding knowledge.",
+      "No. You can create and customize your website using AI prompts and our visual drag-and-drop editing canvas without any technical coding knowledge.",
   },
   {
     question: "What is included in every plan?",
     answer:
-      "Every plan includes AI website generation, website editing, unlimited page creation, responsive design tools, global styling controls, and essential Basic SEO features.",
+      "Every plan includes AI website generation, visual section editing, unlimited page creation, responsive design tools, global styling controls, clean HTML export, free SSL certificates, and essential Basic SEO features.",
   },
   {
     question: "How many websites can I create?",
     answer:
-      "The number of websites depends on your plan. Starter includes 1 website, Pro includes 3, Business includes 6, and Agency includes 15 websites.",
-  },
-  {
-    question: "Can I create multiple pages for my website?",
-    answer: "Yes. All plans include unlimited page creation.",
+      "The number of websites depends on your plan: Starter includes 1 website, Pro includes 3, Business includes 6, and Agency includes 15 websites.",
   },
   {
     question: "Can I connect my own domain?",
     answer:
-      "Yes. Starter includes 1 custom domain with an active paid subscription. Pro, Business, and Agency plans include custom domain connections for all your websites. Free plan includes fast hosting on your custom Codeaxys subdomain.",
+      "Yes. Every plan includes 1 Free Custom Domain connection (1 custom domain on Starter, and 1 custom domain included on Pro, Business, and Agency) with an active paid subscription. Connecting your own domain is included with your subscription.",
+  },
+  {
+    question: "How does the 10-day Free Trial work?",
+    answer:
+      "When you create your first website on the Free plan, it receives a 10-day initial trial with fast hosting (10-Day Free Trial Subdomain included) and 50 AI credits. During this trial, your website is publicly accessible. After 10 days, public visitor access is paused, but your website pages, designs, and content are safely preserved in your dashboard for 90 days. You can upgrade to an active paid plan anytime to restore public hosting and connect custom domains.",
   },
   {
     question: "Is SEO included in all plans?",
     answer:
-      "Yes. All plans include Basic SEO essentials (metadata, on-page analyzer, sitemaps). Advanced intelligence tools (Technical Crawling, Competitor Analysis, Internal Links, Content Studio, and GSC Sync) are included in Pro, Business, and Agency plans.",
+      "All plans include Basic SEO Essentials (on-page metadata, robots.txt, sitemaps, and local Cheerio audits). Advanced SEO tools and intelligence (Technical Crawling, Competitor Analysis, AI Content Suggestions, and GSC Sync) are included in Pro, Business, and Agency plans. Autonomous SEO Autopilot is available on Business and Agency, and White-Label Client Reports are exclusive to Agency.",
   },
   {
-    question: "Can I edit my website after it is generated?",
+    question: "What is the Digital Marketing Suite Add-on?",
     answer:
-      "Yes. You can continue editing, refining, and customizing your website after AI generation.",
-  },
-  {
-    question: "Can I upgrade my plan later?",
-    answer:
-      "Yes. You can upgrade your subscription as your website and business requirements grow.",
+      "The Digital Marketing Suite is an optional add-on available for any plan. It equips your websites with advanced SEO intelligence, multi-engine AI search visibility tracking, autonomous SEO autopilot, AI content marketing, marketing campaign planning, and advanced reporting.",
   },
   {
     question: "What are AI Credits used for?",
     answer:
-      "AI Credits are used for AI powered operations such as website generation and other AI assisted actions within the platform.",
+      "AI Credits are used for AI operations such as initial website generation (10 credits), AI visual editing (5 credits), full page regeneration (15 credits), and AI SEO content suggestions (5 credits). Credits replenish every 30 days without rollover.",
   },
   {
-    question: "Can I use Codeaxys for business websites?",
+    question: "Can I upgrade my plan later?",
     answer:
-      "Yes. Codeaxys can be used to create websites for businesses, agencies, startups, ecommerce businesses, professionals, and many other industries.",
+      "Yes. You can upgrade your subscription at any time as your website and business requirements grow.",
   },
   {
-    question: "Do I need separate tools for SEO?",
+    question: "Can I use Codeaxys for business and client websites?",
     answer:
-      "No. Codeaxys includes Basic SEO directly within all plans, and provides the full Advanced SEO Intelligence Suite in Pro, Business, and Agency plans.",
+      "Yes. Codeaxys is built for businesses, agencies, freelancers, startups, and professionals. Agency plans additionally include White-Label Client Reports and multi-user team collaboration.",
+  },
+];
+
+export interface PricingPlanMeta {
+  id: string;
+  name: string;
+  popular?: boolean;
+  description: string;
+  websiteLimit: string;
+  aiCredits: string;
+  storage: string;
+  domain: string;
+}
+
+// Exactly 4 plans with only plan-specific capacity values differing
+export const PRICING_PLANS: PricingPlanMeta[] = [
+  {
+    id: "starter",
+    name: "Starter",
+    description: "For individuals, startups and small businesses.",
+    websiteLimit: "1 Website",
+    aiCredits: "100 AI Credits / Month",
+    storage: "2 GB Storage",
+    domain: "1 Free Custom Domain",
+  },
+  {
+    id: "pro",
+    name: "Pro",
+    popular: true,
+    description: "For growing businesses and creators.",
+    websiteLimit: "3 Websites",
+    aiCredits: "200 AI Credits / Month",
+    storage: "10 GB Storage",
+    domain: "1 Free Custom Domain",
+  },
+  {
+    id: "business",
+    name: "Business",
+    description: "For established businesses and teams.",
+    websiteLimit: "6 Websites",
+    aiCredits: "400 AI Credits / Month",
+    storage: "30 GB Storage",
+    domain: "1 Free Custom Domain",
+  },
+  {
+    id: "agency",
+    name: "Agency",
+    description: "For agencies and web professionals.",
+    websiteLimit: "15 Websites",
+    aiCredits: "800 AI Credits / Month",
+    storage: "100 GB Storage",
+    domain: "1 Free Custom Domain",
+  },
+];
+
+// Meaningful Lucide icons mapped to each individual feature
+export const FEATURE_ICON_MAP: Record<string, React.ElementType> = {
+  // Website Builder
+  "AI Website Generation": Sparkles,
+  "AI Website Editing & Regeneration": Sliders,
+  "Visual Website Editor": Layout,
+  "Responsive Website Preview": Smartphone,
+  "SSL Security": ShieldCheck,
+  "Website Migration": ArrowRightLeft,
+  "Website Migration + Redesign": Palette,
+  "Contact Forms & Lead Capture": Mail,
+
+  // SEO Essentials
+  "SEO Meta Titles & Descriptions": FileText,
+  "Open Graph & Canonical URLs": Link2,
+  "XML Sitemap & Robots.txt": FileCode,
+  "Basic SEO Health Checks": Activity,
+  "Schema Markup": Code2,
+  "Focus Keywords & On-Page SEO": Target,
+  "SEO-Friendly URLs": Globe,
+  "LLMs.txt Generation": Bot,
+
+  // Social Media Management
+  "Social Media Content Creation": PenTool,
+  "AI Captions & Hashtag Generation": Hash,
+  "Social Media Campaign Planning": Compass,
+  "Social Media Content Calendar": Calendar,
+  "Social Media Post Scheduling": Clock,
+  "Social Media Publishing": Send,
+  "Social Media Performance Analytics": BarChart2,
+};
+
+// Single source of truth for all four cards (Identical features, section headings, order, and styling)
+export const SHARED_FEATURE_SECTIONS = [
+  {
+    category: "website_builder",
+    title: "WEBSITE BUILDER",
+    icon: Layout,
+    isBold: false,
+    collapsible: false,
+    headerBg: "bg-slate-50/90 border-slate-200/80 text-slate-800",
+    iconBg: "bg-purple-100 text-[#6938ef]",
+    features: [
+      "AI Website Generation",
+      "AI Website Editing & Regeneration",
+      "Visual Website Editor",
+      "Responsive Website Preview",
+      "SSL Security",
+      "Website Migration",
+      "Website Migration + Redesign",
+      "Contact Forms & Lead Capture",
+    ],
+  },
+  {
+    category: "seo_essentials",
+    title: "SEO ESSENTIALS",
+    icon: Search,
+    isBold: true,
+    collapsible: true,
+    headerBg: "bg-purple-50/70 hover:bg-purple-100/70 border-purple-200/90 text-slate-900",
+    iconBg: "bg-[#6938ef] text-white shadow-xs",
+    features: [
+      "SEO Meta Titles & Descriptions",
+      "Open Graph & Canonical URLs",
+      "XML Sitemap & Robots.txt",
+      "Basic SEO Health Checks",
+      "Schema Markup",
+      "Focus Keywords & On-Page SEO",
+      "SEO-Friendly URLs",
+      "LLMs.txt Generation",
+    ],
+  },
+  {
+    category: "social_media",
+    title: "SOCIAL MEDIA MANAGEMENT",
+    icon: Share2,
+    isBold: false,
+    collapsible: true,
+    headerBg: "bg-slate-50/90 hover:bg-slate-100/90 border-slate-200/80 text-slate-800",
+    iconBg: "bg-indigo-100 text-indigo-700",
+    features: [
+      "Social Media Content Creation",
+      "AI Captions & Hashtag Generation",
+      "Social Media Campaign Planning",
+      "Social Media Content Calendar",
+      "Social Media Post Scheduling",
+      "Social Media Publishing",
+      "Social Media Performance Analytics",
+    ],
+  },
+];
+
+// Approved Digital Marketing Suite Features (Strict 6 features with unified Lucide icon system)
+export const DIGITAL_MARKETING_FEATURES = [
+  {
+    title: "SEO Intelligence",
+    icon: SearchCheck,
+    description:
+      "Advanced technical SEO, competitor analysis, content gaps and keyword intelligence.",
+  },
+  {
+    title: "AI Search Visibility",
+    icon: ChartNoAxesCombined,
+    description: "AEO/GEO analysis and AI visibility tracking.",
+  },
+  {
+    title: "SEO Autopilot",
+    icon: Settings2,
+    description: "SEO opportunities, recommendations and proposed fixes.",
+  },
+  {
+    title: "AI Content Marketing",
+    icon: FilePen,
+    description: "SEO-friendly blogs, articles and social content.",
+  },
+  {
+    title: "Marketing Campaign Planning",
+    icon: CalendarDays,
+    description: "AI-assisted marketing strategy and content calendar.",
+  },
+  {
+    title: "Advanced Reporting",
+    icon: ChartPie,
+    description: "SEO progress reports and marketing insights.",
   },
 ];
 
@@ -94,17 +302,30 @@ export default function PricingPage() {
   const [isCheckoutOpen, setIsCheckoutOpen] = useState(false);
   const [loading, setLoading] = useState(true);
   const [openFaqIndex, setOpenFaqIndex] = useState<number | null>(0);
+  const [activeDomainTooltip, setActiveDomainTooltip] = useState<string | null>(null);
+
+  // Billing Duration Selector State: 1 Month, 12 Months, 36 Months
+  const [billingInterval, setBillingInterval] = useState<BillingInterval>("monthly");
+
+  // Digital Marketing Suite Add-on selection state
+  const [includeMarketingSuite, setIncludeMarketingSuite] = useState<boolean>(false);
+
+  // Sensible default state: SEO Essentials and Social Media Management start collapsed to keep cards compact and easy to scan.
+  // Website Builder is permanently displayed directly inside every pricing card.
+  const [openSections, setOpenSections] = useState<Record<string, boolean>>({
+    seo_essentials: false,
+    social_media: false,
+  });
+
+  const toggleSection = (category: string) => {
+    setOpenSections((prev) => ({
+      ...prev,
+      [category]: !prev[category],
+    }));
+  };
 
   useEffect(() => {
     fetchUserData();
-    if (typeof window !== "undefined" && window.location.hash === "#all-plans-include") {
-      setTimeout(() => {
-        const el = document.getElementById("all-plans-include");
-        if (el) {
-          el.scrollIntoView({ behavior: "smooth" });
-        }
-      }, 300);
-    }
   }, []);
 
   const fetchUserData = async () => {
@@ -144,103 +365,8 @@ export default function PricingPage() {
     router.push("/dashboard/billing");
   };
 
-  // 4 Primary Plans focused on Key Differences
-  const displayPlans = [PLANS.starter, PLANS.pro, PLANS.business, PLANS.agency].filter(Boolean);
-
-  // All Plans Include Feature Categories
-  const allPlansFeatures = [
-    {
-      title: "AI Website Builder",
-      icon: Wand2,
-      description: "Conversational website creation, instant code generation, and intelligent refinement.",
-      badgeColor: "bg-purple-100 text-purple-800 border-purple-200",
-      iconColor: "text-purple-600 bg-purple-50 border-purple-200",
-      features: [
-        "AI Website Generation",
-        "AI Website Editing",
-        "AI Website Refinement",
-        "Codeaxys AI Agent",
-        "Conversational Website Planning",
-        "AI Generated Content",
-        "Responsive Website Generation",
-        "Unlimited Page Creation",
-      ],
-    },
-    {
-      title: "Website Design & Editing",
-      icon: Palette,
-      description: "Visual editing canvas, custom section building, and global style controls.",
-      badgeColor: "bg-blue-100 text-blue-800 border-blue-200",
-      iconColor: "text-blue-600 bg-blue-50 border-blue-200",
-      features: [
-        "Website Sections",
-        "Page Management",
-        "Global Colors",
-        "Global Typography",
-        "Buttons & Design Settings",
-        "Responsive Editing",
-        "Media Management",
-        "Logo Support",
-        "Custom Sections",
-        "Website Preview",
-      ],
-    },
-    {
-      title: "Basic SEO & On-Page Essentials",
-      icon: Search,
-      description: "Essential on-page SEO metadata, Cheerio health audits, and search engine previews.",
-      badgeColor: "bg-emerald-100 text-emerald-800 border-emerald-200",
-      iconColor: "text-emerald-600 bg-emerald-50 border-emerald-200",
-      featured: true,
-      features: [
-        "On-Page Meta Title & Description",
-        "OpenGraph & Social Previews",
-        "Cheerio SEO Health Audit",
-        "Image Alt-Tag Analysis",
-        "Robots.txt & Sitemap Auto-Gen",
-        "Focus Keyword Targeting",
-        "Search Result Previews",
-        "Basic SEO Scorecard",
-      ],
-    },
-    {
-      title: "Website Hosting & Domains",
-      icon: Globe,
-      description: "Fast cloud hosting, custom domain connections, DNS configuration, and clean code export.",
-      badgeColor: "bg-indigo-100 text-indigo-800 border-indigo-200",
-      iconColor: "text-indigo-600 bg-indigo-50 border-indigo-200",
-      features: [
-        "Fast Subdomain Hosting (All Plans)",
-        "1 Custom Domain (Starter Plan)",
-        "Custom Domains (Pro, Business, Agency)",
-        "Website Publishing & Live Hosting",
-        "Website Dashboard & Settings",
-        "Clean HTML Export",
-      ],
-    },
-    {
-      title: "Content & Performance",
-      icon: Zap,
-      description: "Automated blogging, multi-device viewport optimization, and performance tracking.",
-      badgeColor: "bg-amber-100 text-amber-800 border-amber-200",
-      iconColor: "text-amber-600 bg-amber-50 border-amber-200",
-      features: [
-        "AI Content Creation",
-        "Blog Management",
-        "SEO Content Optimization",
-        "Content Refresh",
-        "Mobile Responsive Websites",
-        "Tablet Responsive Websites",
-        "Desktop Responsive Websites",
-        "Performance Insights",
-        "Website Health Insights",
-        "SEO Recommendations",
-      ],
-    },
-  ];
-
   return (
-    <div className="min-h-screen bg-slate-50 text-slate-900 flex flex-col justify-between">
+    <div className="min-h-screen bg-white text-slate-900 flex flex-col justify-between">
       {/* Homepage Header Navigation */}
       <Header
         onNewProject={() => router.push("/")}
@@ -252,391 +378,626 @@ export default function PricingPage() {
         onToggleSidebar={() => {}}
       />
 
-      {/* Main Body */}
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 flex-1 w-full">
+      {/* Main Body with increased container width for better readability */}
+      <main className="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8 py-10 sm:py-14 flex-1 w-full">
         {/* Test Mode Banner */}
-        <div className="max-w-3xl mx-auto mb-10 p-4 bg-amber-50 border border-amber-200 rounded-2xl flex items-center justify-center gap-3 text-amber-900 text-xs font-semibold text-center shadow-xs">
-          <span className="text-base">🧪</span>
+        <div className="max-w-3xl mx-auto mb-8 p-3 bg-amber-50/80 border border-amber-200/90 rounded-2xl flex items-center justify-center gap-2.5 text-amber-900 text-xs font-semibold text-center shadow-xs">
+          <span className="text-sm">🧪</span>
           <span>
-            <strong>TEST BILLING MODE ACTIVE:</strong> No real payments are processed. Upgrades use instant mock transaction simulation.
+            <strong>TEST BILLING MODE:</strong> Upgrades use safe mock transaction simulation. No real payment gateways or credit cards charged.
           </span>
         </div>
 
-        {/* Hero Headline */}
-        <div className="text-center max-w-3xl mx-auto mb-14 space-y-3">
-          <span className="px-3.5 py-1 bg-purple-100 text-purple-700 border border-purple-200/80 rounded-full text-xs font-bold uppercase tracking-wider inline-block">
-            Simple, Transparent Pricing
-          </span>
-          <h1 className="text-4xl sm:text-5xl font-extrabold text-slate-900 tracking-tight leading-tight">
-            Build Stunning AI Websites at Any Scale
+        {/* Hero Section */}
+        <div className="text-center max-w-4xl mx-auto mb-6 space-y-3">
+          <h1 className="text-3xl sm:text-4xl md:text-5xl font-black text-slate-900 tracking-tight leading-tight">
+            Choose the plan that fits your business
           </h1>
-          <p className="text-base text-slate-600 leading-relaxed max-w-2xl mx-auto font-normal">
-            Choose the plan that fits your business needs. Every plan includes full access to our AI Website Builder, Visual Canvas, and Basic SEO Essentials.
+          <p className="text-sm sm:text-base text-slate-600 leading-relaxed max-w-2xl mx-auto font-normal">
+            Build beautiful websites with AI, rank on Google and answer engines, and grow your digital presence.
           </p>
         </div>
 
-        {/* 1. PRICING PLANS GRID (4 Columns: Starter, Pro, Business, Agency) */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-20 items-stretch">
-          {displayPlans.map((plan) => {
+        {/* 2. BILLING DURATION SELECTOR: 1 Month, 12 Months, 36 Months */}
+        <div className="pt-2 pb-8 flex flex-col items-center">
+          <div className="inline-flex items-center p-1.5 bg-slate-100/90 rounded-2xl border border-slate-200/90 shadow-xs relative gap-1">
+            {/* 1 Month Tab */}
+            <button
+              type="button"
+              id="billing-tab-1month"
+              onClick={() => setBillingInterval("monthly")}
+              className={`px-6 py-2.5 rounded-xl text-xs sm:text-sm font-bold transition-all cursor-pointer ${
+                billingInterval === "monthly"
+                  ? "bg-white text-slate-900 shadow-sm border border-slate-200"
+                  : "text-slate-600 hover:text-slate-900"
+              }`}
+            >
+              1 Month
+            </button>
+
+            {/* 12 Months Tab */}
+            <button
+              type="button"
+              id="billing-tab-12months"
+              onClick={() => setBillingInterval("yearly")}
+              className={`px-6 py-2.5 rounded-xl text-xs sm:text-sm font-bold transition-all cursor-pointer flex items-center gap-1.5 ${
+                billingInterval === "yearly"
+                  ? "bg-white text-slate-900 shadow-sm border-2 border-[#6938ef]"
+                  : "text-slate-600 hover:text-slate-900"
+              }`}
+            >
+              <span>12 Months</span>
+              <span className="text-[10px] font-black text-[#6938ef] bg-purple-50 px-2 py-0.5 rounded-md border border-purple-200">
+                16.7% OFF
+              </span>
+            </button>
+
+            {/* 36 Months Tab */}
+            <button
+              type="button"
+              id="billing-tab-36months"
+              onClick={() => setBillingInterval("triennial")}
+              className={`px-6 py-2.5 rounded-xl text-xs sm:text-sm font-bold transition-all cursor-pointer flex items-center gap-1.5 ${
+                billingInterval === "triennial"
+                  ? "bg-white text-slate-900 shadow-sm border-2 border-[#6938ef]"
+                  : "text-slate-600 hover:text-slate-900"
+              }`}
+            >
+              <span>36 Months</span>
+              <span className="text-[10px] font-black text-[#6938ef] bg-purple-50 px-2 py-0.5 rounded-md border border-purple-200">
+                35% OFF
+              </span>
+            </button>
+          </div>
+        </div>
+
+        {/* 1. FOUR PRIMARY PRICING CARDS SIDE BY SIDE */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-12 items-stretch">
+          {PRICING_PLANS.map((plan) => {
             const isCurrent = currentPlanId === plan.id;
+            const calc = calculatePlanPrice(plan.id, billingInterval);
+
+            // Compute add-on amount based on billing duration
+            const addonAmount =
+              billingInterval === "yearly"
+                ? ADDON_PRICE_ANNUAL
+                : billingInterval === "triennial"
+                ? ADDON_PRICE_ANNUAL * 3
+                : ADDON_PRICE_MONTHLY;
+
+            const finalDisplayTotal = includeMarketingSuite
+              ? calc.finalTotal + addonAmount
+              : calc.finalTotal;
+
             return (
               <div
                 key={plan.id}
-                className={`relative bg-white border rounded-2xl p-6 flex flex-col justify-between transition-all ${
+                id={`pricing-card-${plan.id}`}
+                className={`relative bg-white rounded-3xl p-6 sm:p-7 flex flex-col justify-between transition-all duration-300 ${
                   plan.popular
-                    ? "border-purple-500 shadow-xl ring-2 ring-purple-500/20"
-                    : "border-slate-200 shadow-sm hover:shadow-md"
+                    ? "border-2 border-[#6938ef] shadow-xl shadow-purple-600/10 ring-4 ring-purple-500/10 hover:shadow-2xl hover:border-[#5b2bdc]"
+                    : "border border-slate-200/90 shadow-sm hover:shadow-xl hover:border-slate-300"
                 }`}
               >
+                {/* Most Popular Badge on Pro Card */}
                 {plan.popular && (
-                  <div className="absolute -top-3.5 left-1/2 -translate-x-1/2 px-3.5 py-0.5 bg-gradient-to-r from-purple-600 to-indigo-600 text-white text-[10px] font-extrabold uppercase tracking-widest rounded-full shadow-sm">
+                  <div className="absolute -top-3.5 left-1/2 -translate-x-1/2 px-4 py-1 bg-[#6938ef] text-white text-[11px] font-black uppercase tracking-wider rounded-full shadow-md shadow-purple-600/30 whitespace-nowrap flex items-center gap-1.5">
+                    <Sparkles className="w-3 h-3 text-purple-200" />
                     Most Popular
                   </div>
                 )}
 
                 <div>
-                  <h3 className="text-xl font-extrabold text-slate-900">{plan.name}</h3>
-
-                  <div className="flex items-baseline gap-1 mt-3 mb-6">
-                    <span className="text-3xl sm:text-4xl font-black text-slate-900 tracking-tight">
-                      ₹{plan.price.toLocaleString("en-IN")}
-                    </span>
-                    <span className="text-xs font-semibold text-slate-500">/ month</span>
+                  {/* 1. Plan Name */}
+                  <div className="flex items-center justify-between mb-1">
+                    <h3 className="text-2xl font-black text-slate-900 tracking-tight">
+                      {plan.name}
+                    </h3>
                   </div>
 
-                  {/* Key Plan Differences */}
-                  <div className="space-y-2.5 border-t border-slate-100 pt-5 mb-8">
-                    <div className="flex items-center justify-between text-xs py-1.5 px-3 bg-purple-50/70 border border-purple-100 rounded-xl">
-                      <span className="font-semibold text-slate-600">Websites</span>
-                      <strong className="font-extrabold text-purple-700">{plan.maxWebsites} {plan.maxWebsites === 1 ? "Website" : "Websites"}</strong>
+                  {/* 2. Price Display according to selected Duration */}
+                  <div className="mt-2 mb-3 min-h-[58px]">
+                    {billingInterval === "monthly" ? (
+                      /* 1 Month: Monthly price */
+                      <div>
+                        <div className="flex items-baseline gap-1.5 flex-wrap">
+                          <span className={`text-3xl sm:text-4xl font-black tracking-tight ${includeMarketingSuite ? "text-[#6938ef]" : "text-slate-900"}`}>
+                            ₹{finalDisplayTotal.toLocaleString("en-IN")}
+                          </span>
+                          <span className="text-xs font-semibold text-slate-500">
+                            / month
+                          </span>
+                        </div>
+                        {includeMarketingSuite ? (
+                          <div className="text-[11px] text-slate-500 font-medium mt-1">
+                            Base: ₹{calc.finalTotal.toLocaleString("en-IN")} + Add-on: ₹{addonAmount} / mo
+                          </div>
+                        ) : (
+                          <div className="text-[11px] text-slate-400 font-medium mt-1">
+                            Billed monthly
+                          </div>
+                        )}
+                      </div>
+                    ) : billingInterval === "yearly" ? (
+                      /* 12 Months: Strikethrough reference, prepaid total, savings, effective monthly */
+                      <div>
+                        <div className="flex items-baseline gap-1.5 flex-wrap">
+                          {!includeMarketingSuite && (
+                            <span className="text-sm font-semibold text-slate-400 line-through">
+                              ₹{calc.referencePrice.toLocaleString("en-IN")}
+                            </span>
+                          )}
+                          <span className={`text-3xl sm:text-4xl font-black tracking-tight ${includeMarketingSuite ? "text-[#6938ef]" : "text-slate-900"}`}>
+                            ₹{finalDisplayTotal.toLocaleString("en-IN")}
+                          </span>
+                          <span className="text-xs font-semibold text-slate-500">
+                            / 12 months
+                          </span>
+                        </div>
+                        {includeMarketingSuite ? (
+                          <div className="text-[11px] text-slate-500 font-medium mt-1">
+                            Base: ₹{calc.finalTotal.toLocaleString("en-IN")} + Add-on: ₹{addonAmount.toLocaleString("en-IN")}
+                            <span className="text-purple-700 font-bold ml-1">
+                              (Effective ₹{Math.round(finalDisplayTotal / 12).toLocaleString("en-IN")}/mo)
+                            </span>
+                          </div>
+                        ) : (
+                          <div className="mt-1 flex items-center gap-1.5 flex-wrap">
+                            <span className="text-[10px] font-extrabold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-md border border-emerald-200">
+                              Save ₹{calc.savingsAmount.toLocaleString("en-IN")} (16.7% OFF)
+                            </span>
+                            <span className="text-[11px] text-slate-500 font-medium">
+                              Effective ₹{Math.round(calc.effectiveMonthlyPrice).toLocaleString("en-IN")}/mo
+                            </span>
+                          </div>
+                        )}
+                      </div>
+                    ) : (
+                      /* 36 Months: Strikethrough reference, prepaid total, savings, effective monthly */
+                      <div>
+                        <div className="flex items-baseline gap-1.5 flex-wrap">
+                          {!includeMarketingSuite && (
+                            <span className="text-sm font-semibold text-slate-400 line-through">
+                              ₹{calc.referencePrice.toLocaleString("en-IN")}
+                            </span>
+                          )}
+                          <span className={`text-3xl sm:text-4xl font-black tracking-tight ${includeMarketingSuite ? "text-[#6938ef]" : "text-slate-900"}`}>
+                            ₹{finalDisplayTotal.toLocaleString("en-IN")}
+                          </span>
+                          <span className="text-xs font-semibold text-slate-500">
+                            / 36 months
+                          </span>
+                        </div>
+                        {includeMarketingSuite ? (
+                          <div className="text-[11px] text-slate-500 font-medium mt-1">
+                            Base: ₹{calc.finalTotal.toLocaleString("en-IN")} + Add-on: ₹{addonAmount.toLocaleString("en-IN")}
+                            <span className="text-purple-700 font-bold ml-1">
+                              (Effective ₹{Math.round(finalDisplayTotal / 36).toLocaleString("en-IN")}/mo)
+                            </span>
+                          </div>
+                        ) : (
+                          <div className="mt-1 flex items-center gap-1.5 flex-wrap">
+                            <span className="text-[10px] font-extrabold text-[#6938ef] bg-purple-50 px-2 py-0.5 rounded-md border border-purple-200">
+                              Save ₹{calc.savingsAmount.toLocaleString("en-IN")} (35% OFF)
+                            </span>
+                            <span className="text-[11px] text-slate-500 font-medium">
+                              Effective ₹{Math.round(calc.effectiveMonthlyPrice).toLocaleString("en-IN")}/mo
+                            </span>
+                          </div>
+                        )}
+                      </div>
+                    )}
+                  </div>
+
+                  {/* 36-Month 1 Free Domain Offer Banner */}
+                  {billingInterval === "triennial" && (
+                    <div className="mb-4 p-2 bg-purple-50/80 border border-purple-200 rounded-xl flex items-center justify-between text-xs">
+                      <span className="font-bold text-purple-950 flex items-center gap-1.5 text-[11px]">
+                        <Sparkles className="w-3.5 h-3.5 text-[#6938ef] shrink-0" />
+                        1 Free Domain · First Year Free*
+                      </span>
+                      <div className="relative">
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setActiveDomainTooltip(activeDomainTooltip === plan.id ? null : plan.id);
+                          }}
+                          onMouseEnter={() => setActiveDomainTooltip(plan.id)}
+                          onMouseLeave={() => setActiveDomainTooltip(null)}
+                          className="p-1 text-[#6938ef] hover:text-purple-900 hover:bg-purple-100 rounded-full transition-colors cursor-pointer"
+                          aria-label="Domain offer details"
+                        >
+                          <Info className="w-3.5 h-3.5" />
+                        </button>
+
+                        {activeDomainTooltip === plan.id && (
+                          <div className="absolute bottom-full right-0 mb-2 w-72 p-3 bg-slate-900 text-white text-[11px] leading-relaxed rounded-2xl shadow-xl z-50 border border-slate-800 text-left cursor-default animate-in fade-in duration-150">
+                            <strong className="text-white block mb-1">36-Month Domain Policy:</strong>
+                            <p className="text-slate-300">
+                              Every qualifying 36-month subscription receives a maximum of 1 free eligible standard domain registration (.com, .in, .net, .org) for the 1st year. Note that multiple websites do not grant multiple free domain registrations. Standard registry renewal fees apply for Years 2 and 3.
+                            </p>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* 3. Short Description */}
+                  <p className="text-xs text-slate-600 font-medium mb-4 min-h-[32px] leading-relaxed">
+                    {plan.description}
+                  </p>
+
+                  {/* Plan Specifications Panel (Matching visual reference design) */}
+                  <div className="mb-6 bg-slate-50/80 rounded-2xl p-3 sm:p-3.5 border border-slate-200/70 divide-y divide-slate-200/60">
+                    {/* 1. Website Limit */}
+                    <div className="flex items-center gap-3 py-2.5 first:pt-0.5 last:pb-0.5">
+                      <div className="w-9 h-9 rounded-xl bg-purple-100/90 text-[#6938ef] flex items-center justify-center shrink-0">
+                        <AppWindow className="w-4 h-4" strokeWidth={2.2} />
+                      </div>
+                      <span className="text-sm font-extrabold text-slate-900 tracking-tight">
+                        {plan.websiteLimit}
+                      </span>
                     </div>
 
-                    <div className="flex items-center justify-between text-xs py-1.5 px-3 bg-slate-50 border border-slate-100 rounded-xl">
-                      <span className="font-semibold text-slate-600">AI Credits / Month</span>
-                      <strong className="font-extrabold text-slate-900">{plan.monthlyCredits.toLocaleString()} Credits</strong>
+                    {/* 2. Monthly AI Credits */}
+                    <div className="flex items-center gap-3 py-2.5 first:pt-0.5 last:pb-0.5">
+                      <div className="w-9 h-9 rounded-xl bg-purple-100/90 text-[#6938ef] flex items-center justify-center shrink-0">
+                        <Sparkles className="w-4 h-4" strokeWidth={2.2} />
+                      </div>
+                      <span className="text-sm font-extrabold text-slate-900 tracking-tight">
+                        {plan.aiCredits}
+                      </span>
                     </div>
 
-                    <div className="flex items-center justify-between text-xs py-1.5 px-3 bg-emerald-50/70 border border-emerald-100 rounded-xl">
-                      <span className="font-semibold text-slate-600">Storage</span>
-                      <strong className="font-extrabold text-emerald-700">{plan.storageLimitFormatted}</strong>
+                    {/* 3. Storage Capacity */}
+                    <div className="flex items-center gap-3 py-2.5 first:pt-0.5 last:pb-0.5">
+                      <div className="w-9 h-9 rounded-xl bg-purple-100/90 text-[#6938ef] flex items-center justify-center shrink-0">
+                        <Cloud className="w-4 h-4" strokeWidth={2.2} />
+                      </div>
+                      <span className="text-sm font-extrabold text-slate-900 tracking-tight">
+                        {plan.storage}
+                      </span>
                     </div>
 
-                    <div className="flex items-center justify-between text-xs py-1.5 px-3 bg-blue-50/70 border border-blue-100 rounded-xl">
-                      <span className="font-semibold text-slate-600">Custom Domain</span>
-                      <strong className="font-extrabold text-blue-700">{plan.id === "starter" ? "1 Custom Domain" : "Custom Domains"}</strong>
+                    {/* 4. Custom Domain Allowance */}
+                    <div className="flex items-center gap-3 py-2.5 first:pt-0.5 last:pb-0.5">
+                      <div className="w-9 h-9 rounded-xl bg-purple-100/90 text-[#6938ef] flex items-center justify-center shrink-0">
+                        <Globe className="w-4 h-4" strokeWidth={2.2} />
+                      </div>
+                      <span className="text-sm font-extrabold text-slate-900 tracking-tight">
+                        {plan.domain}
+                      </span>
                     </div>
+                  </div>
 
-                    <div className="flex items-center justify-between text-xs py-1.5 px-3 bg-amber-50/70 border border-amber-100 rounded-xl">
-                      <span className="font-semibold text-slate-600">SEO Suite</span>
-                      <strong className="font-extrabold text-amber-700">{plan.id === "starter" ? "Basic SEO" : "Advanced SEO Suite"}</strong>
-                    </div>
+                  {/* 8. Feature List: Always-visible Website Builder + Expandable SEO Essentials & Social Media */}
+                  <div className="space-y-4 text-xs">
+                    {SHARED_FEATURE_SECTIONS.map((section) => {
+                      const isExpanded = Boolean(openSections[section.category]);
+                      const SectionIcon = section.icon;
+
+                      if (!section.collapsible) {
+                        // Always-visible static section (Website Builder): No button, no chevron, no badge
+                        return (
+                          <div
+                            key={section.category}
+                            className="rounded-2xl border border-slate-200/80 overflow-hidden bg-white shadow-2xs"
+                          >
+                            {/* Static Section Header */}
+                            <div
+                              className={`w-full p-2.5 sm:px-3 sm:py-2.5 flex items-center justify-between text-left border-b border-slate-200/70 ${section.headerBg}`}
+                            >
+                              <div className="flex items-center gap-2">
+                                <div
+                                  className={`w-5 h-5 rounded-md flex items-center justify-center shrink-0 ${section.iconBg}`}
+                                >
+                                  <SectionIcon className="w-3 h-3" />
+                                </div>
+                                <span
+                                  className={`text-[11px] tracking-wider uppercase ${
+                                    section.isBold
+                                      ? "font-black text-slate-900"
+                                      : "font-extrabold text-slate-800"
+                                  }`}
+                                >
+                                  {section.title}
+                                </span>
+                              </div>
+                            </div>
+
+                            {/* All 8 features always displayed directly inside every pricing card */}
+                            <div
+                              className={`p-3 space-y-2.5 ${
+                                section.isBold
+                                  ? "font-bold text-slate-900 bg-purple-50/20"
+                                  : "font-medium text-slate-600 bg-slate-50/30"
+                              }`}
+                            >
+                              {section.features.map((feat, fIdx) => {
+                                const FeatureIcon = FEATURE_ICON_MAP[feat] || CheckCircle2;
+
+                                return (
+                                  <div
+                                    key={fIdx}
+                                    className="flex items-start gap-2.5 leading-snug"
+                                  >
+                                    <FeatureIcon
+                                      className={`w-3.5 h-3.5 shrink-0 mt-0.5 ${
+                                        section.isBold
+                                          ? "text-[#6938ef]"
+                                          : "text-slate-400"
+                                      }`}
+                                      strokeWidth={2}
+                                    />
+                                    <span>{feat}</span>
+                                  </div>
+                                );
+                              })}
+                            </div>
+                          </div>
+                        );
+                      }
+
+                      // Expandable sections (SEO Essentials & Social Media Management): No feature count badge
+                      return (
+                        <div
+                          key={section.category}
+                          className="rounded-2xl border border-slate-200/80 overflow-hidden bg-white shadow-2xs"
+                        >
+                          {/* Interactive Section Header: Section icon, title, rotating chevron. No feature count badge */}
+                          <button
+                            type="button"
+                            onClick={() => toggleSection(section.category)}
+                            className={`w-full p-2.5 sm:px-3 sm:py-2.5 flex items-center justify-between text-left transition-colors cursor-pointer select-none border-b ${
+                              isExpanded ? "border-slate-200/70" : "border-transparent"
+                            } ${section.headerBg}`}
+                            aria-expanded={isExpanded}
+                          >
+                            <div className="flex items-center gap-2">
+                              <div
+                                className={`w-5 h-5 rounded-md flex items-center justify-center shrink-0 ${section.iconBg}`}
+                              >
+                                <SectionIcon className="w-3 h-3" />
+                              </div>
+                              <span
+                                className={`text-[11px] tracking-wider uppercase ${
+                                  section.isBold
+                                    ? "font-black text-slate-900"
+                                    : "font-extrabold text-slate-800"
+                                }`}
+                              >
+                                {section.title}
+                              </span>
+                            </div>
+
+                            <div className="flex items-center">
+                              <ChevronDown
+                                className={`w-4 h-4 transition-transform duration-300 ${
+                                  section.isBold ? "text-[#6938ef]" : "text-slate-400"
+                                } ${isExpanded ? "rotate-180" : ""}`}
+                              />
+                            </div>
+                          </button>
+
+                          {/* Smooth Accordion Body (CSS Grid Rows Animation) */}
+                          <div
+                            className={`grid transition-[grid-template-rows,opacity] duration-300 ease-in-out ${
+                              isExpanded ? "grid-rows-[1fr] opacity-100" : "grid-rows-[0fr] opacity-0"
+                            }`}
+                          >
+                            <div className="overflow-hidden">
+                              <div
+                                className={`p-3 space-y-2.5 ${
+                                  section.isBold
+                                    ? "font-bold text-slate-900 bg-purple-50/20"
+                                    : "font-medium text-slate-600 bg-slate-50/30"
+                                }`}
+                              >
+                                {section.features.map((feat, fIdx) => {
+                                  const FeatureIcon = FEATURE_ICON_MAP[feat] || CheckCircle2;
+
+                                  return (
+                                    <div
+                                      key={fIdx}
+                                      className="flex items-start gap-2.5 leading-snug"
+                                    >
+                                      <FeatureIcon
+                                        className={`w-3.5 h-3.5 shrink-0 mt-0.5 ${
+                                          section.isBold
+                                            ? "text-[#6938ef]"
+                                            : "text-slate-400"
+                                        }`}
+                                        strokeWidth={2}
+                                      />
+                                      <span>{feat}</span>
+                                    </div>
+                                  );
+                                })}
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    })}
                   </div>
                 </div>
 
-                <button
-                  onClick={() => handlePlanClick(plan.id)}
-                  disabled={isCurrent}
-                  className={`w-full py-3 px-4 rounded-xl font-bold text-xs transition-all shadow-xs ${
-                    isCurrent
-                      ? "bg-slate-100 text-slate-400 border border-slate-200 cursor-not-allowed"
-                      : plan.popular
-                      ? "bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white shadow-purple-200 active:scale-95"
-                      : "bg-slate-900 hover:bg-slate-800 text-white active:scale-95"
-                  }`}
-                >
-                  {isCurrent ? "Current Active Plan" : `Upgrade to ${plan.name}`}
-                </button>
+                {/* 9. Existing Plan CTA Button */}
+                <div className="mt-8 pt-4 border-t border-slate-100">
+                  <button
+                    id={`btn-get-plan-${plan.id}`}
+                    onClick={() => handlePlanClick(plan.id)}
+                    disabled={isCurrent}
+                    className={`w-full py-3.5 px-4 rounded-xl font-bold text-xs sm:text-sm transition-all flex items-center justify-center gap-2 cursor-pointer shadow-xs ${
+                      isCurrent
+                        ? "bg-slate-100 text-slate-400 border border-slate-200 cursor-not-allowed"
+                        : plan.popular
+                        ? "bg-[#6938ef] hover:bg-[#5928df] text-white shadow-purple-600/20 active:scale-98"
+                        : "bg-slate-900 hover:bg-slate-800 text-white active:scale-98"
+                    }`}
+                  >
+                    <span>{isCurrent ? "Current Active Plan" : `Get ${plan.name} Plan`}</span>
+                    {!isCurrent && <ArrowRight className="w-4 h-4" />}
+                  </button>
+                </div>
               </div>
             );
           })}
         </div>
 
-        {/* 2. ALL PLANS INCLUDE SECTION (Seamless Layout - Outer Container Box Removed) */}
-        <section id="all-plans-include" className="relative space-y-12 py-8 w-full">
-          {/* Section Header */}
-          <div className="text-center max-w-3xl mx-auto space-y-3 relative z-10">
-            <span className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-purple-100/80 border border-purple-200 text-purple-900 text-xs font-bold uppercase tracking-wider shadow-2xs">
-              <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-              Complete Core Platform Capabilities
-            </span>
-            <h2 className="text-3xl sm:text-5xl font-black text-slate-900 tracking-tight">
-              All Plans Include
-            </h2>
-            <p className="text-sm sm:text-base text-slate-600 leading-relaxed max-w-2xl mx-auto font-normal">
-              Every subscription tier includes our AI Website Builder, visual editing canvas, essential on-page SEO, and fast cloud hosting.
-            </p>
-          </div>
-
-          <div className="space-y-8 relative z-10 w-full">
-            {/* HERO FEATURE BLOCK: Tiered SEO Suite Architecture */}
-            <div className="bg-gradient-to-r from-slate-950 via-purple-950 to-slate-950 text-white rounded-3xl p-8 sm:p-10 border border-purple-500/40 shadow-2xl relative overflow-hidden w-full">
-              {/* Subtle Glowing Radial Light Glow */}
-              <div className="absolute top-0 right-0 w-96 h-96 bg-purple-600/20 rounded-full blur-3xl pointer-events-none" />
-              <div className="absolute bottom-0 left-0 w-96 h-96 bg-indigo-600/20 rounded-full blur-3xl pointer-events-none" />
-
-              <div className="relative z-10 space-y-8">
-                {/* Header */}
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-purple-800/60 pb-6">
-                  <div className="flex items-center gap-4">
-                    <div className="w-12 h-12 rounded-2xl bg-purple-600/30 border border-purple-400/40 text-purple-300 flex items-center justify-center shrink-0 shadow-lg shadow-purple-900/40">
-                      <Search className="w-6 h-6" />
-                    </div>
-                    <div>
-                      <div className="flex items-center gap-2">
-                        <h3 className="text-xl sm:text-2xl font-black text-white tracking-tight">
-                          SEO Intelligence & Audit Suite
-                        </h3>
-                        <span className="bg-purple-500/30 text-purple-200 text-[10px] font-extrabold uppercase px-2.5 py-0.5 rounded-full border border-purple-400/40">
-                          Tiered Access: Basic on All Plans • Advanced on Pro+
-                        </span>
-                      </div>
-                      <p className="text-xs text-slate-300 mt-1 font-medium">
-                        Essential on-page SEO included in all tiers; Deep technical crawls, competitor intelligence, and automated fixes on Pro, Business, and Agency plans.
-                      </p>
-                    </div>
-                  </div>
+        {/* 4. DIGITAL MARKETING SUITE ADD-ON (High-Impact Premium Feature Section) */}
+        <section id="digital-marketing-suite-addon" className="w-full my-14">
+          <div
+            className={`rounded-3xl p-6 sm:p-10 transition-all duration-300 space-y-8 ${
+              includeMarketingSuite
+                ? "bg-[#FAF5FF] border-2 border-[#A60BFF] shadow-xl shadow-purple-600/10 ring-4 ring-[#A60BFF]/10"
+                : "bg-[#FCF9FF] border-2 border-purple-200/90 shadow-md shadow-purple-900/5 hover:border-purple-300"
+            }`}
+          >
+            {/* Panel Header */}
+            <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6 pb-8 border-b border-purple-200/70">
+              <div className="space-y-3 max-w-2xl">
+                <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white border border-[#A60BFF]/25 text-[#A60BFF] text-xs font-black uppercase tracking-wider shadow-2xs">
+                  <Megaphone className="w-3.5 h-3.5 text-[#A60BFF]" strokeWidth={2.2} />
+                  <span>Comprehensive Growth Platform</span>
                 </div>
 
-                {/* 4 Feature Groups clearly labeled */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 w-full">
-                  {/* Group 1 */}
-                  <div className="space-y-3 bg-purple-950/50 p-4 rounded-2xl border border-purple-800/60 w-full">
-                    <div className="flex items-center justify-between">
-                      <h4 className="text-xs font-extrabold uppercase tracking-wider text-purple-300 flex items-center gap-1.5">
-                        <Sparkles className="w-3.5 h-3.5 text-purple-400" /> Basic SEO Essentials
-                      </h4>
-                      <span className="text-[9px] font-bold uppercase px-1.5 py-0.5 rounded bg-emerald-500/20 text-emerald-300">All Plans</span>
-                    </div>
-                    <ul className="space-y-2 text-xs font-medium text-slate-200">
-                      <li className="flex items-center gap-2"><CheckCircle2 className="w-3.5 h-3.5 text-emerald-400 shrink-0" /> On-Page Meta Title & Description</li>
-                      <li className="flex items-center gap-2"><CheckCircle2 className="w-3.5 h-3.5 text-emerald-400 shrink-0" /> OpenGraph & Social Previews</li>
-                      <li className="flex items-center gap-2"><CheckCircle2 className="w-3.5 h-3.5 text-emerald-400 shrink-0" /> Local Cheerio Health Audit</li>
-                      <li className="flex items-center gap-2"><CheckCircle2 className="w-3.5 h-3.5 text-emerald-400 shrink-0" /> Image Alt-Tag Scanner</li>
-                      <li className="flex items-center gap-2"><CheckCircle2 className="w-3.5 h-3.5 text-emerald-400 shrink-0" /> Robots.txt & Sitemap Generator</li>
-                      <li className="flex items-center gap-2"><CheckCircle2 className="w-3.5 h-3.5 text-emerald-400 shrink-0" /> Focus Keyword Targeting</li>
-                    </ul>
-                  </div>
-
-                  {/* Group 2 */}
-                  <div className="space-y-3 bg-purple-950/50 p-4 rounded-2xl border border-purple-800/60 w-full">
-                    <div className="flex items-center justify-between">
-                      <h4 className="text-xs font-extrabold uppercase tracking-wider text-indigo-300 flex items-center gap-1.5">
-                        <Zap className="w-3.5 h-3.5 text-indigo-400" /> Technical & Links
-                      </h4>
-                      <span className="text-[9px] font-bold uppercase px-1.5 py-0.5 rounded bg-purple-500/30 text-purple-200">Pro+</span>
-                    </div>
-                    <ul className="space-y-2 text-xs font-medium text-slate-200">
-                      <li className="flex items-center gap-2"><CheckCircle2 className="w-3.5 h-3.5 text-indigo-400 shrink-0" /> Deep Technical Site Crawl</li>
-                      <li className="flex items-center gap-2"><CheckCircle2 className="w-3.5 h-3.5 text-indigo-400 shrink-0" /> Internal Linking Graph Engine</li>
-                      <li className="flex items-center gap-2"><CheckCircle2 className="w-3.5 h-3.5 text-indigo-400 shrink-0" /> Crawl Health Diagnostics</li>
-                      <li className="flex items-center gap-2"><CheckCircle2 className="w-3.5 h-3.5 text-indigo-400 shrink-0" /> Broken Link & Redirect Tracker</li>
-                      <li className="flex items-center gap-2"><CheckCircle2 className="w-3.5 h-3.5 text-indigo-400 shrink-0" /> Page Load & Core Web Vitals</li>
-                      <li className="flex items-center gap-2"><CheckCircle2 className="w-3.5 h-3.5 text-indigo-400 shrink-0" /> Automated Schema Markup</li>
-                    </ul>
-                  </div>
-
-                  {/* Group 3 */}
-                  <div className="space-y-3 bg-purple-950/50 p-4 rounded-2xl border border-purple-800/60 w-full">
-                    <div className="flex items-center justify-between">
-                      <h4 className="text-xs font-extrabold uppercase tracking-wider text-cyan-300 flex items-center gap-1.5">
-                        <Globe className="w-3.5 h-3.5 text-cyan-400" /> Intelligence Studio
-                      </h4>
-                      <span className="text-[9px] font-bold uppercase px-1.5 py-0.5 rounded bg-purple-500/30 text-purple-200">Pro+</span>
-                    </div>
-                    <ul className="space-y-2 text-xs font-medium text-slate-200">
-                      <li className="flex items-center gap-2"><CheckCircle2 className="w-3.5 h-3.5 text-cyan-400 shrink-0" /> Competitor Domain Tracking</li>
-                      <li className="flex items-center gap-2"><CheckCircle2 className="w-3.5 h-3.5 text-cyan-400 shrink-0" /> Content Gap Discovery</li>
-                      <li className="flex items-center gap-2"><CheckCircle2 className="w-3.5 h-3.5 text-cyan-400 shrink-0" /> Topical Authority Mapping</li>
-                      <li className="flex items-center gap-2"><CheckCircle2 className="w-3.5 h-3.5 text-cyan-400 shrink-0" /> SEO Content Studio</li>
-                      <li className="flex items-center gap-2"><CheckCircle2 className="w-3.5 h-3.5 text-cyan-400 shrink-0" /> Opportunity Scan Engine</li>
-                      <li className="flex items-center gap-2"><CheckCircle2 className="w-3.5 h-3.5 text-cyan-400 shrink-0" /> Google Search Console Sync</li>
-                    </ul>
-                  </div>
-
-                  {/* Group 4 */}
-                  <div className="space-y-3 bg-purple-950/50 p-4 rounded-2xl border border-purple-800/60 w-full">
-                    <div className="flex items-center justify-between">
-                      <h4 className="text-xs font-extrabold uppercase tracking-wider text-emerald-300 flex items-center gap-1.5">
-                        <ShieldCheck className="w-3.5 h-3.5 text-emerald-400" /> AI Agent & Reports
-                      </h4>
-                      <span className="text-[9px] font-bold uppercase px-1.5 py-0.5 rounded bg-purple-500/30 text-purple-200">Pro & Agency</span>
-                    </div>
-                    <ul className="space-y-2 text-xs font-medium text-slate-200">
-                      <li className="flex items-center gap-2"><CheckCircle2 className="w-3.5 h-3.5 text-emerald-400 shrink-0" /> Autonomous SEO AI Agent</li>
-                      <li className="flex items-center gap-2"><CheckCircle2 className="w-3.5 h-3.5 text-emerald-400 shrink-0" /> One-Click AI SEO Fixes</li>
-                      <li className="flex items-center gap-2"><CheckCircle2 className="w-3.5 h-3.5 text-emerald-400 shrink-0" /> SEO Autopilot Engine</li>
-                      <li className="flex items-center gap-2"><CheckCircle2 className="w-3.5 h-3.5 text-emerald-400 shrink-0" /> Real-time Performance Metrics</li>
-                      <li className="flex items-center gap-2"><CheckCircle2 className="w-3.5 h-3.5 text-emerald-400 shrink-0" /> Automated Audit Reports</li>
-                      <li className="flex items-center gap-2"><CheckCircle2 className="w-3.5 h-3.5 text-emerald-400 shrink-0" /> Agency White-Label Reports (Agency)</li>
-                    </ul>
-                  </div>
+                <div className="flex items-center gap-3.5 flex-wrap">
+                  <h2 className="text-3xl sm:text-4xl font-black text-slate-900 tracking-tight leading-tight">
+                    Digital Marketing Suite
+                  </h2>
+                  <span className="text-xs sm:text-sm font-black text-[#A60BFF] bg-white px-3.5 py-1 rounded-full border-2 border-[#A60BFF]/30 shadow-xs whitespace-nowrap">
+                    {billingInterval === "yearly"
+                      ? `+₹${ADDON_PRICE_ANNUAL.toLocaleString("en-IN")} / 12 months (+₹${ADDON_PRICE_MONTHLY}/mo)`
+                      : billingInterval === "triennial"
+                      ? `+₹${ADDON_PRICE_ANNUAL.toLocaleString("en-IN")} / year recurring (+₹${ADDON_PRICE_MONTHLY}/mo)`
+                      : `+₹${ADDON_PRICE_MONTHLY} / month`}
+                  </span>
                 </div>
+
+                <p className="text-sm sm:text-base text-slate-600 leading-relaxed font-normal">
+                  Equip your websites with advanced SEO intelligence, multi-engine AI search visibility tracking, autonomous SEO autopilot, and automated marketing campaigns.
+                </p>
+              </div>
+
+              {/* Checkbox Selection Control */}
+              <div className="shrink-0">
+                <label
+                  htmlFor="include-digital-marketing-suite"
+                  className={`inline-flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-4 sm:px-6 sm:py-4 rounded-2xl cursor-pointer select-none transition-all duration-200 border-2 ${
+                    includeMarketingSuite
+                      ? "bg-white border-[#A60BFF] shadow-md shadow-[#A60BFF]/20 ring-2 ring-[#A60BFF]/20"
+                      : "bg-white hover:bg-[#F5EBFF]/50 border-purple-200/90 shadow-2xs hover:border-[#A60BFF]/40"
+                  }`}
+                >
+                  <div className="flex items-center gap-3.5">
+                    <input
+                      type="checkbox"
+                      id="include-digital-marketing-suite"
+                      checked={includeMarketingSuite}
+                      onChange={(e) => setIncludeMarketingSuite(e.target.checked)}
+                      className="w-5 h-5 rounded text-[#A60BFF] border-slate-300 focus:ring-[#A60BFF] cursor-pointer accent-[#A60BFF] shrink-0"
+                    />
+                    <div className="text-left">
+                      <span className="block text-sm sm:text-base font-extrabold text-slate-900 tracking-tight">
+                        Include Digital Marketing Suite
+                      </span>
+                      <span className="text-xs text-slate-500 font-medium">
+                        Optional add-on for any website plan
+                      </span>
+                    </div>
+                  </div>
+                  <div className="sm:pl-4 sm:border-l sm:border-slate-200/80">
+                    <span className="inline-flex items-center px-3 py-1 rounded-xl bg-[#F5EBFF] text-[#A60BFF] font-black text-xs sm:text-sm border border-[#A60BFF]/25 shadow-2xs">
+                      {billingInterval === "yearly"
+                        ? `+₹${ADDON_PRICE_ANNUAL}/12m`
+                        : billingInterval === "triennial"
+                        ? `+₹${ADDON_PRICE_ANNUAL}/yr`
+                        : `+₹${ADDON_PRICE_MONTHLY}/mo`}
+                    </span>
+                  </div>
+                </label>
               </div>
             </div>
 
-            {/* BENTO GRID: 4 Core Platform Feature Cards */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 w-full">
-              {/* Card 1: AI Website Builder */}
-              <div className="bg-white border border-purple-200/80 hover:border-purple-300 shadow-md hover:shadow-lg transition-all duration-300 rounded-3xl p-6 sm:p-8 flex flex-col justify-between group w-full h-full">
-                <div className="space-y-5">
-                  <div className="flex items-start justify-between">
-                    <div className="flex items-center gap-3">
-                      <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-purple-600 to-indigo-600 text-white flex items-center justify-center shrink-0 shadow-md shadow-purple-600/25">
-                        <Wand2 className="w-6 h-6" />
-                      </div>
-                      <div>
-                        <h3 className="text-lg font-extrabold text-slate-900">AI Website Builder</h3>
-                        <span className="text-[10px] font-extrabold uppercase tracking-wider text-purple-700 bg-purple-50 px-2.5 py-0.5 rounded-full border border-purple-200">
-                          Conversational Engine
-                        </span>
-                      </div>
-                    </div>
+            {/* Selection Status Feedback */}
+            {includeMarketingSuite ? (
+              <div className="p-4 bg-white/95 border border-[#A60BFF]/30 rounded-2xl flex items-center justify-between text-xs sm:text-sm text-slate-900 font-medium shadow-xs">
+                <div className="flex items-center gap-3">
+                  <div className="w-7 h-7 rounded-lg bg-[#F5EBFF] flex items-center justify-center shrink-0">
+                    <CheckCircle2 className="w-4 h-4 text-[#A60BFF]" strokeWidth={2.5} />
                   </div>
-
-                  <p className="text-xs text-slate-600 leading-relaxed font-medium">
-                    Conversational website planning, instant code generation, and intelligent prompt refinement.
-                  </p>
-
-                  <ul className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 pt-3 border-t border-slate-100 text-xs font-semibold text-slate-700">
-                    <li className="flex items-center gap-2"><CheckCircle2 className="w-4 h-4 text-purple-600 shrink-0" /> AI Website Generation</li>
-                    <li className="flex items-center gap-2"><CheckCircle2 className="w-4 h-4 text-purple-600 shrink-0" /> AI Website Editing</li>
-                    <li className="flex items-center gap-2"><CheckCircle2 className="w-4 h-4 text-purple-600 shrink-0" /> AI Website Refinement</li>
-                    <li className="flex items-center gap-2"><CheckCircle2 className="w-4 h-4 text-purple-600 shrink-0" /> Codeaxys AI Agent</li>
-                    <li className="flex items-center gap-2"><CheckCircle2 className="w-4 h-4 text-purple-600 shrink-0" /> Conversational Planning</li>
-                    <li className="flex items-center gap-2"><CheckCircle2 className="w-4 h-4 text-purple-600 shrink-0" /> AI Generated Content</li>
-                    <li className="flex items-center gap-2"><CheckCircle2 className="w-4 h-4 text-purple-600 shrink-0" /> Responsive Generation</li>
-                    <li className="flex items-center gap-2"><CheckCircle2 className="w-4 h-4 text-purple-600 shrink-0" /> Unlimited Page Creation</li>
-                  </ul>
+                  <span>
+                    <strong className="text-slate-900 font-bold">Digital Marketing Suite active:</strong> Added to all four plans above for the selected {billingInterval === "yearly" ? "12 Months" : billingInterval === "triennial" ? "36 Months" : "1 Month"} billing period.
+                  </span>
                 </div>
+                <span className="font-black text-[#A60BFF] bg-[#F5EBFF] px-3 py-1 rounded-full text-xs uppercase tracking-wider border border-[#A60BFF]/20 hidden sm:inline-block">
+                  Active
+                </span>
               </div>
-
-              {/* Card 2: Website Design & Editing */}
-              <div className="bg-white border border-blue-200/80 hover:border-blue-300 shadow-md hover:shadow-lg transition-all duration-300 rounded-3xl p-6 sm:p-8 flex flex-col justify-between group w-full h-full">
-                <div className="space-y-5">
-                  <div className="flex items-start justify-between">
-                    <div className="flex items-center gap-3">
-                      <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-blue-600 to-cyan-600 text-white flex items-center justify-center shrink-0 shadow-md shadow-blue-600/25">
-                        <Palette className="w-6 h-6" />
-                      </div>
-                      <div>
-                        <h3 className="text-lg font-extrabold text-slate-900">Website Design & Editing</h3>
-                        <span className="text-[10px] font-extrabold uppercase tracking-wider text-blue-700 bg-blue-50 px-2.5 py-0.5 rounded-full border border-blue-200">
-                          Visual Design System
-                        </span>
-                      </div>
-                    </div>
-                  </div>
-
-                  <p className="text-xs text-slate-600 leading-relaxed font-medium">
-                    Visual editing canvas, custom section building, logo support, and global typography controls.
-                  </p>
-
-                  <ul className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 pt-3 border-t border-slate-100 text-xs font-semibold text-slate-700">
-                    <li className="flex items-center gap-2"><CheckCircle2 className="w-4 h-4 text-blue-600 shrink-0" /> Website Sections</li>
-                    <li className="flex items-center gap-2"><CheckCircle2 className="w-4 h-4 text-blue-600 shrink-0" /> Page Management</li>
-                    <li className="flex items-center gap-2"><CheckCircle2 className="w-4 h-4 text-blue-600 shrink-0" /> Global Colors</li>
-                    <li className="flex items-center gap-2"><CheckCircle2 className="w-4 h-4 text-blue-600 shrink-0" /> Global Typography</li>
-                    <li className="flex items-center gap-2"><CheckCircle2 className="w-4 h-4 text-blue-600 shrink-0" /> Buttons & Design Settings</li>
-                    <li className="flex items-center gap-2"><CheckCircle2 className="w-4 h-4 text-blue-600 shrink-0" /> Responsive Editing</li>
-                    <li className="flex items-center gap-2"><CheckCircle2 className="w-4 h-4 text-blue-600 shrink-0" /> Media Management</li>
-                    <li className="flex items-center gap-2"><CheckCircle2 className="w-4 h-4 text-blue-600 shrink-0" /> Logo Support</li>
-                    <li className="flex items-center gap-2"><CheckCircle2 className="w-4 h-4 text-blue-600 shrink-0" /> Custom Sections</li>
-                    <li className="flex items-center gap-2"><CheckCircle2 className="w-4 h-4 text-blue-600 shrink-0" /> Website Preview</li>
-                  </ul>
+            ) : (
+              <div className="p-4 bg-white/70 border border-purple-200/70 rounded-2xl text-xs sm:text-sm text-slate-600 font-medium flex items-center gap-3">
+                <div className="w-7 h-7 rounded-lg bg-[#F5EBFF] flex items-center justify-center shrink-0">
+                  <Info className="w-4 h-4 text-[#A60BFF]" />
                 </div>
+                <span>
+                  Select the checkbox above to add advanced SEO intelligence, multi-engine AI search visibility, autonomous SEO autopilot, and marketing campaign tools to your plan.
+                </span>
               </div>
+            )}
 
-              {/* Card 3: Website Management */}
-              <div className="bg-white border border-indigo-200/80 hover:border-indigo-300 shadow-md hover:shadow-lg transition-all duration-300 rounded-3xl p-6 sm:p-8 flex flex-col justify-between group w-full h-full">
-                <div className="space-y-5">
-                  <div className="flex items-start justify-between">
-                    <div className="flex items-center gap-3">
-                      <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-indigo-600 to-purple-600 text-white flex items-center justify-center shrink-0 shadow-md shadow-indigo-600/25">
-                        <Globe className="w-6 h-6" />
-                      </div>
-                      <div>
-                        <h3 className="text-lg font-extrabold text-slate-900">Website Management</h3>
-                        <span className="text-[10px] font-extrabold uppercase tracking-wider text-indigo-700 bg-indigo-50 px-2.5 py-0.5 rounded-full border border-indigo-200">
-                          Publishing & Hosting
-                        </span>
-                      </div>
-                    </div>
-                  </div>
-
-                  <p className="text-xs text-slate-600 leading-relaxed font-medium">
-                    Fast cloud hosting, custom domain connections, DNS configuration, and clean HTML code export.
-                  </p>
-
-                  <ul className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 pt-3 border-t border-slate-100 text-xs font-semibold text-slate-700">
-                    <li className="flex items-center gap-2"><CheckCircle2 className="w-4 h-4 text-indigo-600 shrink-0" /> Fast Subdomain Hosting (All Plans)</li>
-                    <li className="flex items-center gap-2"><CheckCircle2 className="w-4 h-4 text-indigo-600 shrink-0" /> 1 Custom Domain (Starter Plan)</li>
-                    <li className="flex items-center gap-2"><CheckCircle2 className="w-4 h-4 text-indigo-600 shrink-0" /> Custom Domains (Pro, Business, Agency)</li>
-                    <li className="flex items-center gap-2"><CheckCircle2 className="w-4 h-4 text-indigo-600 shrink-0" /> Website Publishing</li>
-                    <li className="flex items-center gap-2"><CheckCircle2 className="w-4 h-4 text-indigo-600 shrink-0" /> Website Unpublishing</li>
-                    <li className="flex items-center gap-2"><CheckCircle2 className="w-4 h-4 text-indigo-600 shrink-0" /> Website Dashboard</li>
-                    <li className="flex items-center gap-2"><CheckCircle2 className="w-4 h-4 text-indigo-600 shrink-0" /> SEO Settings</li>
-                    <li className="flex items-center gap-2"><CheckCircle2 className="w-4 h-4 text-indigo-600 shrink-0" /> HTML Export</li>
-                  </ul>
-                </div>
+            {/* Add-on Features List (Strict 6 Features Preserved) */}
+            <div>
+              <div className="flex items-center gap-3 mb-6">
+                <h3 className="text-xs font-black text-slate-900 uppercase tracking-wider">
+                  ADD-ON FEATURES
+                </h3>
+                <div className="h-px bg-purple-200/80 flex-1" />
               </div>
-
-              {/* Card 4: Content & Performance */}
-              <div className="bg-white border border-amber-200/80 hover:border-amber-300 shadow-md hover:shadow-lg transition-all duration-300 rounded-3xl p-6 sm:p-8 flex flex-col justify-between group w-full h-full">
-                <div className="space-y-5">
-                  <div className="flex items-start justify-between">
-                    <div className="flex items-center gap-3">
-                      <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-amber-500 to-rose-600 text-white flex items-center justify-center shrink-0 shadow-md shadow-amber-500/25">
-                        <Zap className="w-6 h-6" />
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+                {DIGITAL_MARKETING_FEATURES.map((feat, idx) => {
+                  const Icon = feat.icon;
+                  return (
+                    <div
+                      key={idx}
+                      className="p-6 bg-white rounded-2xl border border-purple-100/90 hover:border-[#A60BFF]/50 hover:shadow-md transition-all duration-200 flex items-start gap-4 group"
+                    >
+                      <div className="w-11 h-11 rounded-xl bg-[#F5EBFF] flex items-center justify-center shrink-0 border border-[#A60BFF]/15 group-hover:scale-105 transition-transform duration-200">
+                        <Icon className="w-5 h-5 text-[#A60BFF]" strokeWidth={2} />
                       </div>
-                      <div>
-                        <h3 className="text-lg font-extrabold text-slate-900">Content & Performance</h3>
-                        <span className="text-[10px] font-extrabold uppercase tracking-wider text-amber-800 bg-amber-50 px-2.5 py-0.5 rounded-full border border-amber-200">
-                          Automated Content Engine
-                        </span>
+                      <div className="space-y-1.5 min-w-0">
+                        <h4 className="text-base font-extrabold text-slate-900 tracking-tight leading-snug">
+                          {feat.title}
+                        </h4>
+                        <p className="text-xs sm:text-sm text-slate-600 leading-relaxed font-normal">
+                          {feat.description}
+                        </p>
                       </div>
                     </div>
-                  </div>
-
-                  <p className="text-xs text-slate-600 leading-relaxed font-medium">
-                    Automated blogging, multi-device viewport optimization, and performance monitoring.
-                  </p>
-
-                  <ul className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 pt-3 border-t border-slate-100 text-xs font-semibold text-slate-700">
-                    <li className="flex items-center gap-2"><CheckCircle2 className="w-4 h-4 text-amber-600 shrink-0" /> AI Content Creation</li>
-                    <li className="flex items-center gap-2"><CheckCircle2 className="w-4 h-4 text-amber-600 shrink-0" /> Blog Management</li>
-                    <li className="flex items-center gap-2"><CheckCircle2 className="w-4 h-4 text-amber-600 shrink-0" /> SEO Content Optimization</li>
-                    <li className="flex items-center gap-2"><CheckCircle2 className="w-4 h-4 text-amber-600 shrink-0" /> Content Refresh</li>
-                    <li className="flex items-center gap-2"><CheckCircle2 className="w-4 h-4 text-amber-600 shrink-0" /> Mobile Responsive Views</li>
-                    <li className="flex items-center gap-2"><CheckCircle2 className="w-4 h-4 text-amber-600 shrink-0" /> Tablet Responsive Views</li>
-                    <li className="flex items-center gap-2"><CheckCircle2 className="w-4 h-4 text-amber-600 shrink-0" /> Desktop Responsive Views</li>
-                    <li className="flex items-center gap-2"><CheckCircle2 className="w-4 h-4 text-amber-600 shrink-0" /> Performance Insights</li>
-                    <li className="flex items-center gap-2"><CheckCircle2 className="w-4 h-4 text-amber-600 shrink-0" /> Website Health Insights</li>
-                    <li className="flex items-center gap-2"><CheckCircle2 className="w-4 h-4 text-amber-600 shrink-0" /> SEO Recommendations</li>
-                  </ul>
-                </div>
+                  );
+                })}
               </div>
             </div>
           </div>
         </section>
 
-        {/* 3. FREQUENTLY ASKED QUESTIONS SECTION */}
-        <section className="mt-24 pt-16 border-t border-slate-200/80 w-full max-w-4xl mx-auto space-y-12">
-          {/* Header */}
-          <div className="text-center space-y-3">
-            <span className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-purple-50 border border-purple-200 text-purple-700 text-xs font-bold uppercase tracking-wider shadow-2xs">
-              <HelpCircle className="w-3.5 h-3.5 text-purple-600" />
+        {/* FREQUENTLY ASKED QUESTIONS ACCORDION */}
+        <section className="mt-16 sm:mt-20 w-full max-w-4xl mx-auto space-y-10">
+          <div className="text-center space-y-2.5">
+            <span className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-purple-50 border border-purple-200 text-[#6938ef] text-xs font-bold uppercase tracking-wider shadow-2xs">
+              <HelpCircle className="w-3.5 h-3.5 text-[#6938ef]" />
               Got Questions? We&apos;ve Got Answers
             </span>
             <h2 className="text-3xl sm:text-4xl font-black text-slate-900 tracking-tight">
               Frequently Asked Questions
             </h2>
             <p className="text-sm sm:text-base text-slate-600 max-w-xl mx-auto font-normal">
-              Everything you need to know about Codeaxys plans, website builder features, custom domains, and SEO intelligence.
+              Everything you need to know about Codeaxys plans, website limits, domain connections, and features.
             </p>
           </div>
 
-          {/* Accordion list */}
-          <div className="space-y-4">
+          <div className="space-y-3.5">
             {FAQ_ITEMS.map((faq, index) => {
               const isOpen = openFaqIndex === index;
               return (
@@ -651,17 +1012,17 @@ export default function PricingPage() {
                   <button
                     type="button"
                     onClick={() => setOpenFaqIndex(isOpen ? null : index)}
-                    className="w-full px-6 py-5 flex items-center justify-between text-left gap-4 font-bold text-slate-900 text-base sm:text-lg focus:outline-none group cursor-pointer"
+                    className="w-full px-6 py-4.5 flex items-center justify-between text-left gap-4 font-bold text-slate-900 text-base focus:outline-none cursor-pointer"
                     aria-expanded={isOpen}
                   >
                     <span className="flex items-center gap-3">
-                      <span className="w-6 h-6 rounded-full bg-purple-50 text-purple-700 text-xs font-black flex items-center justify-center shrink-0 border border-purple-200">
+                      <span className="w-6 h-6 rounded-full bg-purple-50 text-[#6938ef] text-xs font-black flex items-center justify-center shrink-0 border border-purple-200">
                         {index + 1}
                       </span>
                       <span>{faq.question}</span>
                     </span>
                     <ChevronDown
-                      className={`w-5 h-5 text-purple-600 shrink-0 transition-transform duration-300 ${
+                      className={`w-5 h-5 text-[#6938ef] shrink-0 transition-transform duration-300 ${
                         isOpen ? "rotate-180" : "rotate-0"
                       }`}
                     />
@@ -673,7 +1034,7 @@ export default function PricingPage() {
                     }`}
                   >
                     <div className="overflow-hidden">
-                      <div className="px-6 pb-6 pt-2 text-sm sm:text-base text-slate-600 leading-relaxed font-normal border-t border-slate-100/80">
+                      <div className="px-6 pb-5 pt-1 text-sm text-slate-600 leading-relaxed font-normal border-t border-slate-100/80">
                         {faq.answer}
                       </div>
                     </div>
@@ -688,13 +1049,17 @@ export default function PricingPage() {
       {/* Homepage Footer */}
       <Footer />
 
-      {/* Mock Checkout Modal */}
+      {/* Mock Checkout Modal: Carries plan, billing duration, and add-on selection */}
       {selectedPlanId && (
         <MockCheckoutModal
           planId={selectedPlanId}
+          initialInterval={billingInterval}
+          isBundleSelected={includeMarketingSuite}
+          selectedAddonIds={includeMarketingSuite ? ["digital_marketing_meta_suite"] : []}
           isOpen={isCheckoutOpen}
           onClose={() => setIsCheckoutOpen(false)}
           onSuccess={handleCheckoutSuccess}
+          onIntervalChange={(newInterval) => setBillingInterval(newInterval)}
         />
       )}
     </div>

@@ -34,19 +34,49 @@ export async function GET(
       );
     }
 
-    const { data: pages } = await supabase
-      .from("website_pages")
-      .select("*")
-      .eq("website_id", id)
-      .eq("user_id", user.id);
+    // 1. Check if complete lossless file manifest exists in design_plan
+    let files: GeneratedFile[] = [];
+    if (Array.isArray(website.design_plan?._raw_files) && website.design_plan._raw_files.length > 0) {
+      files = website.design_plan._raw_files;
+    } else {
+      // 2. Reconstruct from website_pages
+      const { data: pages } = await supabase
+        .from("website_pages")
+        .select("*")
+        .eq("website_id", id)
+        .eq("user_id", user.id);
 
-    const mainPage = pages && pages.length > 0 ? pages[0] : null;
+      if (pages && pages.length > 0) {
+        interface PageRow {
+          path: string;
+          html_content?: string | null;
+          css_content?: string | null;
+          js_content?: string | null;
+        }
+        const pageList = pages as PageRow[];
+        const mainPage = pageList.find((p) => p.path === "index.html") || pageList[0];
+        for (const p of pageList) {
+          files.push({
+            path: p.path,
+            content: p.html_content || "",
+          });
+        }
+        if (mainPage.css_content) {
+          files.push({ path: "styles.css", content: mainPage.css_content });
+        }
+        if (mainPage.js_content) {
+          files.push({ path: "script.js", content: mainPage.js_content });
+        }
+      }
+    }
 
-    const files: GeneratedFile[] = [
-      { path: "index.html", content: mainPage?.html_content || "" },
-      { path: "styles.css", content: mainPage?.css_content || "" },
-      { path: "script.js", content: mainPage?.js_content || "" },
-    ];
+    if (files.length === 0) {
+      files = [
+        { path: "index.html", content: "" },
+        { path: "styles.css", content: "" },
+        { path: "script.js", content: "" },
+      ];
+    }
 
     const derivedTitle = deriveWebsiteTitle(website.design_plan, files, website.prompt);
     const isTitleClean = website.title && website.title.length <= 45 && !website.title.toLowerCase().includes("see i don't") && !website.title.toLowerCase().includes("create a");

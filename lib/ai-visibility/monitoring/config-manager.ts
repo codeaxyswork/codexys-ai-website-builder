@@ -56,7 +56,8 @@ export function validateAndSanitizeConfigInput(
   maxProbesPerExecution: number;
   timezone: string;
 } {
-  const enabled = input.enabled !== undefined ? Boolean(input.enabled) : true;
+  // Strict Opt-In Policy: Monitoring must default to false unless explicitly enabled by user
+  const enabled = input.enabled !== undefined ? Boolean(input.enabled) : false;
   
   const frequency: MonitoringFrequency =
     input.frequency === "weekly" ? "weekly" : "daily";
@@ -108,7 +109,7 @@ export function validateAndSanitizeConfigInput(
  * Maps database row to `WebsiteAiVisibilityConfig` interface with backwards fallback.
  */
 function mapRowToConfig(row: any): WebsiteAiVisibilityConfig {
-  const isEnabled = row.is_enabled !== undefined ? row.is_enabled : (row.enabled !== undefined ? row.enabled : true);
+  const isEnabled = row.is_enabled !== undefined ? row.is_enabled : (row.enabled !== undefined ? row.enabled : false);
   const providers = row.enabled_providers || row.selected_providers || DEFAULT_PROVIDERS;
   const categories = row.prompt_categories || DEFAULT_CATEGORIES;
   const maxProbes = row.max_probes_per_run || row.max_probes_per_execution || 5;

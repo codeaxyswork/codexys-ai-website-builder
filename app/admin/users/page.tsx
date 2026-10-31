@@ -18,6 +18,7 @@ export default function AdminUsersPage() {
   // Credit adjustment modal
   const [creditModalUser, setCreditModalUser] = useState<any | null>(null);
   const [creditAmount, setCreditAmount] = useState<number>(100);
+  const [creditIdempotencyKey, setCreditIdempotencyKey] = useState<string>("");
   const [isAdjusting, setIsAdjusting] = useState(false);
   const [statusMsg, setStatusMsg] = useState<string | null>(null);
 
@@ -61,24 +62,45 @@ export default function AdminUsersPage() {
     }
   };
 
+  const handleCreditAmountChange = (newAmount: number) => {
+    setCreditAmount(newAmount);
+    // When parameter changes, generate a fresh idempotency key
+    setCreditIdempotencyKey(crypto.randomUUID());
+  };
+
   const handleAddCreditsSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!creditModalUser || creditAmount <= 0) return;
+
+    // Use existing key on retry, or generate if not yet assigned
+    const activeKey = creditIdempotencyKey || crypto.randomUUID();
+    if (!creditIdempotencyKey) {
+      setCreditIdempotencyKey(activeKey);
+    }
 
     try {
       setIsAdjusting(true);
       const res = await fetch(`/api/admin/users/${creditModalUser.id}`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          "Idempotency-Key": activeKey,
+        },
         body: JSON.stringify({ action: "adjust_credits", amount: creditAmount, type: "add" }),
       });
       if (res.ok) {
         setStatusMsg(`Added +${creditAmount} credits to ${creditModalUser.full_name}.`);
         setCreditModalUser(null);
+        setCreditIdempotencyKey("");
         fetchUsers();
+      } else {
+        const errJson = await res.json().catch(() => ({}));
+        console.error("Add credits error response:", errJson);
+        // Do NOT clear creditIdempotencyKey so retrying sends the same key!
       }
     } catch (e) {
-      console.error("Add credits error:", e);
+      console.error("Add credits network error:", e);
+      // Retain creditIdempotencyKey for transparent retry
     } finally {
       setIsAdjusting(false);
     }
@@ -253,7 +275,11 @@ export default function AdminUsersPage() {
                       <td className="py-3 px-4 text-right">
                         <div className="flex items-center justify-end gap-1.5">
                           <button
-                            onClick={() => setCreditModalUser(u)}
+                            onClick={() => {
+                              setCreditModalUser(u);
+                              setCreditAmount(100);
+                              setCreditIdempotencyKey(crypto.randomUUID());
+                            }}
                             className="p-1.5 rounded-lg border border-purple-200 bg-purple-50 text-purple-700 hover:bg-purple-100 transition-all text-xs font-semibold"
                             title="Add AI Credits"
                           >
@@ -307,7 +333,7 @@ export default function AdminUsersPage() {
                       <button
                         key={amt}
                         type="button"
-                        onClick={() => setCreditAmount(amt)}
+                        onClick={() => handleCreditAmountChange(amt)}
                         className={`py-2 text-xs font-bold rounded-lg border transition-all ${
                           creditAmount === amt
                             ? "bg-purple-600 text-white border-purple-600"
@@ -322,7 +348,7 @@ export default function AdminUsersPage() {
                   <input
                     type="number"
                     value={creditAmount}
-                    onChange={(e) => setCreditAmount(Number(e.target.value))}
+                    onChange={(e) => handleCreditAmountChange(Number(e.target.value))}
                     min={1}
                     className="w-full px-3 py-2 bg-white border border-slate-300 rounded-lg text-slate-900 text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-purple-500"
                   />
@@ -331,7 +357,10 @@ export default function AdminUsersPage() {
                 <div className="flex items-center justify-end gap-2 pt-2">
                   <button
                     type="button"
-                    onClick={() => setCreditModalUser(null)}
+                    onClick={() => {
+                      setCreditModalUser(null);
+                      setCreditIdempotencyKey("");
+                    }}
                     className="px-4 py-2 text-xs font-semibold text-slate-600 hover:text-slate-900"
                   >
                     Cancel

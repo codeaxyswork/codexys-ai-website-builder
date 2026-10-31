@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/utils/supabase/server";
-import { getHistoricalVisibilityLogs } from "@/lib/ai-visibility";
+import { getHistoricalVisibilityLogs, isLiveAiVisibilityEnabled } from "@/lib/ai-visibility";
 
 export async function GET(
   request: Request,
@@ -42,6 +42,7 @@ export async function GET(
 
     return NextResponse.json({
       success: true,
+      liveMode: isLiveAiVisibilityEnabled(),
       history: historySummary,
     });
   } catch (err: any) {

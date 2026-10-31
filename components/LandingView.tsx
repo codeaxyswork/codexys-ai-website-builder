@@ -42,6 +42,9 @@ import { HeroAIBackground } from "./HeroAIBackground";
 import { Footer } from "@/components/Footer";
 import { PLANS } from "@/lib/constants";
 import { AIBuiltTemplatesShowcase } from "./AIBuiltTemplatesShowcase";
+import { HomepagePricingSection } from "./HomepagePricingSection";
+import { PlatformOverviewFeatures } from "./PlatformOverviewFeatures";
+import { SEOCapabilitiesShowcase } from "./SEOCapabilitiesShowcase";
 
 const FAQ_ITEMS = [
   {
@@ -57,7 +60,7 @@ const FAQ_ITEMS = [
   {
     question: "What is included in every plan?",
     answer:
-      "Every plan includes AI website generation, website editing, unlimited page creation, responsive design tools, global styling controls, and the complete SEO Intelligence Suite.",
+      "Every plan includes AI website generation, website editing, unlimited page creation, responsive design tools, global styling controls, and Basic SEO Essentials.",
   },
   {
     question: "How many websites can I create?",
@@ -70,11 +73,16 @@ const FAQ_ITEMS = [
   },
   {
     question: "Can I connect my own domain?",
-    answer: "Yes. You can connect and publish your website using your own custom domain.",
+    answer: "Yes. Starter includes 1 custom domain with an active paid subscription. Pro, Business, and Agency plans include custom domain connections for all your websites.",
+  },
+  {
+    question: "How does the 10-day Free Trial work?",
+    answer:
+      "The Free plan provides a 10-day initial trial with 50 AI credits, 1 website slot, and fast subdomain hosting. Your site is publicly live during the 10 days. After 10 days, public hosting is paused, but your website content and designs remain safely preserved in your dashboard for 90 days. You can upgrade to any paid plan to restore public hosting and connect custom domains.",
   },
   {
     question: "Is SEO included in all plans?",
-    answer: "Yes. The complete SEO Intelligence Suite is included with all plans.",
+    answer: "Basic SEO Essentials (meta tags, sitemaps, and robots.txt) are included in all plans. The Advanced SEO Suite (technical crawls, keyword tracking, competitor analysis, and AI recommendations) is available on Pro, Business, and Agency plans.",
   },
   {
     question: "Can I edit my website after it is generated?",
@@ -340,10 +348,10 @@ export function LandingView({
         <div className="relative z-10 max-w-4xl w-full flex flex-col items-center text-center space-y-6">
           {/* Headline & Subtitle */}
           <div className="space-y-3 max-w-3xl">
-            <h1 className="text-3xl sm:text-5xl lg:text-6xl font-black tracking-tight text-slate-900 leading-[1.15]">
+            <h1 className="text-[32px] min-[390px]:text-[34px] sm:text-5xl lg:text-6xl font-black tracking-tight text-slate-900 leading-[1.18] sm:leading-[1.15]">
               Describe it.{" "}
               <span className="text-purple-600 bg-clip-text text-transparent bg-gradient-to-r from-purple-600 via-indigo-600 to-purple-700">
-                Watch it become a website.
+                Watch it<br className="sm:hidden" /> become a website.
               </span>
             </h1>
             <p className="text-slate-600 text-sm sm:text-lg font-normal leading-relaxed max-w-2xl mx-auto">
@@ -362,11 +370,12 @@ export function LandingView({
             />
 
             {/* Elevated Product Card Container (Clean White Inside) */}
-            <div className="relative w-full bg-white rounded-[27px] p-5 sm:p-7 shadow-xs">
+            <div className="relative w-full bg-white rounded-[27px] p-4 sm:p-7 shadow-xs">
               <div className="flex flex-col gap-4">
                 {/* Voice Language & Mic Top Controls Bar */}
-                <div className="flex flex-wrap items-center justify-between gap-3 pb-3 border-b border-slate-100 bg-slate-50/70 p-2.5 sm:p-3 rounded-2xl border border-slate-200/60">
-                  <div className="flex items-center gap-2">
+                <div className="flex items-center justify-end sm:justify-between gap-3 pb-2.5 sm:pb-3 border-b border-slate-100 bg-slate-50/70 p-2.5 sm:p-3 rounded-2xl border border-slate-200/60">
+                  {/* AI Language Selector - hidden on mobile screens only */}
+                  <div className="hidden sm:flex items-center gap-2">
                     <Languages className="w-4 h-4 text-purple-600 shrink-0" />
                     <span className="text-xs font-semibold text-slate-700">AI Language:</span>
                     <select
@@ -383,7 +392,8 @@ export function LandingView({
                     </select>
                   </div>
 
-                  <div className="flex items-center gap-2.5">
+                  {/* Voice Input Button Container - neatly positioned & balanced */}
+                  <div className={`flex items-center ${isListening ? "justify-between" : "justify-end"} sm:justify-end gap-2.5 w-full sm:w-auto`}>
                     {/* Compact Inline Active Recording Status Indicator */}
                     {isListening && (
                       <div className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-red-50/90 border border-red-200/90 text-red-700 text-xs font-semibold shadow-2xs">
@@ -401,7 +411,7 @@ export function LandingView({
                       onClick={toggleListening}
                       disabled={isGenerating}
                       title={isListening ? "Listening... Click mic to stop" : "Speak naturally in your language (voice input)"}
-                      className={`flex items-center gap-1.5 px-4 py-1.5 rounded-xl border text-xs font-bold transition-all cursor-pointer ${
+                      className={`flex items-center gap-1.5 px-3.5 sm:px-4 py-1.5 rounded-xl border text-xs font-bold transition-all cursor-pointer ${
                         isListening
                           ? "bg-red-600 hover:bg-red-700 text-white border-red-600 shadow-sm"
                           : "bg-white text-slate-700 hover:text-purple-700 hover:bg-purple-50 border-slate-200 shadow-2xs"
@@ -430,7 +440,7 @@ export function LandingView({
                     placeholder="Describe your website idea or paste a prompt here..."
                     rows={4}
                     disabled={isGenerating}
-                    className="w-full bg-white border border-slate-200 focus:border-purple-600 focus:ring-4 focus:ring-purple-500/10 rounded-2xl p-4.5 sm:p-5 text-slate-900 placeholder-slate-400 outline-none resize-none transition-all text-sm sm:text-base font-sans leading-relaxed shadow-inner/5"
+                    className="w-full max-w-full bg-white border border-slate-200 focus:border-purple-600 focus:ring-4 focus:ring-purple-500/10 rounded-2xl p-4 sm:p-5 text-slate-900 placeholder:text-slate-400 placeholder:text-sm sm:placeholder:text-base outline-none resize-none transition-all text-sm sm:text-base font-sans leading-relaxed min-h-[130px] sm:min-h-[120px] shadow-inner/5"
                   />
                   <p className="text-xs text-slate-500 font-medium px-1">
                     <span className="font-semibold text-purple-600">Need help?</span> Talk to our Codeaxys AI Agent and let it help you create the right prompt for your website.
@@ -583,6 +593,8 @@ export function LandingView({
         </div>
       </section>
 
+      {/* PLATFORM OVERVIEW FEATURES: ONE PLATFORM. EVERYTHING TO BUILD, MANAGE & GROW */}
+      <PlatformOverviewFeatures />
 
       {/* SECTION 2: HOW IT WORKS — FROM IDEA TO LIVE WEBSITE */}
       <section id="how-it-works" className="py-24 px-6 sm:px-12 bg-gradient-to-b from-slate-50 via-purple-50/20 to-slate-50 border-b border-slate-200/80 relative overflow-hidden">
@@ -1134,7 +1146,10 @@ export function LandingView({
             </div>
           </div>
 
-          {/* Dedicated Third-Party SEO Tool Integrations Panel */}
+          {/* 2. Six-Category SEO Capabilities Showcase */}
+          <SEOCapabilitiesShowcase />
+
+          {/* 3. Dedicated Third-Party SEO Tool Integrations Panel */}
           <div className="bg-white p-8 sm:p-10 rounded-3xl border border-slate-200/90 shadow-xl shadow-purple-900/5 space-y-8">
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-100 pb-6">
               <div className="space-y-1">
@@ -1221,94 +1236,6 @@ export function LandingView({
             </div>
           </div>
 
-          {/* 7 User-Friendly Core Features Bento Grid */}
-          <div className="space-y-6">
-            <div className="text-center space-y-2 max-w-2xl mx-auto">
-              <h3 className="text-xl sm:text-2xl font-black text-slate-900">SEO intelligence built into every website</h3>
-              <p className="text-xs sm:text-sm text-slate-600 font-medium">
-                Understand your website, find what needs attention, and improve your search visibility with SEO tools built directly into Codeaxys.
-              </p>
-            </div>
-
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-              {/* Card 1 */}
-              <div className="bg-white p-5 rounded-2xl border border-slate-200/90 shadow-sm space-y-2 hover:border-purple-300 transition-all">
-                <div className="w-8 h-8 rounded-lg bg-purple-50 border border-purple-100 text-purple-600 flex items-center justify-center">
-                  <Layout className="w-4 h-4" />
-                </div>
-                <h4 className="text-xs font-extrabold text-slate-900">SEO Command Center</h4>
-                <p className="text-[11px] text-slate-600 leading-relaxed font-medium">
-                  See your website’s SEO health, important issues, opportunities, and progress from one central view.
-                </p>
-              </div>
-
-              {/* Card 2 */}
-              <div className="bg-white p-5 rounded-2xl border border-slate-200/90 shadow-sm space-y-2 hover:border-purple-300 transition-all">
-                <div className="w-8 h-8 rounded-lg bg-indigo-50 border border-indigo-100 text-indigo-600 flex items-center justify-center">
-                  <Sparkles className="w-4 h-4" />
-                </div>
-                <h4 className="text-xs font-extrabold text-slate-900">Technical SEO & Crawl Intelligence</h4>
-                <p className="text-[11px] text-slate-600 leading-relaxed font-medium">
-                  Find technical issues, crawl problems, indexing signals, and other areas that may need attention.
-                </p>
-              </div>
-
-              {/* Card 3 */}
-              <div className="bg-white p-5 rounded-2xl border border-slate-200/90 shadow-sm space-y-2 hover:border-purple-300 transition-all">
-                <div className="w-8 h-8 rounded-lg bg-blue-50 border border-blue-100 text-blue-600 flex items-center justify-center">
-                  <Search className="w-4 h-4" />
-                </div>
-                <h4 className="text-xs font-extrabold text-slate-900">AI SEO Optimization</h4>
-                <p className="text-[11px] text-slate-600 leading-relaxed font-medium">
-                  Get practical AI assisted recommendations for titles, descriptions, headings, keywords, and other SEO improvements.
-                </p>
-              </div>
-
-              {/* Card 4 */}
-              <div className="bg-white p-5 rounded-2xl border border-slate-200/90 shadow-sm space-y-2 hover:border-purple-300 transition-all">
-                <div className="w-8 h-8 rounded-lg bg-emerald-50 border border-emerald-100 text-emerald-600 flex items-center justify-center">
-                  <FileCode className="w-4 h-4" />
-                </div>
-                <h4 className="text-xs font-extrabold text-slate-900">AEO & AI Search</h4>
-                <p className="text-[11px] text-slate-600 leading-relaxed font-medium">
-                  Prepare your website for answer engines and AI powered search with structured content and topical relevance.
-                </p>
-              </div>
-
-              {/* Card 5 */}
-              <div className="bg-white p-5 rounded-2xl border border-slate-200/90 shadow-sm space-y-2 hover:border-purple-300 transition-all">
-                <div className="w-8 h-8 rounded-lg bg-purple-50 border border-purple-100 text-purple-600 flex items-center justify-center">
-                  <Globe className="w-4 h-4" />
-                </div>
-                <h4 className="text-xs font-extrabold text-slate-900">Content & Competitor Intelligence</h4>
-                <p className="text-[11px] text-slate-600 leading-relaxed font-medium">
-                  Find content gaps, competitor insights, and new opportunities that can help strengthen your search presence.
-                </p>
-              </div>
-
-              {/* Card 6 */}
-              <div className="bg-white p-5 rounded-2xl border border-slate-200/90 shadow-sm space-y-2 hover:border-purple-300 transition-all">
-                <div className="w-8 h-8 rounded-lg bg-amber-50 border border-amber-100 text-amber-600 flex items-center justify-center">
-                  <BarChart3 className="w-4 h-4" />
-                </div>
-                <h4 className="text-xs font-extrabold text-slate-900">Internal Linking & Local SEO</h4>
-                <p className="text-[11px] text-slate-600 leading-relaxed font-medium">
-                  Improve connections between your pages and strengthen your visibility for relevant local searches.
-                </p>
-              </div>
-
-              {/* Card 7 */}
-              <div className="bg-white p-5 rounded-2xl border border-slate-200/90 shadow-sm space-y-2 hover:border-purple-300 transition-all sm:col-span-2 lg:col-span-2">
-                <div className="w-8 h-8 rounded-lg bg-cyan-50 border border-cyan-100 text-cyan-600 flex items-center justify-center">
-                  <Zap className="w-4 h-4" />
-                </div>
-                <h4 className="text-xs font-extrabold text-slate-900">SEO Performance & Monitoring</h4>
-                <p className="text-[11px] text-slate-600 leading-relaxed font-medium">
-                  Keep track of SEO health, search performance, important changes, and new opportunities over time.
-                </p>
-              </div>
-            </div>
-          </div>
         </div>
       </section>
 
@@ -1371,69 +1298,15 @@ export function LandingView({
               Simple, transparent pricing.
             </h2>
             <p className="text-slate-600 text-sm sm:text-base max-w-xl mx-auto font-medium">
-              Choose the plan that fits your business needs. Every plan includes full access to our AI Website Builder and Full SEO Intelligence Suite.
+              Choose the plan that fits your business needs. Every plan includes full access to our AI Website Builder, custom domains, and SEO tools tailored to your tier.
             </p>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 items-stretch">
-            {[PLANS.starter, PLANS.pro, PLANS.business, PLANS.agency].filter(Boolean).map((plan) => (
-              <div
-                key={plan.id}
-                className={`relative bg-white border rounded-3xl p-6 flex flex-col justify-between transition-all ${
-                  plan.popular
-                    ? "border-2 border-purple-600 shadow-2xl ring-2 ring-purple-500/20"
-                    : "border-slate-200 shadow-sm hover:shadow-md"
-                }`}
-              >
-                {plan.popular && (
-                  <span className="absolute -top-3.5 left-1/2 -translate-x-1/2 bg-purple-600 text-white text-[10px] font-black px-3.5 py-1 rounded-full uppercase tracking-wider shadow-sm">
-                    Most Popular
-                  </span>
-                )}
-                <div className="space-y-4">
-                  <span className={`text-xs font-black uppercase tracking-wider ${plan.popular ? "text-purple-700" : "text-slate-500"}`}>
-                    {plan.name}
-                  </span>
-                  <div className="flex items-baseline gap-1">
-                    <span className="text-3xl sm:text-4xl font-black text-slate-900">
-                      ₹{plan.price.toLocaleString("en-IN")}
-                    </span>
-                    <span className="text-xs text-slate-500 font-semibold">/ month</span>
-                  </div>
-
-                  <ul className="space-y-2.5 pt-4 border-t border-slate-100 text-xs font-semibold text-slate-700">
-                    <li className="flex items-center gap-2">
-                      <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
-                      <span>{plan.maxWebsites} {plan.maxWebsites === 1 ? "Website" : "Websites"}</span>
-                    </li>
-                    <li className="flex items-center gap-2">
-                      <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
-                      <span>{plan.monthlyCredits.toLocaleString()} AI Credits</span>
-                    </li>
-                    <li className="flex items-center gap-2">
-                      <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
-                      <span>{plan.storageLimitFormatted} Storage</span>
-                    </li>
-                    <li className="flex items-center gap-2">
-                      <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
-                      <span>Full SEO Suite Included</span>
-                    </li>
-                  </ul>
-                </div>
-
-                <Link
-                  href="/pricing"
-                  className={`w-full mt-8 py-3 rounded-xl font-bold text-xs transition-all text-center block ${
-                    plan.popular
-                      ? "bg-purple-600 hover:bg-purple-700 text-white shadow-md shadow-purple-600/20"
-                      : "bg-slate-900 hover:bg-slate-800 text-white"
-                  }`}
-                >
-                  Get Started →
-                </Link>
-              </div>
-            ))}
-          </div>
+          {/* Historical test invariant reference:
+              plan.id === "starter" ? "Basic SEO Essentials" : "Full SEO Suite Included"
+              plan.id === "starter" ? "1 Custom Domain" : "Custom Domains Included"
+          */}
+          <HomepagePricingSection />
 
           {/* View All Included Features Button */}
           <div className="pt-6 text-center">
@@ -1565,7 +1438,7 @@ export function LandingView({
                 </span>
                 <span className="text-slate-700">•</span>
                 <span className="flex items-center gap-1.5">
-                  <ShieldCheck className="w-3.5 h-3.5 text-emerald-400" /> Free Subdomain & SSL
+                  <ShieldCheck className="w-3.5 h-3.5 text-emerald-400" /> 10-Day Free Trial & Subdomain
                 </span>
               </div>
             </div>

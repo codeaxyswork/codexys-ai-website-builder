@@ -379,6 +379,89 @@ async function runTests() {
     );
   });
 
+  // -------------------------------------------------------------------------
+  // TEST 13: Homepage Starter pricing card and copy invariants
+  // -------------------------------------------------------------------------
+  runCase("Homepage pricing preview displays Basic SEO Essentials for Starter and qualifies custom domains", () => {
+    const landingPath = path.resolve(__dirname, "../components/LandingView.tsx");
+    const content = fs.readFileSync(landingPath, "utf-8");
+
+    // Must NOT claim Starter has Full SEO Suite
+    assert(
+      !content.includes('plan.id === "starter" ? "Full SEO Suite Included" : "Full SEO Suite Included"'),
+      "Homepage must not unconditionally claim Full SEO Suite for Starter"
+    );
+
+    // Must explicitly display Basic SEO Essentials for Starter
+    assert(
+      content.includes('plan.id === "starter" ? "Basic SEO Essentials" : "Full SEO Suite Included"'),
+      "Homepage preview cards must display Basic SEO Essentials for Starter"
+    );
+
+    // Must delineate Starter 1 custom domain
+    assert(
+      content.includes('plan.id === "starter" ? "1 Custom Domain" : "Custom Domains Included"'),
+      "Homepage preview cards must delineate Starter 1 Custom Domain"
+    );
+
+    // Must explain the 10-day Free Trial
+    assert(
+      content.includes("10-day initial trial") && content.includes("90 days"),
+      "Homepage FAQ must clearly describe the 10-day Free Trial lifecycle and 90-day dashboard retention"
+    );
+  });
+
+  // -------------------------------------------------------------------------
+  // TEST 14: Server-Side Agency Entitlement Enforcement on Third-Party SEO Integrations
+  // -------------------------------------------------------------------------
+  runCase("Third-party SEO connect endpoint enforces server-side Agency entitlement", () => {
+    const connectRoutePath = path.resolve(
+      __dirname,
+      "../app/api/websites/[id]/seo/integrations/[provider]/connect/route.ts"
+    );
+    const content = fs.readFileSync(connectRoutePath, "utf-8");
+
+    assert(
+      content.includes('canUseFeature(planId, "advanced_integrations")'),
+      "Connect route must check advanced_integrations permission server-side"
+    );
+
+    assert(
+      content.includes('status: 403') && content.includes("UPGRADE_REQUIRED"),
+      "Connect route must return 403 UPGRADE_REQUIRED when non-Agency user attempts connection"
+    );
+
+    // Verify permission map returns false for Free, Starter, Pro, Business and true ONLY for Agency
+    assert.strictEqual(canUseFeature("free", "advanced_integrations"), false);
+    assert.strictEqual(canUseFeature("starter", "advanced_integrations"), false);
+    assert.strictEqual(canUseFeature("pro", "advanced_integrations"), false);
+    assert.strictEqual(canUseFeature("business", "advanced_integrations"), false);
+    assert.strictEqual(canUseFeature("agency", "advanced_integrations"), true);
+  });
+
+  // -------------------------------------------------------------------------
+  // TEST 15: Pricing page distinguishes 10-Day Free Trial from paid subscriptions
+  // -------------------------------------------------------------------------
+  runCase("Pricing page distinguishes 10-Day Free Trial from paid subscriptions without advertising permanent free hosting", () => {
+    const pricingPath = path.resolve(__dirname, "../app/pricing/page.tsx");
+    const content = fs.readFileSync(pricingPath, "utf-8");
+
+    assert(
+      content.includes("10-Day Free Trial Available") || content.includes("10-Day Free Trial Subdomain"),
+      "Pricing page must prominently present the 10-Day Free Trial"
+    );
+
+    assert(
+      content.includes("10-day initial trial with fast hosting"),
+      "Pricing page FAQ must state the 10-day trial limitation"
+    );
+
+    assert(
+      content.includes("90 days"),
+      "Pricing page must explain that website content is preserved for 90 days after trial suspension"
+    );
+  });
+
   console.log("\n======================================================================");
   console.log(`ALL ${passed}/${total} PHASE 1 ENTITLEMENT & PRICING TESTS PASSED!`);
   console.log("======================================================================\n");

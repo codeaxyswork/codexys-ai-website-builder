@@ -48,7 +48,7 @@ export async function GET(
       : new Date().toISOString().split("T")[0];
 
     const pageEntries = (pages && pages.length > 0 ? pages : [{ path: "index.html", updated_at: website.updated_at }])
-      .map((p) => {
+      .map((p: { path: string; updated_at?: string | null }) => {
         const canonicalLoc = getWebsitePageUrl(website, p.path);
         const pMod = p.updated_at
           ? new Date(p.updated_at).toISOString().split("T")[0]
@@ -63,7 +63,7 @@ export async function GET(
       })
       .join("\n");
 
-    const blogEntries = (publishedPosts || []).map((b) => {
+    const blogEntries = (publishedPosts || []).map((b: { slug: string; updated_at?: string | null }) => {
       const blogLoc = getWebsitePageUrl(website, `/blog/${b.slug}`);
       const bMod = b.updated_at
         ? new Date(b.updated_at).toISOString().split("T")[0]

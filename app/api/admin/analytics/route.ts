@@ -23,13 +23,13 @@ export async function GET() {
     // 4. Plan distribution
     const { data: subs } = await supabase.from("subscriptions").select("plan_id");
 
-    const freeCount = (subs || []).filter((s) => s.plan_id === "free").length;
-    const proCount = (subs || []).filter((s) => s.plan_id === "pro").length;
-    const agencyCount = (subs || []).filter((s) => s.plan_id === "agency").length;
+    const freeCount = (subs || []).filter((s: { plan_id: string | null }) => s.plan_id === "free").length;
+    const proCount = (subs || []).filter((s: { plan_id: string | null }) => s.plan_id === "pro").length;
+    const agencyCount = (subs || []).filter((s: { plan_id: string | null }) => s.plan_id === "agency").length;
 
-    const initialGenCount = (creditLogs || []).filter((c) => c.action_type === "initial_generation").length;
-    const aiEditCount = (creditLogs || []).filter((c) => c.action_type === "ai_edit").length;
-    const aiSeoCount = (creditLogs || []).filter((c) => c.action_type === "ai_seo_suggestions").length;
+    const initialGenCount = (creditLogs || []).filter((c: { action_type: string }) => c.action_type === "initial_generation").length;
+    const aiEditCount = (creditLogs || []).filter((c: { action_type: string }) => c.action_type === "ai_edit").length;
+    const aiSeoCount = (creditLogs || []).filter((c: { action_type: string }) => c.action_type === "ai_seo_suggestions").length;
 
     return NextResponse.json({
       userGrowth: {
@@ -37,8 +37,8 @@ export async function GET() {
       },
       websiteActivity: {
         total: (websites || []).length,
-        published: (websites || []).filter((w) => w.is_published).length,
-        draft: (websites || []).filter((w) => !w.is_published).length,
+        published: (websites || []).filter((w: { is_published: boolean | null }) => Boolean(w.is_published)).length,
+        draft: (websites || []).filter((w: { is_published: boolean | null }) => !w.is_published).length,
       },
       aiUsageBreakdown: {
         initialGenerations: initialGenCount,

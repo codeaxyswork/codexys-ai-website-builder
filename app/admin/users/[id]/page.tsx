@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, use } from "react";
+import React, { useState, useEffect, useRef, use } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { AdminLayout } from "@/components/AdminLayout";
@@ -43,25 +43,64 @@ export default function AdminUserDetailsPage({ params }: UserDetailsPageProps) {
     }
   };
 
+  const [creditIdempotencyKey, setCreditIdempotencyKey] = useState<string>("");
+  const [lastCreditParams, setLastCreditParams] = useState<string>("");
+  const [isActionPending, setIsActionPending] = useState<boolean>(false);
+  const isActionPendingRef = useRef<boolean>(false);
+
   const handleAction = async (actionPayload: any) => {
+    // Synchronous call-stack guard: Blocks duplicate invocations immediately before React re-renders
+    if (isActionPendingRef.current) return;
+    isActionPendingRef.current = true;
+    setIsActionPending(true);
+
     try {
       setStatusMsg(null);
       setErrorMsg(null);
 
+      const headers: Record<string, string> = { "Content-Type": "application/json" };
+      let currentCreditKey = creditIdempotencyKey;
+
+      if (actionPayload.action === "adjust_credits") {
+        const paramFingerprint = JSON.stringify({
+          amount: actionPayload.amount,
+          type: actionPayload.type || "add",
+          reason: actionPayload.reason || "",
+        });
+
+        // If parameters changed or key doesn't exist, generate a fresh idempotency key
+        if (!currentCreditKey || paramFingerprint !== lastCreditParams) {
+          currentCreditKey = crypto.randomUUID();
+          setCreditIdempotencyKey(currentCreditKey);
+          setLastCreditParams(paramFingerprint);
+        }
+        headers["Idempotency-Key"] = currentCreditKey;
+      }
+
       const res = await fetch(`/api/admin/users/${userId}`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers,
         body: JSON.stringify(actionPayload),
       });
 
       const json = await res.json();
       if (!res.ok) throw new Error(json.error || "Action failed.");
 
+      if (actionPayload.action === "adjust_credits") {
+        // Reset key after clean completion so the next distinct adjustment gets a fresh key
+        setCreditIdempotencyKey("");
+        setLastCreditParams("");
+      }
+
       setStatusMsg(json.message || "Action completed successfully.");
       fetchUserDetails();
     } catch (err: any) {
       console.error("Admin user action error:", err);
       setErrorMsg(err.message || "Action failed.");
+      // Retain creditIdempotencyKey so retrying the failed action reuses the original key
+    } finally {
+      isActionPendingRef.current = false;
+      setIsActionPending(false);
     }
   };
 
@@ -154,14 +193,16 @@ export default function AdminUserDetailsPage({ params }: UserDetailsPageProps) {
 
               <div className="grid grid-cols-2 gap-2">
                 <button
+                  disabled={isActionPending}
                   onClick={() => handleAction({ action: "adjust_credits", amount: 100, type: "add" })}
-                  className="py-2 px-3 bg-purple-50 text-purple-700 hover:bg-purple-100 border border-purple-200 text-xs font-semibold rounded-lg transition-all"
+                  className="py-2 px-3 bg-purple-50 text-purple-700 hover:bg-purple-100 border border-purple-200 text-xs font-semibold rounded-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  +100 Credits
+                  {isActionPending ? "Updating..." : "+100 Credits"}
                 </button>
                 <button
+                  disabled={isActionPending}
                   onClick={() => handleAction({ action: "change_status", status: u?.status === "suspended" ? "active" : "suspended" })}
-                  className={`py-2 px-3 text-xs font-semibold rounded-lg border transition-all ${
+                  className={`py-2 px-3 text-xs font-semibold rounded-lg border transition-all disabled:opacity-50 disabled:cursor-not-allowed ${
                     u?.status === "suspended" ? "bg-emerald-50 text-emerald-700 border-emerald-200" : "bg-rose-50 text-rose-700 border-rose-200"
                   }`}
                 >
@@ -173,9 +214,10 @@ export default function AdminUserDetailsPage({ params }: UserDetailsPageProps) {
               <div className="pt-2">
                 <label className="block text-[11px] font-bold text-slate-500 uppercase mb-1">Role (Super Admin)</label>
                 <select
+                  disabled={isActionPending}
                   value={u?.role || "user"}
                   onChange={(e) => handleAction({ action: "change_role", role: e.target.value })}
-                  className="w-full px-3 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-xs font-semibold text-slate-800"
+                  className="w-full px-3 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-xs font-semibold text-slate-800 disabled:opacity-50"
                 >
                   <option value="user">User</option>
                   <option value="admin">Admin</option>

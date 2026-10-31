@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/utils/supabase/client";
 import { Header } from "@/components/Header";
@@ -11,6 +11,8 @@ import { RightSidebar } from "@/components/RightSidebar";
 import { CodeaxysAIAssistant } from "@/components/CodeaxysAIAssistant";
 import { SaveState } from "@/components/SaveStatus";
 import { GeneratedFile, WebsitePlan, GenerationResponse, UploadedImage } from "@/lib/types";
+import { isValidTemplateId } from "@/lib/auth-redirect";
+import { AutoSaveEngine, getLocalDraft, clearLocalDraft } from "@/lib/autosave-manager";
 
 export function HomeClient() {
   const router = useRouter();
@@ -33,6 +35,162 @@ export function HomeClient() {
 
   // Authentication State
   const [user, setUser] = useState<any>(null);
+
+  // AutoSave Engine Reference
+  const autoSaveEngineRef = useRef<AutoSaveEngine | null>(null);
+
+  useEffect(() => {
+    autoSaveEngineRef.current = new AutoSaveEngine({
+      onStatusChange: (status) => setSaveState(status),
+      onSaveSuccess: ({ websiteId }) => {
+        setCurrentWebsiteId(websiteId);
+        if (typeof window !== "undefined") {
+          const newUrl = `${window.location.pathname}?id=${websiteId}`;
+          window.history.replaceState({ path: newUrl }, "", newUrl);
+        }
+      },
+    });
+
+    return () => {
+      autoSaveEngineRef.current?.destroy();
+    };
+  }, []);
+
+  function autoSaveWebsite(
+    targetFiles: GeneratedFile[],
+    targetPlan: WebsitePlan | null,
+    targetPrompt: string,
+    existingId: string | null,
+    immediate: boolean = true
+  ) {
+    autoSaveEngineRef.current?.triggerSave(
+      targetFiles,
+      targetPlan,
+      targetPrompt,
+      existingId,
+      immediate
+    );
+  }
+
+  async function loadTemplate(templateId: string) {
+    setIsLoadingSavedWebsite(true);
+    setError(null);
+
+    try {
+      const response = await fetch(`/api/templates/${encodeURIComponent(templateId)}`);
+      const data = await response.json();
+
+      if (!response.ok || data.error) {
+        setError(data.error || "Failed to load selected template.");
+        return;
+      }
+
+      if (data.files && data.files.length > 0) {
+        setFiles(data.files);
+        setPlan(data.plan || null);
+        const promptText = data.template?.name
+          ? `Template: ${data.template.name} (${data.template.category})`
+          : "Selected Template";
+        setPrompt(promptText);
+        setGenerationStage("complete");
+        setIsSidebarOpen(true);
+
+        // Immediately buffer in local draft and trigger background save
+        autoSaveWebsite(data.files, data.plan || null, promptText, null, false);
+      }
+    } catch (err: unknown) {
+      console.error("Failed to load selected template:", err);
+      setError("Could not load the selected template.");
+    } finally {
+      setIsLoadingSavedWebsite(false);
+    }
+  }
+
+  async function loadSavedWebsite(id: string) {
+    setIsLoadingSavedWebsite(true);
+    setError(null);
+
+    try {
+      const response = await fetch(`/api/websites/${id}`);
+      const data = await response.json();
+
+      if (!response.ok || data.error) {
+        // Fallback: check local draft if network failed
+        const localDraft = getLocalDraft(id);
+        if (localDraft && localDraft.files && localDraft.files.length > 0) {
+          setCurrentWebsiteId(id);
+          if (localDraft.prompt) setPrompt(localDraft.prompt);
+          if (localDraft.plan) setPlan(localDraft.plan);
+          setFiles(localDraft.files);
+          setGenerationStage("complete");
+          setIsSidebarOpen(true);
+          setSaveState("offline");
+          return;
+        }
+        setError(data.error || "Failed to load saved website.");
+        return;
+      }
+
+      if (data.website) {
+        setCurrentWebsiteId(data.website.id);
+        setIsPublished(Boolean(data.website.is_published));
+        setPublishedSlug(data.website.published_slug || null);
+        if (data.prompt) setPrompt(data.prompt);
+        if (data.plan) setPlan(data.plan);
+
+        // Check if there is a newer local un-synced draft
+        const localDraft = getLocalDraft(data.website.id);
+        const serverUpdatedAt = new Date(data.website.updated_at || 0).getTime();
+
+        if (localDraft && localDraft.timestamp > serverUpdatedAt && localDraft.files?.length > 0) {
+          console.log("[Autosave] Restoring newer un-synced local draft...");
+          setFiles(localDraft.files);
+          if (localDraft.plan) setPlan(localDraft.plan);
+          if (localDraft.prompt) setPrompt(localDraft.prompt);
+        } else if (data.files && data.files.length > 0) {
+          setFiles(data.files);
+        }
+
+        setGenerationStage("complete");
+        setIsSidebarOpen(true);
+      }
+    } catch (err: unknown) {
+      console.error("Failed to load saved website:", err);
+      // Fallback: try local draft
+      const localDraft = getLocalDraft(id);
+      if (localDraft && localDraft.files && localDraft.files.length > 0) {
+        setCurrentWebsiteId(id);
+        if (localDraft.prompt) setPrompt(localDraft.prompt);
+        if (localDraft.plan) setPlan(localDraft.plan);
+        setFiles(localDraft.files);
+        setGenerationStage("complete");
+        setIsSidebarOpen(true);
+        setSaveState("offline");
+        return;
+      }
+      setError("Could not load the requested website.");
+    } finally {
+      setIsLoadingSavedWebsite(false);
+    }
+  }
+
+  function checkAndRestorePendingPrompt() {
+    if (typeof window === "undefined") return;
+
+    // Check pending template first
+    const pendingTemplate = sessionStorage.getItem("pending_template");
+    if (pendingTemplate && isValidTemplateId(pendingTemplate)) {
+      sessionStorage.removeItem("pending_template");
+      loadTemplate(pendingTemplate);
+      return;
+    }
+
+    const pendingPrompt = sessionStorage.getItem("pending_prompt");
+    if (pendingPrompt && pendingPrompt.trim()) {
+      sessionStorage.removeItem("pending_prompt");
+      setPrompt(pendingPrompt);
+    }
+  }
 
   // Track Supabase Auth State & Restore Pending Prompt Upon Login Return
   useEffect(() => {
@@ -64,98 +222,31 @@ export function HomeClient() {
     }
   }, []);
 
-  // Load saved website if ?id=... query parameter exists
+  // Load saved website if ?id=... query parameter exists, or load template if ?template=... exists, or restore local draft
   useEffect(() => {
     if (typeof window === "undefined") return;
     const urlParams = new URLSearchParams(window.location.search);
     const idParam = urlParams.get("id");
+    const templateParam = urlParams.get("template");
 
     if (idParam && idParam !== currentWebsiteId) {
       loadSavedWebsite(idParam);
-    }
-  }, []);
-
-  const checkAndRestorePendingPrompt = () => {
-    if (typeof window === "undefined") return;
-    const pendingPrompt = sessionStorage.getItem("pending_prompt");
-    if (pendingPrompt && pendingPrompt.trim()) {
-      sessionStorage.removeItem("pending_prompt");
-      setPrompt(pendingPrompt);
-    }
-  };
-
-  const loadSavedWebsite = async (id: string) => {
-    setIsLoadingSavedWebsite(true);
-    setError(null);
-
-    try {
-      const response = await fetch(`/api/websites/${id}`);
-      const data = await response.json();
-
-      if (!response.ok || data.error) {
-        setError(data.error || "Failed to load saved website.");
-        return;
+    } else if (templateParam && isValidTemplateId(templateParam)) {
+      loadTemplate(templateParam);
+    } else if (!idParam && !templateParam && files.length === 0) {
+      // Check for recoverable draft
+      const draft = getLocalDraft();
+      if (draft && draft.files && draft.files.length > 0) {
+        console.log("[Autosave] Restoring unsaved local project session...");
+        setFiles(draft.files);
+        if (draft.plan) setPlan(draft.plan);
+        if (draft.prompt) setPrompt(draft.prompt);
+        if (draft.websiteId) setCurrentWebsiteId(draft.websiteId);
+        setGenerationStage("complete");
+        setIsSidebarOpen(true);
       }
-
-      if (data.website) {
-        setCurrentWebsiteId(data.website.id);
-        setIsPublished(Boolean(data.website.is_published));
-        setPublishedSlug(data.website.published_slug || null);
-        if (data.prompt) setPrompt(data.prompt);
-        if (data.plan) setPlan(data.plan);
-        if (data.files && data.files.length > 0) {
-          setFiles(data.files);
-          setGenerationStage("complete");
-          setIsSidebarOpen(true);
-        }
-      }
-    } catch (err: any) {
-      console.error("Failed to load saved website:", err);
-      setError("Could not load the requested website.");
-    } finally {
-      setIsLoadingSavedWebsite(false);
     }
-  };
-
-  const autoSaveWebsite = async (
-    targetFiles: GeneratedFile[],
-    targetPlan: WebsitePlan | null,
-    targetPrompt: string,
-    existingId: string | null
-  ) => {
-    if (!user) return;
-    setSaveState("saving");
-
-    try {
-      const response = await fetch("/api/websites/save", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          websiteId: existingId || undefined,
-          prompt: targetPrompt,
-          plan: targetPlan,
-          files: targetFiles,
-        }),
-      });
-
-      const data = await response.json();
-
-      if (response.ok && data.success && data.websiteId) {
-        setCurrentWebsiteId(data.websiteId);
-        setSaveState("saved");
-        if (typeof window !== "undefined") {
-          const newUrl = `${window.location.pathname}?id=${data.websiteId}`;
-          window.history.replaceState({ path: newUrl }, "", newUrl);
-        }
-        setTimeout(() => setSaveState("idle"), 2500);
-      } else {
-        setSaveState("error");
-      }
-    } catch (e) {
-      console.warn("Background auto-save failed:", e);
-      setSaveState("error");
-    }
-  };
+  }, [currentWebsiteId, files.length]);
 
   const handleAddImages = (fileList: FileList | null) => {
     if (!fileList || fileList.length === 0) return;
@@ -255,7 +346,7 @@ export function HomeClient() {
       } else if (newFiles.length > 0) {
         autoSaveWebsite(newFiles, newPlan, promptToRun, currentWebsiteId);
       }
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error("Client Generation Error:", err);
       setError(formatCleanErrorMessage(err));
       setGenerationStage("error");
@@ -328,6 +419,7 @@ export function HomeClient() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           files,
+          plan,
           instruction,
           images: processedImages,
           websiteId: currentWebsiteId || undefined,
@@ -355,7 +447,7 @@ export function HomeClient() {
       if (res.files && res.files.length > 0) setFiles(res.files);
 
       autoSaveWebsite(updatedFiles, updatedPlan, prompt, currentWebsiteId);
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error("Client Edit Error:", err);
       setError(formatCleanErrorMessage(err));
     } finally {
@@ -364,6 +456,8 @@ export function HomeClient() {
   };
 
   const handleNewProject = () => {
+    clearLocalDraft(currentWebsiteId);
+    clearLocalDraft(null);
     setFiles([]);
     setPlan(null);
     setUploadedImages([]);
@@ -419,6 +513,7 @@ export function HomeClient() {
         isPublished={isPublished}
         publishedSlug={publishedSlug}
         saveState={saveState}
+        files={files}
         onPublishStatusChange={(pub, slug) => {
           setIsPublished(pub);
           if (slug) setPublishedSlug(slug);
@@ -460,6 +555,14 @@ export function HomeClient() {
               onAddImages={handleAddImages}
               onRemoveImage={handleRemoveImage}
               error={error}
+              websiteId={currentWebsiteId}
+              isPublished={isPublished}
+              publishedSlug={publishedSlug}
+              saveState={saveState}
+              onPublishStatusChange={(pub, slug) => {
+                setIsPublished(pub);
+                if (slug) setPublishedSlug(slug);
+              }}
             />
           </>
         )}

@@ -7,6 +7,8 @@ import {
   verifyCustomerAccountAccess,
   updateSelectedGoogleAdsCustomer,
 } from "@/lib/google-ads-client";
+import { getUserUsage } from "@/lib/billing";
+import { canUseFeature } from "@/lib/features";
 
 export async function POST(
   req: NextRequest,
@@ -44,6 +46,20 @@ export async function POST(
     if (webErr || !website) {
       return NextResponse.json(
         { error: "Website not found or unauthorized access." },
+        { status: 403 }
+      );
+    }
+
+    // Verify entitlement / feature access (advanced_integrations required)
+    const usage = await getUserUsage(user.id, supabase);
+    const planId = (usage?.plan?.id || "free").toLowerCase().trim();
+    if (!canUseFeature(planId, "advanced_integrations")) {
+      return NextResponse.json(
+        {
+          error: "Google Ads integration requires an active Agency subscription plan.",
+          code: "UPGRADE_REQUIRED",
+          requiredTier: "agency",
+        },
         { status: 403 }
       );
     }

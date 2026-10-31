@@ -4,6 +4,7 @@ import React, { useState, useRef, useCallback } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { createClient, getAuthRedirectUrl } from "@/utils/supabase/client";
+import { getClientPostAuthRedirect, isValidTemplateId } from "@/lib/auth-redirect";
 import { Wand2, Sparkles, ArrowRight, Loader2, AlertCircle, Lock, Mail, User, CheckCircle2 } from "lucide-react";
 import { TurnstileWidget, type TurnstileWidgetRef } from "@/components/TurnstileWidget";
 
@@ -17,6 +18,21 @@ export default function SignupPage() {
   const [loading, setLoading] = useState(false);
   const [googleLoading, setGoogleLoading] = useState(false);
   const [captchaToken, setCaptchaToken] = useState<string | null>(null);
+  const [templateParam] = useState<string | null>(() => {
+    if (typeof window === "undefined") return null;
+    const tpl = new URLSearchParams(window.location.search).get("template");
+    if (tpl && isValidTemplateId(tpl)) {
+      try {
+        sessionStorage.setItem("pending_template", tpl.trim().toLowerCase());
+      } catch {}
+      return tpl;
+    }
+    try {
+      const cached = sessionStorage.getItem("pending_template");
+      if (cached && isValidTemplateId(cached)) return cached;
+    } catch {}
+    return null;
+  });
   const turnstileRef = useRef<TurnstileWidgetRef>(null);
   const router = useRouter();
 
@@ -48,7 +64,8 @@ export default function SignupPage() {
       const supabase = createClient();
       supabase.auth.getSession().then(({ data: { session } }) => {
         if (session) {
-          router.push("/dashboard");
+          const targetUrl = getClientPostAuthRedirect();
+          router.push(targetUrl);
         }
       });
 
@@ -56,7 +73,8 @@ export default function SignupPage() {
         data: { subscription },
       } = supabase.auth.onAuthStateChange((_event, session) => {
         if (session) {
-          router.push("/dashboard");
+          const targetUrl = getClientPostAuthRedirect();
+          router.push(targetUrl);
         }
       });
 
@@ -97,6 +115,7 @@ export default function SignupPage() {
     setLoading(true);
 
     try {
+      const targetUrl = getClientPostAuthRedirect();
       const supabase = createClient();
 
       const { data, error: authError } = await supabase.auth.signUp({
@@ -106,7 +125,7 @@ export default function SignupPage() {
           data: {
             full_name: fullName.trim(),
           },
-          emailRedirectTo: getAuthRedirectUrl(),
+          emailRedirectTo: getAuthRedirectUrl(targetUrl),
           captchaToken,
         },
       });
@@ -120,7 +139,7 @@ export default function SignupPage() {
       }
 
       if (data.session) {
-        router.push("/dashboard");
+        router.push(targetUrl);
         router.refresh();
       } else {
         setFullName("");
@@ -154,11 +173,12 @@ export default function SignupPage() {
         return;
       }
 
+      const targetUrl = getClientPostAuthRedirect();
       const supabase = createClient();
       const { error: authError } = await supabase.auth.signInWithOAuth({
         provider: "google",
         options: {
-          redirectTo: getAuthRedirectUrl(),
+          redirectTo: getAuthRedirectUrl(targetUrl),
         },
       });
 
@@ -357,7 +377,10 @@ export default function SignupPage() {
           {/* Footer Link */}
           <p className="text-center text-xs text-slate-600 mt-5">
             Already have an account?{" "}
-            <Link href="/login" className="text-purple-600 hover:text-purple-700 font-semibold underline underline-offset-4">
+            <Link
+              href={templateParam ? `/login?template=${encodeURIComponent(templateParam)}` : "/login"}
+              className="text-purple-600 hover:text-purple-700 font-semibold underline underline-offset-4"
+            >
               Sign in
             </Link>
           </p>

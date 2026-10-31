@@ -830,7 +830,7 @@ export default function SEODashboardPage({ params }: SEODashboardPageProps) {
 
             {/* AUTOPILOT TAB */}
             {activeTab === "autopilot" && (
-              <SEOAutopilotDashboard websiteId={websiteId} />
+              <SEOAutopilotDashboard websiteId={websiteId} userPlan={userPlan} />
             )}
 
             {/* REPORTS & WHITE LABEL TAB */}

@@ -209,7 +209,13 @@ export async function GET(
         const citationsCount = successful.filter((l: any) => (l.citation_urls || []).length > 0).length;
         const latestTime = new Date(matching[0].created_at).getTime();
         const isRecent = (now - latestTime) < SEVEN_DAYS_MS;
-        const uniqueProviders = Array.from(new Set(matching.map((l: any) => l.provider)));
+        const uniqueProviders: string[] = Array.from(
+          new Set(
+            matching
+              .map((l: any): string => (typeof l.provider === "string" ? l.provider : ""))
+              .filter((p: string): p is string => Boolean(p))
+          )
+        );
 
         let sampleStatus: "live_sample" | "historical_sample" | "insufficient_sample" | "unprobed" = "live_sample";
         if (successful.length < 2) {

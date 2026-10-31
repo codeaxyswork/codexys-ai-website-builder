@@ -51,10 +51,22 @@ export const PLAN_PERMISSIONS: Record<string, PlanFeatures> = {
   },
 };
 
-export function canUseFeature(planId: string | undefined | null, feature: FeatureKey): boolean {
+export function canUseFeature(
+  planId: string | undefined | null,
+  feature: FeatureKey,
+  activeAddonIds?: string[]
+): boolean {
   const normalizedPlan = (planId || "free").toLowerCase().trim();
   const plan = PLAN_PERMISSIONS[normalizedPlan] || PLAN_PERMISSIONS.free;
-  return Boolean(plan[feature]);
+  if (Boolean(plan[feature])) {
+    return true;
+  }
+  if (Array.isArray(activeAddonIds) && activeAddonIds.length > 0) {
+    if (feature === "ai_seo" && activeAddonIds.includes("seo_autopilot_fix_agent")) return true;
+    if (feature === "advanced_schema" && activeAddonIds.includes("seo_autopilot_fix_agent")) return true;
+    if (feature === "advanced_integrations" && activeAddonIds.includes("white_label_agency_reports")) return true;
+  }
+  return false;
 }
 
 export function isAdvancedSeoPlan(planId: string | undefined | null): boolean {

@@ -510,7 +510,7 @@ async function runLiveProductionE2EVerification() {
     const { data: checkSharedList } = await db.storage
       .from("website-assets")
       .list(`${testUserId}/shared`);
-    const stillExists = checkSharedList?.some((f) => f.name === "global-company-logo.png");
+    const stillExists = checkSharedList?.some((f: { name: string }) => f.name === "global-company-logo.png");
     assert.strictEqual(stillExists, true, "Shared file must remain intact in Supabase Storage");
     console.log("  ✓ Verified: Shared storage asset is strictly preserved while project was deleted.");
 

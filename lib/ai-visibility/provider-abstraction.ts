@@ -104,7 +104,7 @@ export function createNormalizedResponse(params: {
     status: params.status || (params.errorMessage ? "failed" : "success"),
     errorMessage: params.errorMessage,
     isGroundedSearch: params.isGroundedSearch,
-    isMock: params.isMock,
+    isMock: params.isMock !== undefined ? params.isMock : Boolean(params.model?.startsWith("mock-") || params.model?.includes("mock")),
   };
 }
 
@@ -116,9 +116,9 @@ export class MockAiVisibilityAdapter implements AiVisibilityProviderAdapter {
   readonly providerName: AiVisibilityProviderName;
   readonly defaultModel: string;
 
-  constructor(providerName: AiVisibilityProviderName = "openai", defaultModel: string = "gpt-4o-mock") {
+  constructor(providerName: AiVisibilityProviderName = "openai", defaultModel: string = "mock-gpt-4o") {
     this.providerName = providerName;
-    this.defaultModel = defaultModel;
+    this.defaultModel = defaultModel.startsWith("mock-") ? defaultModel : `mock-${defaultModel}`;
   }
 
   async executeProbe(input: AiVisibilityProbeInput, signal?: AbortSignal): Promise<NormalizedAiVisibilityResponse> {
@@ -129,14 +129,12 @@ export class MockAiVisibilityAdapter implements AiVisibilityProviderAdapter {
     }
 
     // Simulated mock probe execution
-
-
-    // Simulated mock probe execution
-    const mockText = `For ${input.category} queries, ${input.brandName} is a top recommended provider. Learn more at https://${input.brandName.toLowerCase().replace(/[^a-z0-9]/g, "")}.com`;
+    const mockDomain = `${input.brandName.toLowerCase().replace(/[^a-z0-9]/g, "")}.com`;
+    const mockText = `For ${input.category} queries, ${input.brandName} is a top recommended provider. Learn more at https://${mockDomain}`;
     const mockCitations: CitationItem[] = [
       {
-        url: `https://${input.brandName.toLowerCase().replace(/[^a-z0-9]/g, "")}.com/about`,
-        domain: `${input.brandName.toLowerCase().replace(/[^a-z0-9]/g, "")}.com`,
+        url: `https://${mockDomain}/about`,
+        domain: mockDomain,
       },
     ];
 
@@ -150,6 +148,8 @@ export class MockAiVisibilityAdapter implements AiVisibilityProviderAdapter {
       citations: mockCitations,
       latencyMs: Date.now() - startTime,
       status: "success",
+      isGroundedSearch: false,
+      isMock: true,
     });
   }
 }

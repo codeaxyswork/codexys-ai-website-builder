@@ -48,6 +48,7 @@ export interface HistoricalVisibilitySummary {
     status: AiVisibilityResponseStatus;
     errorMessage: string | null;
     createdAt: string;
+    isMock: boolean;
   }>;
 }
 
@@ -100,6 +101,7 @@ export async function persistProbeResults(
         latency_ms: res.latencyMs || 0,
         status: res.status || "success",
         error_message: errorMessage,
+        is_mock: Boolean(res.isMock || res.model?.startsWith("mock-") || res.model?.includes("mock")),
       };
     });
 
@@ -157,11 +159,12 @@ export async function getHistoricalVisibilityLogs(
       return emptySummary;
     }
 
-    const totalProbes = rows.length;
-    if (totalProbes === 0) return emptySummary;
+    if (rows.length === 0) return emptySummary;
 
     // Filter live probe records to prevent simulated mock data from inflating live analytics
-    const liveRows = rows.filter((r: any) => !r.is_mock && !r.model_name?.startsWith("mock-"));
+    const liveRows = rows.filter(
+      (r: any) => !r.is_mock && !r.model_name?.startsWith("mock-") && !r.model_name?.includes("mock")
+    );
 
     let successCount = 0;
     let failureCount = 0;
@@ -287,7 +290,7 @@ export async function getHistoricalVisibilityLogs(
     };
 
     return {
-      totalProbes,
+      totalProbes: liveRows.length,
       successCount,
       failureCount,
       timeoutCount,

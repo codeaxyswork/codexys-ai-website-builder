@@ -2,6 +2,12 @@ import { GoogleGenAI } from "@google/genai";
 import { GenerationResponse, GeneratedFile, WebsitePlan, UploadedImage } from "./types";
 import { buildMultilingualSystemDirective } from "./multilingual";
 import {
+  buildSiteContext,
+  determineInstructionScope,
+  formatSiteContextPrompt,
+  atomicMergeFiles,
+} from "./site-context";
+import {
   logAITelemetry,
   classifyGeminiError,
   calculateBackoffWithJitter,
@@ -132,12 +138,53 @@ CRITICAL ARCHITECTURE RULES:
 `;
 
 const SYSTEM_EDIT_PROMPT = `
-You are a principal web developer updating an existing generated website based on user refinement instructions.
+You are a principal web designer and developer updating an existing website based on customer refinement instructions.
 
-CRITICAL INSTRUCTIONS:
-1. Examine the user's edit instruction alongside the current index.html, styles.css, and script.js files.
-2. Update the HTML, CSS, or JS files as requested while preserving the overall quality, standalone structure, and theme.
-3. Return the updated design plan and all 3 updated files (index.html, styles.css, script.js) using the exact same ===PLAN_START===, ===HTML_START===, ===CSS_START===, and ===JS_START=== markers format as initial generation.
+CRITICAL ARCHITECTURE RULES:
+1. Examine the user's edit instruction alongside the WEBSITE ARCHITECTURE CONTEXT and CURRENT WEBSITE SOURCE CODE.
+2. Determine which files are affected by the instruction:
+   - Global / Site-wide instructions (e.g. "update header on every page", "change colors to purple and gold", "update contact info everywhere"): Update all affected pages, shared headers/footers, and stylesheets consistently.
+   - Page-specific instructions (e.g. "add testimonials to the homepage", "update services on services.html"): Update only the specified page (and stylesheet if needed). Do NOT output unaffected pages.
+3. Preserve existing functionality:
+   - Keep working navigation links, form inputs, interactive scripts, and asset references.
+   - Preserve any <base href="..."> tags exactly as they appear in the HTML head.
+   - Maintain responsive layout, accessibility, and high visual polish.
+4. Output Format:
+   Always output your response using the following marker format:
+
+===PLAN_START===
+{
+  "websiteType": "string",
+  "brandIdentity": "string",
+  "designDirection": "string",
+  "colorPalette": [
+    { "name": "Primary", "hex": "#..." },
+    { "name": "Accent", "hex": "#..." }
+  ],
+  "typographyDirection": "string",
+  "layoutStrategy": "string",
+  "sections": [
+    { "name": "Section Name", "description": "..." }
+  ]
+}
+===PLAN_END===
+
+For every file you modify or add, output:
+===FILE:path/to/file.ext===
+<complete updated file content here>
+===END_FILE===
+
+Example:
+===FILE:index.html===
+<!DOCTYPE html>
+<html>
+...
+</html>
+===END_FILE===
+
+CRITICAL RULES:
+- Do NOT output files that are not modified. Any file you do not output will be preserved untouched.
+- When outputting an updated file, output its COMPLETE content. Do not truncate, omit sections, or write placeholder comments like "...rest of code...".
 `;
 
 export async function generateWebsite(
@@ -296,7 +343,11 @@ export async function editWebsite(
   currentFiles: GeneratedFile[],
   instruction: string,
   images?: UploadedImage[],
-  options?: { conversationLanguage?: string; websiteLanguage?: string }
+  options?: {
+    conversationLanguage?: string;
+    websiteLanguage?: string;
+    existingPlan?: WebsitePlan | null;
+  }
 ): Promise<GenerationResponse> {
   const { apiKey, model } = getGeminiConfig();
   const ai = new GoogleGenAI({ apiKey });
@@ -306,11 +357,16 @@ export async function editWebsite(
     options?.websiteLanguage
   );
 
+  // 1. Analyze site-wide architecture and determine instruction scope
+  const siteContext = buildSiteContext(currentFiles, options?.existingPlan);
+  const scope = determineInstructionScope(instruction, siteContext);
+  const contextPrompt = formatSiteContextPrompt(siteContext, scope);
+
   const currentCodeSummary = currentFiles
     .map((f) => `--- FILE: ${f.path} ---\n${f.content}`)
     .join("\n\n");
 
-  let promptText = `${SYSTEM_EDIT_PROMPT}\n\n${langDirective}\n\nCURRENT WEBSITE SOURCE CODE:\n${currentCodeSummary}\n\nUSER EDIT INSTRUCTION: "${instruction}"`;
+  let promptText = `${SYSTEM_EDIT_PROMPT}\n\n${langDirective}\n\n${contextPrompt}\n\nCURRENT WEBSITE SOURCE CODE:\n${currentCodeSummary}\n\nUSER EDIT INSTRUCTION: "${instruction}"`;
 
   if (images && images.length > 0) {
     promptText += `\n\nNEW ATTACHED ASSETS (${images.length} images):\n`;
@@ -411,7 +467,7 @@ export async function editWebsite(
         console.log(`RESPONSE LENGTH: ${responseText.length} characters (latency: ${latencyMs}ms)`);
         console.log("==========================================");
 
-        return parseMarkerDelimitedResponse(responseText, instruction);
+        return parseEditResponse(responseText, currentFiles, instruction, options?.existingPlan);
       } catch (error: any) {
         const latencyMs = Date.now() - t0;
         const classified = classifyGeminiError(error);
@@ -480,6 +536,123 @@ function formatErrorMessage(error: any): string {
   }
   
   return rawMsg;
+}
+
+/**
+ * Intelligently parses multi-file AI edit responses:
+ * - Extracts updated WebsitePlan from ===PLAN_START=== ... ===PLAN_END===
+ * - Extracts all updated files from ===FILE:path=== ... ===END_FILE===
+ * - Falls back to legacy markers (===HTML_START===, ===CSS_START===, ===JS_START===)
+ * - Atomically merges updated files into originalFiles to preserve untouched files & <base href> tags
+ */
+export function parseEditResponse(
+  text: string,
+  originalFiles: GeneratedFile[],
+  _instruction: string,
+  existingPlan?: WebsitePlan | null
+): GenerationResponse {
+  // 1. Extract Plan JSON
+  let plan: WebsitePlan = existingPlan || {
+    websiteType: "Custom Website",
+    brandIdentity: "My AI Website",
+    designDirection: "Bespoke visual architecture",
+    colorPalette: [
+      { name: "Primary", hex: "#0f172a" },
+      { name: "Accent", hex: "#6366f1" },
+    ],
+    typographyDirection: "Modern Sans-serif",
+    layoutStrategy: "Responsive dynamic layout",
+    sections: [
+      { name: "Hero Section", description: "Primary banner and navigation" },
+      { name: "Main Content", description: "Showcase grid and details" },
+      { name: "Footer", description: "Links and footer info" },
+    ],
+  };
+
+  const planText = extractBlock(text, "===PLAN_START===", "===PLAN_END===");
+  if (planText) {
+    try {
+      const cleanedPlanText = planText
+        .replace(/```json/g, "")
+        .replace(/```/g, "")
+        .trim();
+      const parsedPlan = JSON.parse(cleanedPlanText);
+      if (parsedPlan && typeof parsedPlan === "object") {
+        plan = { ...plan, ...parsedPlan };
+      }
+    } catch (e) {
+      console.warn("Could not parse plan JSON safely, using previous plan:", e);
+    }
+  }
+
+  // 2. Extract multi-file blocks: ===FILE:path=== ... ===END_FILE===
+  const extractedFiles: GeneratedFile[] = [];
+  const fileRegex = /===FILE:\s*([^\n\r=]+)\s*===([\s\S]*?)(?:===END_FILE===|(?===FILE:)|$)/gi;
+  let match: RegExpExecArray | null;
+
+  while ((match = fileRegex.exec(text)) !== null) {
+    const rawPath = match[1].trim();
+    const rawContent = match[2].trim();
+    if (rawPath) {
+      if (!rawContent) {
+        throw new Error(`AI generated empty content for file "${rawPath}". Original website preserved.`);
+      }
+      extractedFiles.push({
+        path: rawPath,
+        content: rawContent,
+      });
+    }
+  }
+
+  // 3. Fallback: If no ===FILE:=== markers found, check legacy markers (===HTML_START===, etc.)
+  if (extractedFiles.length === 0) {
+    let htmlContent = extractBlock(text, "===HTML_START===", "===HTML_END===");
+    if (!htmlContent) {
+      htmlContent = extractMarkdownCodeBlock(text, "html");
+    }
+    let cssContent = extractBlock(text, "===CSS_START===", "===CSS_END===");
+    if (!cssContent) {
+      cssContent = extractMarkdownCodeBlock(text, "css");
+    }
+    let jsContent = extractBlock(text, "===JS_START===", "===JS_END===");
+    if (!jsContent) {
+      jsContent = extractMarkdownCodeBlock(text, "javascript") || extractMarkdownCodeBlock(text, "js");
+    }
+
+    if (!htmlContent && text.includes("<html")) {
+      const startIdx = text.indexOf("<html");
+      const endIdx = text.lastIndexOf("</html>");
+      if (startIdx !== -1 && endIdx !== -1) {
+        htmlContent = text.substring(startIdx, endIdx + 7);
+      }
+    }
+
+    if (htmlContent && htmlContent.trim()) {
+      const primaryHtml = originalFiles.find((f) => f.path.endsWith("index.html"))?.path || "index.html";
+      extractedFiles.push({ path: primaryHtml, content: htmlContent.trim() });
+    }
+
+    if (cssContent && cssContent.trim()) {
+      const primaryCss = originalFiles.find((f) => f.path.endsWith(".css"))?.path || "styles.css";
+      extractedFiles.push({ path: primaryCss, content: cssContent.trim() });
+    }
+
+    if (jsContent && jsContent.trim()) {
+      const primaryJs = originalFiles.find((f) => f.path.endsWith(".js"))?.path || "script.js";
+      extractedFiles.push({ path: primaryJs, content: jsContent.trim() });
+    }
+  }
+
+  if (extractedFiles.length === 0) {
+    throw new Error(
+      "AI Engine response did not contain any valid website files or code updates. Please try again."
+    );
+  }
+
+  // 4. Atomic merge with originalFiles to preserve untouched files & <base href> tags
+  const mergedFiles = atomicMergeFiles(originalFiles, extractedFiles);
+
+  return { plan, files: mergedFiles };
 }
 
 /**

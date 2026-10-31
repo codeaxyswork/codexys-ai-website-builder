@@ -2,6 +2,7 @@ import { calculateAnswerReadinessScore } from "./scorer";
 import { AEOBreakdown, DiscoveredQuestion, EntityClarity, WebsiteAEOAnalysis } from "./types";
 import { calculateOpportunityPriority } from "../seo-opportunities/prioritizer";
 import { auditFactualConsistency, calculateCitationReadiness } from "../seo-geo/factual-consistency";
+import { classifyQuestionIntent } from "./intent-classifier";
 
 export async function runAEOAnalysis(
   supabase: any,
@@ -62,7 +63,7 @@ export async function runAEOAnalysis(
           id: `q_p_${p.id}_${idx}`,
           question: cleanQ.charAt(0).toUpperCase() + cleanQ.slice(1),
           source: "content_audit",
-          intent: cleanQ.toLowerCase().startsWith("how") ? "informational" : "informational",
+          intent: classifyQuestionIntent(cleanQ),
           hasDirectAnswer: text.length > 300,
           pagePath: p.path || "/",
         });
@@ -80,7 +81,7 @@ export async function runAEOAnalysis(
           id: `q_b_${b.id}_${idx}`,
           question: cleanQ.charAt(0).toUpperCase() + cleanQ.slice(1),
           source: "faq_section",
-          intent: "informational",
+          intent: classifyQuestionIntent(cleanQ),
           hasDirectAnswer: true,
           pagePath: `/blog/${b.slug}`,
         });
@@ -98,7 +99,7 @@ export async function runAEOAnalysis(
             id: `q_gsc_${idx}`,
             question: q.charAt(0).toUpperCase() + q.slice(1) + "?",
             source: "gsc",
-            intent: "informational",
+            intent: classifyQuestionIntent(q),
             hasDirectAnswer: pageList.length > 0,
             pagePath: "index.html",
           });

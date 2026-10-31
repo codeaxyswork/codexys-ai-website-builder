@@ -383,7 +383,7 @@ async function runLiveStagingE2EScenarios() {
       .from("website-assets")
       .list(`${unpaidUserId}/${siteAId}/assets`);
 
-    const fileNamesInA = (storageListA || []).map((f) => f.name);
+    const fileNamesInA = (storageListA || []).map((f: { name: string }) => f.name);
     console.log(`Files remaining in Site A storage folder: ${JSON.stringify(fileNamesInA)}`);
 
     const tempFileNameA = tempPathA.split("/").pop()!;
@@ -446,7 +446,7 @@ async function runLiveStagingE2EScenarios() {
     const { data: storageListC } = await db.storage
       .from("website-assets")
       .list(`${paidUserId}/${siteCId}/assets`);
-    const filesInC = (storageListC || []).map((f) => f.name);
+    const filesInC = (storageListC || []).map((f: { name: string }) => f.name);
     assert.ok(filesInC.includes(paidFileNameC), "Paid customer file must remain intact in Supabase Storage");
 
     // Verify Scenario D (Indeterminate): files and records intact
@@ -454,7 +454,7 @@ async function runLiveStagingE2EScenarios() {
     const { data: storageListD } = await db.storage
       .from("website-assets")
       .list(`${indeterminateUserId}/${siteDId}/assets`);
-    const filesInD = (storageListD || []).map((f) => f.name);
+    const filesInD = (storageListD || []).map((f: { name: string }) => f.name);
     assert.ok(filesInD.includes(indetFileNameD), "Indeterminate customer file must remain intact in Supabase Storage");
 
     // Verify Scenario E (Published): files and records intact
@@ -462,7 +462,7 @@ async function runLiveStagingE2EScenarios() {
     const { data: storageListE } = await db.storage
       .from("website-assets")
       .list(`${unpaidUserId}/${siteEId}/assets`);
-    const filesInE = (storageListE || []).map((f) => f.name);
+    const filesInE = (storageListE || []).map((f: { name: string }) => f.name);
     assert.ok(filesInE.includes(pubFileNameE), "Published website file must remain intact in Supabase Storage");
 
     console.log("✅ Phase 3 Passed: Live storage removal and customer data preservation verified.");

@@ -35,7 +35,7 @@ export async function GET(
 
     return NextResponse.json({
       success: true,
-      reports: reports?.map((r) => r.report_data || r) || [],
+      reports: reports?.map((r: { report_data?: unknown; [key: string]: unknown }) => r.report_data || r) || [],
       whiteLabel: whiteLabel || null,
     });
   } catch (err: any) {

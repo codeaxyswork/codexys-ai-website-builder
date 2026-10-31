@@ -79,19 +79,45 @@ export async function GET(
       );
     }
 
-    const rows = analyticsRows || [];
+    interface GscAnalyticsRow {
+      dimension_type: string;
+      dimension_value?: string;
+      date?: string;
+      clicks?: number;
+      impressions?: number;
+      ctr?: number;
+      position?: number;
+    }
+
+    interface RankedQueryItem {
+      query?: string;
+      clicks: number;
+      impressions: number;
+      ctr: number;
+      position: number;
+    }
+
+    interface RankedPageItem {
+      page?: string;
+      clicks: number;
+      impressions: number;
+      ctr: number;
+      position: number;
+    }
+
+    const rows: GscAnalyticsRow[] = analyticsRows || [];
 
     // Separate dimensions
-    const dailyTrendRows = rows.filter((r) => r.dimension_type === "overall");
-    const queryRows = rows.filter((r) => r.dimension_type === "query");
-    const pageRows = rows.filter((r) => r.dimension_type === "page");
+    const dailyTrendRows = rows.filter((r: GscAnalyticsRow) => r.dimension_type === "overall");
+    const queryRows = rows.filter((r: GscAnalyticsRow) => r.dimension_type === "query");
+    const pageRows = rows.filter((r: GscAnalyticsRow) => r.dimension_type === "page");
 
     // Aggregate totals across daily trends
     let totalClicks = 0;
     let totalImpressions = 0;
     let weightedPositionSum = 0;
 
-    const dailyTrends = dailyTrendRows.map((r) => {
+    const dailyTrends = dailyTrendRows.map((r: GscAnalyticsRow) => {
       totalClicks += Number(r.clicks) || 0;
       totalImpressions += Number(r.impressions) || 0;
       weightedPositionSum += (Number(r.position) || 0) * (Number(r.impressions) || 1);
@@ -109,24 +135,24 @@ export async function GET(
     const avgPosition = totalImpressions > 0 ? weightedPositionSum / totalImpressions : 0;
 
     const formattedQueries = queryRows
-      .map((r) => ({
+      .map((r: GscAnalyticsRow): RankedQueryItem => ({
         query: r.dimension_value,
         clicks: Number(r.clicks) || 0,
         impressions: Number(r.impressions) || 0,
         ctr: Number(r.ctr) || 0,
         position: Number(r.position) || 0,
       }))
-      .sort((a, b) => b.clicks - a.clicks);
+      .sort((a: RankedQueryItem, b: RankedQueryItem) => b.clicks - a.clicks);
 
     const formattedPages = pageRows
-      .map((r) => ({
+      .map((r: GscAnalyticsRow): RankedPageItem => ({
         page: r.dimension_value,
         clicks: Number(r.clicks) || 0,
         impressions: Number(r.impressions) || 0,
         ctr: Number(r.ctr) || 0,
         position: Number(r.position) || 0,
       }))
-      .sort((a, b) => b.clicks - a.clicks);
+      .sort((a: RankedPageItem, b: RankedPageItem) => b.clicks - a.clicks);
 
     const result = {
       connected: true,

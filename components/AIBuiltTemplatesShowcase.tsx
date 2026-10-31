@@ -2,6 +2,9 @@
 
 import React, { useState, useEffect, useRef, useCallback, useMemo } from "react";
 import Image from "next/image";
+import { useRouter } from "next/navigation";
+import { createClient } from "@/utils/supabase/client";
+import { isValidTemplateId } from "@/lib/auth-redirect";
 import {
   Sparkles,
   Eye,
@@ -17,179 +20,11 @@ import {
   AlertCircle,
 } from "lucide-react";
 
-export interface TemplateItem {
-  id: string;
-  folderName: string;
-  name: string;
-  category: string;
-  description: string;
-  thumbnail: string;
-}
-
-export const TEMPLATES_DATA: TemplateItem[] = [
-  {
-    id: "accounting-firm",
-    folderName: "Accounting Firm",
-    name: "Accounting Firm",
-    category: "Finance & Advisory",
-    description: "Apex Partners — Corporate accounting, tax planning, and advisory services.",
-    thumbnail: "/template-thumbnails/accounting-firm.jpg",
-  },
-  {
-    id: "architecture",
-    folderName: "Architecture",
-    name: "Architecture",
-    category: "Design & Construction",
-    description: "FORMA Studio — Modern architectural design, blueprints, and portfolio.",
-    thumbnail: "/template-thumbnails/architecture.jpg",
-  },
-  {
-    id: "beauty-salon",
-    folderName: "Beauty Salon",
-    name: "Beauty Salon",
-    category: "Beauty & Wellness",
-    description: "Lumière — Premium salon styling, aesthetics, treatments, and bookings.",
-    thumbnail: "/template-thumbnails/beauty-salon.jpg",
-  },
-  {
-    id: "creative-agency",
-    folderName: "Creative Agency",
-    name: "Creative Agency",
-    category: "Digital Agency",
-    description: "AETERNA — Branding, creative direction, mobile design, and digital innovation.",
-    thumbnail: "/template-thumbnails/creative-agency.jpg",
-  },
-  {
-    id: "digital-marketing-agency",
-    folderName: "Digital Marketing agency",
-    name: "Digital Marketing Agency",
-    category: "Marketing & Growth",
-    description: "ApexGrowth — Performance marketing, SEO, paid ads, and brand analytics.",
-    thumbnail: "/template-thumbnails/digital-marketing-agency.jpg",
-  },
-  {
-    id: "financial-services-and-bank",
-    folderName: "Financial Services and bank",
-    name: "Financial Services & Bank",
-    category: "Banking & Wealth",
-    description: "Aurelia Finance — Wealth management, corporate banking, and investments.",
-    thumbnail: "/template-thumbnails/financial-services-and-bank.jpg",
-  },
-  {
-    id: "hotel",
-    folderName: "Hotel",
-    name: "Hotel",
-    category: "Hospitality & Resort",
-    description: "AURA Resort & Spa — Luxury hospitality sanctuary, suites, ocean villas, and amenities.",
-    thumbnail: "/template-thumbnails/hotel.jpg",
-  },
-  {
-    id: "it-company",
-    folderName: "IT Company",
-    name: "IT Company",
-    category: "Technology & Software",
-    description: "SaaSify — Enterprise cloud software, intelligent tools, and SaaS solutions.",
-    thumbnail: "/template-thumbnails/it-company.jpg",
-  },
-  {
-    id: "interior-design",
-    folderName: "Interior Design",
-    name: "Interior Design",
-    category: "Interior & Living",
-    description: "SAVOYE — Luxury residential interiors, bespoke furniture, and styling.",
-    thumbnail: "/template-thumbnails/interior-design.jpg",
-  },
-  {
-    id: "jewellery",
-    folderName: "Jewellery",
-    name: "Jewellery",
-    category: "Luxury & Retail",
-    description: "Valenza — Handcrafted bespoke fine jewellery, diamonds, and collections.",
-    thumbnail: "/template-thumbnails/jewellery.jpg",
-  },
-  {
-    id: "ngo",
-    folderName: "NGO",
-    name: "NGO",
-    category: "Nonprofit & Charity",
-    description: "HopeRise — Global charity foundation, volunteer campaigns, and impact.",
-    thumbnail: "/template-thumbnails/ngo.jpg",
-  },
-  {
-    id: "restaurant",
-    folderName: "Restaurant",
-    name: "Restaurant",
-    category: "Food & Dining",
-    description: "Thandoor Rajas — Royal Indian culinary artistry, heritage spices, and fine dining.",
-    thumbnail: "/template-thumbnails/restaurant.jpg",
-  },
-  {
-    id: "solar-company",
-    folderName: "Solar Company",
-    name: "Solar Company",
-    category: "Renewable Energy",
-    description: "Premium Solar — Clean renewable energy, residential and industrial solar.",
-    thumbnail: "/template-thumbnails/solar-company.jpg",
-  },
-  {
-    id: "spa-and-wellness",
-    folderName: "Spa and Wellness",
-    name: "Spa & Wellness",
-    category: "Wellness & Spa",
-    description: "Serenity Spa — Holistic therapy, relaxation sanctuary, and wellness packages.",
-    thumbnail: "/template-thumbnails/spa-and-wellness.jpg",
-  },
-  {
-    id: "travel-tourism",
-    folderName: "Travel-Tourism",
-    name: "Travel & Tourism",
-    category: "Travel & Expeditions",
-    description: "WanderLuxe — Bespoke travel itineraries, luxury getaways, and world expeditions.",
-    thumbnail: "/template-thumbnails/travel-tourism.jpg",
-  },
-  {
-    id: "dancer",
-    folderName: "dancer",
-    name: "Dancer",
-    category: "Performing Arts",
-    description: "Elena Rostova — Soloist contemporary dancer portfolio, tours, and media.",
-    thumbnail: "/template-thumbnails/dancer.jpg",
-  },
-  {
-    id: "fitness",
-    folderName: "fitness",
-    name: "Fitness",
-    category: "Fitness & Training",
-    description: "APEX Performance — Elite athletic conditioning, sports gym, and recovery.",
-    thumbnail: "/template-thumbnails/fitness.jpg",
-  },
-  {
-    id: "insurance",
-    folderName: "insurance",
-    name: "Insurance",
-    category: "Insurance & Risk",
-    description: "Aegis Crest — Institutional risk protection, family, and health coverage.",
-    thumbnail: "/template-thumbnails/insurance.jpg",
-  },
-  {
-    id: "photography",
-    folderName: "photography",
-    name: "Photography",
-    category: "Photography & Arts",
-    description: "SJ Photography — High-fashion editorial photography, shoots, and gallery.",
-    thumbnail: "/template-thumbnails/photography.jpg",
-  },
-  {
-    id: "yoga",
-    folderName: "yoga",
-    name: "Yoga",
-    category: "Mindfulness & Yoga",
-    description: "Aria Veda — Somatic yoga, guided meditation, and holistic retreat studio.",
-    thumbnail: "/template-thumbnails/yoga.jpg",
-  },
-];
+import { TEMPLATES_DATA, type TemplateItem } from "@/lib/template-registry";
+export { TEMPLATES_DATA, type TemplateItem };
 
 export function AIBuiltTemplatesShowcase() {
+  const router = useRouter();
   const [selectedTemplate, setSelectedTemplate] = useState<TemplateItem | null>(null);
   const [isHovered, setIsHovered] = useState(false);
   const [isManuallyPaused, setIsManuallyPaused] = useState(false);
@@ -254,6 +89,36 @@ export function AIBuiltTemplatesShowcase() {
     setPreviewError(false);
     setPreviewReloadKey((k) => k + 1);
   }, []);
+
+  const handleEditWithAi = useCallback(
+    async (template: TemplateItem) => {
+      if (!template || !isValidTemplateId(template.id)) return;
+
+      try {
+        const supabase = createClient();
+        const { data } = await supabase.auth.getUser();
+        const activeUser = data?.user || null;
+
+        if (activeUser) {
+          handleClosePreview();
+          router.push(`/?template=${encodeURIComponent(template.id)}`);
+        } else {
+          if (typeof window !== "undefined") {
+            sessionStorage.setItem("pending_template", template.id);
+          }
+          handleClosePreview();
+          router.push(`/login?reason=template_edit&template=${encodeURIComponent(template.id)}`);
+        }
+      } catch {
+        if (typeof window !== "undefined") {
+          sessionStorage.setItem("pending_template", template.id);
+        }
+        handleClosePreview();
+        router.push(`/login?reason=template_edit&template=${encodeURIComponent(template.id)}`);
+      }
+    },
+    [handleClosePreview, router]
+  );
 
   // Close full-screen preview with ESC key
   useEffect(() => {
@@ -612,8 +477,8 @@ export function AIBuiltTemplatesShowcase() {
             </div>
           </div>
 
-          {/* Minimal, unobtrusive floating Close button at top-right corner */}
-          <div className="fixed top-[calc(env(safe-area-inset-top,0px)+56px)] right-4 sm:top-6 sm:right-6 z-[10000]">
+          {/* Top-Right Action Controls: Close button & Edit with AI CTA */}
+          <div className="fixed top-[calc(env(safe-area-inset-top,0px)+56px)] right-4 sm:top-6 sm:right-6 z-[10000] flex flex-col items-end gap-2.5">
             <button
               type="button"
               onClick={handleClosePreview}
@@ -622,6 +487,17 @@ export function AIBuiltTemplatesShowcase() {
             >
               <span>Close</span>
               <X className="w-4 h-4 text-slate-300 group-hover:text-white transition-colors" />
+            </button>
+
+            {/* Premium Edit with AI CTA Button */}
+            <button
+              type="button"
+              onClick={() => handleEditWithAi(selectedTemplate)}
+              aria-label={`Edit ${selectedTemplate.name} with AI`}
+              className="group flex items-center gap-2 px-4 py-2 sm:px-5 sm:py-2.5 rounded-full bg-gradient-to-r from-purple-600 via-indigo-600 to-purple-700 hover:from-purple-500 hover:via-indigo-500 hover:to-purple-600 text-white backdrop-blur-md shadow-2xl shadow-purple-900/50 border border-purple-400/40 text-xs font-extrabold tracking-wide transition-all duration-200 hover:scale-105 active:scale-95 cursor-pointer"
+            >
+              <Sparkles className="w-3.5 h-3.5 text-purple-200 group-hover:rotate-12 transition-transform duration-300" />
+              <span>Edit with AI</span>
             </button>
           </div>
 

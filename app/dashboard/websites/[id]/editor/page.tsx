@@ -71,8 +71,19 @@ export default async function MigratedEditorPage({ params }: MigratedEditorPageP
     initialPage = firstPageData || null;
   }
 
+  interface EditorPageItem {
+    id: string;
+    website_id?: string;
+    user_id?: string;
+    path: string;
+    html_content?: string | null;
+    css_content?: string | null;
+    js_content?: string | null;
+    created_at?: string;
+  }
+
   // Populate pages array with initial page full content, and metadata placeholders for secondary pages
-  const pages = pagesMeta.map((p) => {
+  const pages = (pagesMeta as EditorPageItem[]).map((p: EditorPageItem) => {
     if (initialPage && p.id === initialPage.id) {
       return initialPage;
     }

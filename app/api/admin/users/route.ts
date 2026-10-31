@@ -33,12 +33,21 @@ export async function GET() {
     // Fetch media asset storage totals
     const { data: media } = await supabase.from("media_assets").select("user_id, file_size_bytes");
 
-    const usersDetailed = (profiles || []).map((p) => {
-      const sub = (subs || []).find((s) => s.user_id === p.id);
-      const cred = (credits || []).find((c) => c.user_id === p.id);
-      const userWebsites = (websites || []).filter((w) => w.user_id === p.id);
-      const userMedia = (media || []).filter((m) => m.user_id === p.id);
-      const storageBytes = userMedia.reduce((sum, m) => sum + (Number(m.file_size_bytes) || 0), 0);
+    const usersDetailed = (profiles || []).map((p: {
+      id: string;
+      full_name?: string | null;
+      role?: string | null;
+      status?: string | null;
+      created_at: string;
+    }) => {
+      const sub = (subs || []).find((s: { user_id: string; plan_id: string | null }) => s.user_id === p.id);
+      const cred = (credits || []).find((c: { user_id: string; balance?: number | null }) => c.user_id === p.id);
+      const userWebsites = (websites || []).filter((w: { user_id: string }) => w.user_id === p.id);
+      const userMedia = (media || []).filter((m: { user_id: string; file_size_bytes?: number | string | null }) => m.user_id === p.id);
+      const storageBytes = userMedia.reduce(
+        (sum: number, m: { file_size_bytes?: number | string | null }) => sum + (Number(m.file_size_bytes) || 0),
+        0
+      );
 
       return {
         id: p.id,

@@ -103,6 +103,9 @@ export function AiVisibilityDashboard({
       if (!res.ok) {
         throw new Error(data.error || "Failed to fetch visibility history.");
       }
+      if (typeof data.liveMode === "boolean") {
+        setIsLiveMode(data.liveMode);
+      }
       if (data.history) {
         setHistory(data.history);
       }
@@ -122,6 +125,9 @@ export function AiVisibilityDashboard({
       );
       const data = await res.json();
       if (res.ok && data.success) {
+        if (typeof data.liveMode === "boolean") {
+          setIsLiveMode(data.liveMode);
+        }
         if (data.config) setMonitoringConfig(data.config);
         if (data.trends) setMonitoringTrends(data.trends);
         if (data.alerts) setMonitoringAlerts(data.alerts);
@@ -294,7 +300,7 @@ export function AiVisibilityDashboard({
     {
       name: "claude",
       label: "Anthropic Claude",
-      model: "claude-3-5-sonnet",
+      model: "claude-3-5-sonnet-20241022",
       iconColor: "text-purple-600",
     },
   ];
@@ -890,7 +896,7 @@ export function AiVisibilityDashboard({
               <option value="openai">OpenAI (gpt-4o-mini)</option>
               <option value="perplexity">Perplexity (sonar)</option>
               <option value="gemini">Google Gemini (gemini-3.8-flash)</option>
-              <option value="claude">Anthropic Claude (claude-3-5-sonnet)</option>
+              <option value="claude">Anthropic Claude (claude-3-5-sonnet-20241022)</option>
             </select>
           </div>
 

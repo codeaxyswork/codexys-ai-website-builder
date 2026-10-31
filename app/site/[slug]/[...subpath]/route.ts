@@ -232,7 +232,7 @@ export async function GET(
 
       if (allPageMeta && allPageMeta.length > 0) {
         const { normalizePageSlug } = await import("@/lib/migration/link-localizer");
-        const matched = allPageMeta.find((p) => {
+        const matched = allPageMeta.find((p: { id: string; path: string; html_content?: string | null; css_content?: string | null; js_content?: string | null }) => {
           const norm = normalizePageSlug(p.path);
           return norm === bareSubpath || norm === cleanSubpath;
         });

@@ -99,6 +99,7 @@ export async function POST(req: NextRequest) {
       // 5c. Credit policy enforcement when live mode is active
       const batchCreditCost = LIVE_AI_VISIBILITY_CONFIG.CREDIT_COST_PER_MULTI_PROBE_BATCH;
       let deductedCredits = 0;
+      const cronRunActionKey = `cron_run_${r.id}_${Date.now()}`;
 
       if (liveMode) {
         const { data: creditRow } = await adminDb
@@ -125,7 +126,8 @@ export async function POST(req: NextRequest) {
           r.user_id,
           r.website_id,
           batchCreditCost,
-          `Scheduled Monitoring for ${website.title || "Website"}`
+          `Scheduled Monitoring for ${website.title || "Website"}`,
+          cronRunActionKey
         );
 
         if (!deduction.success) {
@@ -135,17 +137,19 @@ export async function POST(req: NextRequest) {
         deductedCredits = deduction.creditsDeducted;
       }
 
+      // Cost & Probe Alignment: Each scheduled run executes exactly 1 controlled prompt batch across providers
+      // for the authorized batchCreditCost (3 credits), preventing unauthorized unmetered probes.
       const config: WebsiteAiVisibilityConfig = {
         id: r.id,
         websiteId: r.website_id,
         userId: r.user_id,
-        enabled: r.is_enabled !== undefined ? r.is_enabled : (r.enabled !== undefined ? r.enabled : true),
+        enabled: r.is_enabled !== undefined ? r.is_enabled : (r.enabled !== undefined ? r.enabled : false),
         frequency: r.frequency,
         selectedProviders: r.enabled_providers || r.selected_providers || [],
         promptCategories: r.prompt_categories || [],
         brandName: r.brand_name || website.title || "Brand",
         customPrompts: r.custom_prompts || [],
-        maxProbesPerExecution: r.max_probes_per_run || r.max_probes_per_execution || 5,
+        maxProbesPerExecution: 1, // Strictly 1 prompt batch per scheduled execution
         timezone: r.timezone || "UTC",
         lastRunAt: r.last_run_at,
         nextRunAt: r.next_run_at,
@@ -157,16 +161,45 @@ export async function POST(req: NextRequest) {
         triggerType: "scheduled",
       });
 
-      // 5d. Refund safeguard: If live mode and the scheduled run failed completely, refund credits
-      if (liveMode && deductedCredits > 0 && runResult.status === "failed" && runResult.successCount === 0) {
-        await refundProbeCredits(
-          adminDb,
-          r.user_id,
-          r.website_id,
-          deductedCredits,
-          "Scheduled monitoring run failed",
-          `cron_run_${r.id}_${Date.now()}`
-        );
+      // 5d. Refund safeguard: Atomic & idempotent refunds for complete or partial batch failures
+      if (liveMode && deductedCredits > 0) {
+        if (runResult.successCount === 0) {
+          await refundProbeCredits(
+            adminDb,
+            r.user_id,
+            r.website_id,
+            deductedCredits,
+            "Scheduled monitoring run failed completely",
+            `${cronRunActionKey}:full_failure`
+          );
+          deductedCredits = 0;
+        } else if (runResult.successCount === 1 && deductedCredits > 1) {
+          const refundAmount = deductedCredits - 1;
+          const refunded = await refundProbeCredits(
+            adminDb,
+            r.user_id,
+            r.website_id,
+            refundAmount,
+            "Partial scheduled run failure (1 provider succeeded)",
+            `${cronRunActionKey}:partial_failure_1`
+          );
+          if (refunded) {
+            deductedCredits = 1;
+          }
+        } else if (runResult.successCount === 2 && deductedCredits > 2) {
+          const refundAmount = deductedCredits - 2;
+          const refunded = await refundProbeCredits(
+            adminDb,
+            r.user_id,
+            r.website_id,
+            refundAmount,
+            "Partial scheduled run failure (2 providers succeeded)",
+            `${cronRunActionKey}:partial_failure_2`
+          );
+          if (refunded) {
+            deductedCredits = 2;
+          }
+        }
       }
 
       results.push({

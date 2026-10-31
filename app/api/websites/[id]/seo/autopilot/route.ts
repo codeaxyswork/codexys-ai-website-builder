@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/utils/supabase/server";
 import { getAutopilotSettings, updateAutopilotSettings, runAutopilotCycle } from "@/lib/seo-opportunities/autopilot";
-import { checkAdvancedSeoEntitlement } from "@/lib/billing";
+import { checkAutopilotEntitlement } from "@/lib/billing";
 
 interface RouteParams {
   params: Promise<{ id: string }>;
@@ -34,6 +34,15 @@ export async function GET(req: NextRequest, { params }: RouteParams) {
 
     if (!website) {
       return NextResponse.json({ error: "Website not found or access denied." }, { status: 404 });
+    }
+
+    // Server-side Plan Entitlement Check (Business or Agency required)
+    const autopilotCheck = await checkAutopilotEntitlement(user.id, supabase);
+    if (!autopilotCheck.entitled) {
+      return NextResponse.json(
+        { error: autopilotCheck.reason, code: "UPGRADE_REQUIRED", requiredTier: "business" },
+        { status: 403 }
+      );
     }
 
     // Fetch settings
@@ -85,11 +94,23 @@ export async function PUT(req: NextRequest, { params }: RouteParams) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    // Plan Entitlement Check (Pro, Business, or Agency required)
-    const seoCheck = await checkAdvancedSeoEntitlement(user.id, supabase);
-    if (!seoCheck.entitled) {
+    // Check website ownership
+    const { data: website } = await supabase
+      .from("websites")
+      .select("id")
+      .eq("id", websiteId)
+      .eq("user_id", user.id)
+      .single();
+
+    if (!website) {
+      return NextResponse.json({ error: "Website not found or access denied." }, { status: 404 });
+    }
+
+    // Server-side Plan Entitlement Check (Business or Agency required)
+    const autopilotCheck = await checkAutopilotEntitlement(user.id, supabase);
+    if (!autopilotCheck.entitled) {
       return NextResponse.json(
-        { error: seoCheck.reason, code: "UPGRADE_REQUIRED", requiredTier: "pro" },
+        { error: autopilotCheck.reason, code: "UPGRADE_REQUIRED", requiredTier: "business" },
         { status: 403 }
       );
     }
@@ -109,5 +130,55 @@ export async function PUT(req: NextRequest, { params }: RouteParams) {
   } catch (err: any) {
     console.error("PUT Autopilot Error:", err);
     return NextResponse.json({ error: err.message || "Failed to update Autopilot settings." }, { status: 500 });
+  }
+}
+
+/**
+ * POST /api/websites/[id]/seo/autopilot
+ * Runs an on-demand SEO Autopilot scan and auto-fix cycle.
+ */
+export async function POST(req: NextRequest, { params }: RouteParams) {
+  try {
+    const { id: websiteId } = await params;
+    const supabase = await createClient();
+
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+
+    if (!user) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    // Check website ownership
+    const { data: website } = await supabase
+      .from("websites")
+      .select("id")
+      .eq("id", websiteId)
+      .eq("user_id", user.id)
+      .single();
+
+    if (!website) {
+      return NextResponse.json({ error: "Website not found or access denied." }, { status: 404 });
+    }
+
+    // Server-side Plan Entitlement Check (Business or Agency required)
+    const autopilotCheck = await checkAutopilotEntitlement(user.id, supabase);
+    if (!autopilotCheck.entitled) {
+      return NextResponse.json(
+        { error: autopilotCheck.reason, code: "UPGRADE_REQUIRED", requiredTier: "business" },
+        { status: 403 }
+      );
+    }
+
+    const result = await runAutopilotCycle(supabase, websiteId, user.id);
+
+    return NextResponse.json({
+      success: true,
+      cycle: result,
+    });
+  } catch (err: any) {
+    console.error("POST Autopilot Error:", err);
+    return NextResponse.json({ error: err.message || "Failed to run Autopilot cycle." }, { status: 500 });
   }
 }

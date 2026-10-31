@@ -33,7 +33,17 @@ export default async function MediaPage() {
     storage: { usedBytes: 0, limitBytes: 104857600 },
   };
 
-  const assets: MediaAssetItem[] = (dbAssets || []).map((a) => ({
+  interface DbMediaAssetRow {
+    id: string;
+    file_name: string;
+    file_size_bytes?: number | string | null;
+    mime_type: string;
+    storage_path: string;
+    public_url?: string | null;
+    created_at: string;
+  }
+
+  const assets: MediaAssetItem[] = (dbAssets || []).map((a: DbMediaAssetRow): MediaAssetItem => ({
     id: a.id,
     file_name: a.file_name,
     file_size_bytes: Number(a.file_size_bytes) || 0,

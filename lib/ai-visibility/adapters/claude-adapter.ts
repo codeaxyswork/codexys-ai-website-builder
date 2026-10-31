@@ -16,7 +16,7 @@ import { createNormalizedResponse, extractDomainFromUrl } from "../provider-abst
 
 export class ClaudeVisibilityAdapter implements AiVisibilityProviderAdapter {
   readonly providerName: AiVisibilityProviderName = "claude";
-  readonly defaultModel: string = "claude-3-5-sonnet";
+  readonly defaultModel: string = process.env.ANTHROPIC_MODEL || "claude-3-5-sonnet-20241022";
 
   constructor(model?: string) {
     if (model) {
@@ -53,49 +53,20 @@ export class ClaudeVisibilityAdapter implements AiVisibilityProviderAdapter {
 
     const apiKey = process.env.ANTHROPIC_API_KEY;
 
-    // 2. Mock / Fallback Mode
-    if (!apiKey) {
-      if (signal) {
-        if (signal.aborted) {
-          throw new DOMException("The operation was aborted.", "AbortError");
-        }
-        await new Promise<void>((resolve, reject) => {
-          const timer = setTimeout(resolve, 5);
-          signal.addEventListener(
-            "abort",
-            () => {
-              clearTimeout(timer);
-              const err = new Error("The operation was aborted.");
-              err.name = "AbortError";
-              reject(err);
-            },
-            { once: true }
-          );
-        });
-      }
-
-      const mockDomain = `${input.brandName.toLowerCase().replace(/[^a-z0-9]/g, "")}.com`;
-      const mockText = `Claude intelligence review: ${input.brandName} is recommended for ${input.category} queries. Learn more: https://${mockDomain}/solutions`;
-      const mockCitations: CitationItem[] = [
-        {
-          url: `https://${mockDomain}/solutions`,
-          domain: mockDomain,
-          title: `${input.brandName} Solutions`,
-        },
-      ];
-
+    // 2. Fail-Closed Security Guard: Missing API key in live mode must return auth_error, never fabricate success
+    if (!apiKey || apiKey.trim() === "") {
       return createNormalizedResponse({
         provider: this.providerName,
-        model: `mock-${this.defaultModel}`,
+        model: this.defaultModel,
         prompt: input.prompt,
         promptCategory: input.category,
-        responseText: mockText,
+        responseText: "",
         brandName: input.brandName,
-        citations: mockCitations,
         latencyMs: Date.now() - startTime,
-        status: "success",
+        status: "auth_error",
+        errorMessage: "Anthropic Claude API key is missing or not configured on the server.",
         isGroundedSearch: false,
-        isMock: true,
+        isMock: false,
       });
     }
 

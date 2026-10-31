@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useMemo, useRef } from "react";
+import React, { useState, useMemo, useRef, useEffect } from "react";
 import {
   Monitor,
   Tablet,
@@ -19,20 +19,85 @@ interface LivePreviewProps {
   isGenerating: boolean;
 }
 
-export function LivePreview({ files, isGenerating }: LivePreviewProps) {
+export function LivePreview({ files }: LivePreviewProps) {
   const [deviceMode, setDeviceMode] = useState<"desktop" | "tablet" | "mobile">("desktop");
   const [refreshKey, setRefreshKey] = useState(0);
   const iframeRef = useRef<HTMLIFrameElement>(null);
 
-  // Extract files
-  const htmlFile = files.find((f) => f.path.endsWith("index.html"))?.content || "";
-  const cssFile = files.find((f) => f.path.endsWith("styles.css"))?.content || "";
-  const jsFile = files.find((f) => f.path.endsWith("script.js"))?.content || "";
+  // Extract HTML files
+  const htmlFiles = useMemo(
+    () => files.filter((f) => f.path.endsWith(".html") || f.path.endsWith(".htm")),
+    [files]
+  );
+  const [userSelectedPath, setUserSelectedPath] = useState<string | null>(null);
+
+  const activeHtmlPath = useMemo(() => {
+    if (userSelectedPath && htmlFiles.some((f) => f.path === userSelectedPath)) {
+      return userSelectedPath;
+    }
+    const idx = htmlFiles.find((f) => f.path.endsWith("index.html"));
+    return idx ? idx.path : htmlFiles[0]?.path || "index.html";
+  }, [htmlFiles, userSelectedPath]);
+
+  // Listen for internal preview link clicks across multi-page templates
+  useEffect(() => {
+    const handleMessage = (event: MessageEvent) => {
+      if (event.data?.type === "CODEAXYS_NAVIGATE_PAGE") {
+        const rawPath = String(event.data.path || "").trim();
+        if (!rawPath) return;
+        const cleanPath = rawPath.split("?")[0].split("#")[0].replace(/^\/+/, "");
+        const match = htmlFiles.find((f) => {
+          const fClean = f.path.replace(/^\/+/, "");
+          return (
+            fClean === cleanPath ||
+            fClean === `${cleanPath}.html` ||
+            fClean.replace(/\.html$/, "") === cleanPath.replace(/\.html$/, "") ||
+            fClean.endsWith("/" + cleanPath)
+          );
+        });
+        if (match) {
+          setUserSelectedPath(match.path);
+        }
+      }
+    };
+
+    window.addEventListener("message", handleMessage);
+    return () => window.removeEventListener("message", handleMessage);
+  }, [htmlFiles]);
+
+  const activeHtmlContent = useMemo(() => {
+    return (
+      htmlFiles.find((f) => f.path === activeHtmlPath)?.content ||
+      htmlFiles.find((f) => f.path.endsWith("index.html"))?.content ||
+      htmlFiles[0]?.content ||
+      ""
+    );
+  }, [htmlFiles, activeHtmlPath]);
+
+  // Extract primary CSS (styles.css, style.css, or any .css file)
+  const cssFile = useMemo(() => {
+    const primary =
+      files.find((f) => f.path.endsWith("styles.css")) ||
+      files.find((f) => f.path.endsWith("style.css")) ||
+      files.find((f) => f.path.endsWith(".css"));
+    return primary?.content || "";
+  }, [files]);
+
+  // Extract primary JS (script.js, scripts.js, main.js, app.js, or any .js file)
+  const jsFile = useMemo(() => {
+    const primary =
+      files.find((f) => f.path.endsWith("script.js")) ||
+      files.find((f) => f.path.endsWith("scripts.js")) ||
+      files.find((f) => f.path.endsWith("main.js")) ||
+      files.find((f) => f.path.endsWith("app.js")) ||
+      files.find((f) => f.path.endsWith(".js"));
+    return primary?.content || "";
+  }, [files]);
 
   // Assemble full standalone HTML for iframe srcDoc
   const assembledSrcDoc = useMemo(() => {
-    return assemblePreviewDoc(htmlFile, cssFile, jsFile);
-  }, [htmlFile, cssFile, jsFile]);
+    return assemblePreviewDoc(activeHtmlContent, cssFile, jsFile);
+  }, [activeHtmlContent, cssFile, jsFile]);
 
   const handleOpenNewTab = () => {
     if (!assembledSrcDoc) return;
@@ -58,6 +123,25 @@ export function LivePreview({ files, isGenerating }: LivePreviewProps) {
             <ShieldCheck className="w-3 h-3" />
             <span>Sandboxed</span>
           </div>
+
+          {/* Multi-page selector if template has multiple HTML pages */}
+          {htmlFiles.length > 1 && (
+            <div className="flex items-center gap-1 bg-slate-100 p-0.5 rounded-lg border border-slate-200 ml-1">
+              {htmlFiles.map((hf) => (
+                <button
+                  key={hf.path}
+                  onClick={() => setUserSelectedPath(hf.path)}
+                  className={`px-2 py-0.5 rounded text-[10px] font-bold transition-all cursor-pointer ${
+                    activeHtmlPath === hf.path
+                      ? "bg-white text-purple-700 shadow-2xs border border-slate-200/80"
+                      : "text-slate-500 hover:text-slate-800"
+                  }`}
+                >
+                  {hf.path}
+                </button>
+              ))}
+            </div>
+          )}
         </div>
 
         {/* Mock Browser URL Bar */}

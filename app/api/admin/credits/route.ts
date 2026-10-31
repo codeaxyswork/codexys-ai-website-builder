@@ -13,7 +13,10 @@ export async function GET() {
 
     // 1. Fetch user credits
     const { data: userCredits } = await supabase.from("user_credits").select("balance, monthly_used, lifetime_used");
-    const totalRemainingCredits = (userCredits || []).reduce((sum, c) => sum + (c.balance || 0), 0);
+    const totalRemainingCredits = (userCredits || []).reduce(
+      (sum: number, c: { balance?: number | null }) => sum + (c.balance || 0),
+      0
+    );
 
     // 2. Fetch AI Credit Transactions
     const { data: transactions, error: txErr } = await supabase

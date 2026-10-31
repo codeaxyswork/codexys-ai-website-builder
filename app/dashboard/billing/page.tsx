@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { PLANS, PlanConfig } from "@/lib/constants";
 import { MockCheckoutModal } from "@/components/MockCheckoutModal";
+import { DashboardAddonsSection } from "@/components/DashboardAddonsSection";
 
 export default function BillingDashboardPage() {
   const router = useRouter();
@@ -379,7 +380,10 @@ export default function BillingDashboardPage() {
           </div>
         </div>
 
-        {/* 2. PAYMENT & TRANSACTION HISTORY TABLE */}
+        {/* 2. ADD-ONS & UPGRADES SECTION */}
+        <DashboardAddonsSection currentPlanId={plan.id} userAddons={[]} isMigrationApplied={false} />
+
+        {/* 3. PAYMENT & TRANSACTION HISTORY TABLE */}
         <div className="bg-white border border-slate-200 rounded-xl p-6 shadow-sm">
           <div className="flex items-center justify-between border-b border-slate-100 pb-4 mb-5">
             <div>
@@ -414,13 +418,28 @@ export default function BillingDashboardPage() {
                       <td className="py-3 px-4 text-slate-900 font-medium">{formatDate(tx.created_at)}</td>
                       <td className="py-3 px-4 font-bold text-purple-700 uppercase">{tx.plan_id}</td>
                       <td className="py-3 px-4 font-bold text-slate-900">₹{tx.amount}</td>
-                      <td className="py-3 px-4 capitalize font-medium text-slate-600">{tx.provider} (Test)</td>
+                      <td className="py-3 px-4 capitalize font-medium text-slate-600">{tx.provider}</td>
                       <td className="py-3 px-4">
-                        <span className="px-2.5 py-0.5 bg-emerald-50 text-emerald-700 border border-emerald-200 rounded-full font-semibold">
+                        <span className={`px-2.5 py-0.5 rounded-full font-semibold ${
+                          tx.status === "completed"
+                            ? "bg-emerald-50 text-emerald-700 border border-emerald-200"
+                            : tx.status === "pending"
+                            ? "bg-amber-50 text-amber-700 border border-amber-200"
+                            : "bg-rose-50 text-rose-700 border border-rose-200"
+                        }`}>
                           {tx.status}
                         </span>
                       </td>
-                      <td className="py-3 px-4 font-mono text-slate-500">{tx.provider_payment_id || tx.id.substring(0, 12)}</td>
+                      <td className="py-3 px-4 font-mono text-slate-500">
+                        {tx.metadata?.invoice?.invoiceNumber ? (
+                          <div className="flex flex-col">
+                            <span className="font-semibold text-slate-700">{tx.metadata.invoice.invoiceNumber}</span>
+                            <span className="text-[10px] text-slate-400">{tx.provider_payment_id || tx.id.substring(0, 12)}</span>
+                          </div>
+                        ) : (
+                          tx.provider_payment_id || tx.id.substring(0, 12)
+                        )}
+                      </td>
                     </tr>
                   ))}
                 </tbody>

@@ -10,6 +10,13 @@ export interface UserUsageData {
     allow_custom_domain: boolean;
     allow_advanced_seo: boolean;
   };
+  subscription?: {
+    billingInterval: string;
+    durationMonths: number;
+    discountPercent: number;
+    currentPeriodEnd: string | null;
+    isPrepaid: boolean;
+  };
   credits: {
     balance: number;
     monthlyUsed: number;
@@ -274,6 +281,119 @@ export async function checkMarketingPlanEntitlement(
   }
 }
 
+export interface AutopilotEntitlementResult {
+  entitled: boolean;
+  allowed: boolean;
+  planId: string;
+  planName: string;
+  plan?: string;
+  reason?: string;
+}
+
+/**
+ * Checks whether an authenticated user has the required Business or Agency entitlement
+ * (or active seo_autopilot_fix_agent add-on) to use Autonomous SEO Autopilot.
+ */
+export async function checkAutopilotEntitlement(
+  userId: string,
+  customClient?: any
+): Promise<AutopilotEntitlementResult> {
+  try {
+    const usage = await getUserUsage(userId, customClient);
+    const planId = (usage?.plan?.id || "free").toLowerCase().trim();
+    const planName = usage?.plan?.name || "Free";
+
+    // Query active add-ons for the user if customClient is available
+    let userAddons: any[] = [];
+    if (customClient) {
+      try {
+        const { data } = await customClient
+          .from("user_addons")
+          .select("*")
+          .eq("user_id", userId)
+          .eq("status", "active");
+        userAddons = data || [];
+      } catch {
+        // Fallback if table not queried
+      }
+    }
+
+    const { evaluateEffectiveFeatureAccess } = await import("./addons/entitlements");
+    const result = evaluateEffectiveFeatureAccess(planId, "seo_autopilot", userAddons);
+
+    if (!result.allowed) {
+      return {
+        entitled: false,
+        allowed: false,
+        planId,
+        planName,
+        plan: planId,
+        reason: `Autonomous SEO Autopilot requires a Business or Agency subscription plan. Your current plan (${planName}) does not include autonomous scanning and automated fix execution.`,
+      };
+    }
+
+    return {
+      entitled: true,
+      allowed: true,
+      planId,
+      planName,
+      plan: planId,
+    };
+  } catch (err: any) {
+    console.error("[Billing] checkAutopilotEntitlement error:", err);
+    return {
+      entitled: false,
+      allowed: false,
+      planId: "unknown",
+      planName: "Unknown",
+      plan: "unknown",
+      reason: "Failed to verify Autopilot plan entitlement.",
+    };
+  }
+}
+
+
+import { isCreditReplenishmentDue } from "./billing-periods";
+import { resetMonthlyAllowanceWithoutRollover } from "./lifecycle/website-lifecycle-engine";
+
+/**
+ * Replenishes monthly AI credits for an active subscription without rollover,
+ * updating user_credits and recording last_credit_refreshed_at on the subscription.
+ */
+export async function replenishSubscriptionCredits(
+  userId: string,
+  planId: string,
+  customDbClient?: any,
+  asOf: Date = new Date()
+): Promise<{ success: boolean; newBalance: number; error?: string }> {
+  let db = customDbClient;
+  if (!db) {
+    const { createAdminClient } = await import("@/utils/supabase/server");
+    db = createAdminClient();
+  }
+  const resetRes = await resetMonthlyAllowanceWithoutRollover(userId, planId, db);
+
+  if (!resetRes.success) {
+    return resetRes;
+  }
+
+  try {
+    // Record last_credit_refreshed_at on subscription record
+    await db
+      .from("subscriptions")
+      .update({
+        last_credit_refreshed_at: asOf.toISOString(),
+        updated_at: asOf.toISOString(),
+      })
+      .eq("user_id", userId);
+
+    return resetRes;
+  } catch (err: any) {
+    console.error(`[Replenishment] Failed to update subscription timestamp for user ${userId}:`, err?.message || err);
+    return resetRes;
+  }
+}
+
 export async function getUserUsage(userId: string, customClient?: any): Promise<UserUsageData | null> {
   try {
     const cacheKey = CACHE_KEYS.userUsage(userId);
@@ -293,7 +413,7 @@ export async function getUserUsage(userId: string, customClient?: any): Promise<
       supabase
         .from("subscriptions")
         .select(
-          "plan_id, status, current_period_start, current_period_end, cancel_at_period_end, canceled_at, trial_ends_at, plans(*)"
+          "plan_id, status, current_period_start, current_period_end, cancel_at_period_end, canceled_at, trial_ends_at, billing_interval, duration_months, discount_percent, last_credit_refreshed_at, plans(*)"
         )
         .eq("user_id", userId)
         .maybeSingle(),
@@ -328,6 +448,22 @@ export async function getUserUsage(userId: string, customClient?: any): Promise<
       ? resolveSubscriptionPlan(sub.plan_id, sub.plans)
       : DEFAULT_FREE_PLAN;
 
+    // Automatic 30-day credit replenishment for active annual and 36-month prepaid terms
+    if (sub && isPaidValid && isCreditReplenishmentDue(sub)) {
+      try {
+        const replenished = await replenishSubscriptionCredits(userId, plan.id, supabase);
+        if (replenished.success) {
+          creditRec = {
+            ...creditRec,
+            balance: replenished.newBalance,
+            monthly_used: 0,
+          };
+        }
+      } catch (repErr) {
+        console.warn(`[Billing] Auto-replenishment exception for user ${userId}:`, repErr);
+      }
+    }
+
     if (!creditRec) {
       // Auto-initialize credits for user if record is missing
       const { data: newCredit } = await supabase
@@ -350,6 +486,15 @@ export async function getUserUsage(userId: string, customClient?: any): Promise<
         allow_custom_domain: Boolean(plan.allow_custom_domain),
         allow_advanced_seo: Boolean(plan.allow_advanced_seo),
       },
+      subscription: sub
+        ? {
+            billingInterval: sub.billing_interval || "monthly",
+            durationMonths: Number(sub.duration_months) || 1,
+            discountPercent: Number(sub.discount_percent) || 0,
+            currentPeriodEnd: sub.current_period_end || null,
+            isPrepaid: (Number(sub.duration_months) || 1) > 1,
+          }
+        : undefined,
       credits: {
         balance: creditRec?.balance ?? 50,
         monthlyUsed: creditRec?.monthly_used ?? 0,

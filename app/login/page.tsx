@@ -4,6 +4,7 @@ import React, { useState, useRef, useCallback } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { createClient, getAuthRedirectUrl } from "@/utils/supabase/client";
+import { getClientPostAuthRedirect, isValidTemplateId } from "@/lib/auth-redirect";
 import { Wand2, Sparkles, ArrowRight, Loader2, AlertCircle, Lock, Mail, CheckCircle2 } from "lucide-react";
 import { TurnstileWidget, type TurnstileWidgetRef } from "@/components/TurnstileWidget";
 
@@ -15,6 +16,21 @@ export default function LoginPage() {
   const [loading, setLoading] = useState(false);
   const [googleLoading, setGoogleLoading] = useState(false);
   const [captchaToken, setCaptchaToken] = useState<string | null>(null);
+  const [templateParam] = useState<string | null>(() => {
+    if (typeof window === "undefined") return null;
+    const tpl = new URLSearchParams(window.location.search).get("template");
+    if (tpl && isValidTemplateId(tpl)) {
+      try {
+        sessionStorage.setItem("pending_template", tpl.trim().toLowerCase());
+      } catch {}
+      return tpl;
+    }
+    try {
+      const cached = sessionStorage.getItem("pending_template");
+      if (cached && isValidTemplateId(cached)) return cached;
+    } catch {}
+    return null;
+  });
   const turnstileRef = useRef<TurnstileWidgetRef>(null);
   const router = useRouter();
 
@@ -50,8 +66,7 @@ export default function LoginPage() {
       const supabase = createClient();
       supabase.auth.getSession().then(({ data: { session } }) => {
         if (session) {
-          const pendingPrompt = typeof window !== "undefined" ? sessionStorage.getItem("pending_prompt") : null;
-          const targetUrl = pendingPrompt ? "/" : "/dashboard";
+          const targetUrl = getClientPostAuthRedirect();
           router.push(targetUrl);
         }
       });
@@ -60,8 +75,7 @@ export default function LoginPage() {
         data: { subscription },
       } = supabase.auth.onAuthStateChange((_event, session) => {
         if (session) {
-          const pendingPrompt = typeof window !== "undefined" ? sessionStorage.getItem("pending_prompt") : null;
-          const targetUrl = pendingPrompt ? "/" : "/dashboard";
+          const targetUrl = getClientPostAuthRedirect();
           router.push(targetUrl);
         }
       });
@@ -106,8 +120,7 @@ export default function LoginPage() {
         return;
       }
 
-      const pendingPrompt = typeof window !== "undefined" ? sessionStorage.getItem("pending_prompt") : null;
-      const targetUrl = pendingPrompt ? "/" : "/dashboard";
+      const targetUrl = getClientPostAuthRedirect();
       router.push(targetUrl);
       router.refresh();
     } catch (err: any) {
@@ -123,8 +136,7 @@ export default function LoginPage() {
     setGoogleLoading(true);
 
     try {
-      const pendingPrompt = typeof window !== "undefined" ? sessionStorage.getItem("pending_prompt") : null;
-      const targetUrl = pendingPrompt ? "/" : "/dashboard";
+      const targetUrl = getClientPostAuthRedirect();
 
       const supabase = createClient();
       const { error: authError } = await supabase.auth.signInWithOAuth({
@@ -295,7 +307,10 @@ export default function LoginPage() {
           {/* Footer Link */}
           <p className="text-center text-xs text-slate-600 mt-6">
             Don't have an account?{" "}
-            <Link href="/signup" className="text-purple-600 hover:text-purple-700 font-semibold underline underline-offset-4">
+            <Link
+              href={templateParam ? `/signup?template=${encodeURIComponent(templateParam)}` : "/signup"}
+              className="text-purple-600 hover:text-purple-700 font-semibold underline underline-offset-4"
+            >
               Sign up free
             </Link>
           </p>

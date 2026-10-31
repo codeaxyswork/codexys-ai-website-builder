@@ -5,6 +5,7 @@ import {
   upsertWebsiteMonitoringConfig,
   getWebsiteMonitoringTrends,
   checkAiVisibilityEntitlement,
+  isLiveAiVisibilityEnabled,
 } from "@/lib/ai-visibility";
 
 export async function GET(
@@ -49,6 +50,7 @@ export async function GET(
       // strictly preventing auto-creation or activation of paid monitoring
       return NextResponse.json({
         success: true,
+        liveMode: isLiveAiVisibilityEnabled(),
         entitled: false,
         planName: entitlement.planName,
         planId: entitlement.planId,
@@ -68,7 +70,7 @@ export async function GET(
       });
     }
 
-    // 4. Get existing config or create default config structure for eligible users
+    // 4. Get existing config or create default config structure for eligible users (disabled by default)
     let config = await getWebsiteMonitoringConfig(supabase, websiteId);
 
     if (!config) {
@@ -76,7 +78,7 @@ export async function GET(
         supabase,
         websiteId,
         user.id,
-        { enabled: true, frequency: "daily" },
+        { enabled: false, frequency: "daily" },
         website.title
       );
     }
@@ -111,6 +113,7 @@ export async function GET(
 
     return NextResponse.json({
       success: true,
+      liveMode: isLiveAiVisibilityEnabled(),
       config,
       trends,
       alerts,

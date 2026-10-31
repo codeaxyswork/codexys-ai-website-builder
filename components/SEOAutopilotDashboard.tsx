@@ -2,6 +2,7 @@
 'use client';
 
 import React, { useState, useEffect, useCallback } from 'react';
+import Link from 'next/link';
 import {
   Cpu,
   Play,
@@ -12,17 +13,26 @@ import {
   ShieldCheck,
   Sliders,
   AlertCircle,
+  Lock,
+  ArrowRight,
 } from 'lucide-react';
 import { SEOAutopilotSettings, SEOAutopilotActivity } from '@/lib/seo-opportunities/types';
 
 interface SEOAutopilotDashboardProps {
   websiteId: string;
+  canUseAutopilot?: boolean;
+  userPlan?: string;
 }
 
-export default function SEOAutopilotDashboard({ websiteId }: SEOAutopilotDashboardProps) {
+export default function SEOAutopilotDashboard({
+  websiteId,
+  userPlan = 'free',
+}: SEOAutopilotDashboardProps) {
   const [settings, setSettings] = useState<SEOAutopilotSettings | null>(null);
   const [activities, setActivities] = useState<SEOAutopilotActivity[]>([]);
   const [loading, setLoading] = useState(true);
+  const [isLocked, setIsLocked] = useState(false);
+  const [lockReason, setLockReason] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
   const [runningCycle, setRunningCycle] = useState(false);
 
@@ -30,10 +40,27 @@ export default function SEOAutopilotDashboard({ websiteId }: SEOAutopilotDashboa
     setLoading(true);
     try {
       const res = await fetch(`/api/websites/${websiteId}/seo/autopilot`);
+      if (res.status === 403) {
+        const errData = await res.json().catch(() => ({}));
+        setIsLocked(true);
+        if (errData.error) {
+          setLockReason(errData.error);
+        }
+        setLoading(false);
+        return;
+      }
       if (res.ok) {
         const data = await res.json();
+        setIsLocked(false);
+        setLockReason(null);
         setSettings(data.settings);
-        setActivities(data.activities || []);
+        setActivities(data.activity || data.activities || []);
+      } else {
+        const errData = await res.json().catch(() => ({}));
+        if (res.status === 401 || res.status === 404) {
+          setIsLocked(true);
+          setLockReason(errData.error || 'Access denied.');
+        }
       }
     } catch (err) {
       console.error('Failed to load autopilot data:', err);
@@ -43,6 +70,8 @@ export default function SEOAutopilotDashboard({ websiteId }: SEOAutopilotDashboa
   }, [websiteId]);
 
   useEffect(() => {
+    // Rely strictly on the server API for effective entitlement verification,
+    // which checks base plan (Business/Agency) AND active user_addons (seo_autopilot_fix_agent).
     fetchAutopilotData();
   }, [fetchAutopilotData]);
 
@@ -107,6 +136,45 @@ export default function SEOAutopilotDashboard({ websiteId }: SEOAutopilotDashboa
       <div className="bg-white p-12 rounded-2xl border border-slate-200 text-center font-sans">
         <RotateCw className="w-8 h-8 text-purple-600 animate-spin mx-auto mb-3" />
         <p className="text-sm font-bold text-slate-600">Loading SEO Autopilot Configuration...</p>
+      </div>
+    );
+  }
+
+  // Ineligible / Non-entitled User: Render Polished Locked-Preview Experience
+  if (isLocked) {
+    return (
+      <div className="space-y-8 font-sans">
+        <div className="relative overflow-hidden bg-gradient-to-br from-slate-900 via-purple-950 to-slate-900 border border-purple-500/30 rounded-3xl p-8 sm:p-12 text-white shadow-xl shadow-purple-950/20">
+          <div className="absolute top-0 right-0 -mt-12 -mr-12 w-96 h-96 bg-purple-500/10 rounded-full blur-3xl pointer-events-none" />
+          <div className="relative z-10 max-w-3xl space-y-5">
+            <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-purple-500/20 border border-purple-400/30 text-purple-200 text-xs font-bold tracking-wide">
+              <Lock className="w-3.5 h-3.5 text-purple-300" />
+              <span>Business & Agency Feature or Active Add-on</span>
+            </div>
+            
+            <h2 className="text-2xl sm:text-4xl font-black tracking-tight text-white">
+              Autonomous SEO Autopilot & Fix Agent
+            </h2>
+            
+            <p className="text-slate-300 text-sm sm:text-base leading-relaxed">
+              {lockReason ||
+                "Autopilot continuously audits your website, stages low-risk search fixes, and resolves technical gaps autonomously with before/after state rollback protection."}
+            </p>
+
+            <div className="pt-2 flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
+              <Link
+                href="/dashboard/billing"
+                className="inline-flex items-center justify-center gap-2.5 px-6 py-3.5 bg-purple-600 hover:bg-purple-500 active:scale-95 text-white text-sm font-extrabold rounded-xl shadow-lg shadow-purple-600/30 transition-all"
+              >
+                <span>Upgrade to Business or Add Fix Agent</span>
+                <ArrowRight className="w-4 h-4" />
+              </Link>
+              <div className="text-xs text-slate-400 sm:self-center font-medium">
+                Included natively in Business (₹999/mo) and Agency (₹1,999/mo), or via active SEO Autopilot Fix Agent add-on.
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
     );
   }

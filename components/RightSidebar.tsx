@@ -25,9 +25,12 @@ import {
   X,
   Languages,
   AlertTriangle,
+  Globe,
 } from "lucide-react";
 import { GeneratedFile, WebsitePlan, UploadedImage } from "@/lib/types";
 import { SUPPORTED_LANGUAGES, getLanguageConfig } from "@/lib/multilingual";
+import { PublishControls } from "@/components/PublishControls";
+import { SaveState } from "@/components/SaveStatus";
 
 interface RightSidebarProps {
   isOpen: boolean;
@@ -41,6 +44,11 @@ interface RightSidebarProps {
   onAddImages: (files: FileList | null) => void;
   onRemoveImage: (id: string) => void;
   error?: string | null;
+  websiteId?: string | null;
+  isPublished?: boolean;
+  publishedSlug?: string | null;
+  saveState?: SaveState;
+  onPublishStatusChange?: (published: boolean, slug: string | null) => void;
 }
 
 export function RightSidebar({
@@ -55,6 +63,11 @@ export function RightSidebar({
   onAddImages,
   onRemoveImage,
   error,
+  websiteId = null,
+  isPublished = false,
+  publishedSlug = null,
+  saveState = "idle",
+  onPublishStatusChange,
 }: RightSidebarProps) {
   const [activeTab, setActiveTab] = useState<"edit" | "code" | "settings">("edit");
   const [editInstruction, setEditInstruction] = useState("");
@@ -612,6 +625,26 @@ export function RightSidebar({
       {/* Tab 3: Settings */}
       {activeTab === "settings" && (
         <div className="flex-1 p-4 overflow-y-auto custom-scrollbar space-y-6 bg-white">
+          {/* Publishing & Live Status */}
+          <div>
+            <h4 className="text-xs font-bold text-slate-800 uppercase tracking-wider mb-1 flex items-center gap-2">
+              <Globe className="w-3.5 h-3.5 text-purple-600" />
+              <span>Publishing & Live Status</span>
+            </h4>
+            <p className="text-xs text-slate-500 mb-3">
+              Publish your website live to the web or manage your published URL.
+            </p>
+            <PublishControls
+              websiteId={websiteId}
+              isPublished={isPublished}
+              publishedSlug={publishedSlug}
+              saveState={saveState}
+              files={files}
+              compact={false}
+              onStatusChange={onPublishStatusChange}
+            />
+          </div>
+
           <div>
             <h4 className="text-xs font-bold text-slate-800 uppercase tracking-wider mb-1 flex items-center gap-2">
               <Sliders className="w-3.5 h-3.5 text-purple-600" />

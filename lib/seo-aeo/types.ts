@@ -23,7 +23,7 @@ export interface DiscoveredQuestion {
   id: string;
   question: string;
   source: 'content_audit' | 'gsc' | 'faq_section';
-  intent: 'informational' | 'transactional' | 'navigational';
+  intent: 'informational' | 'commercial' | 'transactional' | 'navigational';
   hasDirectAnswer: boolean;
   pagePath: string;
   suggestedAnswerSnippet?: string;

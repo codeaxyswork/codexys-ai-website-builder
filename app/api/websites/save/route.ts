@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createClient } from "@/utils/supabase/server";
-import { GeneratedFile, WebsitePlan } from "@/lib/types";
-import { deriveWebsiteTitle } from "@/lib/website-title-helper";
+import { createClient } from "../../../../utils/supabase/server";
+import { GeneratedFile, WebsitePlan } from "../../../../lib/types";
+import { deriveWebsiteTitle } from "../../../../lib/website-title-helper";
 
 export async function POST(req: NextRequest) {
   try {
@@ -30,9 +30,23 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const htmlContent = files.find((f) => f.path.endsWith("index.html"))?.content || "";
-    const cssContent = files.find((f) => f.path.endsWith("styles.css"))?.content || "";
-    const jsContent = files.find((f) => f.path.endsWith("script.js"))?.content || "";
+    const htmlFiles = files.filter((f) => f.path.endsWith(".html") || f.path.endsWith(".htm"));
+    const primaryCss =
+      files.find((f) => f.path.endsWith("styles.css"))?.content ||
+      files.find((f) => f.path.endsWith("style.css"))?.content ||
+      files.find((f) => f.path.endsWith(".css"))?.content ||
+      "";
+    const primaryJs =
+      files.find((f) => f.path.endsWith("script.js"))?.content ||
+      files.find((f) => f.path.endsWith("main.js"))?.content ||
+      files.find((f) => f.path.endsWith(".js"))?.content ||
+      "";
+
+    // Embed full file manifest in design_plan for lossless multi-page & asset recovery
+    const fullPlan = {
+      ...(plan || {}),
+      _raw_files: files,
+    };
 
     // Generate clean website title
     let title = deriveWebsiteTitle(plan, files, prompt);
@@ -50,13 +64,28 @@ export async function POST(req: NextRequest) {
     let targetWebsiteId = websiteId;
 
     if (targetWebsiteId) {
-      // Update existing website
+      // 1. Validate ownership before updating
+      const { data: existingWebsite, error: checkError } = await supabase
+        .from("websites")
+        .select("id, user_id")
+        .eq("id", targetWebsiteId)
+        .maybeSingle();
+
+      if (checkError || !existingWebsite) {
+        return NextResponse.json({ error: "Website not found." }, { status: 404 });
+      }
+
+      if (existingWebsite.user_id !== user.id) {
+        return NextResponse.json({ error: "Unauthorized access to website." }, { status: 403 });
+      }
+
+      // 2. Update existing website metadata and full plan
       const { error: updateError } = await supabase
         .from("websites")
         .update({
           title,
           prompt: prompt || "",
-          design_plan: plan || {},
+          design_plan: fullPlan,
           updated_at: new Date().toISOString(),
         })
         .eq("id", targetWebsiteId)
@@ -67,28 +96,35 @@ export async function POST(req: NextRequest) {
         return NextResponse.json({ error: updateError.message }, { status: 500 });
       }
 
-      // Update page contents
-      const { error: pageError } = await supabase
-        .from("website_pages")
-        .update({
-          html_content: htmlContent,
-          css_content: cssContent,
-          js_content: jsContent,
-          updated_at: new Date().toISOString(),
-        })
-        .eq("website_id", targetWebsiteId)
-        .eq("user_id", user.id);
+      // 3. Upsert all HTML pages in website_pages
+      for (const pageFile of htmlFiles) {
+        const { data: existingPage } = await supabase
+          .from("website_pages")
+          .select("id")
+          .eq("website_id", targetWebsiteId)
+          .eq("path", pageFile.path)
+          .maybeSingle();
 
-      if (pageError) {
-        // If page row didn't exist for some reason, insert it
-        await supabase.from("website_pages").insert({
-          website_id: targetWebsiteId,
-          user_id: user.id,
-          path: "index.html",
-          html_content: htmlContent,
-          css_content: cssContent,
-          js_content: jsContent,
-        });
+        if (existingPage) {
+          await supabase
+            .from("website_pages")
+            .update({
+              html_content: pageFile.content,
+              css_content: primaryCss,
+              js_content: primaryJs,
+              updated_at: new Date().toISOString(),
+            })
+            .eq("id", existingPage.id);
+        } else {
+          await supabase.from("website_pages").insert({
+            website_id: targetWebsiteId,
+            user_id: user.id,
+            path: pageFile.path,
+            html_content: pageFile.content,
+            css_content: primaryCss,
+            js_content: primaryJs,
+          });
+        }
       }
     } else {
       // Create new website with unique slug
@@ -99,7 +135,7 @@ export async function POST(req: NextRequest) {
           title,
           slug: cleanSlug,
           prompt: prompt || "",
-          design_plan: plan || {},
+          design_plan: fullPlan,
         })
         .select("id")
         .single();
@@ -111,15 +147,19 @@ export async function POST(req: NextRequest) {
 
       targetWebsiteId = newWebsite.id;
 
-      // Insert index page
-      await supabase.from("website_pages").insert({
+      // Insert all pages in website_pages
+      const pagesToInsert = htmlFiles.map((hf) => ({
         website_id: targetWebsiteId,
         user_id: user.id,
-        path: "index.html",
-        html_content: htmlContent,
-        css_content: cssContent,
-        js_content: jsContent,
-      });
+        path: hf.path,
+        html_content: hf.content,
+        css_content: primaryCss,
+        js_content: primaryJs,
+      }));
+
+      if (pagesToInsert.length > 0) {
+        await supabase.from("website_pages").insert(pagesToInsert);
+      }
     }
 
     return NextResponse.json({
@@ -128,10 +168,11 @@ export async function POST(req: NextRequest) {
       title,
       slug: cleanSlug,
     });
-  } catch (err: any) {
+  } catch (err: unknown) {
+    const errorMsg = err instanceof Error ? err.message : "Failed to save website.";
     console.error("Save Website Error:", err);
     return NextResponse.json(
-      { error: err?.message || "Failed to save website." },
+      { error: errorMsg },
       { status: 500 }
     );
   }

@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { createServerClient } from "@supabase/ssr";
 import { type EmailOtpType } from "@supabase/supabase-js";
 import { cookies } from "next/headers";
+import { resolveServerPostAuthRedirect } from "@/lib/auth-redirect";
 
 export async function GET(request: Request) {
   try {
@@ -9,15 +10,21 @@ export async function GET(request: Request) {
     const code = requestUrl.searchParams.get("code");
     const token_hash = requestUrl.searchParams.get("token_hash");
     const type = requestUrl.searchParams.get("type") as EmailOtpType | null;
-    const next = requestUrl.searchParams.get("next") ?? "/dashboard";
+    const rawNext = requestUrl.searchParams.get("next");
+    const rawTemplate = requestUrl.searchParams.get("template");
+
+    const safeNext = resolveServerPostAuthRedirect({
+      templateParam: rawTemplate,
+      nextParam: rawNext,
+    });
 
     const forwardedHost = request.headers.get("x-forwarded-host");
     const isLocalEnv = process.env.NODE_ENV === "development";
 
-    let targetUrl = `${requestUrl.origin}${next}`;
+    let targetUrl = `${requestUrl.origin}${safeNext}`;
     if (!isLocalEnv && forwardedHost) {
       const protocol = request.headers.get("x-forwarded-proto") || "https";
-      targetUrl = `${protocol}://${forwardedHost}${next}`;
+      targetUrl = `${protocol}://${forwardedHost}${safeNext}`;
     }
 
     const baseUrl = !isLocalEnv && forwardedHost

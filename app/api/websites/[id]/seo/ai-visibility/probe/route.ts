@@ -231,22 +231,49 @@ export async function POST(
         targetProviders
       );
 
-      // Refund safeguard: If in live mode and ALL providers failed or timed out, refund atomically
-      if (
-        eligibility.liveMode &&
-        deductedCredits > 0 &&
-        batchResult.successCount === 0
-      ) {
+      // Refund safeguard: Atomic & idempotent refunds for complete or partial batch failures
+      if (eligibility.liveMode && deductedCredits > 0) {
         const adminDb = createAdminClient();
-        await refundProbeCredits(
-          adminDb || supabase,
-          user.id,
-          websiteId,
-          deductedCredits,
-          `All ${batchResult.totalProviders} batch providers failed`,
-          probeActionKey
-        );
-        deductedCredits = 0;
+        if (batchResult.successCount === 0) {
+          // All requested providers failed or timed out: full refund
+          await refundProbeCredits(
+            adminDb || supabase,
+            user.id,
+            websiteId,
+            deductedCredits,
+            `All ${batchResult.totalProviders} batch providers failed`,
+            `${probeActionKey}:full_failure`
+          );
+          deductedCredits = 0;
+        } else if (batchResult.successCount === 1 && deductedCredits > 1) {
+          // Only 1 provider succeeded: fair charge is 1 credit (single provider rate), refund remaining
+          const refundAmount = deductedCredits - 1;
+          const refunded = await refundProbeCredits(
+            adminDb || supabase,
+            user.id,
+            websiteId,
+            refundAmount,
+            `Partial batch failure: only 1 of ${batchResult.totalProviders} providers succeeded`,
+            `${probeActionKey}:partial_failure_1`
+          );
+          if (refunded) {
+            deductedCredits = 1;
+          }
+        } else if (batchResult.successCount === 2 && deductedCredits > 2) {
+          // 2 providers succeeded: fair charge is 2 credits, refund remaining
+          const refundAmount = deductedCredits - 2;
+          const refunded = await refundProbeCredits(
+            adminDb || supabase,
+            user.id,
+            websiteId,
+            refundAmount,
+            `Partial batch failure: only 2 of ${batchResult.totalProviders} providers succeeded`,
+            `${probeActionKey}:partial_failure_2`
+          );
+          if (refunded) {
+            deductedCredits = 2;
+          }
+        }
       }
 
       // Persist results for each provider (failure-isolated)
@@ -301,7 +328,7 @@ export async function POST(
         websiteId,
         deductedCredits,
         `Provider failed: ${result.errorMessage || result.status}`,
-        probeActionKey
+        `${probeActionKey}:single_failure`
       );
       deductedCredits = 0;
     }

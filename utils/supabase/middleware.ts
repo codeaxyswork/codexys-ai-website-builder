@@ -1,5 +1,6 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
+import { resolveServerPostAuthRedirect } from "@/lib/auth-redirect";
 
 export async function updateSession(request: NextRequest) {
   let supabaseResponse = NextResponse.next({
@@ -188,10 +189,20 @@ export async function updateSession(request: NextRequest) {
       return applyResponseCookies(NextResponse.redirect(url));
     }
 
-    // Redirect authenticated users away from /login and /signup to /dashboard
+    // Redirect authenticated users away from /login and /signup to /dashboard (or preserved template destination)
     if (user && (pathname.startsWith("/login") || pathname.startsWith("/signup"))) {
+      const templateParam = request.nextUrl.searchParams.get("template");
+      const nextParam = request.nextUrl.searchParams.get("next") || request.nextUrl.searchParams.get("redirect");
+      const safeTarget = resolveServerPostAuthRedirect({
+        templateParam,
+        nextParam,
+      });
+
       const url = request.nextUrl.clone();
-      url.pathname = "/dashboard";
+      const targetParsed = new URL(safeTarget, request.nextUrl.origin);
+      url.pathname = targetParsed.pathname;
+      url.search = targetParsed.search;
+
       return applyResponseCookies(NextResponse.redirect(url));
     }
 

@@ -19,7 +19,7 @@ export async function POST(req: NextRequest) {
     }
 
     const body = await req.json();
-    const { files, instruction, images, websiteId, conversationLanguage, websiteLanguage } = body;
+    const { files, instruction, images, websiteId, conversationLanguage, websiteLanguage, plan } = body;
 
     if (!files || !Array.isArray(files) || files.length === 0) {
       return NextResponse.json(
@@ -117,13 +117,15 @@ export async function POST(req: NextRequest) {
       result = await editWebsite(files as GeneratedFile[], instruction.trim(), images, {
         conversationLanguage,
         websiteLanguage,
+        existingPlan: plan,
       });
 
       if (!result || !result.files || result.files.length === 0) {
         throw new Error("AI edit produced empty website files.");
       }
-    } catch (editErr: any) {
-      console.warn("Website edit failed, refunding credits:", editErr?.message || editErr);
+    } catch (editErr: unknown) {
+      const editErrMsg = editErr instanceof Error ? editErr.message : String(editErr);
+      console.warn("Website edit failed, refunding credits:", editErrMsg);
       await refundCredits(user.id, CREDIT_COSTS.AI_EDIT, refundAction, websiteId);
       throw editErr;
     }
@@ -136,18 +138,19 @@ export async function POST(req: NextRequest) {
     }
 
     return NextResponse.json(result, { status: 200 });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("API /api/edit Error:", error);
-    const errorMessage = error?.message || "An unexpected error occurred during edit.";
+    const errObj = error as { message?: string; statusCode?: number; status?: number } | null;
+    const errorMessage = errObj?.message || "An unexpected error occurred during edit.";
     const isConfigError = errorMessage.includes("GEMINI_API_KEY");
     const isCapacityOr503 =
-      error?.statusCode === 503 ||
-      error?.status === 503 ||
+      errObj?.statusCode === 503 ||
+      errObj?.status === 503 ||
       errorMessage.includes("503") ||
       errorMessage.includes("high demand") ||
       errorMessage.includes("UNAVAILABLE");
 
-    const status = isConfigError ? 400 : isCapacityOr503 ? 503 : (error?.statusCode || error?.status || 500);
+    const status = isConfigError ? 400 : isCapacityOr503 ? 503 : (errObj?.statusCode || errObj?.status || 500);
     const headers: Record<string, string> = {};
     if (status === 503) {
       headers["Retry-After"] = "5";
@@ -157,16 +160,27 @@ export async function POST(req: NextRequest) {
   }
 }
 
+type SupabaseServerClient = Awaited<ReturnType<typeof createClient>>;
+
 async function saveEditedWebsiteToDb(
-  supabase: any,
+  supabase: SupabaseServerClient,
   userId: string,
   websiteId: string,
   plan: WebsitePlan,
   files: GeneratedFile[]
 ) {
-  const htmlContent = files.find((f) => f.path.endsWith("index.html"))?.content || "";
-  const cssContent = files.find((f) => f.path.endsWith("styles.css"))?.content || "";
-  const jsContent = files.find((f) => f.path.endsWith("script.js"))?.content || "";
+  const htmlFiles = files.filter((f) => f.path.endsWith(".html") || f.path.endsWith(".htm"));
+  const htmlContent = files.find((f) => f.path.endsWith("index.html"))?.content || htmlFiles[0]?.content || "";
+  const cssContent =
+    files.find((f) => f.path.endsWith("styles.css"))?.content ||
+    files.find((f) => f.path.endsWith("style.css"))?.content ||
+    files.find((f) => f.path.endsWith(".css"))?.content ||
+    "";
+  const jsContent =
+    files.find((f) => f.path.endsWith("script.js"))?.content ||
+    files.find((f) => f.path.endsWith("main.js"))?.content ||
+    files.find((f) => f.path.endsWith(".js"))?.content ||
+    "";
 
   const { error: webError } = await supabase
     .from("websites")

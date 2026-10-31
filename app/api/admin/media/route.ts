@@ -32,7 +32,10 @@ export async function GET() {
       created_at: m.created_at,
     }));
 
-    const totalStorageBytes = formattedMedia.reduce((sum, m) => sum + m.file_size_bytes, 0);
+    const totalStorageBytes = formattedMedia.reduce(
+      (sum: number, m: { file_size_bytes: number }) => sum + m.file_size_bytes,
+      0
+    );
 
     return NextResponse.json({
       totalStorageBytes,

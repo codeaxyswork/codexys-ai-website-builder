@@ -25,12 +25,30 @@ export async function GET() {
       return NextResponse.json({ error: error.message }, { status: 500 });
     }
 
-    const websites = (rawWebsites || []).map((w) => {
-      const derived = deriveWebsiteTitle(w.design_plan, null, w.prompt);
-      const isTitleClean = w.title && w.title.length <= 45 && !w.title.toLowerCase().includes("see i don't") && !w.title.toLowerCase().includes("create a");
+    interface RawWebsiteRecord {
+      id: string;
+      title?: string | null;
+      slug: string;
+      prompt?: string | null;
+      design_plan?: unknown;
+      is_published?: boolean | null;
+      published_slug?: string | null;
+      custom_domain?: string | null;
+      custom_domain_verified?: boolean | null;
+      custom_domain_status?: string | null;
+      created_at: string;
+      updated_at: string;
+      website_seo?: unknown;
+      [key: string]: unknown;
+    }
+
+    const websites = (rawWebsites || []).map((w: RawWebsiteRecord) => {
+      const derived = deriveWebsiteTitle(w.design_plan as any, null, w.prompt || undefined);
+      const titleStr = typeof w.title === "string" ? w.title : "";
+      const isTitleClean = titleStr && titleStr.length <= 45 && !titleStr.toLowerCase().includes("see i don't") && !titleStr.toLowerCase().includes("create a");
       return {
         ...w,
-        title: isTitleClean ? w.title : derived,
+        title: isTitleClean ? titleStr : derived,
       };
     });
 

@@ -44,19 +44,22 @@ export async function GET() {
       .from("ai_credit_transactions")
       .select("credits_used, created_at");
 
-    const totalCreditsUsed = (creditTrans || []).reduce((sum, t) => sum + (t.credits_used || 0), 0);
+    const totalCreditsUsed = (creditTrans || []).reduce(
+      (sum: number, t: { credits_used?: number | null }) => sum + (t.credits_used || 0),
+      0
+    );
     const creditsUsedToday = (creditTrans || [])
-      .filter((t) => t.created_at >= todayISO)
-      .reduce((sum, t) => sum + (t.credits_used || 0), 0);
+      .filter((t: { created_at: string }) => t.created_at >= todayISO)
+      .reduce((sum: number, t: { credits_used?: number | null }) => sum + (t.credits_used || 0), 0);
     const creditsUsedMonth = (creditTrans || [])
-      .filter((t) => t.created_at >= firstOfMonthISO)
-      .reduce((sum, t) => sum + (t.credits_used || 0), 0);
+      .filter((t: { created_at: string }) => t.created_at >= firstOfMonthISO)
+      .reduce((sum: number, t: { credits_used?: number | null }) => sum + (t.credits_used || 0), 0);
 
     // 4. Subscriptions Stats
     const { data: subs } = await supabase.from("subscriptions").select("plan_id, status");
-    const freeCount = (subs || []).filter((s) => s.plan_id === "free").length;
-    const proCount = (subs || []).filter((s) => s.plan_id === "pro").length;
-    const agencyCount = (subs || []).filter((s) => s.plan_id === "agency").length;
+    const freeCount = (subs || []).filter((s: { plan_id: string | null }) => s.plan_id === "free").length;
+    const proCount = (subs || []).filter((s: { plan_id: string | null }) => s.plan_id === "pro").length;
+    const agencyCount = (subs || []).filter((s: { plan_id: string | null }) => s.plan_id === "agency").length;
 
     // 5. Mock Revenue Stats
     const { data: transactions } = await supabase
@@ -64,10 +67,13 @@ export async function GET() {
       .select("amount, created_at")
       .eq("status", "completed");
 
-    const totalMockRevenue = (transactions || []).reduce((sum, t) => sum + (t.amount || 0), 0);
+    const totalMockRevenue = (transactions || []).reduce(
+      (sum: number, t: { amount?: number | null }) => sum + (t.amount || 0),
+      0
+    );
     const monthlyMockRevenue = (transactions || [])
-      .filter((t) => t.created_at >= firstOfMonthISO)
-      .reduce((sum, t) => sum + (t.amount || 0), 0);
+      .filter((t: { created_at: string }) => t.created_at >= firstOfMonthISO)
+      .reduce((sum: number, t: { amount?: number | null }) => sum + (t.amount || 0), 0);
 
     return NextResponse.json({
       users: {

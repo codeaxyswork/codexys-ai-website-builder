@@ -45,13 +45,16 @@ export async function GET(
       );
     }
 
-    // Verify entitlement / feature access (e.g., advanced_integrations or basic_seo)
-    const usage = await getUserUsage(user.id);
-    const planId = usage?.plan?.id || "free";
-    const allowed = canUseFeature(planId, "basic_seo") || canUseFeature(planId, "advanced_integrations");
-    if (!allowed) {
+    // Verify entitlement / feature access (advanced_integrations required)
+    const usage = await getUserUsage(user.id, supabase);
+    const planId = (usage?.plan?.id || "free").toLowerCase().trim();
+    if (!canUseFeature(planId, "advanced_integrations")) {
       return NextResponse.json(
-        { error: "Google Ads integration requires an active subscription plan." },
+        {
+          error: "Google Ads integration requires an active Agency subscription plan.",
+          code: "UPGRADE_REQUIRED",
+          requiredTier: "agency",
+        },
         { status: 403 }
       );
     }

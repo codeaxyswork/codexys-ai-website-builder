@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/utils/supabase/server";
-import { checkCreditBalance, deductCredits, refundCredits } from "@/lib/billing";
+import { checkCreditBalance, deductCredits, refundCredits, getUserUsage } from "@/lib/billing";
 import { checkRateLimit } from "@/lib/rate-limit";
 import { CREDIT_COSTS } from "@/lib/constants";
 import { GoogleGenAI } from "@google/genai";
@@ -42,6 +42,20 @@ export async function POST(
 
     if (webErr || !website) {
       return NextResponse.json({ error: "Website not found or access denied." }, { status: 404 });
+    }
+
+    // Server-side Paid Plan Entitlement Check (Starter, Pro, Business, or Agency required)
+    const usage = await getUserUsage(user.id, supabase);
+    const planId = (usage?.plan?.id || "free").toLowerCase().trim();
+    if (planId === "free") {
+      return NextResponse.json(
+        {
+          error: "AI blog article generation requires an active paid subscription (Starter, Pro, Business, or Agency).",
+          code: "UPGRADE_REQUIRED",
+          requiredTier: "starter",
+        },
+        { status: 403 }
+      );
     }
 
     // 3. Parse Request Body

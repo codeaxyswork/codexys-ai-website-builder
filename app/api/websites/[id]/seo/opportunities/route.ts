@@ -67,10 +67,10 @@ export async function GET(req: NextRequest, { params }: RouteParams) {
     const allOpps = opportunities || [];
     const summary = {
       total: allOpps.length,
-      critical: allOpps.filter((o) => o.priority === "Critical").length,
-      high: allOpps.filter((o) => o.priority === "High").length,
-      medium: allOpps.filter((o) => o.priority === "Medium").length,
-      low: allOpps.filter((o) => o.priority === "Low").length,
+      critical: allOpps.filter((o: { priority?: string }) => o.priority === "Critical").length,
+      high: allOpps.filter((o: { priority?: string }) => o.priority === "High").length,
+      medium: allOpps.filter((o: { priority?: string }) => o.priority === "Medium").length,
+      low: allOpps.filter((o: { priority?: string }) => o.priority === "Low").length,
     };
 
     return NextResponse.json({

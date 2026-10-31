@@ -2,7 +2,27 @@ import { createServerClient } from "@supabase/ssr";
 import { createClient as createSupabaseDirectClient } from "@supabase/supabase-js";
 import { cookies } from "next/headers";
 
+let _testClientOverride: any = null;
+let _testAdminClientOverride: any = null;
+
+export function setTestClientOverride(client: any, adminClient?: any) {
+  if (process.env.NODE_ENV === "production") {
+    throw new Error("Test client overrides are strictly prohibited in production environment.");
+  }
+  _testClientOverride = client;
+  _testAdminClientOverride = adminClient || client;
+}
+
+export function resetTestClientOverride() {
+  _testClientOverride = null;
+  _testAdminClientOverride = null;
+}
+
 export async function createClient() {
+  if (process.env.NODE_ENV !== "production" && _testClientOverride) {
+    return _testClientOverride;
+  }
+
   let cookieStore: any = null;
   try {
     cookieStore = await cookies();
@@ -66,6 +86,14 @@ export function isServiceRoleConfigured(): boolean {
 }
 
 export function createAdminClient() {
+  if (process.env.NODE_ENV !== "production") {
+    if (_testAdminClientOverride) {
+      return _testAdminClientOverride;
+    }
+    if (_testClientOverride) {
+      return _testClientOverride;
+    }
+  }
   const supabaseUrl = (process.env.NEXT_PUBLIC_SUPABASE_URL || "").trim();
   if (!supabaseUrl || !supabaseUrl.startsWith("http")) {
     throw new Error(

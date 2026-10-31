@@ -4,6 +4,8 @@ import React, { useEffect, useState } from "react";
 import Link from "next/link";
 import { createClient } from "@/utils/supabase/client";
 import { SaveStatus, SaveState } from "@/components/SaveStatus";
+import { PublishControls } from "@/components/PublishControls";
+import { GeneratedFile } from "@/lib/types";
 import {
   PlusCircle,
   RefreshCw,
@@ -28,6 +30,7 @@ interface HeaderProps {
   isPublished?: boolean;
   publishedSlug?: string | null;
   saveState?: SaveState;
+  files?: GeneratedFile[];
   onPublishStatusChange?: (published: boolean, slug: string | null) => void;
 }
 
@@ -43,6 +46,7 @@ export function Header({
   isPublished = false,
   publishedSlug = null,
   saveState = "idle",
+  files = [],
   onPublishStatusChange,
 }: HeaderProps) {
   const [user, setUser] = useState<any>(null);
@@ -166,6 +170,17 @@ export function Header({
               <RefreshCw className={`w-3.5 h-3.5 text-purple-600 ${isGenerating ? "animate-spin" : ""}`} />
               <span className="hidden sm:inline">Regenerate</span>
             </button>
+
+            {/* Stage 8: Publish Controls & Live Status */}
+            <PublishControls
+              websiteId={websiteId}
+              isPublished={isPublished}
+              publishedSlug={publishedSlug}
+              saveState={saveState}
+              files={files}
+              compact={true}
+              onStatusChange={onPublishStatusChange}
+            />
 
             {/* Primary Next-Step Action: Go to Dashboard */}
             <Link

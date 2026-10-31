@@ -41,7 +41,7 @@ export async function POST(
       .eq("website_id", id)
       .eq("user_id", user.id);
 
-    const hasHtml = pages && pages.some((p) => p.html_content && p.html_content.trim().length > 0);
+    const hasHtml = pages && pages.some((p: { html_content?: string | null }) => p.html_content && p.html_content.trim().length > 0);
     if (!hasHtml) {
       return NextResponse.json(
         { error: "Website must have valid page content before publishing." },

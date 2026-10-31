@@ -1,4 +1,4 @@
-import { createClient } from "@/utils/supabase/server";
+import { createClient, createAdminClient } from "@/utils/supabase/server";
 
 export interface AdminUserContext {
   user: any;
@@ -77,23 +77,70 @@ export async function isUserSuspended(userId: string): Promise<boolean> {
   }
 }
 
+function redactSensitiveData(obj: any): any {
+  if (obj === null || obj === undefined) return obj;
+  if (typeof obj !== "object") {
+    if (typeof obj === "string") {
+      if (/^Bearer\s+/i.test(obj) || /^sk_(?:live|test)_/i.test(obj) || /^sbp_[a-f0-9]/i.test(obj)) {
+        return "[REDACTED]";
+      }
+    }
+    return obj;
+  }
+  if (Array.isArray(obj)) {
+    return obj.map(redactSensitiveData);
+  }
+  const SENSITIVE_KEY_REGEX = /password|passwd|secret|token|apikey|api_key|authorization|bearer|credential|private_key/i;
+  const sanitized: Record<string, any> = {};
+  for (const [k, v] of Object.entries(obj)) {
+    if (SENSITIVE_KEY_REGEX.test(k)) {
+      sanitized[k] = "[REDACTED]";
+    } else if (typeof v === "object" && v !== null) {
+      sanitized[k] = redactSensitiveData(v);
+    } else if (typeof v === "string" && (/^Bearer\s+/i.test(v) || /^sk_(?:live|test)_/i.test(v) || /^sbp_[a-f0-9]/i.test(v))) {
+      sanitized[k] = "[REDACTED]";
+    } else {
+      sanitized[k] = v;
+    }
+  }
+  return sanitized;
+}
+
 export async function logAdminAction(params: {
   adminId: string;
   actionType: string;
   targetUserId?: string;
   targetWebsiteId?: string;
   details?: Record<string, any>;
-}) {
+}): Promise<{ success: boolean; error?: string }> {
   try {
-    const supabase = await createClient();
-    await supabase.from("admin_audit_logs").insert({
+    const supabase = createAdminClient();
+    const sanitizedDetails = redactSensitiveData(params.details || {});
+
+    const { error: auditErr } = await supabase.from("admin_audit_logs").insert({
       admin_id: params.adminId,
       action_type: params.actionType,
       target_user_id: params.targetUserId || null,
       target_website_id: params.targetWebsiteId || null,
-      details: params.details || {},
+      details: sanitizedDetails,
     });
-  } catch (err) {
-    console.error("Failed to log admin action:", err);
+
+    if (auditErr) {
+      console.error(
+        `[ADMIN_AUDIT_LOG_ERROR] Failed to record audit log for action "${params.actionType}":`,
+        auditErr.message
+      );
+      return { success: false, error: auditErr.message };
+    }
+
+    return { success: true };
+  } catch (err: any) {
+    const msg = err?.message || String(err);
+    console.error(
+      `[ADMIN_AUDIT_LOG_EXCEPTION] Unexpected error while recording audit log for action "${params.actionType}":`,
+      msg
+    );
+    return { success: false, error: msg };
   }
 }
+

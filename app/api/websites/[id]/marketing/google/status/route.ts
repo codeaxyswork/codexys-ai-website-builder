@@ -38,7 +38,9 @@ export async function GET(
       return NextResponse.json({ error: execErr.message }, { status: 500 });
     }
 
-    const googleExecutions = (executions || []).filter((e) => {
+    const googleExecutions = (executions || []).filter((e: {
+      approval_snapshot?: { strategy?: { channel?: string }; selectedCustomerId?: string | null } | null;
+    }) => {
       const snap = e.approval_snapshot || {};
       return snap.strategy?.channel === "GOOGLE_SEARCH_ADS" || Boolean(snap.selectedCustomerId);
     });

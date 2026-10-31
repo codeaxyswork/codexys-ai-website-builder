@@ -97,7 +97,7 @@ export async function executeWebsiteMonitoringRun(
       config.brandName,
       config.promptCategories,
       config.customPrompts,
-      config.maxProbesPerExecution || 5
+      config.maxProbesPerExecution || (triggerType === "scheduled" ? 1 : 5)
     );
 
     const probeInputs = controlledPrompts.map((cp) => ({
