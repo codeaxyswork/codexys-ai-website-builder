@@ -232,6 +232,16 @@ export function assemblePreviewDoc(
     // Ensure external scripts don't block DOM parsing/ready state
     doc = doc.replace(/<script\b(?![^>]*\b(defer|async)\b)([^>]*\bsrc\s*=\s*[^>]+)>/gi, '<script defer $2>');
 
+    // If CSS is provided, replace redundant relative stylesheet link to prevent network 404s
+    if (css && css.trim()) {
+      doc = doc.replace(/<link\b[^>]*\brel=["']stylesheet["'][^>]*\bhref=["'](style|styles)\.css["'][^>]*>/gi, '<!-- inlined stylesheet -->');
+    }
+
+    // If JS is provided, replace redundant relative script tag to prevent network 404s
+    if (js && js.trim()) {
+      doc = doc.replace(/<script\b[^>]*\bsrc=["'](app|script|scripts|main)\.js["'][^>]*><\/script>/gi, '<!-- inlined script -->');
+    }
+
     // Inject CSS into <head> if provided and not already present
     if (css && css.trim()) {
       const styleTag = `<style>\n/* CAPTURED STYLES */\n${css}\n</style>`;

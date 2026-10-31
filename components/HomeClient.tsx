@@ -1,7 +1,7 @@
 "use client";
 
-import React, { useState, useEffect, useRef } from "react";
-import { useRouter } from "next/navigation";
+import React, { useState, useEffect, useRef, useCallback } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { createClient } from "@/utils/supabase/client";
 import { Header } from "@/components/Header";
 import { LandingView } from "@/components/LandingView";
@@ -12,10 +12,16 @@ import { CodeaxysAIAssistant } from "@/components/CodeaxysAIAssistant";
 import { SaveState } from "@/components/SaveStatus";
 import { GeneratedFile, WebsitePlan, GenerationResponse, UploadedImage } from "@/lib/types";
 import { isValidTemplateId } from "@/lib/auth-redirect";
-import { AutoSaveEngine, getLocalDraft, clearLocalDraft } from "@/lib/autosave-manager";
+import { AutoSaveEngine, getLocalDraft, saveLocalDraft, clearLocalDraft } from "@/lib/autosave-manager";
 
-export function HomeClient() {
+interface HomeClientProps {
+  initialTemplate?: string;
+  initialId?: string;
+}
+
+export function HomeClient({ initialTemplate, initialId }: HomeClientProps = {}) {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [prompt, setPrompt] = useState<string>("");
   const [files, setFiles] = useState<GeneratedFile[]>([]);
   const [plan, setPlan] = useState<WebsitePlan | null>(null);
@@ -35,6 +41,11 @@ export function HomeClient() {
 
   // Authentication State
   const [user, setUser] = useState<any>(null);
+
+  // Guards against duplicate concurrent loads
+  const loadedTemplateIdRef = useRef<string | null>(null);
+  const isLoadingTemplateRef = useRef<boolean>(false);
+  const loadedWebsiteIdRef = useRef<string | null>(null);
 
   // AutoSave Engine Reference
   const autoSaveEngineRef = useRef<AutoSaveEngine | null>(null);
@@ -73,11 +84,20 @@ export function HomeClient() {
   }
 
   async function loadTemplate(templateId: string) {
+    if (!templateId || !isValidTemplateId(templateId)) return;
+    const cleanId = templateId.trim().toLowerCase();
+
+    // Prevent duplicate or concurrent requests for the same template
+    if (loadedTemplateIdRef.current === cleanId || isLoadingTemplateRef.current) {
+      return;
+    }
+
+    isLoadingTemplateRef.current = true;
     setIsLoadingSavedWebsite(true);
     setError(null);
 
     try {
-      const response = await fetch(`/api/templates/${encodeURIComponent(templateId)}`);
+      const response = await fetch(`/api/templates/${encodeURIComponent(cleanId)}`);
       const data = await response.json();
 
       if (!response.ok || data.error) {
@@ -86,6 +106,7 @@ export function HomeClient() {
       }
 
       if (data.files && data.files.length > 0) {
+        loadedTemplateIdRef.current = cleanId;
         setFiles(data.files);
         setPlan(data.plan || null);
         const promptText = data.template?.name
@@ -95,14 +116,22 @@ export function HomeClient() {
         setGenerationStage("complete");
         setIsSidebarOpen(true);
 
-        // Immediately buffer in local draft and trigger background save
-        autoSaveWebsite(data.files, data.plan || null, promptText, null, false);
+        // Immediately write to local storage for crash/refresh recovery
+        saveLocalDraft(data.files, data.plan || null, promptText, null, 1);
+
+        // If user is currently authenticated, trigger background save to server
+        const supabase = createClient();
+        const { data: authData } = await supabase.auth.getUser();
+        if (authData?.user) {
+          autoSaveWebsite(data.files, data.plan || null, promptText, null, false);
+        }
       }
     } catch (err: unknown) {
       console.error("Failed to load selected template:", err);
       setError("Could not load the selected template.");
     } finally {
       setIsLoadingSavedWebsite(false);
+      isLoadingTemplateRef.current = false;
     }
   }
 
@@ -222,18 +251,32 @@ export function HomeClient() {
     }
   }, []);
 
-  // Load saved website if ?id=... query parameter exists, or load template if ?template=... exists, or restore local draft
+  // Synchronize URL query parameter state (both on load and on client-side router navigation)
+  const currentTemplateQuery = searchParams?.get("template") || initialTemplate || null;
+  const currentIdQuery = searchParams?.get("id") || initialId || null;
+
+  const handleSelectTemplate = useCallback((templateId: string) => {
+    if (!isValidTemplateId(templateId)) return;
+    const cleanId = templateId.trim().toLowerCase();
+    loadTemplate(cleanId);
+    if (typeof window !== "undefined") {
+      const newUrl = `/?template=${encodeURIComponent(cleanId)}`;
+      window.history.pushState({ path: newUrl }, "", newUrl);
+    }
+  }, []);
+
   useEffect(() => {
     if (typeof window === "undefined") return;
-    const urlParams = new URLSearchParams(window.location.search);
-    const idParam = urlParams.get("id");
-    const templateParam = urlParams.get("template");
 
-    if (idParam && idParam !== currentWebsiteId) {
-      loadSavedWebsite(idParam);
-    } else if (templateParam && isValidTemplateId(templateParam)) {
-      loadTemplate(templateParam);
-    } else if (!idParam && !templateParam && files.length === 0) {
+    if (currentIdQuery && currentIdQuery !== loadedWebsiteIdRef.current) {
+      loadedWebsiteIdRef.current = currentIdQuery;
+      loadSavedWebsite(currentIdQuery);
+    } else if (currentTemplateQuery && isValidTemplateId(currentTemplateQuery)) {
+      const cleanTemplate = currentTemplateQuery.trim().toLowerCase();
+      if (loadedTemplateIdRef.current !== cleanTemplate && !isLoadingTemplateRef.current) {
+        loadTemplate(cleanTemplate);
+      }
+    } else if (!currentIdQuery && !currentTemplateQuery && files.length === 0) {
       // Check for recoverable draft
       const draft = getLocalDraft();
       if (draft && draft.files && draft.files.length > 0) {
@@ -246,7 +289,7 @@ export function HomeClient() {
         setIsSidebarOpen(true);
       }
     }
-  }, [currentWebsiteId, files.length]);
+  }, [currentTemplateQuery, currentIdQuery]);
 
   const handleAddImages = (fileList: FileList | null) => {
     if (!fileList || fileList.length === 0) return;
@@ -321,7 +364,13 @@ export function HomeClient() {
 
       if (!response.ok || data.error) {
         if (response.status === 401) {
-          router.push("/login?reason=generation_required");
+          if (typeof window !== "undefined" && loadedTemplateIdRef.current) {
+            sessionStorage.setItem("pending_template", loadedTemplateIdRef.current);
+            sessionStorage.setItem("pending_prompt", promptToRun);
+            router.push(`/login?reason=template_edit&template=${encodeURIComponent(loadedTemplateIdRef.current)}`);
+          } else {
+            router.push("/login?reason=generation_required");
+          }
           return;
         }
         const cleanMsg = formatCleanErrorMessage(data.error);
@@ -431,7 +480,13 @@ export function HomeClient() {
 
       if (!response.ok || data.error) {
         if (response.status === 401) {
-          router.push("/login?reason=generation_required");
+          if (typeof window !== "undefined" && loadedTemplateIdRef.current) {
+            sessionStorage.setItem("pending_template", loadedTemplateIdRef.current);
+            sessionStorage.setItem("pending_prompt", instruction);
+            router.push(`/login?reason=template_edit&template=${encodeURIComponent(loadedTemplateIdRef.current)}`);
+          } else {
+            router.push("/login?reason=generation_required");
+          }
           return;
         }
         setError(formatCleanErrorMessage(data.error));
@@ -456,6 +511,8 @@ export function HomeClient() {
   };
 
   const handleNewProject = () => {
+    loadedTemplateIdRef.current = null;
+    loadedWebsiteIdRef.current = null;
     clearLocalDraft(currentWebsiteId);
     clearLocalDraft(null);
     setFiles([]);
@@ -537,6 +594,7 @@ export function HomeClient() {
             uploadedImages={uploadedImages}
             onAddImages={handleAddImages}
             onRemoveImage={handleRemoveImage}
+            onSelectTemplate={handleSelectTemplate}
           />
         ) : (
           /* Workspace View: Light Preview Canvas + Collapsible White Right Sidebar */

@@ -254,6 +254,12 @@ export class AutoSaveEngine {
       const data = await response.json();
 
       if (!response.ok || !data.success) {
+        if (response.status === 401) {
+          // Unauthenticated session: safely keep in localStorage draft without infinite retry loop
+          this.isSaving = false;
+          this.config.onStatusChange("idle");
+          return;
+        }
         throw new Error(data.error || "Save request failed");
       }
 

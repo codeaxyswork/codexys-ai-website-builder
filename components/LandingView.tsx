@@ -121,6 +121,7 @@ interface LandingViewProps {
   uploadedImages: UploadedImage[];
   onAddImages: (files: FileList) => void;
   onRemoveImage: (id: string) => void;
+  onSelectTemplate?: (templateId: string) => void;
 }
 
 const DEFAULT_SAMPLE_PROMPT = "Create a premium luxury car showroom website called Velocity Motors.";
@@ -135,6 +136,7 @@ export function LandingView({
   uploadedImages,
   onAddImages,
   onRemoveImage,
+  onSelectTemplate,
 }: LandingViewProps) {
   const [isListening, setIsListening] = useState(false);
   const [selectedLang, setSelectedLang] = useState<string>("auto");
@@ -862,7 +864,7 @@ export function LandingView({
       </section>
 
       {/* SECTION 4: AI BUILT TEMPLATES SHOWCASE */}
-      <AIBuiltTemplatesShowcase />
+      <AIBuiltTemplatesShowcase onSelectTemplate={onSelectTemplate} />
 
       {/* SECTION 5: AI EDITING SHOWCASE */}
       <section className="py-24 px-6 sm:px-12 bg-gradient-to-b from-slate-50 via-purple-50/20 to-slate-50 border-b border-slate-200/80 relative overflow-hidden">

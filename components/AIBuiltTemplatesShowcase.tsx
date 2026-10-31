@@ -23,7 +23,11 @@ import {
 import { TEMPLATES_DATA, type TemplateItem } from "@/lib/template-registry";
 export { TEMPLATES_DATA, type TemplateItem };
 
-export function AIBuiltTemplatesShowcase() {
+interface AIBuiltTemplatesShowcaseProps {
+  onSelectTemplate?: (templateId: string) => void;
+}
+
+export function AIBuiltTemplatesShowcase({ onSelectTemplate }: AIBuiltTemplatesShowcaseProps = {}) {
   const router = useRouter();
   const [selectedTemplate, setSelectedTemplate] = useState<TemplateItem | null>(null);
   const [isHovered, setIsHovered] = useState(false);
@@ -101,7 +105,11 @@ export function AIBuiltTemplatesShowcase() {
 
         if (activeUser) {
           handleClosePreview();
-          router.push(`/?template=${encodeURIComponent(template.id)}`);
+          if (onSelectTemplate) {
+            onSelectTemplate(template.id);
+          } else {
+            router.push(`/?template=${encodeURIComponent(template.id)}`);
+          }
         } else {
           if (typeof window !== "undefined") {
             sessionStorage.setItem("pending_template", template.id);
@@ -117,7 +125,7 @@ export function AIBuiltTemplatesShowcase() {
         router.push(`/login?reason=template_edit&template=${encodeURIComponent(template.id)}`);
       }
     },
-    [handleClosePreview, router]
+    [handleClosePreview, router, onSelectTemplate]
   );
 
   // Close full-screen preview with ESC key
