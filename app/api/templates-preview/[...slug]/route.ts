@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import fs from "fs";
 import path from "path";
+import { getTemplateById } from "@/lib/template-registry";
 
 export const dynamic = "force-dynamic";
 export const maxDuration = 15;
@@ -55,7 +56,9 @@ export async function GET(
 
     // Decode path segments
     const decodedSegments = slug.map((seg) => decodeURIComponent(seg));
-    const templateName = decodedSegments[0];
+    const rawTemplateId = decodedSegments[0];
+    const registered = getTemplateById(rawTemplateId);
+    const templateName = registered ? registered.folderName : rawTemplateId;
 
     // Ensure the template folder actually exists in templates/
     const templateDirPath = path.resolve(TEMPLATES_DIR, templateName);
