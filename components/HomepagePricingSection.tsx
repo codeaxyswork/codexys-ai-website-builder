@@ -11,7 +11,7 @@ import {
   DIGITAL_MARKETING_FEATURES,
   ADDON_PRICE_MONTHLY,
   ADDON_PRICE_ANNUAL,
-} from "@/app/pricing/page";
+} from "@/lib/pricing-shared";
 import {
   Sparkles,
   ChevronDown,
