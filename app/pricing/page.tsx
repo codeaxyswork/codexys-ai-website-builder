@@ -218,6 +218,7 @@ export default function PricingPage() {
         </div>
 
         {/* 1. FOUR PRIMARY PRICING CARDS SIDE BY SIDE */}
+        <h2 className="sr-only">Available Subscription Plans</h2>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-12 items-stretch">
           {PRICING_PLANS.map((plan) => {
             const isCurrent = currentPlanId === plan.id;

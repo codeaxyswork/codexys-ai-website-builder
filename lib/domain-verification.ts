@@ -1,5 +1,5 @@
 import dns from "node:dns/promises";
-import { normalizeCustomDomainInput, NormalizedDomainResult } from "./domain-resolver";
+import { normalizeCustomDomainInput, type NormalizedDomainResult } from "./domain-resolver";
 
 export type DomainStatus =
   | "none"

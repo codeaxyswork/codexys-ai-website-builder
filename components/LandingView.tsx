@@ -535,9 +535,9 @@ export function LandingView({
                       <ShieldCheck className="w-4 h-4" />
                     </div>
                     <div className="space-y-1">
-                      <h4 className="font-extrabold text-sm text-slate-900">
+                      <p className="font-extrabold text-sm text-slate-900">
                         You've reached the website limit for your current plan.
-                      </h4>
+                      </p>
                       <p className="text-slate-600 text-xs leading-relaxed">
                         Your Free plan includes 1 website. You can continue editing your existing website from your Dashboard, or upgrade your plan to create more websites.
                       </p>
@@ -626,7 +626,7 @@ export function LandingView({
                 <div className="w-3 h-3 rounded-full bg-red-400" />
                 <div className="w-3 h-3 rounded-full bg-amber-400" />
                 <div className="w-3 h-3 rounded-full bg-emerald-400" />
-                <span className="text-xs font-bold text-slate-600 ml-2 font-mono">codexys.ai/how-it-works</span>
+                <span className="text-xs font-bold text-slate-600 ml-2 font-mono">codeaxys.com/how-it-works</span>
               </div>
               <span className="inline-flex items-center gap-1.5 text-xs font-extrabold text-purple-700 bg-purple-50 px-3 py-1 rounded-full border border-purple-200">
                 <Sparkles className="w-3.5 h-3.5 text-purple-600 animate-spin" /> Simple 4-Step Process
@@ -646,7 +646,7 @@ export function LandingView({
                       Share Idea
                     </span>
                   </div>
-                  <h4 className="text-sm font-bold text-white">Share Your Idea</h4>
+                  <h3 className="text-sm font-bold text-white">Share Your Idea</h3>
                   <p className="text-xs text-slate-400 mt-1 leading-relaxed">
                     Type or speak what kind of website you want to create.
                   </p>
@@ -668,7 +668,7 @@ export function LandingView({
                       AI Build
                     </span>
                   </div>
-                  <h4 className="text-sm font-bold text-white">We Build Your Website</h4>
+                  <h3 className="text-sm font-bold text-white">We Build Your Website</h3>
                   <p className="text-xs text-slate-400 mt-1 leading-relaxed">
                     Our AI creates your website based on your idea.
                   </p>
@@ -696,7 +696,7 @@ export function LandingView({
                       Customize
                     </span>
                   </div>
-                  <h4 className="text-sm font-bold text-white">Make It Yours</h4>
+                  <h3 className="text-sm font-bold text-white">Make It Yours</h3>
                   <p className="text-xs text-purple-200/80 mt-1 leading-relaxed">
                     Ask AI to change anything until the website looks exactly how you want.
                   </p>
@@ -723,7 +723,7 @@ export function LandingView({
                       Go Live
                     </span>
                   </div>
-                  <h4 className="text-sm font-bold text-white">Publish & Go Live</h4>
+                  <h3 className="text-sm font-bold text-white">Publish & Go Live</h3>
                   <p className="text-xs text-slate-400 mt-1 leading-relaxed">
                     Publish your website and connect your own domain when you're ready.
                   </p>
@@ -776,7 +776,7 @@ export function LandingView({
               <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm space-y-2 font-mono text-xs">
                 <div className="flex items-center justify-between text-purple-700 font-bold border-b border-slate-100 pb-2">
                   <span className="flex items-center gap-1.5">
-                    <Sparkles className="w-3.5 h-3.5 text-purple-600" /> Codexys AI Engine
+                    <Sparkles className="w-3.5 h-3.5 text-purple-600" /> Codeaxys AI Engine
                   </span>
                   <span className="bg-emerald-50 text-emerald-700 px-2 py-0.5 rounded text-[10px] border border-emerald-200">
                     Production Ready
@@ -899,7 +899,7 @@ export function LandingView({
                 <div className="w-3 h-3 rounded-full bg-red-500/80" />
                 <div className="w-3 h-3 rounded-full bg-amber-500/80" />
                 <div className="w-3 h-3 rounded-full bg-emerald-500/80" />
-                <span className="text-xs font-bold text-slate-300 ml-3 font-mono">Codexys AI Interactive Editor — live_session.code</span>
+                <span className="text-xs font-bold text-slate-300 ml-3 font-mono">Codeaxys AI Interactive Editor — live_session.code</span>
               </div>
               <span className="inline-flex items-center gap-1.5 text-[10px] font-bold text-emerald-400 bg-emerald-950/80 px-2.5 py-1 rounded-full border border-emerald-800/60 font-mono">
                 <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-ping" /> Realtime Diff Active
@@ -1076,7 +1076,7 @@ export function LandingView({
                 <div className="flex items-center justify-between">
                   <div>
                     <span className="text-[10px] font-bold text-purple-400 uppercase tracking-widest block font-mono">SEO OVERVIEW</span>
-                    <h4 className="text-base sm:text-lg font-bold text-white">Website SEO Health</h4>
+                    <h3 className="text-base sm:text-lg font-bold text-white">Website SEO Health</h3>
                   </div>
                   <span className="text-xs font-bold text-emerald-400 bg-emerald-950 px-2.5 py-1 rounded-lg border border-emerald-800">
                     SEO Health Improving
@@ -1109,9 +1109,9 @@ export function LandingView({
                     <span className="text-emerald-400 font-bold font-sans">Optimized</span>
                   </div>
                   <div className="text-[11px] text-emerald-400 font-mono truncate">https://yourwebsite.com</div>
-                  <h5 className="text-xs sm:text-sm font-bold text-blue-400 hover:underline cursor-pointer">
+                  <p className="text-xs sm:text-sm font-bold text-blue-400 hover:underline cursor-pointer">
                     Your Business Website | Professional Services
-                  </h5>
+                  </p>
                   <p className="text-[11px] text-slate-300 leading-snug">
                     Explore your services, content, and business information with a clear search friendly website experience.
                   </p>
@@ -1129,7 +1129,7 @@ export function LandingView({
                       Active Recommendations
                     </span>
                   </div>
-                  <h4 className="text-base font-bold text-white">Actionable SEO recommendations</h4>
+                  <h3 className="text-base font-bold text-white">Actionable SEO recommendations</h3>
                   <p className="text-xs text-slate-400 mt-1 leading-relaxed">
                     Review important opportunities, improve key pages, and keep your website’s SEO health moving in the right direction.
                   </p>
@@ -1415,7 +1415,7 @@ export function LandingView({
                 </span>
               </h2>
               <p className="text-slate-300 text-sm sm:text-lg max-w-xl mx-auto font-medium leading-relaxed">
-                Tell Codexys what you want to build and let AI create clean, production-ready code in seconds.
+                Tell Codeaxys what you want to build and let AI create clean, production-ready code in seconds.
               </p>
             </div>
 

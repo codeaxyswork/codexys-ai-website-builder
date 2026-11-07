@@ -20,11 +20,11 @@ export function Footer() {
         <div className="space-y-4">
           <img
             src="/logo.png"
-            alt="Codexys Logo"
+            alt="Codeaxys Logo"
             className="h-7 w-auto object-contain brightness-200"
           />
           <p className="text-xs text-slate-400 leading-relaxed font-medium">
-            Codexys AI Website Builder SaaS. Generate, edit, refine, and publish full web applications with AI.
+            Codeaxys AI Website Builder SaaS. Generate, edit, refine, and publish full web applications with AI.
           </p>
         </div>
 
@@ -99,7 +99,7 @@ export function Footer() {
       </div>
 
       <div className="max-w-6xl mx-auto mt-12 pt-6 border-t border-slate-800 flex flex-col sm:flex-row items-center justify-between text-xs text-slate-500 gap-4">
-        <p>© {new Date().getFullYear()} Codexys AI. All rights reserved.</p>
+        <p>© {new Date().getFullYear()} Codeaxys AI. All rights reserved.</p>
         <p>Powered by Gemini 3.6 Flash Engine</p>
       </div>
     </footer>

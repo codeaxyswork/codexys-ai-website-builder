@@ -108,13 +108,13 @@ export function PromptPanel({
           <div className="p-3.5 rounded-xl border border-indigo-800/80 bg-indigo-950/40 flex flex-col gap-2">
             <div className="flex items-center gap-2 text-xs font-semibold text-indigo-300">
               <Loader2 className="w-4 h-4 text-indigo-400 animate-spin" />
-              <span>Generating with Codexys AI Engine...</span>
+              <span>Generating with Codeaxys AI Engine...</span>
             </div>
             <div className="space-y-1.5 pt-1">
               <div className="flex items-center justify-between text-[11px]">
                 <span className={generationStage === "planning" ? "text-indigo-400 font-medium flex items-center gap-1" : "text-emerald-400 flex items-center gap-1"}>
                   {generationStage === "planning" ? <Loader2 className="w-3 h-3 animate-spin" /> : <CheckCircle2 className="w-3 h-3" />}
-                  1. Codexys Design Planning
+                  1. Codeaxys Design Planning
                 </span>
                 <span className="text-slate-500">
                   {generationStage === "planning" ? "Active" : "Done"}

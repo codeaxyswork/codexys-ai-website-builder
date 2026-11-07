@@ -13,8 +13,64 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Codexys AI Website Generator | Instant Standalone HTML/CSS Builder",
-  description: "Generate custom, standalone websites from text prompts using Codexys AI Engine.",
+  metadataBase: new URL("https://codeaxys.com"),
+  title: {
+    default: "Codeaxys — AI Website Builder, Generator & Marketing Suite",
+    template: "%s | Codeaxys",
+  },
+  description:
+    "Turn your ideas into powerful, responsive websites with Codeaxys. Create, visually edit, optimize with built-in SEO, and publish with custom domains from one intelligent workspace.",
+  keywords: [
+    "AI Website Builder",
+    "AI Website Generator",
+    "Codeaxys",
+    "Text to Website",
+    "No-Code Website Builder",
+    "AI SEO Builder",
+    "Responsive Website Generator",
+    "Automated Website Creation",
+  ],
+  authors: [{ name: "Codeaxys" }],
+  creator: "Codeaxys",
+  publisher: "Codeaxys",
+  alternates: {
+    canonical: "/",
+  },
+  openGraph: {
+    title: "Codeaxys — AI Website Builder, Generator & Marketing Suite",
+    description:
+      "Turn your ideas into powerful, responsive websites with Codeaxys. Create, visually edit, optimize with built-in SEO, and publish with custom domains from one intelligent workspace.",
+    url: "https://codeaxys.com",
+    siteName: "Codeaxys",
+    locale: "en_US",
+    type: "website",
+    images: [
+      {
+        url: "/logo.png",
+        width: 878,
+        height: 160,
+        alt: "Codeaxys — AI Website Builder, Generator & Marketing Suite",
+      },
+    ],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Codeaxys — AI Website Builder, Generator & Marketing Suite",
+    description:
+      "Turn your ideas into powerful, responsive websites with Codeaxys. Create, visually edit, optimize with built-in SEO, and publish with custom domains from one intelligent workspace.",
+    images: ["/logo.png"],
+  },
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      "max-video-preview": -1,
+      "max-image-preview": "large",
+      "max-snippet": -1,
+    },
+  },
 };
 
 export default function RootLayout({

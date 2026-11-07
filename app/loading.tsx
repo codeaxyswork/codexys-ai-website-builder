@@ -8,7 +8,7 @@ export default function Loading() {
           <RefreshCw className="w-6 h-6 animate-spin text-purple-600" />
         </div>
         <div className="text-center">
-          <h3 className="text-sm font-semibold text-slate-800">Loading Codexys AI Platform...</h3>
+          <h3 className="text-sm font-semibold text-slate-800">Loading Codeaxys AI Platform...</h3>
           <p className="text-xs text-slate-400 mt-1">Preparing your workspace</p>
         </div>
       </div>

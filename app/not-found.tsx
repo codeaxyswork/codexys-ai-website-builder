@@ -37,7 +37,7 @@ export default function NotFound() {
         </div>
 
         <div className="pt-4 border-t border-slate-100 text-xs text-slate-400">
-          Codexys AI Website Builder &bull; SaaS Platform
+          Codeaxys AI Website Builder &bull; SaaS Platform
         </div>
       </div>
     </div>

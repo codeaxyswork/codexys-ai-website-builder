@@ -86,6 +86,17 @@ export async function updateSession(request: NextRequest) {
     const host = request.headers.get("host");
     const cleanHost = host ? host.split(":")[0].toLowerCase().trim() : "";
 
+    // Canonical Host Redirect: enforce apex domain codeaxys.com (308 Permanent Redirect)
+    const isWwwHost = cleanHost === "www.codeaxys.com" || (baseDomain !== "localhost" && cleanHost === `www.${baseDomain}`);
+    if (isWwwHost && !cleanHost.includes("localhost") && !cleanHost.includes("127.0.0.1")) {
+      const canonicalUrl = request.nextUrl.clone();
+      canonicalUrl.host = baseDomain;
+      if (request.headers.get("x-forwarded-proto") === "https" || !cleanHost.includes("localhost")) {
+        canonicalUrl.protocol = "https:";
+      }
+      return applyResponseCookies(NextResponse.redirect(canonicalUrl, 308));
+    }
+
     // Ignore static assets, system routes, and API routes
     const isSaaSPath =
       pathname.startsWith("/_next") ||

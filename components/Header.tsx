@@ -86,11 +86,11 @@ export function Header({
           onClick={onNewProject}
           className="flex items-center gap-3 text-left focus:outline-none group cursor-pointer"
         >
-          {/* Codexys Logo */}
+          {/* Codeaxys Logo */}
           <div className="py-1 transition-transform group-hover:scale-105 duration-200">
             <img
               src="/logo.png"
-              alt="Codexys AI Logo"
+              alt="Codeaxys AI Logo"
               className="h-6 sm:h-7 w-auto object-contain"
             />
           </div>
@@ -98,9 +98,9 @@ export function Header({
           <div className="h-4 w-px bg-slate-200 mx-1 hidden sm:block" />
 
           <div className="hidden sm:flex items-center gap-2">
-            <h1 className="font-bold text-slate-900 text-sm tracking-tight">
+            <span className="font-bold text-slate-900 text-sm tracking-tight">
               Agentic Website Builder
-            </h1>
+            </span>
             <span className="px-2 py-0.5 text-[10px] font-extrabold tracking-wider uppercase rounded-md bg-purple-50 text-purple-700 border border-purple-200">
               PRO
             </span>

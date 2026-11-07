@@ -159,7 +159,7 @@ export function DashboardWebsiteList({ initialWebsites, userPlan = "free" }: Das
           No Saved Websites Yet
         </h3>
         <p className="text-xs text-slate-500 max-w-sm mb-6 leading-relaxed">
-          Describe your business or idea, and Codexys AI Engine will generate a standalone HTML, CSS, and JS website instantly.
+          Describe your business or idea, and Codeaxys AI Engine will generate a standalone HTML, CSS, and JS website instantly.
         </p>
         <Link
           href="/"

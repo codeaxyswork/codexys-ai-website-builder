@@ -99,7 +99,7 @@ export function GenerationModal({ isOpen, stage }: GenerationModalProps) {
         </div>
 
         <p className="text-[11px] text-slate-500">
-          Codexys AI Engine • Generates bespoke HTML, CSS & JS
+          Codeaxys AI Engine • Generates bespoke HTML, CSS & JS
         </p>
       </div>
     </div>

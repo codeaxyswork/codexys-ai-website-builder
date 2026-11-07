@@ -352,7 +352,7 @@ export function RightSidebar({
               <span>Refine with AI Instructions</span>
             </h4>
             <p className="text-xs text-slate-500 mb-3">
-              Describe what you want to modify, and Codexys AI will update your code.
+              Describe what you want to modify, and Codeaxys AI will update your code.
             </p>
 
             {/* Visible Refinement Error Alert */}
@@ -658,16 +658,16 @@ export function RightSidebar({
               <div className="p-3.5 rounded-2xl bg-slate-50 border border-slate-200 space-y-2">
                 <span className="text-xs font-semibold text-slate-800 block flex items-center gap-1.5">
                   <ShieldCheck className="w-4 h-4 text-emerald-600" />
-                  <span>Codexys AI Engine</span>
+                  <span>Codeaxys AI Engine</span>
                 </span>
                 <div className="space-y-1 text-[11px] text-slate-600">
                   <div className="flex justify-between py-1 border-b border-slate-200">
                     <span>Model Engine</span>
-                    <span className="font-mono text-slate-900">Codexys AI v3</span>
+                    <span className="font-mono text-slate-900">Codeaxys AI v3</span>
                   </div>
                   <div className="flex justify-between py-1 border-b border-slate-200">
                     <span>Brand Architecture</span>
-                    <span className="font-mono text-purple-700">Codexys AI Platform</span>
+                    <span className="font-mono text-purple-700">Codeaxys AI Platform</span>
                   </div>
                   <div className="flex justify-between py-1">
                     <span>Sandbox Security</span>
