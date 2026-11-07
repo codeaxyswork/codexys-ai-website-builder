@@ -1,0 +1,60 @@
+# Codeaxys
+
+> Codeaxys is an intelligent AI-powered website builder, generator, and marketing suite that turns conversational natural language prompts into complete, responsive, multi-page web applications with built-in SEO automation and custom domain hosting.
+
+Codeaxys (https://codeaxys.com) combines prompt-to-code website creation, visual in-canvas editing, automated technical SEO, answer engine optimization (AEO), and digital marketing tools into a single web-based workspace. It is designed for businesses, agencies, startups, creators, and web professionals.
+
+## Core Pages
+- [Homepage](https://codeaxys.com/): Official marketing website, prompt generator, and live workspace.
+- [Pricing & Plans](https://codeaxys.com/pricing): Transparent pricing tiers (Starter, Pro, Business, Agency) and 10-day free trial details.
+- [Privacy Policy](https://codeaxys.com/privacy-policy): Privacy commitments, GDPR/ePrivacy cookie management, and data protection practices.
+- [Full LLM Documentation](https://codeaxys.com/llms-full.txt): Comprehensive technical specifications, expanded FAQs, and architectural details.
+
+## Verified Core Capabilities
+
+### 1. AI Website Generation & Builder
+- **AI Prompt-to-Website Generation**: Generate complete multi-page, responsive websites from natural language descriptions or voice input.
+- **Visual & Conversational AI Editing**: Edit sections, rewrite text, adjust color palettes, and customize typography directly via AI instructions or visual controls.
+- **Curated Templates**: Responsive website templates tailored for businesses, agencies, ecommerce, medical, hospitality, and professional services.
+- **Clean Source Code Export**: Full HTML, CSS, and clean frontend assets exportable at any time with no proprietary vendor lock-in.
+
+### 2. Website Hosting, Domains & Publishing
+- **One-Click Publishing**: Instant deployment to fast, secure cloud infrastructure with automatic SSL/TLS encryption.
+- **Custom Domain Connection**: Connect custom domain names to any active website slot with automated DNS records and SSL provisioning.
+- **10-Day Free Trial Subdomain**: Test and share websites publicly during the free trial with preserved designs in the dashboard.
+
+### 3. Built-in SEO Intelligence Suite
+- **Technical & On-Page SEO**: Automated generation of XML sitemaps, robots.txt, canonical URLs, semantic HTML headings, and Open Graph social cards.
+- **SEO Command Center**: Centralized health scoring, indexation tracking, and continuous 24/7 monitoring with instant alerts for broken links or ranking shifts.
+- **Answer Engine Optimization (AEO)**: Content structured specifically for generative AI answer engines, including ChatGPT Search, Perplexity, Google Gemini, and Claude.
+- **AI Search Visibility**: Multi-engine citation tracking, brand mention analysis, and generative search rank intelligence.
+- **Topical Authority & Content Studio**: Semantic topic maps, pillar-cluster content architectures, and AI-assisted drafting with real-time SEO scoring.
+- **Competitor Gap Intelligence**: Head-to-head domain benchmarking, keyword overlap analysis, and competitive content gap discovery.
+- **Autonomous SEO Autopilot**: Scheduled autonomous health scans, prioritized optimization recommendations, and 1-click staged fix execution with rollback safeguards.
+
+### 4. Digital Marketing Suite Add-on
+- **Social Media Management**: AI post creation, hashtag generation, content calendar planning, and multi-channel campaign scheduling.
+- **Marketing Campaign Studio**: Meta Graph API integration for user-directed ad campaign setup, ad creative deployment, and performance synchronization.
+- **White-Label Client Reports**: Branded, scheduled PDF and client-ready reporting for digital agencies (available on Agency plan).
+
+## Pricing Plans
+
+- **Free Trial**: 10-day initial trial, 50 AI credits, 1 website slot, fast subdomain hosting. Designs remain safely preserved for 90 days.
+- **Starter Plan**: 1 active website, 100 AI credits/month, 2 GB storage, 1 custom domain connection, Basic SEO Essentials.
+- **Pro Plan**: 3 active websites, 200 AI credits/month, 10 GB storage, custom domain connections, Advanced SEO Intelligence.
+- **Business Plan**: 6 active websites, 400 AI credits/month, 30 GB storage, custom domains, Autonomous SEO Autopilot.
+- **Agency Plan**: 15 active websites, 800 AI credits/month, 100 GB storage, custom domains, White-Label Client Reports, and Team Collaboration.
+- Full Details: https://codeaxys.com/pricing
+
+## Frequently Asked Questions (Summary)
+
+- **What is Codeaxys?** An AI-powered website builder that creates, edits, and manages professional websites from natural language instructions without writing code.
+- **Do I need coding skills?** No. Websites are created and refined using AI prompts and visual editing tools.
+- **Can I connect custom domains?** Yes. All paid plans include custom domain connections with automated SSL certificates.
+- **Can I export my code?** Yes. Clean HTML, CSS, and assets can be exported directly.
+- **Are SEO tools included?** Yes. Basic SEO Essentials are included in all plans; Pro, Business, and Agency include advanced crawls, keyword intelligence, and SEO Autopilot.
+
+## Company & Support Information
+- **Company**: Codeaxys
+- **Website**: https://codeaxys.com
+- **Support Contact**: admin@codeaxys.com

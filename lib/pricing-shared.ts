@@ -37,67 +37,13 @@ import {
 // Existing approved add-on pricing from centralized add-on catalog
 export const ADDON_PRICE_MONTHLY =
   ADDON_CATALOG.digital_marketing_meta_suite?.pricing?.monthlyPriceUnapproved || 349;
+import { PRICING_FAQ_ITEMS } from "@/lib/schema";
+
 export const ADDON_PRICE_ANNUAL =
   ADDON_CATALOG.digital_marketing_meta_suite?.pricing?.annualPriceUnapproved || 3490;
 
-// Approved FAQ items preserved
-export const FAQ_ITEMS = [
-  {
-    question: "What is Codeaxys AI Website Builder?",
-    answer:
-      "Codeaxys is an AI-powered website builder that helps you create, edit, and manage professional websites using simple conversational instructions without needing to write code.",
-  },
-  {
-    question: "Do I need coding knowledge to use Codeaxys?",
-    answer:
-      "No. You can create and customize your website using AI prompts and our visual drag-and-drop editing canvas without any technical coding knowledge.",
-  },
-  {
-    question: "What is included in every plan?",
-    answer:
-      "Every plan includes AI website generation, visual section editing, unlimited page creation, responsive design tools, global styling controls, clean HTML export, free SSL certificates, and essential Basic SEO features.",
-  },
-  {
-    question: "How many websites can I create?",
-    answer:
-      "The number of websites depends on your plan: Starter includes 1 website, Pro includes 3, Business includes 6, and Agency includes 15 websites.",
-  },
-  {
-    question: "Can I connect my own domain?",
-    answer:
-      "Yes. Every plan includes 1 Free Custom Domain connection (1 custom domain on Starter, and 1 custom domain included on Pro, Business, and Agency) with an active paid subscription. Connecting your own domain is included with your subscription.",
-  },
-  {
-    question: "How does the 10-day Free Trial work?",
-    answer:
-      "When you create your first website on the Free plan, it receives a 10-day initial trial with fast hosting (10-Day Free Trial Subdomain included) and 50 AI credits. During this trial, your website is publicly accessible. After 10 days, public visitor access is paused, but your website pages, designs, and content are safely preserved in your dashboard for 90 days. You can upgrade to an active paid plan anytime to restore public hosting and connect custom domains.",
-  },
-  {
-    question: "Is SEO included in all plans?",
-    answer:
-      "All plans include Basic SEO Essentials (on-page metadata, robots.txt, sitemaps, and local Cheerio audits). Advanced SEO tools and intelligence (Technical Crawling, Competitor Analysis, AI Content Suggestions, and GSC Sync) are included in Pro, Business, and Agency plans. Autonomous SEO Autopilot is available on Business and Agency, and White-Label Client Reports are exclusive to Agency.",
-  },
-  {
-    question: "What is the Digital Marketing Suite Add-on?",
-    answer:
-      "The Digital Marketing Suite is an optional add-on available for any plan. It equips your websites with advanced SEO intelligence, multi-engine AI search visibility tracking, autonomous SEO autopilot, AI content marketing, marketing campaign planning, and advanced reporting.",
-  },
-  {
-    question: "What are AI Credits used for?",
-    answer:
-      "AI Credits are used for AI operations such as initial website generation (10 credits), AI visual editing (5 credits), full page regeneration (15 credits), and AI SEO content suggestions (5 credits). Credits replenish every 30 days without rollover.",
-  },
-  {
-    question: "Can I upgrade my plan later?",
-    answer:
-      "Yes. You can upgrade your subscription at any time as your website and business requirements grow.",
-  },
-  {
-    question: "Can I use Codeaxys for business and client websites?",
-    answer:
-      "Yes. Codeaxys is built for businesses, agencies, freelancers, startups, and professionals. Agency plans additionally include White-Label Client Reports and multi-user team collaboration.",
-  },
-];
+// Approved FAQ items preserved from single source of truth
+export const FAQ_ITEMS = PRICING_FAQ_ITEMS;
 
 export interface PricingPlanMeta {
   id: string;

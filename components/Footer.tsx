@@ -2,18 +2,9 @@
 
 import React from "react";
 import Link from "next/link";
+import { triggerOpenCookiePreferences } from "@/lib/cookie-consent";
 
 export function Footer() {
-  const scrollToGenerator = () => {
-    if (typeof window === "undefined") return;
-    const el = document.getElementById("hero-generator");
-    if (el) {
-      el.scrollIntoView({ behavior: "smooth" });
-    } else {
-      window.location.href = "/#hero-generator";
-    }
-  };
-
   return (
     <footer className="bg-slate-950 text-slate-400 py-16 px-6 sm:px-12 border-t border-slate-800">
       <div className="max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-4 gap-10">
@@ -32,18 +23,28 @@ export function Footer() {
           <h4 className="text-xs font-bold text-white uppercase tracking-wider mb-4">Product</h4>
           <ul className="space-y-2 text-xs font-medium">
             <li>
-              <button onClick={scrollToGenerator} className="hover:text-white transition-colors cursor-pointer">
-                AI Generator
-              </button>
-            </li>
-            <li>
-              <Link href="/#how-it-works" className="hover:text-white transition-colors">
-                How It Works
+              <Link href="/features/ai-website-builder" className="hover:text-white transition-colors">
+                AI Website Builder
               </Link>
             </li>
             <li>
-              <Link href="/#features" className="hover:text-white transition-colors">
-                Features
+              <Link href="/features/visual-editor" className="hover:text-white transition-colors">
+                In-Canvas Visual Editor
+              </Link>
+            </li>
+            <li>
+              <Link href="/features/website-migration" className="hover:text-white transition-colors">
+                Website Migration
+              </Link>
+            </li>
+            <li>
+              <Link href="/features/seo-autopilot" className="hover:text-white transition-colors">
+                SEO Autopilot
+              </Link>
+            </li>
+            <li>
+              <Link href="/features/ai-search-visibility" className="hover:text-white transition-colors">
+                AI Search Visibility
               </Link>
             </li>
             <li>
@@ -63,8 +64,22 @@ export function Footer() {
               </Link>
             </li>
             <li>
+              <button
+                type="button"
+                onClick={triggerOpenCookiePreferences}
+                className="hover:text-white transition-colors cursor-pointer text-left"
+              >
+                Cookie Settings
+              </button>
+            </li>
+            <li>
               <a href="mailto:admin@codeaxys.com" className="hover:text-white transition-colors">
                 Support Email
+              </a>
+            </li>
+            <li>
+              <a href="/llms.txt" className="hover:text-white transition-colors">
+                llms.txt (AI Context)
               </a>
             </li>
             <li>

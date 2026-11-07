@@ -1,6 +1,7 @@
 "use client";
 
 import React from "react";
+import Link from "next/link";
 import {
   Gauge,
   Sliders,
@@ -10,6 +11,7 @@ import {
   Cpu,
   CheckCircle2,
   RotateCw,
+  ArrowRight,
 } from "lucide-react";
 
 interface SEOFeature {
@@ -25,6 +27,10 @@ interface SEOCategory {
   icon: React.ElementType;
   features: SEOFeature[];
   hasWorkflow?: boolean;
+  categoryLink?: {
+    text: string;
+    href: string;
+  };
 }
 
 const SEO_CATEGORIES: SEOCategory[] = [
@@ -115,6 +121,10 @@ const SEO_CATEGORIES: SEOCategory[] = [
     summary:
       "Answer Engine Optimization (AEO) and conversational search tracking across ChatGPT, Perplexity, Gemini, and Claude.",
     icon: Bot,
+    categoryLink: {
+      text: "Explore AI Search Visibility",
+      href: "/features/ai-search-visibility",
+    },
     features: [
       {
         name: "AEO / AI Search",
@@ -190,6 +200,10 @@ const SEO_CATEGORIES: SEOCategory[] = [
     summary:
       "Autonomous background optimization engine with safe staging, recurring health scans, and guided remediation.",
     icon: Cpu,
+    categoryLink: {
+      text: "Explore SEO Autopilot",
+      href: "/features/seo-autopilot",
+    },
     features: [
       {
         name: "SEO Autopilot",
@@ -298,6 +312,19 @@ export function SEOCapabilitiesShowcase() {
                       <span className="text-[10px] font-bold text-purple-900 block truncate">Execute</span>
                     </div>
                   </div>
+                </div>
+              )}
+
+              {/* Contextual Feature Page Link */}
+              {category.categoryLink && (
+                <div className="mt-4 pt-3 border-t border-slate-100 flex items-center justify-end">
+                  <Link
+                    href={category.categoryLink.href}
+                    className="text-xs font-bold text-purple-600 hover:text-purple-700 flex items-center gap-1 group-hover:translate-x-0.5 transition-transform"
+                  >
+                    <span>{category.categoryLink.text}</span>
+                    <ArrowRight className="w-3.5 h-3.5" />
+                  </Link>
                 </div>
               )}
             </div>

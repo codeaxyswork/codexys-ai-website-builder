@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { getPrivacyPolicyStructuredData } from "@/lib/schema";
 
 export const metadata: Metadata = {
   title: "Privacy Policy",
@@ -38,5 +39,16 @@ export default function PrivacyPolicyLayout({
 }: {
   children: React.ReactNode;
 }) {
-  return <>{children}</>;
+  const privacyStructuredData = getPrivacyPolicyStructuredData();
+  return (
+    <>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify(privacyStructuredData),
+        }}
+      />
+      {children}
+    </>
+  );
 }

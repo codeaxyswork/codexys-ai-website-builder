@@ -16,7 +16,10 @@ import {
   Globe,
   Bot,
   Megaphone,
+  Cookie,
+  SlidersHorizontal,
 } from "lucide-react";
+import { triggerOpenCookiePreferences } from "@/lib/cookie-consent";
 
 export default function PrivacyPolicyPage() {
   const lastUpdated = "September 29, 2026";
@@ -237,10 +240,109 @@ export default function PrivacyPolicyPage() {
                 <span>Google Gemini API (Generative website planning, content generation, and strategy assistance).</span>
               </li>
               <li className="flex items-start gap-2.5">
+                <strong className="text-white font-semibold min-w-32">Website Analytics:</strong>
+                <span>Google Analytics 4 (Google LLC) — Aggregated, non-personally identifiable traffic volume, page popularity metrics, and marketing website performance (strictly subject to visitor consent).</span>
+              </li>
+              <li className="flex items-start gap-2.5">
                 <strong className="text-white font-semibold min-w-32">Advertising API:</strong>
                 <span>Meta Graph API (User-directed campaign setup, ad creative deployment, and performance sync).</span>
               </li>
             </ul>
+          </div>
+        </section>
+
+        {/* Section 5.1: Cookies & Tracking Technologies */}
+        <section className="space-y-4 bg-slate-900/60 border border-slate-800/80 rounded-2xl p-6 sm:p-8 backdrop-blur-xs">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-xl bg-purple-500/10 border border-purple-500/20 text-purple-400 flex items-center justify-center shrink-0">
+              <Cookie className="w-5 h-5" />
+            </div>
+            <h2 className="text-xl sm:text-2xl font-bold text-white tracking-tight">
+              5.1 Cookies, Analytics & Consent Preferences
+            </h2>
+          </div>
+          <div className="text-xs sm:text-sm text-slate-300 leading-relaxed space-y-4 font-normal">
+            <p>
+              Codeaxys uses cookies and browser storage technologies on our public marketing website (codeaxys.com) to ensure platform security and measure website engagement. We categorize cookies as follows:
+            </p>
+            <ul className="space-y-3 list-none">
+              <li className="flex items-start gap-2.5">
+                <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0 mt-0.5" />
+                <span>
+                  <strong className="text-white font-semibold">Strictly Necessary Cookies:</strong> Essential for user session authentication (e.g. Supabase auth tokens), account login states, CSRF defense, and secure system routing. These cannot be disabled because core platform functionality depends on them.
+                </span>
+              </li>
+              <li className="flex items-start gap-2.5">
+                <CheckCircle2 className="w-4 h-4 text-purple-400 shrink-0 mt-0.5" />
+                <span>
+                  <strong className="text-white font-semibold">Optional Analytics Cookies (Google Analytics 4):</strong> With your explicit consent, Google Analytics 4 (provided by Google LLC) sets client cookies (such as <code className="text-xs bg-slate-800 px-1 py-0.5 rounded text-purple-300">_ga</code> and <code className="text-xs bg-slate-800 px-1 py-0.5 rounded text-purple-300">_ga_*</code>) to calculate aggregate visitor counts, popular pages, and referral sources.
+                </span>
+              </li>
+            </ul>
+
+            <div className="p-4 rounded-xl bg-purple-950/30 border border-purple-800/40 space-y-2">
+              <h4 className="text-xs font-bold text-white uppercase tracking-wider">
+                Privacy-First Analytics Guarantees
+              </h4>
+              <ul className="text-xs text-slate-300 space-y-1.5 list-disc list-inside">
+                <li>Analytics tracking is disabled by default until you click &quot;Accept All&quot; or enable analytics in your cookie settings.</li>
+                <li>URLs are stripped of sensitive query parameters (such as email addresses, tokens, names, or passwords) before being transmitted.</li>
+                <li>No form input values, user website prompts, or private database contents are collected.</li>
+                <li>No cross-site advertising or third-party behavioral tracking profiles are created.</li>
+              </ul>
+            </div>
+
+            <div className="space-y-2">
+              <h4 className="text-xs font-bold text-white uppercase tracking-wider">
+                Your Cookie Banner Choices
+              </h4>
+              <ul className="space-y-2 text-xs text-slate-300 list-none">
+                <li className="flex items-start gap-2">
+                  <span className="text-purple-400 font-bold shrink-0">• Accept All:</span>
+                  <span>Enables optional Google Analytics 4 tracking and stores your approval locally for 180 days.</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <span className="text-purple-400 font-bold shrink-0">• Reject All:</span>
+                  <span>Declines optional analytics tracking, keeps analytics disabled, purges any existing analytics cookies, and preserves your refusal for 180 days without repeated prompts.</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <span className="text-purple-400 font-bold shrink-0">• Customize:</span>
+                  <span>Opens the preference center to review cookie categories and independently toggle optional analytics before saving.</span>
+                </li>
+              </ul>
+            </div>
+
+            <p>
+              <strong className="text-white font-semibold">Consent Storage &amp; Expiry:</strong> Your consent preferences are stored locally in your browser storage for 180 days. After 180 days, or if you clear your browser storage, you will be prompted again to refresh your preferences.
+            </p>
+
+            <p>
+              <strong className="text-white font-semibold">How to Change or Withdraw Your Consent:</strong> You have full control over optional cookies. You can review, modify, or immediately withdraw your analytics consent at any time by clicking the{" "}
+              <button
+                type="button"
+                onClick={triggerOpenCookiePreferences}
+                className="text-purple-400 underline font-semibold hover:text-purple-300 cursor-pointer inline-flex items-center gap-1"
+              >
+                <SlidersHorizontal className="w-3.5 h-3.5 inline" />
+                Cookie Settings
+              </button>{" "}
+              link in our website footer or by clicking the button below:
+            </p>
+
+            <div className="pt-2">
+              <button
+                type="button"
+                onClick={triggerOpenCookiePreferences}
+                className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-purple-600 hover:bg-purple-500 text-white text-xs font-semibold transition-all shadow-md shadow-purple-900/30 cursor-pointer"
+              >
+                <SlidersHorizontal className="w-4 h-4" />
+                Manage Cookie Preferences
+              </button>
+            </div>
+
+            <p className="text-[11px] text-slate-500 pt-2 border-t border-slate-800/60">
+              Note: Specific statutory legal entity representations, external data protection officer appointments, or cross-border transfer certificates are subject to formal owner and counsel confirmation.
+            </p>
           </div>
         </section>
 

@@ -1,0 +1,283 @@
+import React from "react";
+import type { Metadata } from "next";
+import { getFeaturePageStructuredData } from "@/lib/schema";
+import { FeaturePageLayout } from "@/components/FeaturePageLayout";
+
+const SLUG = "ai-website-builder";
+const TITLE = "AI Website Builder — Generate Full Websites with AI";
+const DESCRIPTION =
+  "Generate complete, multi-page websites from simple text prompts. Production-ready Next.js code, responsive Tailwind styling, instant live sandbox previews, and one-click publishing.";
+
+const FAQS = [
+  {
+    question: "How does the AI Website Builder generate websites?",
+    answer:
+      "Codeaxys uses Gemini 3.6 Flash and specialized AI web engineering agents. When you enter a prompt describing your business or project, the engine generates complete Next.js 15 components, Tailwind CSS styling, responsive layouts, and interactive UI logic in seconds.",
+  },
+  {
+    question: "Can I generate multiple pages for my website?",
+    answer:
+      "Yes. All plans include unlimited page creation. You can generate multi-page websites with dedicated home, about, services, pricing, contact, and custom pages.",
+  },
+  {
+    question: "Do I own the generated code?",
+    answer:
+      "Yes. Codeaxys generates standard, clean Next.js and React code. You can export your full project files anytime with zero proprietary runtime lock-in.",
+  },
+  {
+    question: "Can I connect my own custom domain?",
+    answer:
+      "Yes. Starter includes 1 custom domain with an active paid subscription, while Pro, Business, and Agency plans include custom domain connections for all your websites.",
+  },
+  {
+    question: "What happens after the 10-day free trial?",
+    answer:
+      "The Free plan provides a 10-day trial with 50 AI credits, 1 website slot, and fast subdomain hosting. After 10 days, public hosting pauses, but your designs and code remain safely preserved in your dashboard for 90 days. Upgrade anytime to restore public hosting.",
+  },
+  {
+    question: "How does Codeaxys compare to legacy builders like Wix or WordPress?",
+    answer:
+      "Unlike legacy builders that rely on heavy plugin ecosystems or drag-and-drop bloat, Codeaxys writes modern, high-speed Next.js code. This gives you top Core Web Vitals, instant loading speeds, and native AI search discoverability.",
+  },
+];
+
+export const metadata: Metadata = {
+  title: TITLE,
+  description: DESCRIPTION,
+  alternates: {
+    canonical: "https://codeaxys.com/features/ai-website-builder",
+  },
+  openGraph: {
+    title: TITLE,
+    description: DESCRIPTION,
+    url: "https://codeaxys.com/features/ai-website-builder",
+    siteName: "Codeaxys",
+    locale: "en_US",
+    type: "website",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: TITLE,
+    description: DESCRIPTION,
+  },
+};
+
+export default function AIWebsiteBuilderPage() {
+  const structuredData = getFeaturePageStructuredData({
+    slug: SLUG,
+    title: TITLE,
+    description: DESCRIPTION,
+    faqs: FAQS,
+  });
+
+  return (
+    <>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }}
+      />
+      <FeaturePageLayout
+        slug={SLUG}
+        featureName="AI Website Builder"
+        badgeText="Prompt-to-Website Engine"
+        heroHeadline="Generate Complete Websites"
+        heroHeadlineAccent="with Plain English AI."
+        heroSubheadline="Turn your ideas into production-ready websites rapidly from natural language instructions. Modern Next.js 15, responsive Tailwind styling, instant live sandboxes, and 1-click publishing."
+        primaryCtaText="Start Building Free"
+        primaryCtaHref="/#hero-generator"
+        secondaryCtaText="View Pricing Plans"
+        secondaryCtaHref="/pricing"
+        trustPoints={[
+          "10-day free trial",
+          "No credit card required",
+          "50 free AI credits",
+          "Export clean Next.js code",
+        ]}
+        explanation={{
+          badge: "Prompt-to-Code Technology",
+          headline: "Stop wrestling with templates. Build with conversational AI.",
+          description:
+            "Traditional website builders force you into rigid templates or complex manual editors that take days to configure. Codeaxys replaces manual development with an autonomous agent that generates production-grade Next.js websites directly from your conversational prompt. You describe your brand, services, and goals, and Codeaxys builds the entire responsive application.",
+          highlights: [
+            "Rapid multi-component generation directly from your prompt",
+            "Semantic HTML5 structure optimized for Core Web Vitals and SEO",
+            "Multi-page architecture with automated navigation and routing",
+            "Full mobile, tablet, and desktop responsiveness out of the box",
+          ],
+          callout: {
+            title: "Production-Grade Next.js 15",
+            description:
+              "Every site generated by Codeaxys is real Next.js and Tailwind code — not a proprietary iframe. Your site is engineered for fast load performance, clean Core Web Vitals, and can be exported cleanly anytime.",
+          },
+        }}
+        capabilities={[
+          {
+            title: "Prompt-to-Website Engine",
+            description:
+              "Enter a prompt in plain English, upload inspiration screenshots, or use voice commands to generate complete multi-section websites instantly.",
+            icon: "sparkles",
+            badge: "Gemini 3.6 Flash",
+          },
+          {
+            title: "Multi-Page Layout Architecture",
+            description:
+              "Generate complete multi-page sites with dedicated pages for About, Services, Case Studies, Pricing, and Contact forms.",
+            icon: "layers",
+            badge: "Unlimited Pages",
+          },
+          {
+            title: "Instant Live Sandbox Preview",
+            description:
+              "Interact with your generated website immediately inside a live preview sandbox with desktop, tablet, and mobile viewport controls.",
+            icon: "laptop",
+            badge: "Interactive Preview",
+          },
+          {
+            title: "Clean Next.js & React Code",
+            description:
+              "Export standard, human-readable Next.js 15 and Tailwind CSS code with zero proprietary lock-in. Host anywhere or keep it on Codeaxys.",
+            icon: "code",
+            badge: "Zero Lock-In",
+          },
+          {
+            title: "Mobile-First Responsive Design",
+            description:
+              "Every layout is automatically tested and styled for fluid responsiveness across iPhones, Android devices, iPads, and large desktop screens.",
+            icon: "smartphone",
+            badge: "100% Fluid",
+          },
+          {
+            title: "One-Click Publishing & Custom Domains",
+            description:
+              "Publish instantly to a free Codeaxys subdomain or attach your own custom domain with automated SSL encryption and global edge CDN.",
+            icon: "globe",
+            badge: "Instant Live",
+          },
+        ]}
+        workflow={{
+          badge: "4-Step Generation Workflow",
+          headline: "From Idea to Live Website in 4 Steps",
+          description:
+            "Watch how quickly you can turn a prompt into a published, high-converting web property.",
+          steps: [
+            {
+              stepNumber: "01",
+              title: "Describe Your Vision",
+              description:
+                "Enter your business name, industry, and desired sections. You can speak your prompt or attach brand images.",
+              badge: "Text or Voice",
+            },
+            {
+              stepNumber: "02",
+              title: "AI Writes Production Code",
+              description:
+                "Codeaxys generates React components, Tailwind styling, and interactive layouts automatically.",
+              badge: "AI Generation",
+            },
+            {
+              stepNumber: "03",
+              title: "Review & Refine Live",
+              description:
+                "Test your site in the interactive sandbox, make visual edits, or chat with AI to refine sections and copy.",
+              badge: "Live Sandbox",
+            },
+            {
+              stepNumber: "04",
+              title: "Publish to the World",
+              description:
+                "Click Publish to deploy your site instantly to a fast edge network or connect your custom brand domain.",
+              badge: "1-Click Deploy",
+            },
+          ],
+        }}
+        useCases={{
+          badge: "Engineered for Every Team",
+          headline: "Who Builds with Codeaxys?",
+          description:
+            "From founders launching their first product to agencies delivering dozens of client sites each month.",
+          personas: [
+            {
+              title: "Startups & Solopreneurs",
+              subtitle: "Launch in Minutes, Not Months",
+              icon: "zap",
+              description:
+                "Test new business concepts, create professional landing pages, and establish credibility without hiring expensive development agencies.",
+              points: [
+                "Launch landing pages in minutes",
+                "Built-in lead capture & booking",
+                "Zero coding required",
+              ],
+            },
+            {
+              title: "Digital Agencies & Freelancers",
+              subtitle: "Deliver Client Sites Faster with AI",
+              icon: "layout",
+              description:
+                "Accelerate your delivery pipeline. Generate client prototypes rapidly, customize visually or via code, and export clean deliverables.",
+              points: [
+                "Export clean portable code",
+                "White-label client reporting",
+                "Manage up to 15 sites per plan",
+              ],
+            },
+            {
+              title: "Growing Businesses",
+              subtitle: "Complete Digital Presence",
+              icon: "shield",
+              description:
+                "Upgrade your existing outdated web presence to modern, lightning-fast Next.js architecture with built-in SEO and AI search visibility.",
+              points: [
+                "Custom domain connections",
+                "Automated SEO optimization",
+                "Fast global edge CDN",
+              ],
+            },
+          ],
+        }}
+        visualShowcase={{
+          badge: "Live Interface Mockup",
+          headline: "The Power of an AI Web Studio in Your Browser",
+          description:
+            "A seamless workspace combining generative AI, live sandboxing, and real-time code inspection.",
+        }}
+        relatedFeatures={[
+          {
+            title: "In-Canvas Visual Editor",
+            description:
+              "Fine-tune every element directly on screen with point-and-click ease and conversational AI prompts.",
+            href: "/features/visual-editor",
+            icon: "sliders",
+            badge: "Dual-Mode Editing",
+          },
+          {
+            title: "Website Migration & Redesign",
+            description:
+              "Import an existing website URL to extract assets, content, and structure with an automated modern redesign.",
+            href: "/features/website-migration",
+            icon: "arrowRightLeft",
+            badge: "URL Importer",
+          },
+          {
+            title: "SEO Autopilot",
+            description:
+              "Continuous 24/7 technical crawl audits, automated issue detection, and 1-click optimization approvals.",
+            href: "/features/seo-autopilot",
+            icon: "settings",
+            badge: "Autonomous Fixes",
+          },
+        ]}
+        faqs={FAQS}
+        finalCta={{
+          badge: "Launch in Minutes",
+          headline: "Build Your Next Website with AI Today",
+          description:
+            "Empowering creators, founders, and digital agencies to build modern websites with Codeaxys.",
+          primaryCtaText: "Start Building Free",
+          primaryCtaHref: "/#hero-generator",
+          secondaryCtaText: "Explore Pricing Plans",
+          secondaryCtaHref: "/pricing",
+        }}
+      />
+    </>
+  );
+}

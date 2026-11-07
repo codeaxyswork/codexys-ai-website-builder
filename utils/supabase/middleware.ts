@@ -64,11 +64,11 @@ export async function updateSession(request: NextRequest) {
       },
     });
 
-    let user: any = null;
+    let user: import("@supabase/supabase-js").User | null = null;
     try {
       const { data } = await supabase.auth.getUser();
       user = data?.user || null;
-    } catch (e) {
+    } catch {
       // Ignore user fetch errors in middleware
     }
 
@@ -83,7 +83,7 @@ export async function updateSession(request: NextRequest) {
 
     const baseDomain = (rawAppDomain && !rawAppDomain.includes("localhost") && !rawAppDomain.includes("vercel.app")) ? rawAppDomain : "codeaxys.com";
 
-    const host = request.headers.get("host");
+    const host = request.headers.get("x-forwarded-host") || request.headers.get("host");
     const cleanHost = host ? host.split(":")[0].toLowerCase().trim() : "";
 
     // Canonical Host Redirect: enforce apex domain codeaxys.com (308 Permanent Redirect)
@@ -109,8 +109,10 @@ export async function updateSession(request: NextRequest) {
       pathname.startsWith("/robots") ||
       pathname.startsWith("/privacy-policy") ||
       pathname.startsWith("/pricing") ||
+      pathname.startsWith("/features") ||
       pathname.startsWith("/media") ||
       pathname.startsWith("/admin") ||
+      pathname.startsWith("/llms") ||
       pathname.startsWith("/maintenance");
 
     const isMainDomain =

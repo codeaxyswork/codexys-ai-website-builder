@@ -45,71 +45,7 @@ import { AIBuiltTemplatesShowcase } from "./AIBuiltTemplatesShowcase";
 import { HomepagePricingSection } from "./HomepagePricingSection";
 import { PlatformOverviewFeatures } from "./PlatformOverviewFeatures";
 import { SEOCapabilitiesShowcase } from "./SEOCapabilitiesShowcase";
-
-const FAQ_ITEMS = [
-  {
-    question: "What is Codeaxys AI Website Builder?",
-    answer:
-      "Codeaxys is an AI powered website builder that helps you create, edit, and manage professional websites using simple instructions without needing to write code.",
-  },
-  {
-    question: "Do I need coding knowledge to use Codeaxys?",
-    answer:
-      "No. You can create and customize your website using AI and visual editing tools without technical coding knowledge.",
-  },
-  {
-    question: "What is included in every plan?",
-    answer:
-      "Every plan includes AI website generation, website editing, unlimited page creation, responsive design tools, global styling controls, and Basic SEO Essentials.",
-  },
-  {
-    question: "How many websites can I create?",
-    answer:
-      "The number of websites depends on your plan. Starter includes 1 website, Pro includes 3, Business includes 6, and Agency includes 15 websites.",
-  },
-  {
-    question: "Can I create multiple pages for my website?",
-    answer: "Yes. All plans include unlimited page creation.",
-  },
-  {
-    question: "Can I connect my own domain?",
-    answer: "Yes. Starter includes 1 custom domain with an active paid subscription. Pro, Business, and Agency plans include custom domain connections for all your websites.",
-  },
-  {
-    question: "How does the 10-day Free Trial work?",
-    answer:
-      "The Free plan provides a 10-day initial trial with 50 AI credits, 1 website slot, and fast subdomain hosting. Your site is publicly live during the 10 days. After 10 days, public hosting is paused, but your website content and designs remain safely preserved in your dashboard for 90 days. You can upgrade to any paid plan to restore public hosting and connect custom domains.",
-  },
-  {
-    question: "Is SEO included in all plans?",
-    answer: "Basic SEO Essentials (meta tags, sitemaps, and robots.txt) are included in all plans. The Advanced SEO Suite (technical crawls, keyword tracking, competitor analysis, and AI recommendations) is available on Pro, Business, and Agency plans.",
-  },
-  {
-    question: "Can I edit my website after it is generated?",
-    answer:
-      "Yes. You can continue editing, refining, and customizing your website after AI generation.",
-  },
-  {
-    question: "Can I upgrade my plan later?",
-    answer:
-      "Yes. You can upgrade your subscription as your website and business requirements grow.",
-  },
-  {
-    question: "What are AI Credits used for?",
-    answer:
-      "AI Credits are used for AI powered operations such as website generation and other AI assisted actions within the platform.",
-  },
-  {
-    question: "Can I use Codeaxys for business websites?",
-    answer:
-      "Yes. Codeaxys can be used to create websites for businesses, agencies, startups, ecommerce businesses, professionals, and many other industries.",
-  },
-  {
-    question: "Do I need separate tools for SEO?",
-    answer:
-      "No. Codeaxys includes its SEO Intelligence Suite directly within the platform, so you can manage your website SEO from the same system.",
-  },
-];
+import { HOMEPAGE_FAQ_ITEMS as FAQ_ITEMS } from "@/lib/schema";
 
 interface LandingViewProps {
   prompt: string;

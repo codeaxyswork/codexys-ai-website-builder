@@ -1,6 +1,7 @@
 "use client";
 
 import React from "react";
+import Link from "next/link";
 import {
   Sparkles,
   ArrowRightLeft,
@@ -9,6 +10,7 @@ import {
   CalendarDays,
   Settings2,
   CheckCircle2,
+  ArrowRight,
 } from "lucide-react";
 
 interface FeatureCardItem {
@@ -17,6 +19,7 @@ interface FeatureCardItem {
   description: string;
   icon: React.ElementType;
   badge: string;
+  href?: string;
 }
 
 const FEATURE_CARDS: FeatureCardItem[] = [
@@ -26,6 +29,7 @@ const FEATURE_CARDS: FeatureCardItem[] = [
     description: "Create professional, responsive websites using AI.",
     icon: Sparkles,
     badge: "Prompt-to-Code · Instant Sandbox",
+    href: "/features/ai-website-builder",
   },
   {
     id: "website-migration",
@@ -33,6 +37,7 @@ const FEATURE_CARDS: FeatureCardItem[] = [
     description: "Migrate existing website content and media.",
     icon: ArrowRightLeft,
     badge: "URL Importer · Preserves Assets",
+    href: "/features/website-migration",
   },
   {
     id: "migration-redesign",
@@ -40,6 +45,7 @@ const FEATURE_CARDS: FeatureCardItem[] = [
     description: "Migrate and transform existing websites with modern, responsive designs.",
     icon: Palette,
     badge: "AI Re-styling · Before/After Snapshots",
+    href: "/features/website-migration",
   },
   {
     id: "seo-intelligence",
@@ -47,6 +53,7 @@ const FEATURE_CARDS: FeatureCardItem[] = [
     description: "Discover SEO issues, keyword opportunities, competitor gaps, and AI search visibility insights.",
     icon: SearchCheck,
     badge: "AEO/GEO Radar · Technical Audits",
+    href: "/features/ai-search-visibility",
   },
   {
     id: "social-media",
@@ -61,6 +68,7 @@ const FEATURE_CARDS: FeatureCardItem[] = [
     description: "Discover SEO opportunities, review prioritized recommendations, and manage proposed optimization fixes.",
     icon: Settings2,
     badge: "Autonomous Fixes · 1-Click Approval",
+    href: "/features/seo-autopilot",
   },
 ];
 
@@ -137,10 +145,21 @@ export function PlatformOverviewFeatures() {
                     </div>
                   </div>
 
-                  {/* Visual Product Capability Pill */}
-                  <div className="pt-3 border-t border-slate-100 flex items-center gap-2 text-[11px] font-semibold text-slate-500">
-                    <span className="w-1.5 h-1.5 rounded-full bg-[#A60BFF] inline-block shrink-0" />
-                    <span className="truncate">{card.badge}</span>
+                  {/* Visual Product Capability Pill & Link */}
+                  <div className="pt-3 border-t border-slate-100 flex items-center justify-between gap-2 text-[11px] font-semibold text-slate-500">
+                    <div className="flex items-center gap-2 truncate">
+                      <span className="w-1.5 h-1.5 rounded-full bg-[#A60BFF] inline-block shrink-0" />
+                      <span className="truncate">{card.badge}</span>
+                    </div>
+                    {card.href && (
+                      <Link
+                        href={card.href}
+                        className="text-purple-600 hover:text-purple-700 font-bold flex items-center gap-1 shrink-0 group-hover:translate-x-0.5 transition-transform"
+                      >
+                        <span>Learn more</span>
+                        <ArrowRight className="w-3 h-3" />
+                      </Link>
+                    )}
                   </div>
                 </div>
               );

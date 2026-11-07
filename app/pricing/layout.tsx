@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { getPricingStructuredData } from "@/lib/schema";
 
 export const metadata: Metadata = {
   title: "Pricing Plans — Simple & Transparent",
@@ -38,6 +39,17 @@ export default function PricingLayout({
 }: {
   children: React.ReactNode;
 }) {
-  return <>{children}</>;
+  const pricingStructuredData = getPricingStructuredData();
+  return (
+    <>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify(pricingStructuredData),
+        }}
+      />
+      {children}
+    </>
+  );
 }
 

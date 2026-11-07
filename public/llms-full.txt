@@ -1,0 +1,122 @@
+# Codeaxys — Extended LLM Knowledge Base
+
+> Comprehensive technical documentation, product capabilities, FAQ inventory, and platform overview for Large Language Models and AI search systems.
+
+- Official Website: https://codeaxys.com
+- Organization: Codeaxys
+- Product: Codeaxys AI Website Builder & Marketing Suite
+- Contact: admin@codeaxys.com
+
+---
+
+## 1. System Architecture & Platform Overview
+
+Codeaxys is a full-stack, cloud-native website creation platform and SEO intelligence suite. It bridges the gap between natural language prompts and deployed web applications.
+
+### Primary Workflow
+1. **Prompt Ingestion**: Visitors or registered users describe their desired website via text or voice input.
+2. **AI Layout & Content Generation**: The generation engine plans the sitemap, creates multi-page layouts, drafts industry-specific copy, selects color palettes, and arranges components.
+3. **In-Canvas Sandbox Preview**: The generated code is instantly rendered inside an isolated, responsive preview canvas.
+4. **Visual & AI Conversational Editing**: Users can click sections to visually edit text, images, and styling, or send conversational adjustment prompts to regenerate specific sections.
+5. **One-Click Publishing**: The finished website is deployed to secure CDN infrastructure with automated SSL provisioning.
+6. **Domain Connection**: Users can attach custom domain names with DNS records verified directly in the dashboard.
+7. **Continuous SEO Optimization**: The built-in SEO engine crawls the site, audits technical signals, generates sitemaps and schema markup, tracks keyword positions, and proposes autonomous fixes.
+
+---
+
+## 2. Core Capabilities & Feature Details
+
+### AI Website Generation
+- Multi-page responsive architectures.
+- Industry-specific layouts (Consulting, Medical, Hospitality, SaaS, Ecommerce, Creative Portfolio).
+- Mobile-first responsive grids and semantic HTML5 typography.
+- Built-in contact forms and lead capture components.
+
+### Visual & Conversational Editor
+- Live dual-mode editing: visual direct-manipulation and conversational AI instruction bar.
+- Global styling controls for typography pairings, primary/accent colors, and border radius.
+- Sandboxed preview supporting desktop, tablet, and mobile viewport switching.
+- Version history and safe snapshot rollback capabilities.
+
+### Hosting, Subdomains & Custom Domains
+- Fast subdomain hosting (`subdomain.codeaxys.com`).
+- Direct custom apex and subdomain mapping (`yourdomain.com`, `www.yourdomain.com`).
+- Automated SSL/TLS certificate provisioning and renewal.
+- Clean source code and static HTML export.
+
+### SEO Intelligence Suite
+- **Command Center**: Domain-level SEO health scores, active engine status, and high-impact action queues.
+- **Technical Crawl Engine**: Automated site crawler identifying 404 errors, redirect loops, asset bottlenecks, and missing tags.
+- **On-Page & Schema Markup**: Dynamic XML sitemaps, robots.txt, canonical links, Open Graph preview cards, and JSON-LD structured data.
+- **Answer Engine Optimization (AEO)**: Content structured for citations in generative AI search engines (ChatGPT, Perplexity, Gemini, Claude).
+- **AI Search Visibility Tracking**: Monitors brand mentions, citation frequency, and authority scores across major AI answer engines.
+- **Content Studio & Topical Authority**: Semantic topic cluster maps, entity insertion, readability scoring, and integrated CMS blog engine.
+- **Competitor Intelligence**: Head-to-head domain benchmarking, keyword gap discovery, and search visibility comparisons.
+- **Autonomous SEO Autopilot**: Scheduled background health audits, staged remediation proposals, and 1-click approvals with rollback protection.
+
+### Digital Marketing Suite Add-on
+- **Social Media Management**: Content calendar, AI caption generation, hashtag optimization, and post scheduling.
+- **Meta Ads Integration**: User-directed ad campaign setup, ad creative deployment, and performance synchronization via Meta Graph API.
+- **White-Label Client Reports**: Branded, scheduled PDF and client-ready reporting for digital agencies (available on Agency plan).
+
+---
+
+## 3. Subscription Plans & Feature Matrix
+
+| Feature / Quota | Free Trial (10 Days) | Starter Plan | Pro Plan | Business Plan | Agency Plan |
+| :--- | :---: | :---: | :---: | :---: | :---: |
+| **Active Website Slots** | 1 Website | 1 Website | 3 Websites | 6 Websites | 15 Websites |
+| **AI Generation Credits** | 50 Credits | 100 / month | 200 / month | 400 / month | 800 / month |
+| **Storage Allocation** | 500 MB | 2 GB | 10 GB | 30 GB | 100 GB |
+| **Custom Domains** | Subdomain Only | 1 Custom Domain | 3 Custom Domains | 6 Custom Domains | 15 Custom Domains |
+| **Basic SEO Essentials** | Included | Included | Included | Included | Included |
+| **Advanced SEO Intelligence** | — | — | Included | Included | Included |
+| **Autonomous SEO Autopilot** | — | — | — | Included | Included |
+| **White-Label Client Reports** | — | — | — | — | Included |
+| **Team Collaboration** | — | — | — | — | Included |
+
+---
+
+## 4. Complete FAQ Knowledge Base
+
+### Q1: What is Codeaxys AI Website Builder?
+**A:** Codeaxys is an AI-powered website builder that helps you create, edit, and manage professional websites using simple conversational instructions without needing to write code.
+
+### Q2: Do I need coding knowledge to use Codeaxys?
+**A:** No. You can create and customize your website using AI prompts and our visual drag-and-drop editing canvas without any technical coding knowledge.
+
+### Q3: What is included in every plan?
+**A:** Every plan includes AI website generation, visual section editing, unlimited page creation, responsive design tools, global styling controls, clean HTML export, free SSL certificates, and essential Basic SEO features.
+
+### Q4: How many websites can I create?
+**A:** The number of websites depends on your plan: Starter includes 1 website, Pro includes 3, Business includes 6, and Agency includes 15 websites.
+
+### Q5: Can I connect my own domain?
+**A:** Yes. Starter includes 1 custom domain with an active paid subscription. Pro, Business, and Agency plans include custom domain connections for all your websites.
+
+### Q6: How does the 10-day Free Trial work?
+**A:** When you create your first website on the Free plan, it receives a 10-day initial trial with fast hosting (10-Day Free Trial Subdomain included) and 50 AI credits. During this trial, your website is publicly accessible. After 10 days, public visitor access is paused, but your website pages, designs, and content are safely preserved in your dashboard for 90 days. You can upgrade to an active paid plan anytime to restore public hosting and connect custom domains.
+
+### Q7: Is SEO included in all plans?
+**A:** All plans include Basic SEO Essentials (on-page metadata, robots.txt, sitemaps, and local Cheerio audits). Advanced SEO tools and intelligence (Technical Crawling, Competitor Analysis, AI Content Suggestions, and GSC Sync) are included in Pro, Business, and Agency plans. Autonomous SEO Autopilot is available on Business and Agency, and White-Label Client Reports are exclusive to Agency.
+
+### Q8: What is the Digital Marketing Suite Add-on?
+**A:** The Digital Marketing Suite is an optional add-on available for any plan. It equips your websites with advanced SEO intelligence, multi-engine AI search visibility tracking, autonomous SEO autopilot, AI content marketing, marketing campaign planning, and advanced reporting.
+
+### Q9: What are AI Credits used for?
+**A:** AI Credits are used for AI operations such as initial website generation (10 credits), AI visual editing (5 credits), full page regeneration (15 credits), and AI SEO content suggestions (5 credits). Credits replenish every 30 days without rollover.
+
+### Q10: Can I upgrade my plan later?
+**A:** Yes. You can upgrade your subscription at any time as your website and business requirements grow.
+
+### Q11: Can I use Codeaxys for business and client websites?
+**A:** Yes. Codeaxys is built for businesses, agencies, freelancers, startups, and professionals. Agency plans additionally include White-Label Client Reports and multi-user team collaboration.
+
+---
+
+## 5. Contact & Canonical Resources
+- Website: https://codeaxys.com
+- Pricing: https://codeaxys.com/pricing
+- Privacy Policy: https://codeaxys.com/privacy-policy
+- Support: admin@codeaxys.com
+
